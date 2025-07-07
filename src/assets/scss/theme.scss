@@ -1,0 +1,34 @@
+:root {
+  --bg-color: #f1f1f1;
+  --bg-color-secondary: rgba(255, 255, 255, 0.84);
+
+  --text-color: rgba(43, 43, 43, 0.71);
+  --text-color-secodary: rgba(255, 255, 255, 0.93);
+  --text-color-third: #fe9330;
+  --text-color-fourth: #353535;
+
+  --text-color-laranja: #fe9330;
+  --text-secondary-laranja: #de7e3e;
+
+  --bg-navbar: #e27602;
+  --bg-navbar-hover: rgba(255, 255, 255, 0.91);
+  --color-text-navbar: #de7e3e;
+}
+
+.dark {
+  --bg-color: #121212;
+  --bg-color-secondary: #282828;
+
+  --text-color: #ffffff;
+  --text-color-secodary: rgba(255, 255, 255, 0.9);
+  --text-color-third: #474747;
+  --text-color-fourth: #e8a052;
+
+  --text-color-laranja: #e8a052;
+  --text-secondary-laranja: #d6925f;
+
+  --bg-navbar: #282828;
+  --bg-navbar-hover: #e8a052;
+  --color-text-navbar: #fff;
+}
+

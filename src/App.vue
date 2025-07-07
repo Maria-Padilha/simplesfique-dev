@@ -1,0 +1,29 @@
+<template>
+  <v-app>
+    <side-bar v-if="$route.path.startsWith('/paginas/')" />
+    <v-main class="mt-5 background-primary">
+      <router-view/>
+      <footer-component v-if="$route.path.startsWith('/paginas/')" />
+    </v-main>
+  </v-app>
+</template>
+
+<script setup>
+import SideBar from "@/components/base/SidebarComponent.vue";
+import FooterComponent from "@/components/base/FooterComponent.vue";
+import {useThemeStore} from "@/stores/config-temas/theme";
+import {watch} from "vue";
+
+const themeStore = useThemeStore();
+
+watch(
+    () => themeStore.darkMode,
+    (isDark) => {
+      const el = document.documentElement
+      el.classList.toggle('dark', isDark)
+      el.classList.toggle('light', !isDark)
+    },
+    { immediate: true }
+)
+
+</script>

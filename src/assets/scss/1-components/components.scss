@@ -1,0 +1,136 @@
+@import "../theme";
+@import "../2-utilities/mixins";
+
+
+// ============= BACKGROUND CORES =================
+
+.background-primary {
+  background: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.background-secondary {
+  background: var(--bg-color-secondary);
+}
+
+.background-navbar {
+  background-color: var(--bg-color-secondary);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+// ============== DISPLAYS FLEX ======================
+
+.display-flex-center {
+  @include displayFlex();
+}
+
+.display-flex-start-col {
+  @include displayFlex($align: start, $justify: center, $direction: column)
+}
+
+.display-flex-all-center {
+  @include displayFlex($justify: center);
+}
+
+
+// ============== DISPLAYS GRID ======================
+
+.display-grid-2-col {
+  @include displayGrid($height: 85vh);
+}
+
+// ============== TEXTOS ================
+
+.texto-color-laranja {
+  color: var(--text-color-laranja);
+}
+
+.texto-pequeno {
+  font-size: 13px;
+}
+
+.texto-pequeno-15 {
+  font-size: 15px;
+}
+
+.texto-4xl {
+  font-size: 55px;
+}
+
+.texto-2xl {
+  font-size: 35px;
+  line-height: 22px;
+}
+
+// ============== BOTÃO MODO ESCURO / CLARO =================
+
+.theme-switch {
+  position: relative;
+  width: 140px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--text-color-laranja), var(--text-secondary-laranja));
+  border-radius: 999px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  transition: background-color 0.3s ease;
+}
+
+.theme-switch.dark {
+  background: linear-gradient(135deg, var(--text-color-laranja), var(--text-secondary-laranja));
+}
+
+.label {
+  position: absolute;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  transition: opacity 0.3s ease;
+}
+
+.light-label {
+  left: 45px;
+  opacity: 1;
+}
+
+.dark-label {
+  right: 45px;
+  opacity: 0;
+}
+
+.theme-switch.dark .light-label {
+  opacity: 0;
+}
+
+.theme-switch.dark .dark-label {
+  opacity: 1;
+}
+
+.switch-toggle {
+  width: 23px;
+  height: 23px;
+  background-color: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2.4px;
+  left: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+  z-index: 2;
+}
+
+.theme-switch.dark .switch-toggle {
+  transform: translateX(110px);
+  background-color: #ffffff;
+  color: #de7e3e;
+}
+
+.icon {
+  color: #de7e3e;
+}
