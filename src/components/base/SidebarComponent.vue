@@ -86,7 +86,6 @@
   </v-app-bar>
   <!-- FIM NAVBAR NO TOPO -->
 
-
   <!-- MODAL DE ERRO - PESQUISA (PROVISÓRIO) -->
   <ErrorModal v-model:modal="errorModal">
     <template #erro>O recurso de busca está em desenvolvimento e será disponibilizado em breve.</template>
