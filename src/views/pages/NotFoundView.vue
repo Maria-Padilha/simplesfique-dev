@@ -23,18 +23,17 @@
       </div>
 
       <v-btn
-          v-if="$route.path.startsWith('/paginas/')" to="/paginas/home" elevation="1"
+         to="/paginas/home" elevation="1"
           class="text-none w-100 mt-5 mb-16 background-navbar" variant="flat"
       >
         Continuar Navegando
       </v-btn>
-
-      <v-btn
-          v-else to="/" class="text-none w-100 mt-5 mb-16 background-navbar-primary"
-          variant="flat" elevation="1"
-      >
-        Continuar Navegando
-      </v-btn>
+<!--      <v-btn-->
+<!--          v-else to="/" class="text-none w-100 mt-5 mb-16 background-navbar-primary"-->
+<!--          variant="flat" elevation="1"-->
+<!--      >-->
+<!--        Continuar Navegando-->
+<!--      </v-btn>-->
     </section>
   </main>
 </template>
