@@ -6,10 +6,9 @@
   gap: $gap;
 }
 
-@mixin displayGrid($column: repeat(2, 1fr), $gap: 0, $height: 100vh) {
+@mixin displayGrid($column: repeat(2, 1fr), $gap: 0) {
   display: grid;
   grid-template-columns: $column;
   gap: $gap;
   align-items: stretch;
-  height: $height;
 }

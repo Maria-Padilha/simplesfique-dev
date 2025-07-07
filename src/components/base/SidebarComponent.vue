@@ -76,8 +76,8 @@
     <v-spacer></v-spacer>
 
     <div @click="toggleTheme" :class="['theme-switch cursor-pointer mr-5', themeStore.darkMode ? 'dark' : 'light']">
-      <p class="label light-label">Modo Escuro</p>
-      <p class="label dark-label">Modo Claro</p>
+      <p class="label light-label">Escuro</p>
+      <p class="label dark-label">Claro</p>
 
       <div class="switch-toggle">
         <v-icon class="icon" size="15px" :icon="themeStore.darkMode ? 'mdi-white-balance-sunny' : 'mdi-weather-night'"/>

@@ -1,0 +1,108 @@
+@import "../2-utilities/mixins";
+
+.duas_sections{
+  @include displayGrid($column: 1fr 2fr, $gap: 0);
+  height: 100vh;
+}
+
+.section_orange{
+  @include displayFlex($align: center, $justify: center, $direction: column, $gap: 0);
+  background: var(--bg-navbar);
+  width: 100%;
+  height: 100vh;
+
+  .section_orange_text{
+    font-size: 30px;
+    font-weight: 500;
+    color: var(--text-color-fourth);
+    text-align: center;
+    margin-bottom: 50px;
+    display: block;
+  }
+
+  span{
+    color: #ffffff;
+  }
+}
+
+.section_white{
+  @include displayFlex($align: center, $justify: center, $direction: column);
+  width: 100%;
+  height: 100vh;
+  background: var(--bg-color);
+
+  .section_white_card{
+    width: 400px;
+    height: auto;
+    padding: 20px;
+    border-radius: 2px;
+    background: transparent;
+    border: 2px solid var(--text-secondary-laranja);
+    box-shadow: 0 5px 10px var(--text-secondary-laranja);
+
+    .texto-card{
+      color: var(--text-color);
+
+      span{
+        color: var(--text-color-laranja);
+      }
+    }
+  }
+}
+
+
+// ================ MEDIA SCREEN =================
+
+@media screen and (min-width: 1500px) {
+  .duas_sections{
+    @include displayGrid($column: repeat(2, 1fr), $gap: 0)
+  }
+
+  .section_white{
+    .section_white_card{
+      width: 600px;
+      padding-bottom: 100px;
+      padding-top: 100px;
+    }
+  }
+}
+
+@media screen and (max-width: 967px) {
+  .duas_sections_50, .duas_sections{
+    @include displayGrid($column: 1fr, $gap: 0)
+  }
+
+  .section_orange{
+    height: 180px;
+    overflow: hidden;
+
+    .section_orange_image {
+      height: 100%;
+      max-height: 100%;
+      margin-top: 45px;
+      object-fit: contain;
+    }
+
+    .section_orange_text{
+      display: none;
+    }
+  }
+
+  .section_white{
+    @include displayFlex($align: center, $justify: start, $direction: column, $gap: 0);
+    height: 100%;
+    margin-top: 20px;
+
+    .section_white_card{
+      width: 60%;
+    }
+  }
+}
+
+@media screen and (max-width: 647px) {
+  .section_white{
+    .section_white_card{
+      width: 80%;
+    }
+  }
+}

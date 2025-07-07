@@ -1,8 +1,8 @@
 <template>
   <v-app>
     <side-bar v-if="$route.path.startsWith('/paginas/')" />
-    <v-main class="mt-5 background-primary">
-      <router-view/>
+    <v-main class="background-primary">
+      <router-view />
     </v-main>
   </v-app>
 </template>

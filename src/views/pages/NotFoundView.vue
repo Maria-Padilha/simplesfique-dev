@@ -2,7 +2,7 @@
   <main class="display-grid-2-col h-100 px-5">
     <section class="display-flex-all-center">
       <v-sheet width="85%" class="bg-transparent">
-        <v-img class="w-[100%] h-[100%]" cover alt="imagem ilustrativa - erro 404" :src="require('@/assets/img/not found-2.png')" />
+        <v-img class="w-[100%] h-[100%]" cover alt="imagem ilustrativa - erro 404" :src="require('@/assets/img/not_found.png')" />
       </v-sheet>
     </section>
 
@@ -23,18 +23,19 @@
       </div>
 
       <v-btn
+          v-if="$route.path.startsWith('/paginas')"
          to="/paginas/home" elevation="1"
           class="text-none w-100 mt-5 mb-16 background-navbar" variant="flat"
       >
         Continuar Navegando
       </v-btn>
 
-<!--      <v-btn-->
-<!--          v-else to="/" class="text-none w-100 mt-5 mb-16 background-navbar-primary"-->
-<!--          variant="flat" elevation="1"-->
-<!--      >-->
-<!--        Continuar Navegando-->
-<!--      </v-btn>-->
+      <v-btn
+          v-else to="/" class="text-none w-100 mt-5 mb-16 background-navbar-primary"
+          variant="flat" elevation="1"
+      >
+        Continuar Navegando
+      </v-btn>
     </section>
   </main>
 </template>

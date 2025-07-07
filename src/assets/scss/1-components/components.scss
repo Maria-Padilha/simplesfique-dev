@@ -20,6 +20,11 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+.background-laranja {
+  background: var(--text-color-laranja);
+  color: white;
+}
+
 // ============== DISPLAYS FLEX ======================
 
 .display-flex-center {
@@ -38,7 +43,8 @@
 // ============== DISPLAYS GRID ======================
 
 .display-grid-2-col {
-  @include displayGrid($height: 85vh);
+  @include displayGrid();
+  height: 80vh;
 }
 
 // ============== TEXTOS ================
@@ -68,7 +74,7 @@
 
 .theme-switch {
   position: relative;
-  width: 140px;
+  width: 80px;
   height: 28px;
   background: linear-gradient(135deg, var(--text-color-laranja), var(--text-secondary-laranja));
   border-radius: 999px;
@@ -92,12 +98,12 @@
 }
 
 .light-label {
-  left: 45px;
+  left: 32px;
   opacity: 1;
 }
 
 .dark-label {
-  right: 45px;
+  right: 35px;
   opacity: 0;
 }
 
@@ -115,7 +121,7 @@
   background-color: #fff;
   border-radius: 50%;
   position: absolute;
-  top: 2.4px;
+  top: 2.45px;
   left: 4px;
   display: flex;
   align-items: center;
@@ -126,7 +132,7 @@
 }
 
 .theme-switch.dark .switch-toggle {
-  transform: translateX(110px);
+  transform: translateX(49px);
   background-color: #ffffff;
   color: #de7e3e;
 }
