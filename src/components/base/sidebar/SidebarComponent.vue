@@ -75,7 +75,7 @@
 
     <v-spacer></v-spacer>
 
-    <div @click="toggleTheme" :class="['theme-switch cursor-pointer mr-5', themeStore.darkMode ? 'dark' : 'light']">
+    <div @click="alterarTema" :class="['theme-switch cursor-pointer mr-5', themeStore.darkMode ? 'dark' : 'light']">
       <p class="label light-label">Escuro</p>
       <p class="label dark-label">Claro</p>
 
@@ -100,8 +100,9 @@ import ErrorAlertModal from "@/components/base/modais/ErrorAlertModal.vue";
 // Alterando o tema do site
 const themeStore = useThemeStore();
 
-function toggleTheme() {
+const alterarTema = () => {
   themeStore.darkMode = !themeStore.darkMode
+  themeStore.darkMode ? themeStore.tipoBtn = true : themeStore.tipoBtn = false
 }
 
 // modal de erro

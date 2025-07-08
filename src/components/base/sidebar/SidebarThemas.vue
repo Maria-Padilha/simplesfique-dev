@@ -33,7 +33,7 @@
             :icon="themeStore.darkMode ? 'mdi-white-balance-sunny' : 'mdi-weather-night'"
             :color="themeStore.darkMode ? '#F1F1F1' : '#121212'"
             variant="flat"
-            @click="themeStore.darkMode = !themeStore.darkMode"
+            @click="alterarTema"
         />
         <p class="text-lg">{{ themeStore.darkMode ? 'Modo Claro' : 'Modo Escuro' }}</p>
       </div>
@@ -60,18 +60,18 @@
     <section class="mt-5 px-5 py-3 background-primary">
       <p class="texto-pequeno-15">Aparência dos botões</p>
 
-      <div class="mt-5 d-flex align-center ga-2">
+      <div class="mt-5 flex flex-col gap-2">
         <v-btn
             class="w-[100%] text-none" size="small"
-            :color="themeStore.tipoBtn ? '#00509d' : '#616161'"
-            :variant="themeStore.darkMode ? 'flat' : 'tonal'"
+            :color="themeStore.tipoBtn ? '#FE9330FF' : '#616161'"
+            variant="tonal"
             @click="themeStore.tipoBtn = true">Com Opacidade
         </v-btn>
 
         <v-btn
             class="w-[100%] text-none" size="small"
-            :color="!themeStore.tipoBtn ? '#00509d' : '#616161'"
-            :variant="themeStore.darkMode ? 'flat' : 'tonal'"
+            :color="!themeStore.tipoBtn ? '#FE9330FF' : '#616161'"
+            variant="flat"
             @click="themeStore.tipoBtn = false">Sem Opacidade
         </v-btn>
       </div>
@@ -87,4 +87,9 @@ const themeStore = useThemeStore();
 
 // abrir / fechar sidebar
 const drawer = ref(false);
+
+const alterarTema = () => {
+  themeStore.darkMode = !themeStore.darkMode
+  themeStore.darkMode ? themeStore.tipoBtn = true : themeStore.tipoBtn = false
+}
 </script>
