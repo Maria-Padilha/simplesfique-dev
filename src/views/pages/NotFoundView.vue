@@ -24,15 +24,17 @@
 
       <v-btn
           v-if="$route.path.startsWith('/paginas')"
-         to="/paginas/home" elevation="1"
-          class="text-none w-100 mt-5 mb-16 background-navbar" variant="flat"
+          to="/paginas/home" class="text-none w-100 mt-5 mb-16"
+          :color="themeStore.darkMode ? '#F1F1F1' : '#121212'"
+          :variant="themeStore.tipoBtn ? 'tonal' : 'flat'"
       >
         Continuar Navegando
       </v-btn>
 
       <v-btn
-          v-else to="/" class="text-none w-100 mt-5 mb-16 background-navbar-primary"
-          variant="flat" elevation="1"
+          v-else to="/" class="text-none w-100 mt-5 mb-16"
+          :color="themeStore.darkMode ? '#F1F1F1' : '#121212'"
+          :variant="themeStore.tipoBtn ? 'tonal' : 'flat'" elevation="1"
       >
         Continuar Navegando
       </v-btn>
@@ -41,6 +43,9 @@
 </template>
 
 <script setup>
+import {useThemeStore} from "@/stores/config-temas/theme";
+
+const themeStore = useThemeStore();
 </script>
 
 <style scoped>

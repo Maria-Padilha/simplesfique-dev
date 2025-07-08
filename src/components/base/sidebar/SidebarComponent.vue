@@ -87,15 +87,15 @@
   <!-- FIM NAVBAR NO TOPO -->
 
   <!-- MODAL DE ERRO - PESQUISA (PROVISÓRIO) -->
-  <ErrorModal v-model:modal="errorModal">
+  <ErrorAlertModal :error="false" v-model:modal="errorModal">
     <template #erro>O recurso de busca está em desenvolvimento e será disponibilizado em breve.</template>
-  </ErrorModal>
+  </ErrorAlertModal>
 </template>
 
 <script setup>
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {ref, onMounted, onBeforeUnmount, mergeProps} from 'vue'
-import ErrorModal from "@/components/base/modais/ErrorModal.vue";
+import ErrorAlertModal from "@/components/base/modais/ErrorAlertModal.vue";
 
 // Alterando o tema do site
 const themeStore = useThemeStore();

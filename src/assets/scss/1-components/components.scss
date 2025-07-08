@@ -14,6 +14,11 @@
   background: var(--bg-color-secondary);
 }
 
+.background-third {
+  background: var(--bg-color-third);
+  color: var(--text-color);
+}
+
 .background-navbar {
   background-color: var(--bg-color-secondary);
   color: var(--text-color);
@@ -139,4 +144,21 @@
 
 .icon {
   color: #de7e3e;
+}
+
+// ================ ANIMAÇÕES =================
+
+// girando devagar
+
+.slow-spin {
+  animation: slow-spin 7s linear infinite;
+}
+
+@keyframes slow-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
