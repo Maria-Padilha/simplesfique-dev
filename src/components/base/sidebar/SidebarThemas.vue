@@ -10,7 +10,12 @@
   </v-fab>
 
   <!-- Sidebar de temas -->
-  <v-navigation-drawer v-model="drawer" temporary width="300" location="end" class="background-secondary">
+  <v-navigation-drawer
+      v-if="drawer"
+      v-model="drawer" temporary width="300"
+      location="right"
+      class="background-secondary"
+  >
 
     <!-- titulo -->
     <section class="w-100 py-4 d-flex align-center justify-space-between px-5 background-third">
