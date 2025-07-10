@@ -4,7 +4,7 @@
 
     <template #section>
       <!-- primeira sessão - informações pessoais -->
-      <section v-if="!editarAtivo" class="background-third px-5 py-5 gap-5 display-start-center">
+      <section v-if="!editarAtivo" class="background-third px-2 py-2 gap-5 display-start-center">
         <v-sheet width="250px" height="200px" class="bg-transparent">
           <v-img
               alt="foto de perfil" class="w-[100%] h-[100%] rounded-md" cover
@@ -21,7 +21,7 @@
           </div>
         </div>
       </section>
-      <section v-else class="background-third px-5 py-5 gap-5 display-start-center">
+      <section v-else class="background-third px-2 py-2 gap-5 display-start-center">
         <div class="w-[350px]">
           <upload-image width="100%" height="200px">
             <template #default>Atualizar Foto de Perfil</template>
@@ -49,6 +49,22 @@
           </div>
         </div>
       </section>
+
+      <section class="mt-10">
+        <div
+            v-for="input in inputs" :key="input.id"
+            class="flex items-center gap-3 flex-col md:flex-row mb-3"
+            :class="editarAtivo ? 'cursor-pointer' : 'cursor-not-allowed'"
+        >
+          <v-text-field
+              v-for="(textField, index) in input.textFields" :key="index"
+              :disabled="!editarAtivo" variant="outlined" hide-details="auto" density="compact"
+              class="w-[100%] texto-color-primary" v-model="textField.model"
+          >
+            <template #label><p class="texto-pequeno">{{textField.label}}</p></template>
+          </v-text-field>
+        </div>
+      </section>
     </template>
   </top-all-pages>
 </template>
@@ -61,10 +77,38 @@ import {ref} from "vue";
 
 const themeStore = useThemeStore();
 
+// valores dos inputs
+
+const nomeEmpresa = ref('teste aqui');
+
 const infos = ref([
   {title: 'Nível de Acesso', value: 'Admin', icon: 'mdi-shield-account-outline'},
   {title: 'E-mail', value: 'sandra_a88@gmail.com', icon: 'mdi-email-outline'},
   {title: 'Telefone', value: '(65) 98469-9999', icon: 'mdi-phone-outline'},
+]);
+
+const inputs = ref([
+  {
+    id: 1,
+    textFields: [
+      { label: 'Nome da Empresa', model: nomeEmpresa, width: '100%' },
+      { label: 'Nome da Filial', model: nomeEmpresa, width: '100%' },
+    ]
+  },
+  {
+    id: 2,
+    textFields: [
+      { label: 'Cidade', model: nomeEmpresa, width: '70%' },
+      { label: 'Estado', model: nomeEmpresa, width: '30%' },
+    ]
+  },
+  {
+    id: 2,
+    textFields: [
+      { label: 'Endereço', model: nomeEmpresa, width: '70%' },
+      { label: 'CEP', model: nomeEmpresa, width: '30%' },
+    ]
+  },
 ])
 
 const editarAtivo = ref(false);

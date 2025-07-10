@@ -1,92 +1,44 @@
 <template>
-  <!-- Botão para abrir sidebar de temas -->
-  <v-fab
-      color="orange" absolute
-      location="right center" icon
-      class="mr-2" @click="drawer = !drawer"
-      :variant="themeStore.tipoBtn ? 'tonal' : 'flat'"
-  >
-    <v-icon icon="mdi-cog-outline" class="slow-spin" size="25px"></v-icon>
-  </v-fab>
 
-  <!-- Sidebar de temas -->
-  <v-navigation-drawer
-      v-if="drawer"
-      v-model="drawer" temporary width="300"
-      location="right"
-      class="background-secondary"
-  >
+  <!-- titulo -->
+  <p class="text-sm texto-color-primary">Aparência</p>
 
-    <!-- titulo -->
-    <section class="w-100 py-4 d-flex align-center justify-space-between px-5 background-third">
-      <p class="text-xl">Aparência</p>
-      <v-icon @click="drawer = false" icon="mdi-close" class="cursor-pointer" size="25px"></v-icon>
-    </section>
+  <!-- modo escuro / claro -->
+  <section class="mt-3 px-5 py-3 background-primary">
+    <p class="texto-pequeno-15 mb-3">Tema do site</p>
 
-    <!-- modo escuro / claro -->
-    <section class="mt-5 px-5 py-3 background-primary">
-      <p class="texto-pequeno-15">Tema do site</p>
+    <div @click="alterarTema" :class="['theme-switch cursor-pointer', themeStore.darkMode ? 'dark' : 'light']">
+      <p class="label light-label">Modo Escuro</p>
+      <p class="label dark-label">Modo Claro</p>
 
-      <div class="d-flex align-center ga-5 mt-3">
-        <v-btn
-            :class="themeStore.darkMode ? 'text-orange' : 'text-white'"
-            :icon="themeStore.darkMode ? 'mdi-white-balance-sunny' : 'mdi-weather-night'"
-            :color="themeStore.darkMode ? '#F1F1F1' : '#121212'"
-            variant="flat"
-            @click="alterarTema"
-        />
-        <p class="text-lg">{{ themeStore.darkMode ? 'Modo Claro' : 'Modo Escuro' }}</p>
+      <div class="switch-toggle">
+        <v-icon class="icon" size="15px" :icon="themeStore.darkMode ? 'mdi-white-balance-sunny' : 'mdi-weather-night'"/>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- brilho -->
-    <section class="mt-5 px-5 py-3 background-primary">
-      <p class="texto-pequeno-15">Alterar Brilho</p>
+  <!-- brilho -->
+  <section class="mt-3 px-5 py-3 background-primary">
+    <p class="texto-pequeno-15">Alterar Brilho</p>
 
-      <div class="d-flex align-center mt-3">
-        <v-btn
-            icon="mdi-brightness-5" variant="tonal"
-            :class="themeStore.darkMode ? 'text-dark-orange' : 'text-orange'"
-            @click="themeStore.brightness = themeStore.brightness === 1 ? 0.6 : 1"
-        />
+    <div class="mt-3">
+      <!--        <v-btn-->
+      <!--            icon="mdi-brightness-5" variant="tonal"-->
+      <!--            :class="themeStore.darkMode ? 'text-dark-orange' : 'text-orange'"-->
+      <!--            @click="themeStore.brightness = themeStore.brightness === 1 ? 0.6 : 1"-->
+      <!--        />-->
 
-        <v-container>
-          <v-slider hide-details v-model="themeStore.brightness" min="0.3" max="1" step="0.1" label="Brilho" />
-        </v-container>
-      </div>
-    </section>
-
-    <!-- aparencia dos botoes -->
-    <section class="mt-5 px-5 py-3 background-primary">
-      <p class="texto-pequeno-15">Aparência dos botões</p>
-
-      <div class="mt-5 flex flex-col gap-2">
-        <v-btn
-            class="w-[100%] text-none" size="small"
-            :color="themeStore.tipoBtn ? '#FE9330FF' : '#616161'"
-            variant="tonal"
-            @click="themeStore.tipoBtn = true">Com Opacidade
-        </v-btn>
-
-        <v-btn
-            class="w-[100%] text-none" size="small"
-            :color="!themeStore.tipoBtn ? '#FE9330FF' : '#616161'"
-            variant="flat"
-            @click="themeStore.tipoBtn = false">Sem Opacidade
-        </v-btn>
-      </div>
-    </section>
-  </v-navigation-drawer>
+      <v-container class="px-0 py-0">
+        <v-slider hide-details v-model="themeStore.brightness" min="0.3" max="1" step="0.1" label="Brilho"/>
+      </v-container>
+    </div>
+  </section>
 </template>
 
 <script setup>
 import {useThemeStore} from "@/stores/config-temas/theme";
-import {ref} from "vue";
 
 const themeStore = useThemeStore();
-
-// abrir / fechar sidebar
-const drawer = ref(false);
 
 const alterarTema = () => {
   themeStore.darkMode = !themeStore.darkMode

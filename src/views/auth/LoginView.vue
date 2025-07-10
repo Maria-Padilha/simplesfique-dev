@@ -1,19 +1,25 @@
 <template>
   <main class='duas_sections'>
-    <section class='section_orange px-5'>
-      <h3 class='section_orange_text'>
-        Encontre tudo que precisa em
-        <span> um só lugar!</span>
-      </h3>
+    <section class='section_orange'>
 
-      <v-sheet width="330px" class="bg-transparent">
-        <v-img alt='imagem ecommerce' :src="require('@/assets/img/ecommerce.png')" class='w-[60%] section_orange_image' />
+      <div class="w-[100%] flex flex-col items-center mb-10">
+        <v-sheet width="60px" class="bg-transparent">
+          <v-img
+              alt='imagem ecommerce' class='w-[100%] section_orange_image'
+              :src="!themeStore.darkMode ? require('@/assets/img/logo/logo-dark.png') : require('@/assets/img/logo/logo.png')"
+          />
+        </v-sheet>
+
+        <h3 class='text-center text-xl mt-2 texto-card text-semibold'>Simples <span>Fique</span></h3>
+      </div>
+
+      <v-sheet width="400px" class="bg-transparent">
+        <v-img alt='imagem ecommerce' :src="require('@/assets/img/ecommerce.png')" class='w-[100%] section_orange_image' />
       </v-sheet>
     </section>
 
     <section class='section_white'>
       <div class='section_white_card'>
-        <h3 class='text-center mt-2 texto-card'>Simples <span>Fique</span></h3>
         <p class='mt-4 texto-card'>Login</p>
 
         <v-form class="mt-5 d-flex flex-column ga-4">
@@ -39,7 +45,10 @@
 </template>
 
 <script setup>
+import {useThemeStore} from "@/stores/config-temas/theme";
 import {ref} from "vue";
+
+const themeStore = useThemeStore();
 
 const exibirSenha = ref(false);
 </script>

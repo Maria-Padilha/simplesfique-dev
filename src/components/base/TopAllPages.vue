@@ -13,7 +13,7 @@
       </div>
     </div>
 
-    <div v-if="mostrarBotao" class="flex justify-end mb-3">
+    <div v-if="mostrarBotao" class="flex justify-end gap-3 mb-3">
       <v-btn
           v-if="!editar" @click="editar = true"
           :variant="themeStore.tipoBtn ? 'tonal' : 'flat'"
@@ -33,6 +33,26 @@
       </v-btn>
     </div>
 
+    <div v-if="botaoAdicionar" class="flex justify-end gap-3 mb-3">
+      <v-btn
+          @click="funcaoCancelar"
+          :variant="themeStore.tipoBtn ? 'tonal' : 'flat'"
+          color="red" size="small"
+          class="text-none w-[100px]"
+      >
+        Cancelar
+      </v-btn>
+
+      <v-btn
+          @click="funcaoAdicionar"
+          :variant="themeStore.tipoBtn ? 'tonal' : 'flat'"
+          color="green" size="small"
+          class="text-none"
+      >
+        Adicionar <slot name="btnAdicionar" />
+      </v-btn>
+    </div>
+
     <slot name="section"></slot>
   </main>
 </template>
@@ -44,18 +64,30 @@ import {defineProps, computed, ref, defineEmits, watch} from 'vue';
 const themeStore = useThemeStore();
 
 const props = defineProps({
-  route: { type: String, default: '/paginas/home' },
-  items: { type: Array },
-  salvar: { type: Function },
-  botao: { type: Boolean, default: false }
+  route: { type: String, default: '/paginas/home' }, // para qual pagina vai voltar
+  items: { type: Array }, // em qual página estamos, exemplo = home/perfil
+
+  // função dos botões
+  salvar: { type: Function }, // funcao executado pelo botao 'salvar alterações'
+  cancel: { type: Function }, // funcao executado pelo botao 'cancelar'
+  adicionar: { type: Function }, // funcao executado pelo botao 'adicionar'
+
+  // mostrando os botões
+  botao: { type: Boolean, default: false }, // paginas para editar algo
+  btnAdicionar: { type: Boolean, default: false }, // paginas para adicionar algo
 });
 
 const emit = defineEmits(['update-editar']);
 
 const routeBtn = computed(() => props.route);
 const linkPages = computed(() => props.items);
+
 const salvarAtualizacao = computed(() => props.salvar);
+const funcaoCancelar = computed(() => props.cancel);
+const funcaoAdicionar = computed(() => props.adicionar);
+
 const mostrarBotao = computed(() => props.botao);
+const botaoAdicionar = computed(() => props.btnAdicionar);
 
 const editar = ref(false);
 

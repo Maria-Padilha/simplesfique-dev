@@ -1,49 +1,86 @@
 <template>
+  <!-- NAVBAR NO TOPO -->
+  <v-app-bar class="py-2 z-10 background-navbar" elevation="0" density="compact">
+    <v-icon icon="mdi-menu" size="25px" class="ml-5 cursor-pointer" @click="openSidebar"></v-icon>
+    <p class="font-weight-bold ml-5 mt-1">Simples Fique</p>
+
+    <v-spacer></v-spacer>
+
+    <v-menu :close-on-content-click="false">
+      <template v-slot:activator="{ props: menu }">
+        <v-tooltip location="top">
+          <template v-slot:activator="{ props: tooltip }">
+            <v-list-item
+                class="w-[200px] truncate whitespace-nowrap overflow-hidden"
+                v-bind="mergeProps(menu, tooltip)"
+                append-avatar="https://randomuser.me/api/portraits/women/85.jpg"
+                subtitle="sandra_a88@gmailcom"
+                title="Sandra Adams"
+            />
+          </template>
+          <span>Menu</span>
+        </v-tooltip>
+      </template>
+
+      <v-card class="mx-auto w-[300px]">
+        <v-list class="background-primary py-3" :items="items" nav density="compact">
+          <v-list-subheader>
+            <p class="text-sm font-medium color-btn">Seja bem vindo, <span class="font-normal">Sandra Adams</span></p>
+            <span class="texto-color-primary">Painel de usuário Admin</span>
+          </v-list-subheader>
+
+          <v-divider thickness="2" class="my-3"/>
+
+          <v-list-item v-for="(item, i) in items" :key="i" :value="item" :to="item.route">
+            <template v-slot:prepend><v-icon size="20px" :icon="item.icon" /></template>
+            <v-list-item-title v-text="item.text"></v-list-item-title>
+          </v-list-item>
+
+          <v-divider thickness="2" class="my-3"/>
+
+          <div class="flex items-center justify-between w-100 px-5">
+            <p class="text-sm font-semibold opacity-70">Tema da Aplicação</p>
+            <v-btn
+                :class="themeStore.darkMode ? 'text-orange' : 'text-black'"
+                :icon="themeStore.darkMode ? 'mdi-white-balance-sunny' : 'mdi-weather-night'"
+                :color="themeStore.darkMode ? '#F1F1F1' : '#121212'" size="small"
+                variant="tonal" @click="alterarTema"
+            />
+          </div>
+
+          <div class="w-100 px-3 mt-4">
+            <v-container class="px-0 py-0">
+              <v-slider hide-details v-model="themeStore.brightness" min="0.3" max="1" step="0.1">
+                <template #label> <p class="text-sm font-semibold opacity-70">Alterar Brilho</p></template>
+              </v-slider>
+            </v-container>
+          </div>
+        </v-list>
+      </v-card>
+    </v-menu>
+  </v-app-bar>
+  <!-- FIM NAVBAR NO TOPO -->
+
   <!-- SIDEBAR LATERAL -->
   <v-navigation-drawer
-      :class="{'main-with-drawer': drawer && !rail}"
       class="background-sidebar menu-scroll"
-      v-model="drawer" :temporary="rail"
-      :permanent="!rail" expand-on-hover
+      v-model="drawer" expand-on-hover
+      :temporary="rail" :rail="sidebarRail"
+      rail-width="68"
   >
-    <v-list class="mt-3">
-      <v-menu>
-        <template v-slot:activator="{ props: menu }">
-          <v-tooltip location="top">
-            <template v-slot:activator="{ props: tooltip }">
-              <v-list-item
-                  v-bind="mergeProps(menu, tooltip)"
-                  prepend-avatar="https://randomuser.me/api/portraits/women/85.jpg"
-                  subtitle="sandra_a88@gmailcom"
-                  title="Sandra Adams"
-              />
-            </template>
-            <span>Menu</span>
-          </v-tooltip>
-        </template>
+    <v-list class="flex items-center flex-col justify-center">
+      <v-sheet v-if="!sidebarRail" width="50px" class="bg-transparent mt-4 mb-2">
+        <v-img alt="logo da simplesfique" cover class="w-[100%] h-[100%]" :src="require('@/assets/img/logo/logo.png')" />
+      </v-sheet>
 
-        <v-card class="mx-auto w-100">
-          <v-list class="background-primary" :items="items" nav density="compact">
-            <v-list-subheader class="color-btn">Menu</v-list-subheader>
+      <v-sheet v-else width="40px" class="bg-transparent mt-4 mb-2 ml-2">
+        <v-img alt="logo da simplesfique" cover class="w-[100%] h-[100%]" :src="require('@/assets/img/logo/logo.png')" />
+      </v-sheet>
 
-            <v-list-item
-                v-for="(item, i) in items"
-                :key="i"
-                :value="item"
-                :to="item.route"
-            >
-              <template v-slot:prepend>
-                <v-icon size="20px" :icon="item.icon"></v-icon>
-              </template>
-
-              <v-list-item-title v-text="item.text"></v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-card>
-      </v-menu>
+      <p v-if="!sidebarRail" class="text-sm uppercase font-semibold text-center texto-color-primary">Simples <span class="texto-color-laranja">Fique</span></p>
 
       <v-text-field
-          hide-details variant="outlined" class="mt-7 mx-2" density="compact" append-inner-icon="mdi-magnify"
+          hide-details variant="outlined" class="mt-7 w-[92%]" density="compact" append-inner-icon="mdi-magnify"
           placeholder="Pesquisar" @click:appendInner="errorModal = true"
       />
     </v-list>
@@ -68,24 +105,6 @@
   </v-navigation-drawer>
   <!-- FIM SIDEBAR LATERAL -->
 
-  <!-- NAVBAR NO TOPO -->
-  <v-app-bar class="py-2 z-10 background-navbar" elevation="0" density="compact">
-    <v-icon icon="mdi-menu" size="25px" class="ml-5 cursor-pointer" @click="drawer = !drawer"></v-icon>
-    <p class="font-weight-bold ml-5 mt-1">Simples Fique</p>
-
-    <v-spacer></v-spacer>
-
-    <div @click="alterarTema" :class="['theme-switch cursor-pointer mr-5', themeStore.darkMode ? 'dark' : 'light']">
-      <p class="label light-label">Escuro</p>
-      <p class="label dark-label">Claro</p>
-
-      <div class="switch-toggle">
-        <v-icon class="icon" size="15px" :icon="themeStore.darkMode ? 'mdi-white-balance-sunny' : 'mdi-weather-night'"/>
-      </div>
-    </div>
-  </v-app-bar>
-  <!-- FIM NAVBAR NO TOPO -->
-
   <!-- MODAL DE ERRO - PESQUISA (PROVISÓRIO) -->
   <ErrorAlertModal :error="false" v-model:modal="errorModal">
     <template #erro>O recurso de busca está em desenvolvimento e será disponibilizado em breve.</template>
@@ -96,8 +115,9 @@
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {ref, onMounted, onBeforeUnmount, mergeProps} from 'vue'
 import ErrorAlertModal from "@/components/base/modais/ErrorAlertModal.vue";
+// import SidebarThemas from "@/components/base/sidebar/SidebarThemas.vue";
 
-// Alterando o tema do site
+// // Alterando o tema do site
 const themeStore = useThemeStore();
 
 const alterarTema = () => {
@@ -105,13 +125,18 @@ const alterarTema = () => {
   themeStore.darkMode ? themeStore.tipoBtn = true : themeStore.tipoBtn = false
 }
 
+const sidebarRail = ref(false);
+
+const openSidebar = () => {
+  rail.value ? drawer.value = !drawer.value : sidebarRail.value = !sidebarRail.value
+}
+
 // modal de erro
 const errorModal = ref(false);
 
 // links do menu perfil
 const items = ref([
-  { text: 'Perfil', icon: 'mdi-account-outline', route: '/paginas/perfil' },
-  { text: 'Configurações', icon: 'mdi-cog-outline', route: '/paginas/config' },
+  { text: 'Visualizar seu Perfil', icon: 'mdi-account-outline', route: '/paginas/perfil' },
   { text: 'Sair', icon: 'mdi-logout', route: '/' },
 ])
 
@@ -180,13 +205,13 @@ onBeforeUnmount(() => {
 }
 
 .hover-link {
-  background-color: var(--bg-navbar-hover);
-  color: var(--color-text-navbar);
+  color: var(--text-color-fourth);
+  background: transparent;
 }
 
 .menu-scroll {
   scrollbar-width: thin;
-  scrollbar-color: var(--bg-color) var(--bg-navbar);
+  scrollbar-color: var(--bg-navbar)  var(--bg-navbar);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 </style>

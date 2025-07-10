@@ -1,6 +1,5 @@
 <template>
   <v-app :style="{ filter: `brightness(${themeStore.brightness})` }">
-    <sidebar-themas v-if="$route.path.startsWith('/paginas/')" />
     <side-bar v-if="$route.path.startsWith('/paginas/')" />
     <v-main class="background-primary">
       <router-view />
@@ -12,7 +11,7 @@
 import SideBar from "@/components/base/sidebar/SidebarComponent.vue";
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {watch} from "vue";
-import SidebarThemas from "@/components/base/sidebar/SidebarThemas.vue";
+// import SidebarThemas from "@/components/base/sidebar/SidebarThemas.vue";
 
 const themeStore = useThemeStore();
 
