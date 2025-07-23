@@ -6,9 +6,13 @@ import { loadFonts } from './plugins/webfontloader'
 import {createPinia} from "pinia";
 import piniaPersistedstate from 'pinia-plugin-persistedstate'
 import '@/assets/scss/index.scss';
+import '@/assets/scss/tailwind.css';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 const pinia = createPinia();
 pinia.use(piniaPersistedstate);
+AOS.init();
 
 loadFonts()
 

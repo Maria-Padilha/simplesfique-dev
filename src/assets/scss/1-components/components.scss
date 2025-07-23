@@ -25,6 +25,11 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+.background-card {
+    background: var(--bg-card);
+    color: var(--text-color);
+}
+
 .background-laranja {
   background: var(--text-color-laranja);
   color: white;
@@ -49,6 +54,10 @@
 .display-grid-2-col {
   @include displayGrid();
   height: 80vh;
+}
+
+.display-grid-50 {
+  @include displayGrid();
 }
 
 // ============== TEXTOS ================

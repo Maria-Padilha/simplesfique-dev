@@ -1,7 +1,7 @@
 @import "../1-components/components";
 
 @media screen and (max-width: 967px) {
-  .display-grid-2-col, .display-grid-100vh {
+  .display-grid-2-col, .display-grid-100vh, {
     @include displayGrid($column: 1fr);
     height: 100vh;
   }

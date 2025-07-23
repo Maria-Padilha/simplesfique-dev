@@ -1,9 +1,11 @@
 :root {
   --bg-color: #f1f1f1;
-  --bg-color-secondary: #FDFDFD;
+  --bg-color-secondary: #e4e4e4;
   --bg-color-third: #E0E0E0;
 
-  --text-color: rgba(43, 43, 43, 0.71);
+  --bg-card: #FBFEFF;
+
+  --text-color: rgb(43, 43, 43);
   --text-color-secodary: rgba(255, 255, 255, 0.93);
   --text-color-third: #fe9330;
   --text-color-fourth: #353535;
@@ -21,6 +23,8 @@
   --bg-color-secondary: #282828;
   --bg-color-third: #393939;
 
+  --bg-card: #393939;
+
   --text-color: #ffffff;
   --text-color-secodary: rgba(255, 255, 255, 0.9);
   --text-color-third: #474747;
@@ -33,4 +37,3 @@
   --bg-navbar-hover: #e8a052;
   --color-text-navbar: #fff;
 }
-

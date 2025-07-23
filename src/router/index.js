@@ -3,6 +3,8 @@ import HomeView from '../views/pages/HomeView.vue'
 import NotFoundView from "@/views/pages/NotFoundView.vue";
 import LoginView from "@/views/auth/LoginView.vue";
 import PerfilView from "@/views/pages/PerfilView.vue";
+import HomeSiteView from "@/views/site/HomeSiteView.vue";
+import FuncionalidadesSiteView from "@/views/site/FuncionalidadesSiteView.vue";
 
 const routes = [
 
@@ -15,7 +17,7 @@ const routes = [
 
   //   paginas de autenticação
   {
-    path: '/',
+    path: '/login',
     name: 'login',
     component: LoginView
   },
@@ -30,6 +32,18 @@ const routes = [
     path: '/paginas/home',
     name: 'home',
     component: HomeView
+  },
+
+  //    Páginas do site
+  {
+    path: '/',
+    name: 'site_home',
+    component: HomeSiteView
+  },
+  {
+    path: '/funcionalidades',
+    name: 'site_funcionalidades',
+    component: FuncionalidadesSiteView
   },
 ]
 

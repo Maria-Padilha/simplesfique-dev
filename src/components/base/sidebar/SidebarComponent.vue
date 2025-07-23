@@ -66,7 +66,7 @@
       class="background-sidebar menu-scroll"
       v-model="drawer" expand-on-hover
       :temporary="rail" :rail="sidebarRail"
-      rail-width="68"
+      rail-width="65"
   >
     <v-list class="flex items-center flex-col justify-center">
       <v-sheet v-if="!sidebarRail" width="50px" class="bg-transparent mt-4 mb-2">
@@ -137,7 +137,7 @@ const errorModal = ref(false);
 // links do menu perfil
 const items = ref([
   { text: 'Visualizar seu Perfil', icon: 'mdi-account-outline', route: '/paginas/perfil' },
-  { text: 'Sair', icon: 'mdi-logout', route: '/' },
+  { text: 'Sair', icon: 'mdi-logout', route: '/login' },
 ])
 
 // links do sidebar
@@ -191,7 +191,7 @@ onBeforeUnmount(() => {
 .background-navbar {
   background-color: var(--bg-color-secondary);
   color: var(--text-color);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  //transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .color-btn {
@@ -201,7 +201,7 @@ onBeforeUnmount(() => {
 .background-sidebar {
   background: var(--bg-navbar);
   color: white;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  //transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .hover-link {
@@ -210,8 +210,6 @@ onBeforeUnmount(() => {
 }
 
 .menu-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: var(--bg-navbar)  var(--bg-navbar);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  scrollbar-color: transparent transparent;
 }
 </style>
