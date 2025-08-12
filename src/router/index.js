@@ -38,13 +38,13 @@ const routes = [
   {
     path: '/',
     name: 'site_home',
-    component: HomeSiteView
+    component: HomeSiteView,
   },
   {
     path: '/funcionalidades',
     name: 'site_funcionalidades',
     component: FuncionalidadesSiteView
-  },
+  }
 ]
 
 const router = createRouter({

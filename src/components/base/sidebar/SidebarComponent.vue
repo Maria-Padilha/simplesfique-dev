@@ -191,7 +191,6 @@ onBeforeUnmount(() => {
 .background-navbar {
   background-color: var(--bg-color-secondary);
   color: var(--text-color);
-  //transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .color-btn {
@@ -201,7 +200,6 @@ onBeforeUnmount(() => {
 .background-sidebar {
   background: var(--bg-navbar);
   color: white;
-  //transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .hover-link {

@@ -2,14 +2,21 @@
 
 .duas_sections{
   @include displayGrid($column: 1fr 2fr, $gap: 0);
-  height: 100vh;
+}
+
+.texto-card{
+    color: var(--text-color);
+
+    span{
+      color: var(--text-color-laranja);
+    }
 }
 
 .section_orange{
   @include displayFlex($align: start, $justify: end, $direction: column, $gap: 0);
   background: var(--bg-navbar);
   width: 100%;
-  height: 100vh;
+  
 
   .section_orange_image {
     height: 100%;
@@ -44,16 +51,16 @@
   @include displayFlex($align: center, $justify: center, $direction: column);
   width: 100%;
   height: 100vh;
-  background: var(--bg-color);
+  background: transparent;
 
   .section_white_card{
     width: 400px;
     height: auto;
-    padding: 20px;
+    padding: 70px 30px;
     border-radius: 10px;
     background: transparent;
     border: 2px solid var(--text-secondary-laranja);
-    box-shadow: 0 5px 10px var(--text-secondary-laranja);
+    // box-shadow: 0 5px 10px var(--text-secondary-laranja);
   }
 }
 
@@ -61,15 +68,9 @@
 // ================ MEDIA SCREEN =================
 
 @media screen and (min-width: 1500px) {
-  .duas_sections{
-    @include displayGrid($column: repeat(2, 1fr), $gap: 0)
-  }
-
   .section_white{
     .section_white_card{
-      width: 600px;
-      padding-bottom: 100px;
-      padding-top: 100px;
+      width: 500;
     }
   }
 }
@@ -99,7 +100,7 @@
     margin-top: 20px;
 
     .section_white_card{
-      width: 60%;
+      width: 50%;
     }
   }
 }

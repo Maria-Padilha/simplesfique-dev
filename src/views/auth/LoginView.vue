@@ -1,25 +1,15 @@
 <template>
-  <main class='duas_sections'>
-    <section class='section_orange'>
-
-      <div class="w-[100%] flex flex-col items-center mb-10">
-        <v-sheet width="60px" class="bg-transparent">
-          <v-img
-              alt='imagem ecommerce' class='w-[100%] section_orange_image'
-              :src="!themeStore.darkMode ? require('@/assets/img/logo/logo-dark.png') : require('@/assets/img/logo/logo.png')"
-          />
-        </v-sheet>
-
-        <h3 class='text-center text-xl mt-2 texto-card text-semibold'>Simples <span>Fique</span></h3>
-      </div>
-
-      <v-sheet width="400px" class="bg-transparent">
-        <v-img alt='imagem ecommerce' :src="require('@/assets/img/ecommerce.png')" class='w-[100%] section_orange_image' />
-      </v-sheet>
-    </section>
-
-    <section class='section_white'>
+  <main class='login-container'>
+    <ParticleBackground />
+    <div class='section_white'>
       <div class='section_white_card'>
+        <div class="d-flex justify-center align-center">
+          <v-sheet :width="65" class="bg-transparent mb-2">
+            <v-img class="w-[100%] h-[100%]" cover alt="logo" :src="require('@/assets/img/logo/logo.png')"></v-img>
+          </v-sheet>
+        </div>
+       
+        <h3 class='text-center text-2xl text-uppercase font-bold texto-card'>Simples <span>Fique</span></h3>
         <p class='mt-4 texto-card'>Login</p>
 
         <v-form class="mt-5 d-flex flex-column ga-4">
@@ -37,18 +27,48 @@
             Esqueceu sua senha?
           </router-link>
 
-          <v-btn class="w-[100%] background-laranja" to="/paginas/home">Login</v-btn>
+          <v-btn class="w-[100%] background-laranja" to="/paginas/home">Entrar</v-btn>
         </v-form>
       </div>
-    </section>
+    </div>
   </main>
 </template>
 
 <script setup>
-import {useThemeStore} from "@/stores/config-temas/theme";
-import {ref} from "vue";
-
-const themeStore = useThemeStore();
+import { ref } from "vue";
+import ParticleBackground from '@/components/particle/ParticleBackground.vue';
 
 const exibirSenha = ref(false);
 </script>
+
+<style scoped>
+.login-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.login-box {
+  position: relative;
+  z-index: 1;
+}
+
+.section_white_card {
+  width: 400px;
+  padding: 70px 30px;
+  border-radius: 10px;
+  background: var(--bg-color);
+  border: 2px solid var(--text-secondary-laranja);
+  backdrop-filter: blur(10px);
+}
+
+@media screen and (max-width: 647px) {
+  .section_white_card {
+    width: 90%;
+    margin: 0 auto;
+  }
+}
+</style>
