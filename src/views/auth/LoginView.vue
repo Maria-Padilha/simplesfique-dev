@@ -5,11 +5,14 @@
       <div class='section_white_card'>
         <div class="d-flex justify-center align-center">
           <v-sheet :width="65" class="bg-transparent mb-2">
-            <v-img class="w-[100%] h-[100%]" cover alt="logo" :src="require('@/assets/img/logo/logo.png')"></v-img>
+            <v-img
+                class="w-[100%] h-[100%]" cover alt="logo"
+                :src="themeStore.darkMode ? require('@/assets/img/logo/logo.png') : require('@/assets/img/logo/logo-dark.png')"
+            />
           </v-sheet>
         </div>
        
-        <h3 class='text-center text-2xl text-uppercase font-bold texto-card'>Simples <span>Fique</span></h3>
+        <h3 class='text-center text-xl text-uppercase texto-card'>Simples <span>Fique</span></h3>
         <p class='mt-4 texto-card'>Login</p>
 
         <v-form class="mt-5 d-flex flex-column ga-4">
@@ -23,11 +26,11 @@
               placeholder="Senha" variant="outlined"
           />
 
-          <router-link class="text-end text-decoration-none texto-card texto-pequeno-15 opacity-70" to="/resetar-senha">
+          <router-link class="text-end text-decoration-underline texto-card texto-color-laranja text-sm" to="/resetar-senha">
             Esqueceu sua senha?
           </router-link>
 
-          <v-btn class="w-[100%] background-laranja" to="/paginas/home">Entrar</v-btn>
+          <v-btn class="w-[100%] text-none" color="var(--text-color-laranja)" to="/paginas/home" size="large" variant="outlined">Entrar</v-btn>
         </v-form>
       </div>
     </div>
@@ -36,8 +39,10 @@
 
 <script setup>
 import { ref } from "vue";
+import {useThemeStore} from "@/stores/config-temas/theme";
 import ParticleBackground from '@/components/particle/ParticleBackground.vue';
 
+const themeStore = useThemeStore();
 const exibirSenha = ref(false);
 </script>
 

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import '@/components/particle/particles.min.js'
+import '@/components/particle/particles.js/particles.min.js'
 
 export default {
   install: () => {

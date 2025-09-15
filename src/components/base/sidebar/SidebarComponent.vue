@@ -2,7 +2,7 @@
   <!-- NAVBAR NO TOPO -->
   <v-app-bar class="py-2 z-10 background-navbar" elevation="0" density="compact">
     <v-icon icon="mdi-menu" size="25px" class="ml-5 cursor-pointer" @click="openSidebar"></v-icon>
-    <p class="font-weight-bold ml-5 mt-1">Simples Fique</p>
+    <p class="ml-5 mt-1">Simples <span class="texto-color-laranja">Fique</span></p>
 
     <v-spacer></v-spacer>
 
@@ -77,7 +77,7 @@
         <v-img alt="logo da simplesfique" cover class="w-[100%] h-[100%]" :src="require('@/assets/img/logo/logo.png')" />
       </v-sheet>
 
-      <p v-if="!sidebarRail" class="text-sm uppercase font-semibold text-center texto-color-primary">Simples <span class="texto-color-laranja">Fique</span></p>
+      <p v-if="!sidebarRail" class="text-sm uppercase text-center">Simples Fique</p>
 
       <v-text-field
           hide-details variant="outlined" class="mt-7 w-[92%]" density="compact" append-inner-icon="mdi-magnify"

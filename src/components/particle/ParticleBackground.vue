@@ -4,7 +4,7 @@
 
 <script setup>
 import { onMounted } from 'vue';
-import '../particle/particles.min.js';
+import '@/components/particle/particles.min.js';
 
 onMounted(() => {
   window.particlesJS('particles-js', {
@@ -17,7 +17,7 @@ onMounted(() => {
         }
       },
       color: {
-        value: '#fe9330'
+        value: '#F57C00'
       },
       shape: {
         type: 'circle',
@@ -27,7 +27,7 @@ onMounted(() => {
         }
       },
       opacity: {
-        value: 0.5,
+        value: 0.2,
         random: false,
         anim: {
           enable: false,
@@ -49,9 +49,9 @@ onMounted(() => {
       line_linked: {
         enable: true,
         distance: 150,
-        color: '#fe9330',
-        opacity: 0.4,
-        width: 1
+        color: '#F57C00',
+        opacity: 0.2,
+        width: 2
       },
       move: {
         enable: true,

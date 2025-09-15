@@ -13,6 +13,7 @@
     </v-main>
 
     <footer-bar
+        class="relative z-10"
         v-if="!$route.path.startsWith('/paginas/')
         && !$route.path.startsWith('/login')
         && !$route.path.startsWith('/resetar-senha')"

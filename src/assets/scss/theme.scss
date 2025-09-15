@@ -1,16 +1,16 @@
 :root {
-  --bg-color: #f1f1f1;
-  --bg-color-secondary: #e4e4e4;
-  --bg-color-third: #E0E0E0;
+  --bg-color: #ffffff;
+  --bg-color-secondary: #f8f8f8;
+  --bg-color-third: rgba(241, 241, 241, 0.91);
 
-  --bg-card: #FBFEFF;
+  --bg-card: #eeeeee;
 
   --text-color: rgb(43, 43, 43);
   --text-color-secodary: rgba(255, 255, 255, 0.93);
   --text-color-third: #fe9330;
   --text-color-fourth: #353535;
 
-  --text-color-laranja: #fe9330;
+  --text-color-laranja: #F57C00;
   --text-secondary-laranja: #de7e3e;
 
   --bg-navbar: #e27602;
@@ -19,21 +19,22 @@
 }
 
 .dark {
-  --bg-color: #121212;
-  --bg-color-secondary: #282828;
-  --bg-color-third: #393939;
+  //--bg-color: #121212;
+  --bg-color: #15191d;
+  --bg-color-secondary: #212529;
+  --bg-color-third: #212529;
 
-  --bg-card: #393939;
+  --bg-card: #25282a;
 
   --text-color: #ffffff;
   --text-color-secodary: rgba(255, 255, 255, 0.9);
   --text-color-third: #474747;
   --text-color-fourth: #e8a052;
 
-  --text-color-laranja: #e8a052;
+  --text-color-laranja: #F57C00;
   --text-secondary-laranja: #d6925f;
 
-  --bg-navbar: #282828;
+  --bg-navbar: #212529;
   --bg-navbar-hover: #e8a052;
   --color-text-navbar: #fff;
 }

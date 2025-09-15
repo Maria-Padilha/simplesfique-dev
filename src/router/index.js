@@ -5,6 +5,8 @@ import LoginView from "@/views/auth/LoginView.vue";
 import PerfilView from "@/views/pages/PerfilView.vue";
 import HomeSiteView from "@/views/site/HomeSiteView.vue";
 import FuncionalidadesSiteView from "@/views/site/FuncionalidadesSiteView.vue";
+import IntegracoesView from "@/views/site/IntegracoesSiteView.vue";
+import PlanosSiteView from "@/views/site/PlanosSiteView.vue";
 
 const routes = [
 
@@ -44,7 +46,17 @@ const routes = [
     path: '/funcionalidades',
     name: 'site_funcionalidades',
     component: FuncionalidadesSiteView
-  }
+  },
+  {
+    path: '/integracoes',
+    name: 'site_integracoes',
+    component: IntegracoesView
+  },
+  {
+    path: '/planos',
+    name: 'site_planos',
+    component: PlanosSiteView
+  },
 ]
 
 const router = createRouter({
