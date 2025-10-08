@@ -1,11 +1,11 @@
 <template>
   <ParticleBackground />
   <section class="flex flex-col items-center pb-10">
-    <div class="flex flex-col w-100 items-center justify-center h-[250px] background-secondary relative z-10">
-      <h1 class="text-center text-4xl font-bold">
+    <div class="flex flex-col w-100 items-center justify-center py-10 px-5 background-secondary relative z-10">
+      <h1 class="text-center md:text-4xl text-3xl font-bold">
         Escolha seu <span class="texto-color-laranja">Plano</span>
       </h1>
-      <p class="mt-2">Escolha um período e compare os recursos de cada plano.</p>
+      <p class="mt-2 text-center">Escolha um período e compare os recursos de cada plano.</p>
       <v-divider color="var(--text-color-laranja)" class="w-[150px] rounded-lg mt-4 mx-auto border-opacity-50" :thickness="5" />
     </div>
 
@@ -46,7 +46,7 @@
               :class="isSelected(plan) ? 'bg-gradient-to-b from-orange-400 to-amber-400' : 'bg-transparent'"
           ></div>
 
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between flex-wrap">
             <div class="flex items-center gap-3">
               <div class="font-semibold">{{ plan.name }}</div>
               <v-chip size="x-small" variant="outlined" color="primary">

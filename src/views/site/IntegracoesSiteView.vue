@@ -1,12 +1,12 @@
 <template>
   <ParticleBackground />
-  <section class="background-secondary h-[350px] texto-color-primary flex flex-col items-center justify-center relative z-10">
-    <h1 class="text-4xl font-bold text-center">
+  <section class="background-secondary py-10 px-5 texto-color-primary flex flex-col items-center justify-center relative z-10">
+    <h1 class="md:text-4xl text-3xl font-bold text-center">
       As melhores <span class="texto-color-laranja">integrações</span>
       <br>para a sua empresa
     </h1>
 
-    <p class="mt-5 text-center w-[45%] text-sm">
+    <p class="mt-5 text-center md:w-[45%] md:text-sm">
       Aproveite todas as integrações do sistema para otimizar as operações do seu negócio e tornar a gestão mais
       prática!
     </p>

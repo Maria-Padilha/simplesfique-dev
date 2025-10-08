@@ -1,17 +1,11 @@
 <template>
   <ParticleBackground />
-  <section class="pt-5 background-primary grid grid-cols-1 lg:grid-cols-3 gap-8 px-16">
+  <section class="pt-10 background-primary grid grid-cols-1 lg:grid-cols-3 gap-8 px-16">
     <div class="col-span-1 lg:col-span-2 h-full flex flex-col items-start justify-center gap-5 pb-5 relative z-10">
       <h1 class="md:text-4xl text-3xl font-bold">
         Sua gestão merece mais <span class="texto-color-laranja">facilidade?</span>
         <span class="texto-color-laranja"><br> SimplesFique</span> com a gente.
       </h1>
-
-      <p class="text-lg w-[90%]">
-        Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-        Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
-        when an unknown printer took a galley of type and scrambled it to make a type specimen book.
-      </p>
 
       <p class="text-lg w-[90%] mt-5">
         Lorem Ipsum is simply dummy text of the printing and typesetting industry.

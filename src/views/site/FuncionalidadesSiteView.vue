@@ -1,12 +1,12 @@
 <template>
   <ParticleBackground />
-  <section class="background-secondary h-[350px] texto-color-primary flex flex-col items-center justify-center relative z-10">
-    <h1 class="text-4xl font-bold text-center">
+  <section class="background-secondary py-10 px-5 texto-color-primary flex flex-col items-center justify-center relative z-10">
+    <h1 class="md:text-4xl text-3xl font-bold text-center">
       Funcionalidades que <span class="texto-color-laranja">simplificam</span>
       <br>sua gestão empresarial
     </h1>
 
-    <p class="mt-5 text-center w-[45%] text-sm">
+    <p class="mt-5 text-center w-[100%] md:w-[45%] md:text-sm text-lg">
       O sistema SIMPLES FIQUE possui as funcionalidades essenciais para simplificar a gestão empresarial do seu negócio
       em poucos cliques!
     </p>
