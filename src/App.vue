@@ -5,8 +5,7 @@
     <nav-bar
         v-if="!$route.path.startsWith('/paginas/')
         && !$route.path.startsWith('/login')
-        && !$route.path.startsWith('/resetar-senha')
-        && !$route.path.startsWith('/manutencao')"
+        && !$route.path.startsWith('/resetar-senha')"
     />
 
     <v-main class="background-primary">
