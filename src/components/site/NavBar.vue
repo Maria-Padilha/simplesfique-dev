@@ -33,7 +33,7 @@
       <v-btn
           v-if="!menu"
           size="small" prepend-icon="mdi-account-outline"
-          class="text-none" color="var(--text-color-laranja)"
+          class="text-none text-white" color="var(--text-color-laranja)"
           variant="flat" to="/login"
       >Acessar
       </v-btn>
@@ -73,7 +73,7 @@
 
         <v-btn
               size="small" prepend-icon="mdi-account-outline"
-              class="text-none w-[300px] mt-2" color="var(--text-color-laranja)"
+              class="text-none w-[300px] text-white mt-2" color="var(--text-color-laranja)"
               variant="flat" to="/login"
           >
             Acessar

@@ -31,6 +31,11 @@ const routes = [
     name: 'login',
     component: LoginView
   },
+  {
+    path: '/empresa',
+    name: 'empresa',
+    component: () => import('@/views/auth/EmpresaView.vue')
+  },
 
   //   paginas do sistema
   {

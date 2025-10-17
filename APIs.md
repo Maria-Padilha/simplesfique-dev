@@ -17,7 +17,9 @@ Baixar a collection do Insomnia para testar as APIs:
 
 ```plaintext
 Content-Type: application/json 
-Bearer Token (para rotas que necessitam de autenticação)
+{
+  headers: {Authorization: `Bearer ${this.token}`}
+}
 ``` 
 
 ### Empresas:
