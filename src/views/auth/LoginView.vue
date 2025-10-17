@@ -16,21 +16,28 @@
         <p class='mt-4 texto-card'>Login</p>
 
         <v-form class="mt-5 d-flex flex-column ga-4">
-          <v-text-field hide-details prepend-inner-icon="mdi-account-outline" placeholder="Usuário" variant="outlined" />
+          <v-text-field hide-details="auto" v-model="usuario" prepend-inner-icon="mdi-account-outline" placeholder="Usuário" variant="outlined" :rules="rules.usuario" />
 
           <v-text-field
-              hide-details prepend-inner-icon="mdi-lock-outline"
+              hide-details="auto" prepend-inner-icon="mdi-lock-outline"
               :append-inner-icon="!exibirSenha ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
               @click:appendInner="exibirSenha = !exibirSenha"
               :type="exibirSenha ? 'text' : 'password'"
               placeholder="Senha" variant="outlined"
+              :rules="rules.senha" v-model="senha"
           />
 
           <router-link class="text-end text-decoration-underline texto-card texto-color-laranja text-sm" to="/resetar-senha">
             Esqueceu sua senha?
           </router-link>
 
-          <v-btn class="w-[100%] text-none" color="var(--text-color-laranja)" to="/paginas/home" size="large" variant="outlined">Entrar</v-btn>
+          <v-btn
+              class="w-[100%] text-none" color="var(--text-color-laranja)"
+              size="large" variant="outlined"
+              @click="login"
+          >
+            Entrar
+          </v-btn>
         </v-form>
       </div>
     </div>
@@ -41,9 +48,41 @@
 import { ref } from "vue";
 import {useThemeStore} from "@/stores/config-temas/theme";
 import ParticleBackground from '@/components/particle/ParticleBackground.vue';
+import { useRouter } from "vue-router";
+import {toast} from "vue3-toastify";
 
 const themeStore = useThemeStore();
+const router = useRouter();
+
 const exibirSenha = ref(false);
+
+const usuario = ref('');
+const senha = ref('');
+
+const usuarioValido = ref({
+  usuario: 'admin',
+  senha: '123'
+})
+
+const rules = ref({
+  usuario: [
+    v => !!v || 'O usuário é obrigatório',
+  ],
+  senha: [
+    v => !!v || 'A senha é obrigatória',
+  ]
+});
+
+const login = () => {
+  if (usuario.value === usuarioValido.value.usuario && senha.value === usuarioValido.value.senha) {
+    toast.success('Login realizado com sucesso!');
+    setTimeout(() => {
+      router.push('/paginas/home');
+    }, 1800);
+  } else {
+    toast.error('Usuário ou senha inválidos!');
+  }
+};
 </script>
 
 <style scoped>

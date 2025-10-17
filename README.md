@@ -1,24 +1,17 @@
-# simplesfique
+# SimplesFique
 
-## Project setup
-```
-npm install
-```
+Projeto iniciado dia 15/10/2025 <br>
+Meta de encerramento dia 25/12/2025 <br>
+Encerrado dia ../../..
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+## Descrição do Projeto
 
-### Compiles and minifies for production
-```
-npm run build
-```
+Sistema desenvolvido para fins didáticos, com o objetivo de aprender e praticar novas tecnologias e conceitos de desenvolvimento web.
 
-### Lints and fixes files
-```
-npm run lint
-```
+## Tecnologias Utilizadas
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+- **Vue 3**: Framework JavaScript progressivo para construção de interfaces de usuário.
+- **Vite**: Ferramenta de build rápida para projetos web modernos.
+- **Vuetify 3**: Biblioteca de componentes UI baseada em Material Design para Vue.js.
+- **Tailwind CSS**: Framework CSS utilitário para estilização rápida e eficiente.
+- **Pinia**: Gerenciador de estado para Vue.js, substituto do Vuex.

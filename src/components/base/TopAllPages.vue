@@ -34,14 +34,14 @@
     </div>
 
     <div v-if="botaoAdicionar" class="flex justify-end gap-3 mb-3">
-      <v-btn
-          @click="funcaoCancelar"
-          :variant="themeStore.tipoBtn ? 'tonal' : 'flat'"
-          color="red" size="small"
-          class="text-none w-[100px]"
-      >
-        Cancelar
-      </v-btn>
+<!--      <v-btn-->
+<!--          @click="funcaoCancelar"-->
+<!--          :variant="themeStore.tipoBtn ? 'tonal' : 'flat'"-->
+<!--          color="red" size="small"-->
+<!--          class="text-none w-[100px]"-->
+<!--      >-->
+<!--        Cancelar-->
+<!--      </v-btn>-->
 
       <v-btn
           @click="funcaoAdicionar"
@@ -49,7 +49,7 @@
           color="green" size="small"
           class="text-none"
       >
-        Adicionar <slot name="btnAdicionar" />
+        Cadastrar <slot name="btnAdicionar" />
       </v-btn>
     </div>
 
@@ -83,7 +83,7 @@ const routeBtn = computed(() => props.route);
 const linkPages = computed(() => props.items);
 
 const salvarAtualizacao = computed(() => props.salvar);
-const funcaoCancelar = computed(() => props.cancel);
+// const funcaoCancelar = computed(() => props.cancel);
 const funcaoAdicionar = computed(() => props.adicionar);
 
 const mostrarBotao = computed(() => props.botao);

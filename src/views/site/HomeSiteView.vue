@@ -1,5 +1,5 @@
 <template>
-  <ParticleBackground />
+<!--  <ParticleBackground />-->
   <section class="pt-10 background-primary grid grid-cols-1 lg:grid-cols-3 gap-8 px-16">
     <div class="col-span-1 lg:col-span-2 h-full flex flex-col items-start justify-center gap-5 pb-5 relative z-10">
       <h1 class="md:text-4xl text-3xl font-bold">
@@ -24,15 +24,14 @@
       <v-card class="w-[90%] max-w-md p-8 rounded-xl shadow-lg bg-transparent" elevation="0">
         <h2 class="text-2xl font-bold mb-8 text-center texto-color-primary">Experimente Grátis</h2>
         <v-form class="flex flex-col gap-3">
-          <v-text-field variant="outlined" label="Nome da Empresa" hide-details="auto"/>
-          <v-text-field variant="outlined" label="Seu Nome" hide-details="auto"/>
+          <v-text-field variant="outlined" label="Nome da Empresa" hide-details="auto" v-model="nomeEmpresa" />
+          <v-text-field variant="outlined" label="Seu Nome" hide-details="auto" v-model="seuNome" />
 
-          <div class="flex gap-3">
-            <v-text-field variant="outlined" label="WhatsApp" class="flex-1" hide-details="auto"/>
-            <v-text-field variant="outlined" label="E-mail" hide-details="auto"/>
-          </div>
+          <v-text-field variant="outlined" label="Telefone" hide-details="auto" v-model="telefone" v-mask-phone.br>
+            <template #prepend-inner><span class="texto-color-primary">55</span></template>
+          </v-text-field>
 
-          <v-select variant="outlined" label="Faturamento" clearable :items="faturamentos" hide-details="auto"/>
+          <v-text-field variant="outlined" label="E-mail" hide-details="auto" v-model="email" />
 
           <v-checkbox v-model="termoUso" hide-details color="orange">
             <template #label>
@@ -43,11 +42,7 @@
             </template>
           </v-checkbox>
 
-          <v-btn
-              class="w-full text-none" variant="flat"
-              color="orange" size="large"
-              :disabled="!termoUso"
-          >
+          <v-btn class="w-full text-none" variant="flat" color="orange" size="large" :disabled="!termoUso" @click="enviarForms">
             Enviar
           </v-btn>
         </v-form>
@@ -324,7 +319,8 @@
 
 <script setup>
 import {ref} from "vue";
-import ParticleBackground from "@/components/particle/ParticleBackground.vue";
+import {toast} from "vue3-toastify";
+// import ParticleBackground from "@/components/particle/ParticleBackground.vue";
 
 const openModalTermo = ref(false);
 const termoUso = ref(false);
@@ -400,15 +396,37 @@ const funcionalidades = ref([
   }
 ]);
 
-// Faturamentos
-const faturamentos = ref([
-  'Até R$ 180.000,00',
-  'De R$ 180.000,01 a R$ 360.000,00',
-  'De R$ 360.000,01 a R$ 720.000,00',
-  'De R$ 720.000,01 a R$ 1.800.000,00',
-  'De R$ 1.800.000,01 a R$ 3.600.000,00',
-  'De R$ 3.600.000,01 a R$ 4.800.000,00'
-]);
+// Dados do formulário
+const nomeEmpresa = ref('');
+const seuNome = ref('');
+const telefone = ref('');
+const email = ref('');
+
+/** ENVIANDO O FORMULÁRIO **/
+const enviarForms = () => {
+  if (!nomeEmpresa.value || !seuNome.value || !telefone.value || !email.value || !termoUso.value) {
+    toast.error('Por favor, preencha todos os campos');
+    return;
+  }
+
+  // Aqui você pode adicionar a lógica para enviar os dados do formulário para o backend ou serviço de e-mail
+  console.log('Formulário enviado com sucesso:', {
+    nomeEmpresa: nomeEmpresa.value,
+    seuNome: seuNome.value,
+    telefone: telefone.value,
+    email: email.value,
+    termoUso: termoUso.value
+  });
+
+  // Limpar o formulário após o envio
+  nomeEmpresa.value = '';
+  seuNome.value = '';
+  telefone.value = '';
+  email.value = '';
+  termoUso.value = false;
+
+  toast.success('Formulário enviado com sucesso!');
+}
 </script>
 
 <style scoped lang="scss">

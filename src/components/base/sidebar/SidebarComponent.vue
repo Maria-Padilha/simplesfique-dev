@@ -2,7 +2,7 @@
   <!-- NAVBAR NO TOPO -->
   <v-app-bar class="py-2 z-10 background-navbar" elevation="0" density="compact">
     <v-icon icon="mdi-menu" size="25px" class="ml-5 cursor-pointer" @click="openSidebar"></v-icon>
-    <p class="ml-5 mt-1">Simples <span class="texto-color-laranja">Fique</span></p>
+    <p class="ml-5 mt-1 text-lg">Simples <span class="texto-color-laranja">Fique</span></p>
 
     <v-spacer></v-spacer>
 
@@ -64,20 +64,17 @@
   <!-- SIDEBAR LATERAL -->
   <v-navigation-drawer
       class="background-sidebar menu-scroll"
-      v-model="drawer" expand-on-hover
-      :temporary="rail" :rail="sidebarRail"
+      v-model="drawer"
       rail-width="65"
   >
     <v-list class="flex items-center flex-col justify-center">
-      <v-sheet v-if="!sidebarRail" width="50px" class="bg-transparent mt-4 mb-2">
+      <v-sheet v-if="!sidebarRail" width="50px" class="bg-transparent mt-5">
         <v-img alt="logo da simplesfique" cover class="w-[100%] h-[100%]" :src="require('@/assets/img/logo/logo.png')" />
       </v-sheet>
 
-      <v-sheet v-else width="40px" class="bg-transparent mt-4 mb-2 ml-2">
+      <v-sheet v-else width="40px" class="bg-transparent mt-5 ml-2">
         <v-img alt="logo da simplesfique" cover class="w-[100%] h-[100%]" :src="require('@/assets/img/logo/logo.png')" />
       </v-sheet>
-
-      <p v-if="!sidebarRail" class="text-sm uppercase text-center">Simples Fique</p>
 
       <v-text-field
           hide-details variant="outlined" class="mt-7 w-[92%]" density="compact" append-inner-icon="mdi-magnify"
@@ -89,18 +86,29 @@
 
     <v-list :lines="false" density="default" nav>
       <v-list-item
-          v-for="(item, index) in links"
-          class="text-sm"
-          :key="index"
-          :to="item.route"
-          :title="item.name"
-          :value="index"
-          active-class="hover-link"
-      >
-        <template v-slot:prepend>
-          <v-icon :icon="item.icon" size="21px"></v-icon>
-        </template>
-      </v-list-item>
+          prepend-icon="mdi-home"
+          title="Home"
+          to="/paginas/home"
+      ></v-list-item>
+
+<!--      <v-list-group value="cep">-->
+<!--        <template v-slot:activator="{ props }">-->
+<!--          <v-list-item-->
+<!--              v-bind="props"-->
+<!--              prepend-icon="mdi-map-marker"-->
+<!--              title="Localização"-->
+<!--          ></v-list-item>-->
+<!--        </template>-->
+
+<!--        <v-list-item-->
+<!--            v-for="(link, i) in links.cep" :key="i"-->
+<!--            class="pl-5"-->
+<!--            :title="link.text"-->
+<!--            :to="link.route"-->
+<!--            density="comfortable"-->
+<!--        />-->
+<!--      </v-list-group>-->
+
     </v-list>
   </v-navigation-drawer>
   <!-- FIM SIDEBAR LATERAL -->
@@ -128,7 +136,7 @@ const alterarTema = () => {
 const sidebarRail = ref(false);
 
 const openSidebar = () => {
-  rail.value ? drawer.value = !drawer.value : sidebarRail.value = !sidebarRail.value
+  drawer.value = !drawer.value;
 }
 
 // modal de erro
@@ -140,31 +148,16 @@ const items = ref([
   { text: 'Sair', icon: 'mdi-logout', route: '/login' },
 ])
 
-// links do sidebar
-const links = ref([
-  {route: '/paginas/home', name: 'Home', icon: 'mdi-home'},
-  {route: '/paginas/terminal-vendas', name: 'Term. de Vendas', icon: 'mdi-cart'},
-  {route: '/paginas/ordem-servico', name: 'Term. de Ordem de Serviço', icon: 'mdi-clipboard-list'},
-  {route: '/paginas/grade-cor-tamanho', name: 'Grade de Cor e Tamanho', icon: 'mdi-grid'},
-  {route: '/paginas/whatsapp', name: 'Whatsapp', icon: 'mdi-whatsapp'},
-  {route: '/paginas/email', name: 'E-mail', icon: 'mdi-email'},
-  {route: '/paginas/sms', name: 'SMS', icon: 'mdi-message'},
-  {route: '/paginas/comissao-vendedores', name: 'Comissão de Vendedores', icon: 'mdi-percent'},
-  {route: '/paginas/plano-contas', name: 'Plano de Contas', icon: 'mdi-file-document-outline'},
-  {route: '/paginas/contas-pagar', name: 'Contas a Pagar', icon: 'mdi-arrow-down-circle'},
-  {route: '/paginas/contas-receber', name: 'Contas a Receber', icon: 'mdi-arrow-up-circle'},
-  {route: '/paginas/controle-caixa', name: 'Controle de Caixa', icon: 'mdi-cash'},
-  {route: '/paginas/controle-bancario', name: 'Controle Bancário', icon: 'mdi-bank'},
-  {route: '/paginas/documentos-fiscais', name: 'Documentos Fiscais', icon: 'mdi-file-cabinet'},
-  {route: '/paginas/sped-fiscal', name: 'Sped Fiscal', icon: 'mdi-file-check'},
-  {route: '/paginas/ia', name: 'Inteligência Artificial', icon: 'mdi-brain'},
-  {route: '/paginas/area-contador', name: 'Área do Contador', icon: 'mdi-briefcase'},
-  {route: '/paginas/aplicativo', name: 'Aplicativo', icon: 'mdi-cellphone'},
-  {route: '/paginas/controle-mesa', name: 'Controle de Restaurante', icon: 'mdi-silverware-fork-knife'},
-  {route: '/paginas/integracao-balanca', name: 'Integração Balança', icon: 'mdi-scale'},
-  {route: '/paginas/terminal-autonomo', name: 'Term. Autônomo de Vendas', icon: 'mdi-monitor'},
-  {route: '/paginas/pdv-onoff', name: 'PVD On-Off', icon: 'mdi-power'},
-])
+// links da sidebar
+// const links = ref({
+//
+//   cep: [
+//     { text: 'País', icon: 'mdi-earth', route: '/paginas/cep/país' },
+//     { text: 'Estado', icon: 'mdi-map-marker-outline', route: '/paginas/cep/estado' },
+//     { text: 'Cidade', icon: 'mdi-city-variant-outline', route: '/paginas/cep/cidade' },
+//     { text: 'Feriado', icon: 'mdi-home-city-outline', route: '/paginas/cep/feriado' },
+//   ],
+// })
 
 // Ajustando o sidebar para ficar responsivo
 const drawer = ref(true);
@@ -203,7 +196,7 @@ onBeforeUnmount(() => {
 }
 
 .hover-link {
-  color: var(--text-color-fourth);
+  color: var(--text-color-secodary);
   background: transparent;
 }
 
