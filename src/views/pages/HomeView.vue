@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-import PaísModal from "@/components/base/modais/localizacao/PaísModal.vue";
+import PaísModal from "@/components/base/modais/localizacao/LocalizacaoPadraoModal.vue";
 import { ref } from 'vue';
 
 const modal = ref(false);

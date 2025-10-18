@@ -174,7 +174,7 @@
                 hide-details="auto"
                 :rules="[rules.required]"
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="pesquisarBairro"
+                @click:appendInner="modalBairro = !modalBairro"
                 :prefix="`ID: ${data.id_bairro ? data.id_bairro : '00'}`"
                 :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
@@ -187,7 +187,7 @@
                 hide-details="auto"
                 :rules="[rules.required]"
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="pesquisarAtividade"
+                @click:appendInner="modalAtividade = !modalAtividade"
                 :prefix="`ID: ${data.id_atividade ? data.id_atividade : '00'}`"
                 :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
@@ -278,7 +278,9 @@
       </v-container>
     </v-form>
 
-    <país-modal v-model:modal="modalCidade" :close-modal="closeModalCidade" />
+    <cidade-modal v-model:modal="modalCidade" :close-modal="closeModalCidade" @selecionar="preencherCamposCidade" />
+    <bairro-modal v-model:modal="modalBairro" :close-modal="closeModalBairro" @selecionar="preencherCamposBairro" />
+    <atividade-modal v-model:modal="modalAtividade" :close-modal="closeModalAtividade" @selecionar="preencherCamposAtividade" />
   </main>
 </template>
 
@@ -287,7 +289,9 @@ import {ref, watch} from 'vue'
 import ParticleBackground from "@/components/particle/ParticleBackground.vue";
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {useLocalizacaoStore} from "@/stores/APIs/localizacao";
-import PaísModal from "@/components/base/modais/localizacao/PaísModal.vue";
+import CidadeModal from "@/components/base/modais/localizacao/CidadeModal.vue";
+import BairroModal from "@/components/base/modais/localizacao/BairroModal.vue";
+import AtividadeModal from "@/components/base/modais/localizacao/AtividadeModal.vue";
 
 const themeStore = useThemeStore();
 const localizacaoStore = useLocalizacaoStore();
@@ -393,22 +397,35 @@ watch(
  * PESQUISAR CIDADE, BAIRRO E ATIVIDADE
  */
 
+// cidade
 const modalCidade = ref(false);
 const closeModalCidade = () => {
   modalCidade.value = false;
 }
+const preencherCamposCidade = (c) => {
+  data.value.id_cidade = c.codigo;
+  cidade.value = c.cidade;
+};
 
-// const pesquisarCidade = () => {
-//   alert('Pesquisar Cidade - Em desenvolvimento')
-// }
+// bairro
+const modalBairro = ref(false);
+const closeModalBairro = () => {
+  modalBairro.value = false;
+};
+const preencherCamposBairro = (b) => {
+  data.value.id_bairro = b.codigo;
+  bairro.value = b.bairro;
+};
 
-const pesquisarBairro = () => {
-  alert('Pesquisar Bairro - Em desenvolvimento')
+// atividade
+const modalAtividade = ref(false);
+const closeModalAtividade = () => {
+  modalAtividade.value = false;
 }
-
-const pesquisarAtividade = () => {
-  alert('Pesquisar Atividade - Em desenvolvimento')
-}
+const preencherCamposAtividade = (a) => {
+  data.value.id_atividade = a.codigo;
+  atividade.value = a.atividade;
+};
 </script>
 
 <style scoped>
