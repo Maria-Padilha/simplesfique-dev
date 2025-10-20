@@ -407,29 +407,48 @@ const telefone = ref('');
 const email = ref('');
 
 /** ENVIANDO O FORMULÁRIO **/
-const enviarForms = () => {
+const enviarForms = async () => {
   if (!nomeEmpresa.value || !seuNome.value || !telefone.value || !email.value || !termoUso.value) {
     toast.error('Por favor, preencha todos os campos');
     return;
   }
 
-  // Aqui você pode adicionar a lógica para enviar os dados do formulário para o backend ou serviço de e-mail
-  console.log('Formulário enviado com sucesso:', {
-    nomeEmpresa: nomeEmpresa.value,
-    seuNome: seuNome.value,
-    telefone: telefone.value,
-    email: email.value,
-    termoUso: termoUso.value
-  });
+  try {
+    // Preparar os dados para envio
+    const dadosFormulario = {
+      nomeEmpresa: nomeEmpresa.value,
+      seuNome: seuNome.value,
+      telefone: telefone.value,
+      email: email.value,
+      termoUso: termoUso.value,
+      dataEnvio: new Date().toISOString()
+    };
 
-  // Limpar o formulário após o envio
-  nomeEmpresa.value = '';
-  seuNome.value = '';
-  telefone.value = '';
-  email.value = '';
-  termoUso.value = false;
+    // Fazer a requisição POST para o webhook do n8n adicione aqui o link do webhook
+    const response = await fetch('', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(dadosFormulario)
+    });
 
-  toast.success('Formulário enviado com sucesso!');
+    if (response.ok) {
+      // Limpar o formulário após o envio bem-sucedido
+      nomeEmpresa.value = '';
+      seuNome.value = '';
+      telefone.value = '';
+      email.value = '';
+      termoUso.value = false;
+
+      toast.success('Formulário enviado com sucesso! Em breve entraremos em contato.');
+    } else {
+      throw new Error('Erro ao enviar formulário');
+    }
+  } catch (error) {
+    console.error('Erro ao enviar formulário:', error);
+    toast.error('Erro ao enviar formulário. Tente novamente.');
+  }
 }
 </script>
 
