@@ -376,11 +376,12 @@ function limparInput(input) {
 
 watch(
     () => data.value.cep,
-    (novoCep) => {
+    async (novoCep) => {
       if (novoCep) {
         const cepLimpo = limparInput(data.value.cep)
         if (cepLimpo && cepLimpo.length === 8) {
-          localizacaoStore.buscarCep(cepLimpo)
+          await localizacaoStore.buscarCep(cepLimpo)
+
           if (localizacaoStore.cep) {
             data.value.endereco = localizacaoStore.cep?.logradouro || ''
             cidade.value = localizacaoStore.cep?.localidade || null

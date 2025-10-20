@@ -108,33 +108,33 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // 🔐 2. Proteção da rota "empresa"
-  if (to.name === 'empresa') {
-    const token = to.query.token;
-
-    // Se não houver token, bloqueia o acesso
-    if (!token) {
-      router.push('/');
-      return next({ name: 'erro401' }); // ou qualquer rota de erro/autenticação
-    }
-
-    try {
-      // Exemplo de verificação via API
-      const response = await fetch(`https://api.seuservidor.com/validar-token?token=${token}`);
-      const data = await response.json();
-
-      if (!data.valido) {
-        router.push('/');
-        return next({ name: 'erro401' });
-      }
-
-      // Caso o token seja válido, permite o acesso
-      return next();
-    } catch (error) {
-      console.error('Erro ao validar token:', error);
-      // router.push('/');
-      return next({ name: 'erro500' });
-    }
-  }
+  // if (to.name === 'empresa') {
+  //   const token = to.query.token;
+  //
+  //   // Se não houver token, bloqueia o acesso
+  //   if (!token) {
+  //     router.push('/');
+  //     return next({ name: 'erro401' }); // ou qualquer rota de erro/autenticação
+  //   }
+  //
+  //   try {
+  //     // Exemplo de verificação via API
+  //     const response = await fetch(`https://api.seuservidor.com/validar-token?token=${token}`);
+  //     const data = await response.json();
+  //
+  //     if (!data.valido) {
+  //       router.push('/');
+  //       return next({ name: 'erro401' });
+  //     }
+  //
+  //     // Caso o token seja válido, permite o acesso
+  //     return next();
+  //   } catch (error) {
+  //     console.error('Erro ao validar token:', error);
+  //     // router.push('/');
+  //     return next({ name: 'erro500' });
+  //   }
+  // }
 
   // ✅ Se não cair em nenhuma condição acima, segue normalmente
   next();

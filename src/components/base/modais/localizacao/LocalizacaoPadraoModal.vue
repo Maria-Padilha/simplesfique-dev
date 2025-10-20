@@ -8,6 +8,7 @@
       </v-card-title>
 
       <v-card-text>
+        <!-- CAMPO DE PESQUISA -->
         <v-text-field
             variant="outlined"
             hide-details
@@ -16,6 +17,7 @@
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             append-inner-icon="mdi-plus"
+            v-model="localTermoPesquisa"
             @click:appendInner="props.pesquisar"
         />
 
@@ -24,6 +26,8 @@
             class="mb-2 cursor-pointer"
             :theme="themeStore.darkMode ? 'dark' : 'light'"
             striped="even"
+            height="300px"
+            fixed-header
         >
           <thead>
           <tr>
@@ -37,7 +41,6 @@
           </tr>
           </thead>
           <tbody>
-          <!-- slot tbody agora recebe a função de selecionar -->
           <slot name="tbody" :selecionar="emitSelecionar" />
           </tbody>
         </v-table>
@@ -62,11 +65,18 @@ const props = defineProps({
   closeModal: Function,
   pesquisar: Function,
   headers: Array,
+  termoPesquisa: String,
 });
 
-const emit = defineEmits(["selecionar"]);
+const emit = defineEmits(["selecionar", "update:termoPesquisa"]);
 
 const modal = computed(() => props.modal);
+
+// 🔍 Faz o v-model funcionar com o prop "termoPesquisa"
+const localTermoPesquisa = computed({
+  get: () => props.termoPesquisa,
+  set: (val) => emit("update:termoPesquisa", val),
+});
 
 const emitSelecionar = (item) => {
   emit("selecionar", item);
