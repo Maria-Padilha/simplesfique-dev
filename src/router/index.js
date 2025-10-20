@@ -7,6 +7,8 @@ import HomeSiteView from "@/views/site/HomeSiteView.vue";
 import FuncionalidadesSiteView from "@/views/site/FuncionalidadesSiteView.vue";
 import IntegracoesView from "@/views/site/IntegracoesSiteView.vue";
 import PlanosSiteView from "@/views/site/PlanosSiteView.vue";
+import PagarView from "@/views/financeiro/PagarView.vue";
+import ReceberView from "@/views/financeiro/ReceberView.vue";
 import {useSiteStore} from "@/stores/site";
 
 const routes = [
@@ -42,6 +44,18 @@ const routes = [
     path: '/paginas/home',
     name: 'home',
     component: HomeView
+  },
+
+  //    Páginas do módulo financeiro
+  {
+    path: '/paginas/financeiro/pagar',
+    name: 'financeiro_pagar',
+    component: PagarView
+  },
+  {
+    path: '/paginas/financeiro/receber',
+    name: 'financeiro_receber',
+    component: ReceberView
   },
 
   //    Páginas do site
