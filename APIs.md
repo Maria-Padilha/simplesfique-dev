@@ -289,3 +289,49 @@ Content-Type: application/json
 |---------|--------|------------------------|
 | **GET** | `/cep` | retornar todos os ceps |
 | **GET** | `/cep/:id` | retornar dados do cep  |
+
+### NCM:
+
+| Método | Endpoint     | Descrição                              |
+|:-------|:--------------|:---------------------------------------|
+| **POST**   | `/ncm`        | Cadastrar um novo NCM                 |
+| **GET**    | `/ncm`        | Retornar dados de todos os NCM        |
+| **GET**    | `/ncm/:id`    | Retornar dados de um NCM específico   |
+| **PUT**    | `/ncm/:id`    | Alterar dados de um NCM específico    |
+| **DELETE** | `/ncm/:id`    | Inativar ou excluir um NCM específico |
+
+```bash
+### Exemplo de JSON para cadastro/alteração de pessoa:
+
+{
+  "data": {
+    "id": "000000000001",
+    "desc_ncm": "Descrição completa do NCM",
+    "dh_cadastro": "2025-10-21T10:00:00Z",
+    "dh_alteracao": null,
+    "id_user_inc": 1,
+    "id_user_alt": null
+  }
+}
+```
+
+### Bairro: 
+
+| Método | Endpoint       | Descrição                                   |
+|:-------|:----------------|:--------------------------------------------|
+| **POST**   | `/bairro`        | Cadastrar um novo bairro                  |
+| **GET**    | `/bairro`        | Retornar dados de todos os bairros        | 
+| **GET**    | `/bairro/:id`    | Retornar dados de um bairro específico    | 
+| **PUT**    | `/bairro/:id`    | Alterar dados de um bairro específico     | 
+| **DELETE** | `/bairro/:id`    | Inativar ou excluir um bairro específico  |
+
+```bash
+### Exemplo de JSON para cadastro/alteração de bairro:
+
+{
+  "data": {
+    "id": 1,
+    "descbairro": "Centro",
+  }
+}
+```
