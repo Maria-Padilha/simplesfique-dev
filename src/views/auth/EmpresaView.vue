@@ -404,8 +404,8 @@ const closeModalCidade = () => {
   modalCidade.value = false;
 }
 const preencherCamposCidade = (c) => {
-  data.value.id_cidade = c.codigo;
-  cidade.value = c.cidade;
+  data.value.id_cidade = c.ID;
+  cidade.value = c.DESCCIDADE;
 };
 
 // bairro

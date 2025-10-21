@@ -16,7 +16,7 @@
             class="mb-5"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
-            append-inner-icon="mdi-plus"
+            :append-inner-icon="props.cadastrar ? 'mdi-plus' : ''"
             v-model="localTermoPesquisa"
             @click:appendInner="props.pesquisar"
         />
@@ -66,6 +66,10 @@ const props = defineProps({
   pesquisar: Function,
   headers: Array,
   termoPesquisa: String,
+  cadastrar: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(["selecionar", "update:termoPesquisa"]);
