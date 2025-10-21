@@ -33,6 +33,12 @@ const routes = [
     name: 'login',
     component: LoginView
   },
+  {
+    path: '/empresa',
+    name: 'empresa',
+    component: () => import('@/views/auth/EmpresaView.vue'),
+    meta: { requiresToken: true }
+  },
 
   //   paginas do sistema
   {
@@ -88,21 +94,50 @@ const router = createRouter({
 
 // Middleware de navegação
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const siteStore = useSiteStore();
   const manutencao = siteStore.manutencao;
 
-  // Se o site está em manutenção e não estamos já na rota de manutenção
+  // 🔧 1. Modo de manutenção
   if (manutencao && to.name !== 'manutencao') {
-    return next({ name: 'manutencao' })
+    return next({ name: 'manutencao' });
   }
 
-  // Se o site não está mais em manutenção e o usuário está na página de manutenção
   if (!manutencao && to.name === 'manutencao') {
-    return next({ name: 'home' })
+    return next({ name: 'home' });
   }
 
-  next()
-})
+  // 🔐 2. Proteção da rota "empresa"
+  // if (to.name === 'empresa') {
+  //   const token = to.query.token;
+  //
+  //   // Se não houver token, bloqueia o acesso
+  //   if (!token) {
+  //     router.push('/');
+  //     return next({ name: 'erro401' }); // ou qualquer rota de erro/autenticação
+  //   }
+  //
+  //   try {
+  //     // Exemplo de verificação via API
+  //     const response = await fetch(`https://api.seuservidor.com/validar-token?token=${token}`);
+  //     const data = await response.json();
+  //
+  //     if (!data.valido) {
+  //       router.push('/');
+  //       return next({ name: 'erro401' });
+  //     }
+  //
+  //     // Caso o token seja válido, permite o acesso
+  //     return next();
+  //   } catch (error) {
+  //     console.error('Erro ao validar token:', error);
+  //     // router.push('/');
+  //     return next({ name: 'erro500' });
+  //   }
+  // }
+
+  // ✅ Se não cair em nenhuma condição acima, segue normalmente
+  next();
+});
 
 export default router
