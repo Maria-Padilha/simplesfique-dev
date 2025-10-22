@@ -3,9 +3,15 @@
 ## URLs
 URL do backend não definitiva.
 ```plaintext
+Clayton: 
 IP: 192.168.10.5
 PORT: 9005
 URL BASE: http://192.168.10.5:9005/
+
+Fernando: 
+IP: 192.168.10.19
+PORT: 9005
+URL BASE: http://192.168.10.19:9005/
 ```
 
 ## APIs
@@ -15,9 +21,11 @@ Baixar a collection do Insomnia para testar as APIs:
 [simplesfique-collection](..%2F..%2Fsimplesfique-collection) <br>
 [simplesfique-collection.yaml](..%2F..%2Fsimplesfique-collection.yaml)
 
-```plaintext
+``` plaintext
 Content-Type: application/json 
-Bearer Token (para rotas que necessitam de autenticação)
+{
+  headers: {Authorization: `Bearer ${this.token}`}
+}
 ``` 
 
 ### Empresas:
@@ -33,7 +41,7 @@ Bearer Token (para rotas que necessitam de autenticação)
 ```bash
 ### Exemplo de JSON para cadastro/alteração de empresa:
 {
-  "data": {
+  "data": [{
     "id_saas": 1,
     "razao_social": "Bonfire Solutions LTDA",
     "fantasia": "Bonfire Studio",
@@ -50,7 +58,6 @@ Bearer Token (para rotas que necessitam de autenticação)
     "cep": "78048000",
     "id_cidade": 5103403,
     "id_bairro": 2,
-    "id_atividade": 5,
     "complemento": "Sala 02",
     "perfil": "empresarial",
     "crt": "1",
@@ -64,10 +71,9 @@ Bearer Token (para rotas que necessitam de autenticação)
     "dh_expiracao": "2026-10-16T14:00:00",
     "tp_contrato": "1",
     "tp_perfil": "1"
-  }
+  }]
 }
 ````
-
 
 ### SAAS:
 
@@ -81,81 +87,57 @@ Bearer Token (para rotas que necessitam de autenticação)
 ```bash
 ### Exemplo de JSON para cadastro/alteração de SAAS:
 {
-  "data": {
+  "data": [{
     "nome": "Bonfire SAAS Raiz",
     "email": "admin@bonfire.com",
     "telefone": "65998765432",
     "dh_cadastro": "2025-10-16T14:00:00",
     "ativo": "S"
-  }
+  }]
 }
 ```
 
 ### País:
 
+```Plaintext
+API sendo consumida em: stores/APIs/localizacao.js
+```
+
 | Método | Endpoint | Descrição                               |
 |--------|---------|-----------------------------------------|
-| **POST** | `/pais` | Cadastrar país — passar um JSON `"data"` |
 | **GET** | `/pais` | Retorna todos os países                 |
 | **GET** | `/pais/:id` | Retornar dados do país                  |
-| **PUT** | `/pais/:id` | Alterar dados do país                   |
-| **DELETE** | `/pais/:id` | Excluir país                            |
 
-```bash
-### Exemplo de JSON para cadastro/alteração de país:
-{
-  "data": {
-    "id": 1
-    "nomepais": "Brasil",
-  }
-}
-```
 
 ### UF:
 
+```Plaintext
+API sendo consumida em: stores/APIs/localizacao.js
+```
+
 | Método | Endpoint | Descrição                             |
 |--------|-------|---------------------------------------|
-| **POST** | `/uf` | Cadastrar UF — passar um JSON `"data"` |
 | **GET** | `/uf` | Retorna todas as UFs                  |
 | **GET** | `/uf/:id` | Retornar dados da UF                  |
-| **PUT** | `/uf/:id` | Alterar dados da UF                   |
-| **DELETE** | `/uf/:id` | Inativar / excluir UF                 |
 
-```bash
-### Exemplo de JSON para cadastro/alteração de UF:
-{
-  "data": {
-    "id": 1
-    "sigla": "MT",
-    "descuf": "Mato Grosso",
-    "id_pais": 1,
-  }
-}
-```
 
 ### Cidade:
 
-| Método | Endpoint | Descrição                                 |
-|--------|-----------|-------------------------------------------|
-| **POST** | `/cidade` | Cadastrar cidade — passar um JSON `"data"` |
-| **GET** | `/cidade` | Retorna todas as cidades                  |
-| **GET** | `/cidade/:id` | Retornar dados da cidade                  |
-| **PUT** | `/cidade/:id` | Alterar dados da cidade                   |
-| **DELETE** | `/cidade/:id` | Excluir cidade                            |
-
-```bash
-### Exemplo de JSON para cadastro/alteração de cidade:
-{
-  "data": {
-    "id": 1
-    "descidade": "Cuiabá",
-    "id_uf": 1,
-    "ddd": "65"
-  }
-}
+``` Plaintext
+API sendo consumida em: stores/APIs/localizacao.js
 ```
 
+| Método | Endpoint | Descrição                                 |
+|--------|-----------|-------------------------------------------|
+| **GET** | `/cidade` | Retorna todas as cidades                  |
+| **GET** | `/cidade/:id` | Retornar dados da cidade                  |
+
+
 ### Feriado:
+
+```Plaintext
+API sendo consumida em: stores/APIs/localizacao.js
+```
 
 | Método | Endpoint | Descrição                                   |
 |--------|-----------|---------------------------------------------|
@@ -168,15 +150,39 @@ Bearer Token (para rotas que necessitam de autenticação)
 ```bash
 ### Exemplo de JSON para cadastro/alteração de feriado:
 {
-  "data": {
+  "data": [{
     "id": 1
     "descferiado": "Natal",
     "dia_feriado": "2025-12-25",
     "tipo_feriado": "Nacional",
     "id_cidade": null,
-  }
+  }]
 }
 ```
+
+### CEP:
+
+``` Plaintext
+API sendo consumida em: stores/APIs/localizacao.js
+```
+
+| Método  | Endpoint    | Descrição              |
+|---------|-------------|------------------------|
+| **GET** | `/cep`      | retornar todos os ceps |
+| **GET** | `/cep/:cep` | retornar dados do cep  |
+
+
+### Bairro:
+
+``` Plaintext
+API sendo consumida em: stores/APIs/localizacao.js
+```
+
+| Método | Endpoint       | Descrição                                   |
+|:-------|:----------------|:--------------------------------------------|
+| **GET**    | `/bairro`        | Retornar dados de todos os bairros        | 
+| **GET**    | `/bairro/:id`    | Retornar dados de um bairro específico    |
+
 
 ### Atividade: 
 
@@ -191,14 +197,14 @@ Bearer Token (para rotas que necessitam de autenticação)
 ```bash
 ### Exemplo de JSON para cadastro/alteração de atividade:
 {
-  "data": {
+  "data": [{
     "id": 1
     "descatividade": "Desenvolvimento de Software",
-  }
+  }]
 }
 ```
 
-### Pessoa: 
+### Classe Pessoa: 
 
 | Método | Endpoint | Descrição                                        |
 |--------|-----------|--------------------------------------------------|
@@ -211,30 +217,10 @@ Bearer Token (para rotas que necessitam de autenticação)
 ```bash
 ### Exemplo de JSON para cadastro/alteração de classepessoa:
 {
-  "data": {
+  "data": [{
     "id": 1
     "descclassepessoa": "Cliente",
-  }
-}
-```
-
-### Departamento:
-
-| Método | Endpoint | Descrição                                        |
-|--------|-----------|--------------------------------------------------|
-| **POST** | `/departamento` | Cadastrar departamento — passar um JSON `"data"` |
-| **GET** | `/departamento` | Retorna todos os departamentos                   |
-| **GET** | `/departamento/:id` | Retornar dados do departamento                   |
-| **PUT** | `/departamento/:id` | Alterar dados do departamento                    |
-| **DELETE** | `/departamento/:id` | Excluir departamento                             |
-
-```bash
-### Exemplo de JSON para cadastro/alteração de departamento:
-{
-  "data": {
-    "id": 1
-    "descdepartamento": "Recursos Humanos",
-  }
+  }]
 }
 ```
 
@@ -251,7 +237,7 @@ Bearer Token (para rotas que necessitam de autenticação)
 ```bash
 ### Exemplo de JSON para cadastro/alteração de pessoa:
 {
-  "data": {
+  "data": [{
     "id_empresa": 1,
     "tipo_pessoa": "J",
     "nome_razao": "Tech VST Soluções LTDA",
@@ -277,13 +263,57 @@ Bearer Token (para rotas que necessitam de autenticação)
     "dh_cadastro": "2025-10-16T14:00:00",
     "dh_alteracao": "2025-10-16T14:30:00",
     "ativo": "S"
-  }
+  }]
 }
 ```
 
-### CEP:
+### Departamento:
 
-| Método  | Endpoint | Descrição              |
-|---------|--------|------------------------|
-| **GET** | `/cep` | retornar todos os ceps |
-| **GET** | `/cep/:id` | retornar dados do cep  |
+| Método | Endpoint | Descrição                                        |
+|--------|-----------|--------------------------------------------------|
+| **POST** | `/departamento` | Cadastrar departamento — passar um JSON `"data"` |
+| **GET** | `/departamento` | Retorna todos os departamentos                   |
+| **GET** | `/departamento/:id` | Retornar dados do departamento                   |
+| **PUT** | `/departamento/:id` | Alterar dados do departamento                    |
+| **DELETE** | `/departamento/:id` | Excluir departamento                             |
+
+```bash
+### Exemplo de JSON para cadastro/alteração de departamento:
+{
+  "data": [{
+    "id": 1
+    "descdepartamento": "Recursos Humanos",
+  }]
+}
+```
+
+### NCM:
+
+| Método | Endpoint     | Descrição                              |
+|:-------|:--------------|:---------------------------------------|
+| **POST**   | `/ncm`        | Cadastrar um novo NCM                 |
+| **GET**    | `/ncm`        | Retornar dados de todos os NCM        |
+| **GET**    | `/ncm/:id`    | Retornar dados de um NCM específico   |
+| **PUT**    | `/ncm/:id`    | Alterar dados de um NCM específico    |
+| **DELETE** | `/ncm/:id`    | Inativar ou excluir um NCM específico |
+
+```bash
+### Exemplo de JSON para cadastro/alteração de pessoa:
+
+{
+  "data": [{
+    "id": "000000000001",
+    "desc_ncm": "Descrição completa do NCM",
+    "dh_cadastro": "2025-10-21T10:00:00Z",
+    "dh_alteracao": null,
+    "id_user_inc": 1,
+    "id_user_alt": null
+  }]
+}
+```
+
+### CNPJ:
+
+| Método  | Endpoint      | Descrição              |
+|---------|---------------|------------------------|
+| **GET** | `/cnpj/:cnpj` | retornar dados do cnpj |

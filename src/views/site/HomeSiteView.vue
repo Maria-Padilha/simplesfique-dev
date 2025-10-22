@@ -27,9 +27,11 @@
           <v-text-field variant="outlined" label="Nome da Empresa" hide-details="auto" v-model="nomeEmpresa" />
           <v-text-field variant="outlined" label="Seu Nome" hide-details="auto" v-model="seuNome" />
 
-          <v-text-field variant="outlined" label="Telefone" hide-details="auto" v-model="telefone" v-mask-phone.br>
-            <template #prepend-inner><span class="texto-color-primary">55</span></template>
-          </v-text-field>
+          <v-text-field
+              variant="outlined" label="Telefone" hide-details="auto"
+              v-model="telefone" v-mask-phone.br prefix="55"
+              :theme="themeStore.darkMode ? 'dark' : 'light'"
+          />
 
           <v-text-field variant="outlined" label="E-mail" hide-details="auto" v-model="email" />
 
@@ -320,8 +322,10 @@
 <script setup>
 import {ref} from "vue";
 import {toast} from "vue3-toastify";
+import {useThemeStore} from "@/stores/config-temas/theme";
 // import ParticleBackground from "@/components/particle/ParticleBackground.vue";
 
+const themeStore = useThemeStore();
 const openModalTermo = ref(false);
 const termoUso = ref(false);
 
