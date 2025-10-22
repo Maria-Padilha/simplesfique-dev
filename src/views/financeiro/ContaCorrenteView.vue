@@ -2,7 +2,7 @@
   <div class="pa-4">
     <v-card class="background-secondary mx-auto">
       <v-card-title class="text-h5 pa-4">
-        <v-icon icon="mdi-credit-card-outline" class="mr-3"></v-icon>
+        <v-icon icon="mdi-bank-outline" class="mr-3"></v-icon>
         Contas Corrente
       </v-card-title>
       <v-card-text class="pa-4">
@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-// Componente em desenvolvimento para contas a pagar
+// Componente em desenvolvimento para contas correntes
 </script>
 
 <style scoped>
