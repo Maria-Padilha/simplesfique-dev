@@ -48,40 +48,12 @@
       </div>
     </template>
   </localizacao-padrao-modal>
-
-  <v-dialog v-model="cadastrarModal" max-width="400">
-    <v-card color="var(--bg-card)" class="texto-color-primary">
-      <v-card-title class="background-laranja d-flex align-center">
-        <p>Cadastrar</p>
-        <v-spacer />
-        <v-btn icon="mdi-close" variant="text" @click="cadastrarModal = false" />
-      </v-card-title>
-      <v-card-text>
-        <v-form class="d-flex flex-column gap-3">
-          <v-text-field label="Cidade" variant="outlined" density="comfortable" hide-details="auto" />
-          <v-text-field label="UF" variant="outlined" density="comfortable" hide-details="auto" />
-          <v-text-field label="DDD" variant="outlined" density="comfortable" hide-details="auto" />
-
-          <v-btn
-              color="var(--text-color-laranja)"
-              class="w-100 text-none"
-              variant="tonal"
-              density="comfortable"
-          >
-            Cadastrar
-          </v-btn>
-        </v-form>
-      </v-card-text>
-    </v-card>
-  </v-dialog>
 </template>
 
 <script setup>
 import LocalizacaoPadraoModal from "@/components/base/modais/localizacao/LocalizacaoPadraoModal.vue";
 import { ref, defineProps, defineEmits, watchEffect, computed } from "vue";
-import {useCidadeStore} from "@/stores/APIs/cidade";
-
-const cadastrarModal = ref(false);
+import {useLocalizacaoStore} from "@/stores/APIs/localizacao";
 
 const props = defineProps({
   modal: Boolean,
@@ -103,17 +75,13 @@ const headers = [
 ];
 
 const termoPesquisar = ref("");
-const pesquisar = () => {
-  cadastrarModal.value = !cadastrarModal.value;
-};
 
 /**
  * Trabalhando com a API de cidades
- * @type {Store<"cidade", {cidade: null, records: number, errorMessage: string, cidades: [], loading: boolean, successMessage: string, token: string}, {}, {buscarTodasCidades(number=, number=): Promise<void>}>}
  */
-const cidadeStore = useCidadeStore();
+const cidadeStore = useLocalizacaoStore();
 const cidades = computed(() => cidadeStore.cidades);
-const records = computed(() => cidadeStore.records);
+const records = computed(() => cidadeStore.recordsCidades);
 const qtdAtual = computed(() => {
   return Math.min(offsetAtual.value + cidades.value.length, records.value || 0);
 });
@@ -121,32 +89,32 @@ const qtdAtual = computed(() => {
 const offsetAtual = ref(0);
 const limit = ref(50);
 
-watchEffect(() => {
+watchEffect(async () => {
   if (props.modal && cidades.value.length === 0) {
     offsetAtual.value = 0;
-    cidadeStore.buscarTodasCidades(limit, offsetAtual.value);
+    await cidadeStore.buscarTodasCidades(limit.value, offsetAtual.value);
   }
 });
 
 /**
  * Função para buscar as próximas cidades na lista
  */
-const proximasCidades = () => {
+const proximasCidades = async () => {
   // só busca se ainda houver mais cidades
   if (offsetAtual.value + limit.value < records.value) {
     offsetAtual.value += limit.value;
-    cidadeStore.buscarTodasCidades(limit.value, offsetAtual.value);
+    await cidadeStore.buscarTodasCidades(limit.value, offsetAtual.value);
   }
 };
 
 /**
  * Função para buscar as cidades anteriores na lista
  */
-const cidadesAnteriores = () => {
+const cidadesAnteriores = async () => {
   // evita offset negativo
   if (offsetAtual.value - limit.value >= 0) {
     offsetAtual.value -= limit.value;
-    cidadeStore.buscarTodasCidades(limit.value, offsetAtual.value);
+    await cidadeStore.buscarTodasCidades(limit.value, offsetAtual.value);
   }
 };
 </script>

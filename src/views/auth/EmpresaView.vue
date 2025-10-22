@@ -34,6 +34,7 @@
                 variant="outlined"
                 hide-details="auto"
                 :rules="[rules.required]"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
           <v-col cols="12" md="6">
@@ -43,6 +44,7 @@
                 variant="outlined"
                 hide-details="auto"
                 :rules="[rules.required]"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
 
@@ -87,6 +89,7 @@
                 variant="outlined"
                 hide-details="auto"
                 v-mask-cnpj
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
           <v-col cols="12" md="4">
@@ -96,6 +99,7 @@
                 variant="outlined"
                 hide-details="auto"
                 v-mask-number
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
           <v-col cols="12" md="4">
@@ -105,6 +109,7 @@
                 variant="outlined"
                 hide-details="auto"
                 v-mask-number
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
 
@@ -115,6 +120,7 @@
                 variant="outlined"
                 hide-details="auto"
                 v-mask-number
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
           <v-col cols="12" md="6">
@@ -123,36 +129,40 @@
                 v-model="data.insc_subst_trib"
                 variant="outlined"
                 hide-details="auto"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
 
-          <v-col cols="12" md="3">
+          <v-col cols="12" md="4">
             <v-text-field
                 label="CEP"
                 v-model="data.cep"
                 variant="outlined"
                 hide-details="auto"
                 v-mask-cep
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
-          <v-col cols="12" md="7">
+          <v-col cols="12" md="8">
             <v-text-field
                 label="Endereço"
                 v-model="data.endereco"
                 variant="outlined"
                 hide-details="auto"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
-          <v-col cols="12" md="2">
+
+          <v-col cols="12" md="4">
             <v-text-field
                 label="Número"
                 v-model="data.numero"
                 variant="outlined"
                 hide-details="auto"
                 v-mask-number
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
-
           <v-col cols="12" md="4">
             <v-text-field
                 label="ID Cidade"
@@ -167,30 +177,20 @@
             />
           </v-col>
           <v-col cols="12" md="4">
-            <v-text-field
-                label="ID Bairro"
-                v-model="bairro"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                append-inner-icon="mdi-magnify"
-                @click:appendInner="modalBairro = !modalBairro"
-                :prefix="`ID: ${data.id_bairro ? data.id_bairro : '00'}`"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="ID Atividade"
-                v-model="atividade"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                append-inner-icon="mdi-magnify"
-                @click:appendInner="modalAtividade = !modalAtividade"
-                :prefix="`ID: ${data.id_atividade ? data.id_atividade : '00'}`"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
+            <div class="d-flex align-center">
+              <v-text-field
+                  label="ID Bairro"
+                  v-model="bairro"
+                  variant="outlined"
+                  hide-details="auto"
+                  :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  class="flex-grow-1"
+              >
+<!--                <template #append-inner>-->
+<!--                  <bairro-menu v-model:menu="menu" v-model:overlay="overlay" />-->
+<!--                </template>-->
+              </v-text-field>
+            </div>
           </v-col>
 
           <v-col cols="12" md="6">
@@ -199,6 +199,7 @@
                 v-model="data.complemento"
                 variant="outlined"
                 hide-details="auto"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
           <v-col cols="12" md="6">
@@ -207,6 +208,7 @@
                 v-model="data.perfil"
                 variant="outlined"
                 hide-details="auto"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
 
@@ -216,6 +218,7 @@
                 v-model="data.crt"
                 variant="outlined"
                 hide-details="auto"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
           <v-col cols="12" md="4">
@@ -224,6 +227,7 @@
                 v-model="data.cnae"
                 variant="outlined"
                 hide-details="auto"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
           <v-col cols="12" md="4">
@@ -232,6 +236,7 @@
                 v-model="data.ident_interna"
                 variant="outlined"
                 hide-details="auto"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
 
@@ -242,6 +247,7 @@
                 variant="outlined"
                 hide-details="auto"
                 :rules="[rules.required]"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
           <v-col cols="12" md="4">
@@ -251,6 +257,7 @@
                 variant="outlined"
                 hide-details="auto"
                 :rules="[rules.required]"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
           <v-col cols="12" md="4">
@@ -260,6 +267,7 @@
                 variant="outlined"
                 hide-details="auto"
                 :rules="[rules.required]"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
         </v-row>
@@ -278,9 +286,7 @@
       </v-container>
     </v-form>
 
-    <cidade-modal v-model:modal="modalCidade" :close-modal="closeModalCidade" @selecionar="preencherCamposCidade" />
-    <bairro-modal v-model:modal="modalBairro" :close-modal="closeModalBairro" @selecionar="preencherCamposBairro" />
-    <atividade-modal v-model:modal="modalAtividade" :close-modal="closeModalAtividade" @selecionar="preencherCamposAtividade" />
+    <cidade-modal v-model:modal="modalCidade" :close-modal="closeModalCidade" @selecionar="preencherCamposCidade"/>
   </main>
 </template>
 
@@ -290,8 +296,7 @@ import ParticleBackground from "@/components/particle/ParticleBackground.vue";
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {useLocalizacaoStore} from "@/stores/APIs/localizacao";
 import CidadeModal from "@/components/base/modais/localizacao/CidadeModal.vue";
-import BairroModal from "@/components/base/modais/localizacao/BairroModal.vue";
-import AtividadeModal from "@/components/base/modais/localizacao/AtividadeModal.vue";
+// import BairroMenu from "@/components/base/menu/BairroMenu.vue";
 
 const themeStore = useThemeStore();
 const localizacaoStore = useLocalizacaoStore();
@@ -334,7 +339,6 @@ const data = ref({
 
 const cidade = ref('');
 const bairro = ref('');
-const atividade = ref('');
 
 const rules = {
   required: (v) => !!v || 'Campo obrigatório',
@@ -354,7 +358,6 @@ const limparForm = () => {
 const submitForm = async () => {
   const valid = await formRef.value.validate()
   if (!valid) return
-  // Limpar máscaras dos campos antes de enviar
 
   data.value.cnpj = limparInput(data.value.cnpj)
   data.value.cep = limparInput(data.value.cep)
@@ -363,7 +366,6 @@ const submitForm = async () => {
   data.value.whatsapp = limparInput(data.value.whatsapp)
 
   console.log('Enviando dados:', data.value)
-
 }
 
 function limparInput(input) {
@@ -395,7 +397,7 @@ watch(
 )
 
 /**
- * PESQUISAR CIDADE, BAIRRO E ATIVIDADE
+ * PESQUISAR CIDADE E BAIRRO
  */
 
 // cidade
@@ -409,27 +411,19 @@ const preencherCamposCidade = (c) => {
 };
 
 // bairro
-const modalBairro = ref(false);
-const closeModalBairro = () => {
-  modalBairro.value = false;
-};
-const preencherCamposBairro = (b) => {
-  data.value.id_bairro = b.codigo;
-  bairro.value = b.bairro;
-};
-
-// atividade
-const modalAtividade = ref(false);
-const closeModalAtividade = () => {
-  modalAtividade.value = false;
-}
-const preencherCamposAtividade = (a) => {
-  data.value.id_atividade = a.codigo;
-  atividade.value = a.atividade;
-};
+// const modalBairro = ref(false);
+// const closeModalBairro = () => {
+//   modalBairro.value = false;
+// };
+// const preencherCamposBairro = (b) => {
+//   data.value.id_bairro = b.ID;
+//   bairro.value = b.DESCBAIRRO;
+// };
 </script>
 
+
 <style scoped>
+
 .forms {
   padding: 10px 0;
   border-radius: 10px;
