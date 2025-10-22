@@ -172,6 +172,7 @@ const links = ref({
   financeiro: [
     { text: 'Pagar', icon: 'mdi-credit-card-outline', route: '/paginas/financeiro/pagar' },
     { text: 'Receber', icon: 'mdi-cash-plus', route: '/paginas/financeiro/receber' },
+    { text: 'Conta Corrente', icon: 'mdi-bank-outline', route: '/paginas/financeiro/contacorrente' },
   ],
 })
 

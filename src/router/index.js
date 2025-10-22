@@ -9,6 +9,7 @@ import IntegracoesView from "@/views/site/IntegracoesSiteView.vue";
 import PlanosSiteView from "@/views/site/PlanosSiteView.vue";
 import PagarView from "@/views/financeiro/PagarView.vue";
 import ReceberView from "@/views/financeiro/ReceberView.vue";
+import ContaCorrenteView from "@/views/financeiro/ContaCorrenteView.vue";
 import {useSiteStore} from "@/stores/site";
 
 const routes = [
@@ -62,6 +63,11 @@ const routes = [
     path: '/paginas/financeiro/receber',
     name: 'financeiro_receber',
     component: ReceberView
+  },
+  {
+    path: '/paginas/financeiro/contacorrente',
+    name: 'financeiro_contacorrente',
+    component: ContaCorrenteView
   },
 
   //    Páginas do site
