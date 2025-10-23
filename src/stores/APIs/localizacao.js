@@ -168,11 +168,13 @@ export const useLocalizacaoStore = defineStore('localizacao', {
             await this.buscarTodasCidades(nomeCidade);
 
             if (!this.cidades || this.cidades.length === 0) {
+                this.errorMessage = 'Cidade não encontrada!';
                 toast.info('Verifique se essa cidade existe!');
                 this.cidade = null;
                 return;
 
             } else if (this.cidades.length > 1 && !this.cidade) {
+                this.errorMessage = 'Mais de uma cidade encontrada!';
                 toast.info('Mais de uma cidade encontrada! Selecione a correta.');
                 this.cidade = null;
                 return;
@@ -190,6 +192,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
                     });
 
                     await this.cadastrarBairro({data: [{descbairro: bairro, id_cidade: idCidade}]});
+                    this.errorMessage = '';
                 }
 
                 this.cidade = null;
