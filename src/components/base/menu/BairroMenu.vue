@@ -1,34 +1,40 @@
 <template>
   <busca-padrao-menu
-      v-model:menu="menu"
-      v-model:overlay="overlay"
+      v-model="menu"
       :pesquisar="pesquisar"
       :modalCadastrar="abrirModalCadastrar"
       :modelInput="termoPesquisa"
       :resultados="bairros"
       @update:modelInput="termoPesquisa = $event"
       @selecionar="selecionarBairro"
+      :cadastrar-btn="true"
   >
     <template #resultados="{ selecionar }">
-      <div
-          v-for="bairro in bairros"
-          :key="bairro.ID"
-          class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
-          @click="selecionar(bairro)"
+      <v-virtual-scroll
+          :items="bairros"
+          :height="80"
+          item-height="42"
+          class="mt-3"
       >
-        <p class="text-body-1">{{ bairro.DESCBAIRRO }}</p>
-      </div>
+        <template #default="{ item }">
+          <div
+              class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+              @click="selecionar(item)"
+          >
+            <p class="text-body-1">{{ item.DESCBAIRRO || item.nome || 'Sem nome' }}</p>
+          </div>
+        </template>
+      </v-virtual-scroll>
     </template>
   </busca-padrao-menu>
 
-  <!-- Modal de cadastro (abre quando não há resultado ou botão + é clicado) -->
-  <v-dialog v-model="cadastrarModal" max-width="400">
-    <v-card color="var(--bg-card)" class="texto-color-primary">
-      <v-card-title class="background-laranja d-flex align-center">
-        <p>Cadastrar Bairro</p>
-        <v-spacer />
-        <v-btn icon="mdi-close" variant="text" @click="cadastrarModal = false" />
-      </v-card-title>
+   <CadastrarModal
+      :cadastrarModal="cadastrarModal"
+      :clearInput="clearInput"
+      :cadastrarcidade="cadastrarBairro"
+  >
+    <template #titulo>Cidade</template>
+    <template #textfields>
 
       <v-card-text>
         <v-form class="d-flex flex-column gap-3">
@@ -39,57 +45,50 @@
               hide-details="auto"
               v-model="bairro"
           />
-
-          <v-btn
-              color="var(--text-color-laranja)"
-              class="w-100 text-none"
-              variant="tonal"
+          <v-text-field
+              label="Cidade"
+              variant="outlined"
               density="comfortable"
-              @click="cadastrarBairro"
-          >
-            Cadastrar
-          </v-btn>
+              hide-details="auto"
+              v-model="id_cidade"
+          />
         </v-form>
       </v-card-text>
-    </v-card>
-  </v-dialog>
+    </template>
+   </CadastrarModal>
 </template>
 
 <script setup>
 import BuscaPadraoMenu from "@/components/base/menu/BuscaPadraoMenu.vue";
-import {ref, computed, watchEffect, defineEmits} from "vue";
-import {useLocalizacaoStore} from "@/stores/APIs/localizacao";
-import {toast} from "vue3-toastify";
+import {ref, computed, defineEmits, watch} from "vue";
+import { useLocalizacaoStore } from "@/stores/APIs/localizacao";
+import { toast } from "vue3-toastify";
 
 const emit = defineEmits(["selecionar"]);
 
-// ====== Estados base ======
 const menu = ref(false);
-const overlay = ref(false);
 const termoPesquisa = ref("");
 const cadastrarModal = ref(false);
 const bairro = ref("");
+const id_cidade = ref("");
 
-// ====== Store ======
 const bairroStore = useLocalizacaoStore();
 const bairros = computed(() => bairroStore.bairros);
 
-// ====== Buscar e cadastrar ======
-const limit = ref(50);
-const offsetAtual = ref(0);
+watch( () => termoPesquisa.value, async (pesquisa) => {
+  if (!pesquisa || pesquisa.lenght < 2) {
+    bairros.value = [];
+    return;
+  }
+  await bairroStore.buscarTodosBairros(pesquisa);
+})
 
-const pesquisar = async () => {
-  await bairroStore.buscarTodosBairros(limit.value, offsetAtual.value, true);
-};
-
-// ====== Seleção ======
 const selecionarBairro = (bairroSelecionado) => {
   emit("selecionar", bairroSelecionado);
+  bairroStore.bairros = [];
   menu.value = false;
-  overlay.value = false;
 };
 
-// ====== Modal cadastrar ======
 const abrirModalCadastrar = () => {
   cadastrarModal.value = true;
 };
@@ -100,24 +99,15 @@ const cadastrarBairro = async () => {
     return;
   }
 
-  // await bairroStore.cadastrarBairro({
-  //   data: [{descbairro: bairro.value}],
-  // });
+  await bairroStore.cadastrarBairro({
+    data: [{ descbairro: bairro.value, id_cidade: id_cidade.value }]
+  });
+  toast.success("Bairro cadastrado com sucesso!");
 
-  if (!bairroStore.errorMessage) {
-    toast.success("Bairro cadastrado com sucesso!");
-    bairro.value = "";
-    cadastrarModal.value = false;
-    await pesquisar();
-  } else {
-    toast.error(bairroStore.errorMessage);
-  }
+  bairro.value = "";
+  id_cidade.value = "";
+  cadastrarModal.value = false;
 };
-
-// ====== Carregar inicialmente ======
-watchEffect(async () => {
-  if (!bairros.value.length) {
-    await pesquisar();
-  }
-});
+</script>
+<script setup lang="ts">
 </script>

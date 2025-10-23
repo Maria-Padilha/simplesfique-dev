@@ -153,6 +153,7 @@
             />
           </v-col>
 
+          <!-- localização -->
           <v-col cols="12" md="4">
             <v-text-field
                 label="Número"
@@ -165,30 +166,32 @@
           </v-col>
           <v-col cols="12" md="4">
             <v-text-field
-                label="ID Cidade"
+                label="Cidade"
                 v-model="cidade"
                 variant="outlined"
                 hide-details="auto"
                 :rules="[rules.required]"
-                append-inner-icon="mdi-magnify"
-                @click:appendInner="modalCidade = !modalCidade"
-                :prefix="`ID: ${data.id_cidade ? data.id_cidade : '00'}`"
                 :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
+            >
+              <template #append-inner>
+                <cidade-menu @selecionar="selecionarCidade"/>
+              </template>
+            </v-text-field>
           </v-col>
           <v-col cols="12" md="4">
             <div class="d-flex align-center">
               <v-text-field
-                  label="ID Bairro"
+                  label="Bairro"
                   v-model="bairro"
                   variant="outlined"
                   hide-details="auto"
+                  :rules="[rules.required]"
                   :theme="themeStore.darkMode ? 'dark' : 'light'"
                   class="flex-grow-1"
               >
-<!--                <template #append-inner>-->
-<!--                  <bairro-menu v-model:menu="menu" v-model:overlay="overlay" />-->
-<!--                </template>-->
+                <template #append-inner>
+                  <bairro-menu @selecionar="selecionarBairro"/>
+                </template>
               </v-text-field>
             </div>
           </v-col>
@@ -285,8 +288,6 @@
         </v-row>
       </v-container>
     </v-form>
-
-    <cidade-modal v-model:modal="modalCidade" :close-modal="closeModalCidade" @selecionar="preencherCamposCidade"/>
   </main>
 </template>
 
@@ -295,8 +296,9 @@ import {ref, watch} from 'vue'
 import ParticleBackground from "@/components/particle/ParticleBackground.vue";
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {useLocalizacaoStore} from "@/stores/APIs/localizacao";
-import CidadeModal from "@/components/base/modais/localizacao/CidadeModal.vue";
-// import BairroMenu from "@/components/base/menu/BairroMenu.vue";
+import BairroMenu from "@/components/base/menu/BairroMenu.vue";
+import CidadeMenu from "@/components/base/menu/CidadeMenu.vue";
+import {toast} from "vue3-toastify";
 
 const themeStore = useThemeStore();
 const localizacaoStore = useLocalizacaoStore();
@@ -353,19 +355,33 @@ const limparForm = () => {
   // valores padrão dos switches
   data.value.matriz = 'N'
   data.value.ativo = 'S'
+  bairro.value = ''
+  cidade.value = ''
 }
 
+/**
+ * CADASTRANDO EMPRESA
+ * @returns {Promise<void>}
+ */
 const submitForm = async () => {
-  const valid = await formRef.value.validate()
-  if (!valid) return
+  // const valid = await formRef.value.validate();
+  // if (!valid.valid) {
+  //   toast.error("Por favor, preencha os campos obrigatórios.");
+  //   return;
+  // }
 
+  // limpando os inputs antes de enviar
   data.value.cnpj = limparInput(data.value.cnpj)
   data.value.cep = limparInput(data.value.cep)
   data.value.telefone = limparInput(data.value.telefone)
   data.value.celular = limparInput(data.value.celular)
   data.value.whatsapp = limparInput(data.value.whatsapp)
 
-  console.log('Enviando dados:', data.value)
+  toast.info('Verificando existência da cidade e bairro...');
+
+  await localizacaoStore.verificandoExistenciaCidade(
+      cidade.value, data.value.id_cidade, bairro.value, data.value.id_bairro
+  );
 }
 
 function limparInput(input) {
@@ -397,28 +413,42 @@ watch(
 )
 
 /**
- * PESQUISAR CIDADE E BAIRRO
+ * BUSCANDO O CNPJ
  */
 
-// cidade
-const modalCidade = ref(false);
-const closeModalCidade = () => {
-  modalCidade.value = false;
-}
-const preencherCamposCidade = (c) => {
+watch(
+    () => data.value.cnpj,
+    async (novocnpj) => {
+      if (novocnpj) {
+        const cnpjLimpo = limparInput(data.value.cnpj)
+        if (cnpjLimpo.length === 14) {
+          await localizacaoStore.buscarCnpj(cnpjLimpo);
+          if (localizacaoStore.cnpj) {
+            console.log('CNPJ BUSCADO: ',localizacaoStore.cnpj);
+          }
+        }
+      }
+    }
+)
+
+/**
+ * TRABALHANDO COM A CIDADE
+ */
+
+const selecionarCidade = (c) => {
   data.value.id_cidade = c.ID;
   cidade.value = c.DESCCIDADE;
 };
 
-// bairro
-// const modalBairro = ref(false);
-// const closeModalBairro = () => {
-//   modalBairro.value = false;
-// };
-// const preencherCamposBairro = (b) => {
-//   data.value.id_bairro = b.ID;
-//   bairro.value = b.DESCBAIRRO;
-// };
+/**
+ * TRABALHANDO COM O BAIRRO
+ * @param b
+ */
+
+const selecionarBairro = (b) => {
+  data.value.id_bairro = b.ID;
+  bairro.value = b.DESCBAIRRO;
+};
 </script>
 
 
