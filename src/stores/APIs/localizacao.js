@@ -1,5 +1,9 @@
 import {defineStore} from "pinia"
 import api from "@/services/api";
+import {useApiStore} from "@/stores/APIs/api";
+import {toast} from "vue3-toastify";
+
+const apiStore = useApiStore();
 
 export const useLocalizacaoStore = defineStore('localizacao', {
     state: () => ({
@@ -9,6 +13,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
         successMessage: '',
 
         cep: [],
+        cnpj: [],
 
         bairros: [],
         bairro: null,
@@ -47,6 +52,31 @@ export const useLocalizacaoStore = defineStore('localizacao', {
         },
 
         /**
+         * BUSCAR CNPJ
+         * @param {string} cnpj - CNPJ a ser buscado.
+         * @return {Promise<void>}
+         */
+
+        async buscarCnpj(cnpj) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/cnpj/${cnpj}`,);
+
+                this.cnpj = response.data;
+                this.errorMessage = '';
+
+                console.log('CNPJ encontrado:', this.cnpj);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar CNPJ:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
          * BUSCAR BAIRROS
          *  @param {number} limit - Número máximo de bairros a serem retornados.
          *  @param {number} offset - Número de bairros a serem ignorados antes de começar a retornar os resultados.
@@ -54,13 +84,13 @@ export const useLocalizacaoStore = defineStore('localizacao', {
          *  @return {Promise<void>}
          */
 
-        async buscarTodosBairros(limit = 50, offset = 0, ignorarPaginacao = false) {
+        async buscarTodosBairros(find, limit = 50, offset = 0, ignorarPaginacao = true) {
             this.loading = true;
 
             try {
                 const url = ignorarPaginacao
-                    ? '/bairro'
-                    : `/bairro?limit=${limit}&offset=${offset}`;
+                    ? `/bairro?find=${find}`
+                    : `/bairro?find=${find}&limit=${limit}&offset=${offset}`;
 
                 const response = await api.get(url);
 
@@ -82,6 +112,18 @@ export const useLocalizacaoStore = defineStore('localizacao', {
         },
 
         /**
+         * CADASTRAR BAIRRO
+         * @param {Object} bairroData - Dados do bairro a ser cadastrado.
+         * @return {Promise<void>}
+         */
+
+        async cadastrarBairro(bairroData) {
+            this.loading = apiStore.loading;
+            await apiStore.executarAcao('bairro', 'post', bairroData);
+        },
+
+
+        /**
          * BUSCAR CIDADES
          * @param {number} limit - Número máximo de cidades a serem retornadas.
          * @param {number} offset - Número de cidades a serem ignoradas antes de começar a retornar os resultados.
@@ -89,13 +131,13 @@ export const useLocalizacaoStore = defineStore('localizacao', {
          * @return {Promise<void>}
          */
 
-        async buscarTodasCidades(limit = 50, offset = 0, ignorarPaginacao = false) {
+        async buscarTodasCidades(find, limit = 50, offset = 0, ignorarPaginacao = true) {
             this.loading = true;
 
             try {
                 const url = ignorarPaginacao
-                    ? '/cidade'
-                    : `/cidade?limit=${limit}&offset=${offset}`;
+                    ? `/cidade?find=${find}`
+                    : `/cidade?find=${find}&limit=${limit}&offset=${offset}`;
 
                 const response = await api.get(url);
 
@@ -115,5 +157,46 @@ export const useLocalizacaoStore = defineStore('localizacao', {
                 this.loading = false;
             }
         },
+
+        /**
+         * VERIFICANDO EXISTENCIA CIDADE
+         * @param nomeCidade
+         * @param idCidade
+         * @param bairro
+         * @param idBairro
+         * @returns {Promise<void>}
+         */
+        async verificandoExistenciaCidade(nomeCidade, idCidade, bairro, idBairro) {
+            await this.buscarTodasCidades(nomeCidade);
+
+            if (!this.cidades || this.cidades.length === 0) {
+                toast.info('Verifique se essa cidade existe!');
+                this.cidade = null;
+                return;
+
+            } else if (this.cidades.length > 1 && !this.cidade) {
+                toast.info('Mais de uma cidade encontrada! Selecione a correta.');
+                this.cidade = null;
+                return;
+
+            } else {
+                idCidade = this.cidades[0]?.ID;
+
+                await this.buscarTodosBairros(bairro);
+                console.log('Bairro encontrado: ', this.bairros);
+
+                if (!this.bairros || this.bairros.length === 0) {
+                    console.log('Bairro não cadastrado: ', {
+                        bairro: bairro.value,
+                        id_bairro: idBairro
+                    });
+
+                    await this.cadastrarBairro({data: [{descbairro: bairro.value, id_cidade: idCidade}]});
+                    toast.success("Bairro cadastrado com sucesso!");
+                }
+
+                this.cidade = null;
+            }
+        }
     }
 })
