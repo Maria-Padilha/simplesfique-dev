@@ -3,7 +3,7 @@
   <section class="pt-10 background-primary grid grid-cols-1 lg:grid-cols-3 gap-8 px-16">
     <div class="col-span-1 lg:col-span-2 h-full flex flex-col items-start justify-center gap-5 pb-5 relative z-10">
       <h1 class="md:text-4xl text-3xl font-bold">
-        Sua gestão merece mais <span class="texto-color-laranja">facilidade?</span>
+        Sua gestão merece mais <span class="texto-color-laranja">facilidade,</span>
         <span class="texto-color-laranja"><br> SimplesFique</span> com a gente.
       </h1>
 
@@ -25,13 +25,11 @@
         <h2 class="text-2xl font-bold mb-8 text-center texto-color-primary">Experimente Grátis</h2>
         <v-form class="flex flex-col gap-3">
           <v-text-field variant="outlined" label="Nome da Empresa" hide-details="auto" v-model="nomeEmpresa" />
-          <v-text-field variant="outlined" label="Seu Nome" hide-details="auto" v-model="seuNome" />
+          <v-text-field variant="outlined" label="Seu Nome" hide-details="auto" v-model="nome" />
 
-          <v-text-field
-              variant="outlined" label="Telefone" hide-details="auto"
-              v-model="telefone" v-mask-phone.br prefix="55"
-              :theme="themeStore.darkMode ? 'dark' : 'light'"
-          />
+          <v-text-field variant="outlined" label="Telefone" hide-details="auto" v-model="telefone" v-mask-phone.br>
+            <template #prepend-inner><span class="texto-color-primary">55</span></template>
+          </v-text-field>
 
           <v-text-field variant="outlined" label="E-mail" hide-details="auto" v-model="email" />
 
@@ -322,10 +320,8 @@
 <script setup>
 import {ref} from "vue";
 import {toast} from "vue3-toastify";
-import {useThemeStore} from "@/stores/config-temas/theme";
 // import ParticleBackground from "@/components/particle/ParticleBackground.vue";
 
-const themeStore = useThemeStore();
 const openModalTermo = ref(false);
 const termoUso = ref(false);
 
@@ -402,30 +398,31 @@ const funcionalidades = ref([
 
 // Dados do formulário
 const nomeEmpresa = ref('');
-const seuNome = ref('');
+const nome = ref('');
 const telefone = ref('');
 const email = ref('');
 
 /** ENVIANDO O FORMULÁRIO **/
 const enviarForms = async () => {
-  if (!nomeEmpresa.value || !seuNome.value || !telefone.value || !email.value || !termoUso.value) {
+  if (!nomeEmpresa.value || !nome.value || !telefone.value || !email.value || !termoUso.value) {
     toast.error('Por favor, preencha todos os campos');
     return;
   }
 
   try {
-    // Preparar os dados para envio
+    // Preparar os dados para envio no formato esperado
     const dadosFormulario = {
-      nomeEmpresa: nomeEmpresa.value,
-      seuNome: seuNome.value,
-      telefone: telefone.value,
-      email: email.value,
-      termoUso: termoUso.value,
-      dataEnvio: new Date().toISOString()
+      data: [
+        {
+          nome: nome.value,
+          email: email.value,
+          telefone: telefone.value,
+        }
+      ]
     };
 
     // Fazer a requisição POST para o webhook do n8n adicione aqui o link do webhook
-    const response = await fetch('', {
+    const response = await fetch('http://192.168.10.19:9005/saas', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -436,7 +433,7 @@ const enviarForms = async () => {
     if (response.ok) {
       // Limpar o formulário após o envio bem-sucedido
       nomeEmpresa.value = '';
-      seuNome.value = '';
+      nome.value = '';
       telefone.value = '';
       email.value = '';
       termoUso.value = false;
