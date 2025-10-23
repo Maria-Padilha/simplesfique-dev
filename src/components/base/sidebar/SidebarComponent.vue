@@ -195,7 +195,7 @@ const links = ref({
   ],
 
   manutencao: [
-    { text: 'Pessoas', icon: 'mdi-account-group', route: '/manutencao/pessoas' },
+    { text: 'Pessoas', icon: 'mdi-account-group', route: '/paginas/manutencao/pessoas' },
   ],
 })
 
