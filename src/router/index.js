@@ -10,6 +10,7 @@ import PlanosSiteView from "@/views/site/PlanosSiteView.vue";
 import PagarView from "@/views/financeiro/PagarView.vue";
 import ReceberView from "@/views/financeiro/ReceberView.vue";
 import ContaCorrenteView from "@/views/financeiro/ContaCorrenteView.vue";
+import PessoasView from '@/views/manutencao/PessoasView.vue';
 import {useSiteStore} from "@/stores/site";
 
 const routes = [
@@ -26,6 +27,11 @@ const routes = [
     path: '/manutencao',
     name: 'manutencao',
     component: () => import('@/views/ManutencaoView.vue')
+  },
+  {
+    path: '/manutencao/pessoas',
+    name: 'manutencao_pessoas',
+    component: PessoasView
   },
 
   //   paginas de autenticação
