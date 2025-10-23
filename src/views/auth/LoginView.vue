@@ -51,6 +51,7 @@ import ParticleBackground from '@/components/particle/ParticleBackground.vue';
 import { useRouter } from "vue-router";
 import {toast} from "vue3-toastify";
 
+
 const themeStore = useThemeStore();
 const router = useRouter();
 
@@ -59,10 +60,10 @@ const exibirSenha = ref(false);
 const usuario = ref('');
 const senha = ref('');
 
-const usuarioValido = ref({
-  usuario: 'admin',
-  senha: '123'
-})
+// const usuarioValido = ref({
+//   usuario: 'admin',
+//   senha: '123'
+// })
 
 const rules = ref({
   usuario: [
@@ -74,15 +75,55 @@ const rules = ref({
 });
 
 const login = () => {
-  if (usuario.value === usuarioValido.value.usuario && senha.value === usuarioValido.value.senha) {
-    toast.success('Login realizado com sucesso!');
-    setTimeout(() => {
-      router.push('/paginas/home');
-    }, 1800);
-  } else {
-    toast.error('Usuário ou senha inválidos!');
+  // ========== CÓDIGO TEMPORÁRIO - API LOGIN ==========
+  loginApi();
+  // ===================================================
+  
+  // if (usuario.value === usuarioValido.value.usuario && senha.value === usuarioValido.value.senha) {
+  //   toast.success('Login realizado com sucesso!');
+  //   setTimeout(() => {
+  //     router.push('/paginas/home');
+  //   }, 1800);
+  // } else {
+  //   toast.error('Usuário ou senha inválidos!');
+  // }
+};
+
+// ========== FUNÇÃO TEMPORÁRIA - API LOGIN ==========
+const loginApi = async () => {
+  try {
+    // POST vazio para API temporária
+    const response = await fetch('http://192.168.10.100:9005/vstsaaslogin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+      // Sem body - POST vazio conforme solicitado
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok && data.token) {
+      // Salvar token no localStorage
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('login_timestamp', new Date().toISOString());
+      
+      console.log('Token salvo:', data.token); // DEBUG - remover depois
+      console.log('Resposta da API:', data); // DEBUG - remover depois
+      
+      toast.success('Login realizado com sucesso!');
+      setTimeout(() => {
+        router.push('/paginas/home');
+      }, 1800);
+    } else {
+      toast.error('Erro ao obter token do servidor!');
+    }
+  } catch (error) {
+    console.error('Erro no login:', error);
+    toast.error('Erro ao conectar com o servidor!');
   }
 };
+// ===================================================
 </script>
 
 <style scoped>
