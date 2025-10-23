@@ -8,7 +8,7 @@
         </div>
       </v-card-title>
 
-      <v-card-text>
+      <v-card-text class="pa-0">
         <v-form class="d-flex flex-column gap-3">
           <slot name="textfields" />
         </v-form>

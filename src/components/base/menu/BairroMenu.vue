@@ -37,7 +37,7 @@
     <template #textfields>
 
       <v-card-text>
-        <v-form class="d-flex flex-column gap-3">
+        <v-form class="d-flex flex-column gap-3 w-100">
           <v-text-field
               label="Bairro"
               variant="outlined"
@@ -50,8 +50,12 @@
               variant="outlined"
               density="comfortable"
               hide-details="auto"
-              v-model="id_cidade"
-          />
+              v-model="cidade"
+          >
+            <template #append-inner>
+              <cidade-menu @selecionar="selecionarCidade"/>
+            </template>
+          </v-text-field>
         </v-form>
       </v-card-text>
     </template>
@@ -60,16 +64,20 @@
 
 <script setup>
 import BuscaPadraoMenu from "@/components/base/menu/BuscaPadraoMenu.vue";
+import CadastrarModal from "@/components/base/modais/CadastrarModal.vue";
 import {ref, computed, defineEmits, watch} from "vue";
 import { useLocalizacaoStore } from "@/stores/APIs/localizacao";
 import { toast } from "vue3-toastify";
+import CidadeMenu from "@/components/base/menu/CidadeMenu.vue";
 
 const emit = defineEmits(["selecionar"]);
 
 const menu = ref(false);
 const termoPesquisa = ref("");
 const cadastrarModal = ref(false);
+
 const bairro = ref("");
+const cidade = ref("");
 const id_cidade = ref("");
 
 const bairroStore = useLocalizacaoStore();
@@ -89,6 +97,13 @@ const selecionarBairro = (bairroSelecionado) => {
   menu.value = false;
 };
 
+const clearInput = () => {
+  bairro.value = "";
+  id_cidade.value = "";
+  cidade.value = "";
+  cadastrarModal.value = false;
+};
+
 const abrirModalCadastrar = () => {
   cadastrarModal.value = true;
 };
@@ -99,15 +114,28 @@ const cadastrarBairro = async () => {
     return;
   }
 
-  await bairroStore.cadastrarBairro({
-    data: [{ descbairro: bairro.value, id_cidade: id_cidade.value }]
+  console.log("CIDADE: ", {
+    cidade: cidade.value,
+    id_cidade: id_cidade.value,
+    bairro: bairro.value
   });
-  toast.success("Bairro cadastrado com sucesso!");
 
-  bairro.value = "";
-  id_cidade.value = "";
+  await bairroStore.verificandoExistenciaCidade(
+      cidade.value,
+      id_cidade.value,
+      bairro.value,
+      null
+  );
+
   cadastrarModal.value = false;
 };
-</script>
-<script setup lang="ts">
+
+/**
+ * TRABALHANDO COM A CIDADE
+ */
+
+const selecionarCidade = (c) => {
+  id_cidade.value = c.ID;
+  cidade.value = c.DESCCIDADE;
+};
 </script>

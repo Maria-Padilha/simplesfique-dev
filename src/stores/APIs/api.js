@@ -1,5 +1,6 @@
 import {defineStore} from "pinia"
 import api from "@/services/api";
+import {toast} from "vue3-toastify";
 
 export const useApiStore = defineStore('api', {
     state: () => ({
@@ -26,6 +27,7 @@ export const useApiStore = defineStore('api', {
                     case 'post':
                         response = await api.post(url, payload);
                         this.successMessage = `${entidade} cadastrado(a) com sucesso!`;
+                        toast.success(this.successMessage);
                         break;
 
                     case 'put':
@@ -47,6 +49,7 @@ export const useApiStore = defineStore('api', {
             } catch (error) {
                 this.errorMessage = error.response?.data?.message || 'Erro na operação.';
                 console.error(`Erro ao executar ação em ${entidade}:`, error);
+                toast.error(this.errorMessage);
             } finally {
                 this.loading = false;
             }
