@@ -14,28 +14,41 @@ export const useSidebarStore = defineStore('sidebar', () => {
    *   - cada submenu tem: text (nome), icon (ícone), route (caminho)
    */
   const modulos = ref([
-    {
-      id: 'financeiro',
-      titulo: 'Financeiro',
-      icon: 'mdi-currency-usd',
-      submenus: [
-        {
-          text: 'Conta Corrente',
-          icon: 'mdi-bank-outline',
-          route: '/paginas/financeiro/contacorrente'
-        },
-        {
-          text: 'Pagar',
-          icon: 'mdi-credit-card-outline',
-          route: '/paginas/financeiro/pagar'
-        },
-        {
-          text: 'Receber',
-          icon: 'mdi-cash-plus',
-          route: '/paginas/financeiro/receber'
-        }
-      ]
-    },
+      {
+          id: 'financeiro',
+          titulo: 'Financeiro',
+          icon: 'mdi-currency-usd',
+          submenus: [
+              {
+                  text: 'Conta Corrente',
+                  icon: 'mdi-bank-outline',
+                  route: '/paginas/financeiro/contacorrente'
+              },
+              {
+                  text: 'Pagar',
+                  icon: 'mdi-credit-card-outline',
+                  route: '/paginas/financeiro/pagar'
+              },
+              {
+                  text: 'Receber',
+                  icon: 'mdi-cash-plus',
+                  route: '/paginas/financeiro/receber'
+              }
+          ]
+      },
+      {
+          id: 'manutencao',
+          titulo: 'Manutenção',
+          icon: 'mdi-currency-usd',
+          submenus: [
+              {
+                  text: 'Pessoas',
+                  icon: 'mdi-account-group',
+                  route: '/paginas/manutencao/pessoas'
+              },
+
+          ]
+      },
     // Exemplo de como adicionar outro módulo no futuro:
     // {
     //   id: 'localizacao',
