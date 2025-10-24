@@ -148,8 +148,6 @@ export const useLocalizacaoStore = defineStore('localizacao', {
                 console.log('Cidades encontrada:', this.cidades);
                 console.log('Total de registros:', this.recordsCidades);
 
-                console.log(response.data);
-
             } catch (error) {
                 this.errorMessage = error.response;
                 console.error('Erro ao buscar cidades:', error);
@@ -170,11 +168,13 @@ export const useLocalizacaoStore = defineStore('localizacao', {
             await this.buscarTodasCidades(nomeCidade);
 
             if (!this.cidades || this.cidades.length === 0) {
+                this.errorMessage = 'Cidade não encontrada!';
                 toast.info('Verifique se essa cidade existe!');
                 this.cidade = null;
                 return;
 
             } else if (this.cidades.length > 1 && !this.cidade) {
+                this.errorMessage = 'Mais de uma cidade encontrada!';
                 toast.info('Mais de uma cidade encontrada! Selecione a correta.');
                 this.cidade = null;
                 return;
@@ -187,15 +187,20 @@ export const useLocalizacaoStore = defineStore('localizacao', {
 
                 if (!this.bairros || this.bairros.length === 0) {
                     console.log('Bairro não cadastrado: ', {
-                        bairro: bairro.value,
+                        bairro: bairro,
                         id_bairro: idBairro
                     });
 
-                    await this.cadastrarBairro({data: [{descbairro: bairro.value, id_cidade: idCidade}]});
-                    toast.success("Bairro cadastrado com sucesso!");
+                    await this.cadastrarBairro({data: [{descbairro: bairro, id_cidade: idCidade}]});
+                    this.errorMessage = '';
                 }
 
                 this.cidade = null;
+                this.cidades = [];
+                nomeCidade = '';
+                bairro = '';
+                idBairro = null;
+                idCidade = null;
             }
         }
     }

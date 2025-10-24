@@ -27,9 +27,20 @@
 
         <!-- CAMPOS GERAIS -->
         <v-row dense>
-          <v-col cols="12" md="6">
+          <v-col cols="12" md="2">
             <v-text-field
-                label="Razão Social"
+                label="CNPJ *"
+                v-model="data.cnpj"
+                variant="outlined"
+                hide-details="auto"
+                v-mask-cnpj
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
+                :rules="[rules.required]"
+            />
+          </v-col>
+          <v-col cols="12" md="5">
+            <v-text-field
+                label="Razão Social *"
                 v-model="data.razao_social"
                 variant="outlined"
                 hide-details="auto"
@@ -37,9 +48,9 @@
                 :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
-          <v-col cols="12" md="6">
+          <v-col cols="12" md="5">
             <v-text-field
-                label="Nome Fantasia"
+                label="Nome Fantasia *"
                 v-model="data.fantasia"
                 variant="outlined"
                 hide-details="auto"
@@ -82,17 +93,7 @@
             />
           </v-col>
 
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="CNPJ"
-                v-model="data.cnpj"
-                variant="outlined"
-                hide-details="auto"
-                v-mask-cnpj
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-          <v-col cols="12" md="4">
+          <v-col cols="12" md="6">
             <v-text-field
                 label="Inscrição Estadual"
                 v-model="data.insc_estadual"
@@ -102,7 +103,7 @@
                 :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
-          <v-col cols="12" md="4">
+          <v-col cols="12" md="6">
             <v-text-field
                 label="Inscrição Municipal"
                 v-model="data.insc_municipal"
@@ -135,12 +136,13 @@
 
           <v-col cols="12" md="4">
             <v-text-field
-                label="CEP"
+                label="CEP *"
                 v-model="data.cep"
                 variant="outlined"
                 hide-details="auto"
                 v-mask-cep
                 :theme="themeStore.darkMode ? 'dark' : 'light'"
+                :rules="[rules.required]"
             />
           </v-col>
           <v-col cols="12" md="8">
@@ -166,7 +168,7 @@
           </v-col>
           <v-col cols="12" md="4">
             <v-text-field
-                label="Cidade"
+                label="Cidade *"
                 v-model="cidade"
                 variant="outlined"
                 hide-details="auto"
@@ -181,7 +183,7 @@
           <v-col cols="12" md="4">
             <div class="d-flex align-center">
               <v-text-field
-                  label="Bairro"
+                  label="Bairro *"
                   v-model="bairro"
                   variant="outlined"
                   hide-details="auto"
@@ -242,37 +244,6 @@
                 :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
-
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="ID CliFor VST"
-                v-model="data.id_clifor_vst"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="Tipo Contrato"
-                v-model="data.tp_contrato"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="Tipo Perfil"
-                v-model="data.tp_perfil"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
         </v-row>
 
         <v-row>
@@ -296,18 +267,20 @@ import {ref, watch} from 'vue'
 import ParticleBackground from "@/components/particle/ParticleBackground.vue";
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {useLocalizacaoStore} from "@/stores/APIs/localizacao";
+import {useEmpresaStore} from "@/stores/APIs/empresa";
 import BairroMenu from "@/components/base/menu/BairroMenu.vue";
 import CidadeMenu from "@/components/base/menu/CidadeMenu.vue";
 import {toast} from "vue3-toastify";
 
 const themeStore = useThemeStore();
 const localizacaoStore = useLocalizacaoStore();
+const empresaStore = useEmpresaStore();
 
 const formRef = ref(null)
 const isValid = ref(false)
 
 const data = ref({
-  id_saas: null,
+  id_saas: 6,
   razao_social: '',
   fantasia: '',
   telefone: '',
@@ -329,14 +302,8 @@ const data = ref({
   crt: '',
   cnae: '',
   ident_interna: '',
-  id_clifor_vst: null,
-  matriz: 'N',
+  matriz: 'S',
   ativo: 'S',
-  tp_contrato: '',
-  tp_perfil: '',
-  dh_cadastro: '',
-  dh_ativacao: '',
-  dh_expiracao: '',
 });
 
 const cidade = ref('');
@@ -364,11 +331,11 @@ const limparForm = () => {
  * @returns {Promise<void>}
  */
 const submitForm = async () => {
-  // const valid = await formRef.value.validate();
-  // if (!valid.valid) {
-  //   toast.error("Por favor, preencha os campos obrigatórios.");
-  //   return;
-  // }
+  const valid = await formRef.value.validate();
+  if (!valid.valid) {
+    toast.error("Por favor, preencha os campos obrigatórios.");
+    return;
+  }
 
   // limpando os inputs antes de enviar
   data.value.cnpj = limparInput(data.value.cnpj)
@@ -377,11 +344,22 @@ const submitForm = async () => {
   data.value.celular = limparInput(data.value.celular)
   data.value.whatsapp = limparInput(data.value.whatsapp)
 
-  toast.info('Verificando existência da cidade e bairro...');
+  console.log(data.value.cnpj);
 
-  await localizacaoStore.verificandoExistenciaCidade(
-      cidade.value, data.value.id_cidade, bairro.value, data.value.id_bairro
-  );
+  // await localizacaoStore.verificandoExistenciaCidade(
+  //     cidade.value,
+  //     data.value.id_cidade,
+  //     bairro.value,
+  //     data.value.id_bairro
+  // );
+
+  if (!localizacaoStore.errorMessage) {
+    console.log("DADOS PARA CADASTRO: ", data.value);
+
+    await empresaStore.cadastrarEmpresa({
+      data: [data.value]
+    });
+  }
 }
 
 function limparInput(input) {
@@ -395,7 +373,7 @@ function limparInput(input) {
 watch(
     () => data.value.cep,
     async (novoCep) => {
-      if (novoCep) {
+      if (novoCep && !data.value.cnpj) {
         const cepLimpo = limparInput(data.value.cep)
         if (cepLimpo && cepLimpo.length === 8) {
           await localizacaoStore.buscarCep(cepLimpo)
@@ -424,7 +402,16 @@ watch(
         if (cnpjLimpo.length === 14) {
           await localizacaoStore.buscarCnpj(cnpjLimpo);
           if (localizacaoStore.cnpj) {
-            console.log('CNPJ BUSCADO: ',localizacaoStore.cnpj);
+            data.value.razao_social = localizacaoStore.cnpj?.nome || '';
+            data.value.fantasia = localizacaoStore.cnpj?.fantasia || '';
+            data.value.cep = localizacaoStore.cnpj?.cep || '';
+            data.value.endereco = localizacaoStore.cnpj?.logradouro || '';
+            data.value.numero = localizacaoStore.cnpj?.numero || '';
+            data.value.id_cidade = localizacaoStore.cnpj?.id_cidade || '';
+            cidade.value = localizacaoStore.cnpj?.municipio || '';
+            data.value.id_bairro = localizacaoStore.cnpj?.id_bairro || '';
+            bairro.value = localizacaoStore.cnpj?.bairro || '';
+            data.value.complemento = localizacaoStore.cnpj?.complemento || '';
           }
         }
       }
