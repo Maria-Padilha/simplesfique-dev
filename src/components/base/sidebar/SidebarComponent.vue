@@ -110,6 +110,25 @@
         />
       </v-list-group>
 
+      <v-list-group value="manutencao">
+        <template v-slot:activator="{ props }">
+          <v-list-item
+              v-bind="props"
+              prepend-icon="mdi-tools"
+              title="Manutenção"
+          ></v-list-item>
+        </template>
+
+        <v-list-item
+            v-for="(link, i) in links.manutencao" :key="i"
+            class="pl-5"
+            :title="link.text"
+            :to="link.route"
+            :prepend-icon="link.icon"
+            density="comfortable"
+        />
+      </v-list-group>
+
 <!--      <v-list-group value="cep">-->
 <!--        <template v-slot:activator="{ props }">-->
 <!--          <v-list-item-->
@@ -173,6 +192,10 @@ const links = ref({
     { text: 'Conta Corrente', icon: 'mdi-bank-outline', route: '/paginas/financeiro/contacorrente' },
     { text: 'Pagar', icon: 'mdi-credit-card-outline', route: '/paginas/financeiro/pagar' },
     { text: 'Receber', icon: 'mdi-cash-plus', route: '/paginas/financeiro/receber' },  
+  ],
+
+  manutencao: [
+    { text: 'Pessoas', icon: 'mdi-account-group', route: '/paginas/manutencao/pessoas' },
   ],
 })
 
