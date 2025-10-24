@@ -4,11 +4,9 @@ import {toast} from "vue3-toastify";
 
 export const useApiStore = defineStore('api', {
     state: () => ({
-        loading: false,
-        token: localStorage.getItem('token'),
+        loading: false, token: localStorage.getItem('token'),
 
-        errorMessage: '',
-        successMessage: '',
+        errorMessage: '', successMessage: '',
 
         records: 0,
     }),
@@ -25,14 +23,22 @@ export const useApiStore = defineStore('api', {
 
                 switch (metodo) {
                     case 'post':
-                        response = await api.post(url, payload);
+                        response = await api.post(url, payload, {
+                            headers: {Authorization: `Bearer ${this.token}`}
+
+                        });
                         this.successMessage = `${entidade} cadastrado(a) com sucesso!`;
                         toast.success(this.successMessage);
+                        console.log(response)
                         break;
 
                     case 'put':
-                        response = await api.put(url, payload);
+                        response = await api.put(url, payload, {
+                            headers: {Authorization: `Bearer ${this.token}`}
+
+                        });
                         this.successMessage = `${entidade} atualizado(a) com sucesso!`;
+                        toast.success(this.successMessage);
                         break;
 
                     case 'delete':
@@ -55,7 +61,7 @@ export const useApiStore = defineStore('api', {
             }
         },
 
-        async buscarDados(entidade, { limit = 50, offset = 0, ignorarPaginacao = false, id = null } = {}) {
+        async buscarDados(entidade, {limit = 50, offset = 0, ignorarPaginacao = false, id = null} = {}) {
             this.loading = true;
             this.errorMessage = '';
             this.successMessage = '';
@@ -68,9 +74,7 @@ export const useApiStore = defineStore('api', {
                     url = `/${entidade}/${id}`;
                 } else {
                     // Buscar todos (com ou sem paginação)
-                    url = ignorarPaginacao
-                        ? `/${entidade}`
-                        : `/${entidade}?limit=${limit}&offset=${offset}`;
+                    url = ignorarPaginacao ? `/${entidade}` : `/${entidade}?limit=${limit}&offset=${offset}`;
                 }
 
                 const response = await api.get(url);

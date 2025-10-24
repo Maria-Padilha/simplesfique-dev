@@ -47,6 +47,11 @@ const routes = [
     name: 'perfil',
     component: PerfilView
   },
+    {
+        path: '/paginas/configuracoes',
+        name: 'configuracoes',
+        component: () => import('@/views/pages/ConfigView.vue')
+    },
   {
     path: '/paginas/home',
     name: 'home',

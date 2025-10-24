@@ -91,42 +91,31 @@
           to="/paginas/home"
       ></v-list-item>
 
-      <v-list-group value="financeiro">
+      <!-- RENDERIZAR DINAMICAMENTE TODOS OS MÓDULOS DO STORE -->
+      <v-list-group
+          v-for="modulo in sidebarStore.getModulos()"
+          :key="modulo.id"
+          :value="modulo.id"
+      >
         <template v-slot:activator="{ props }">
           <v-list-item
               v-bind="props"
-              prepend-icon="mdi-currency-usd"
-              title="Financeiro"
+              :prepend-icon="modulo.icon"
+              :title="modulo.titulo"
           ></v-list-item>
         </template>
 
+        <!-- RENDERIZAR TODOS OS SUBMENUS DO MÓDULO -->
         <v-list-item
-            v-for="(link, i) in links.financeiro" :key="i"
+            v-for="(submenu, i) in modulo.submenus"
+            :key="i"
             class="pl-5"
-            :title="link.text"
-            :to="link.route"
-            :prepend-icon="link.icon"
+            :title="submenu.text"
+            :to="submenu.route"
+            :prepend-icon="submenu.icon"
             density="comfortable"
         />
       </v-list-group>
-
-<!--      <v-list-group value="cep">-->
-<!--        <template v-slot:activator="{ props }">-->
-<!--          <v-list-item-->
-<!--              v-bind="props"-->
-<!--              prepend-icon="mdi-map-marker"-->
-<!--              title="Localização"-->
-<!--          ></v-list-item>-->
-<!--        </template>-->
-
-<!--        <v-list-item-->
-<!--            v-for="(link, i) in links.cep" :key="i"-->
-<!--            class="pl-5"-->
-<!--            :title="link.text"-->
-<!--            :to="link.route"-->
-<!--            density="comfortable"-->
-<!--        />-->
-<!--      </v-list-group>-->
 
     </v-list>
   </v-navigation-drawer>
@@ -140,11 +129,14 @@
 
 <script setup>
 import {useThemeStore} from "@/stores/config-temas/theme";
+import {useSidebarStore} from "@/stores/Sidebar";
 import {ref, onMounted, onBeforeUnmount, mergeProps} from 'vue'
 import ErrorAlertModal from "@/components/base/modais/ErrorAlertModal.vue";
-// import SidebarThemas from "@/components/base/sidebar/SidebarThemas.vue";
 
-// // Alterando o tema do site
+// Inicializar o store da sidebar
+const sidebarStore = useSidebarStore();
+
+// Alterando o tema do site
 const themeStore = useThemeStore();
 
 const alterarTema = () => {
@@ -164,27 +156,10 @@ const errorModal = ref(false);
 // links do menu perfil
 const items = ref([
   { text: 'Visualizar seu Perfil', icon: 'mdi-account-outline', route: '/paginas/perfil' },
+  {text: 'Configurações', icon: 'mdi-cog-outline', route: '/paginas/configuracoes' },
   { text: 'Sair', icon: 'mdi-logout', route: '/login' },
 ])
 
-// links financeiros da sidebar
-const links = ref({
-  financeiro: [
-    { text: 'Conta Corrente', icon: 'mdi-bank-outline', route: '/paginas/financeiro/contacorrente' },
-    { text: 'Pagar', icon: 'mdi-credit-card-outline', route: '/paginas/financeiro/pagar' },
-    { text: 'Receber', icon: 'mdi-cash-plus', route: '/paginas/financeiro/receber' },  
-  ],
-})
-
-// const links = ref({
-//
-//   cep: [
-//     { text: 'País', icon: 'mdi-earth', route: '/paginas/cep/país' },
-//     { text: 'Estado', icon: 'mdi-map-marker-outline', route: '/paginas/cep/estado' },
-//     { text: 'Cidade', icon: 'mdi-city-variant-outline', route: '/paginas/cep/cidade' },
-//     { text: 'Feriado', icon: 'mdi-home-city-outline', route: '/paginas/cep/feriado' },
-//   ],
-// })
 
 // Ajustando o sidebar para ficar responsivo
 const drawer = ref(true);
