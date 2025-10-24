@@ -250,10 +250,11 @@
             <v-text-field
               v-model="financeiroStore.search"
               label="Pesquisar Conta"
+              width="480"
               append-inner-icon="mdi-magnify"
               variant="outlined"
               density="compact"
-              class="mb-2 ml-3 custom-text-field w-50">
+              class="mb-2 ml-3 custom-text-field ">
             </v-text-field>
             <v-data-table
               :headers="headers"

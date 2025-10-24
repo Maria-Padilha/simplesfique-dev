@@ -88,6 +88,7 @@ watch( () => termoPesquisa.value, async (pesquisa) => {
     bairros.value = [];
     return;
   }
+  console.log("Pesquisando bairro: ", pesquisa);
   await bairroStore.buscarTodosBairros(pesquisa);
 })
 
@@ -127,7 +128,7 @@ const cadastrarBairro = async () => {
       null
   );
 
-  cadastrarModal.value = false;
+  if (!bairroStore.errorMessage) cadastrarModal.value = false;
 };
 
 /**

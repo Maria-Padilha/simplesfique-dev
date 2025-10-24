@@ -27,17 +27,18 @@
 
         <!-- CAMPOS GERAIS -->
         <v-row dense>
-          <v-col cols="12" md="12">
+          <v-col cols="12" md="2">
             <v-text-field
-                label="CNPJ"
+                label="CNPJ *"
                 v-model="data.cnpj"
                 variant="outlined"
                 hide-details="auto"
                 v-mask-cnpj
                 :theme="themeStore.darkMode ? 'dark' : 'light'"
+                :rules="[rules.required]"
             />
           </v-col>
-          <v-col cols="12" md="6">
+          <v-col cols="12" md="5">
             <v-text-field
                 label="Razão Social *"
                 v-model="data.razao_social"
@@ -47,7 +48,7 @@
                 :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
-          <v-col cols="12" md="6">
+          <v-col cols="12" md="5">
             <v-text-field
                 label="Nome Fantasia *"
                 v-model="data.fantasia"
@@ -135,12 +136,13 @@
 
           <v-col cols="12" md="4">
             <v-text-field
-                label="CEP"
+                label="CEP *"
                 v-model="data.cep"
                 variant="outlined"
                 hide-details="auto"
                 v-mask-cep
                 :theme="themeStore.darkMode ? 'dark' : 'light'"
+                :rules="[rules.required]"
             />
           </v-col>
           <v-col cols="12" md="8">
@@ -242,37 +244,6 @@
                 :theme="themeStore.darkMode ? 'dark' : 'light'"
             />
           </v-col>
-
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="ID CliFor VST *"
-                v-model="data.id_clifor_vst"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="Tipo Contrato *"
-                v-model="data.tp_contrato"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="Tipo Perfil *"
-                v-model="data.tp_perfil"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
         </v-row>
 
         <v-row>
@@ -331,14 +302,8 @@ const data = ref({
   crt: '',
   cnae: '',
   ident_interna: '',
-  id_clifor_vst: null,
-  matriz: 'N',
+  matriz: 'S',
   ativo: 'S',
-  tp_contrato: '',
-  tp_perfil: '',
-  dh_cadastro: '',
-  dh_ativacao: '',
-  dh_expiracao: '',
 });
 
 const cidade = ref('');
@@ -379,15 +344,20 @@ const submitForm = async () => {
   data.value.celular = limparInput(data.value.celular)
   data.value.whatsapp = limparInput(data.value.whatsapp)
 
-  await localizacaoStore.verificandoExistenciaCidade(
-      cidade.value, data.value.id_cidade, bairro.value, data.value.id_bairro
-  );
+  console.log(data.value.cnpj);
+
+  // await localizacaoStore.verificandoExistenciaCidade(
+  //     cidade.value,
+  //     data.value.id_cidade,
+  //     bairro.value,
+  //     data.value.id_bairro
+  // );
 
   if (!localizacaoStore.errorMessage) {
     console.log("DADOS PARA CADASTRO: ", data.value);
 
     await empresaStore.cadastrarEmpresa({
-      data: [{ ...data.value}]
+      data: [data.value]
     });
   }
 }

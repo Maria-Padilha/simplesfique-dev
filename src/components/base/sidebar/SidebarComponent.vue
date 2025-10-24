@@ -117,6 +117,24 @@
         />
       </v-list-group>
 
+<!--      <v-list-group value="cep">-->
+<!--        <template v-slot:activator="{ props }">-->
+<!--          <v-list-item-->
+<!--              v-bind="props"-->
+<!--              prepend-icon="mdi-map-marker"-->
+<!--              title="Localização"-->
+<!--          ></v-list-item>-->
+<!--        </template>-->
+
+<!--        <v-list-item-->
+<!--            v-for="(link, i) in links.cep" :key="i"-->
+<!--            class="pl-5"-->
+<!--            :title="link.text"-->
+<!--            :to="link.route"-->
+<!--            density="comfortable"-->
+<!--        />-->
+<!--      </v-list-group>-->
+
     </v-list>
   </v-navigation-drawer>
   <!-- FIM SIDEBAR LATERAL -->
