@@ -38,7 +38,7 @@
                     <!-- Número da Conta (Obrigatório) -->
                     <v-col cols="12" md="8">
                       <v-text-field
-                        v-model="formData.numero_conta"
+                        v-model="formData.id_ccorrente"
                         label="Número da Conta *"
                         :rules="[rules.required, rules.number]"
                         type="number"
@@ -66,7 +66,7 @@
                     <!-- Titular (Obrigatório) -->
                     <v-col cols="12" md="12">
                       <v-text-field
-                        v-model="formData.titulas"
+                        v-model="formData.titular"
                         label="Titular *"
                         :rules="[rules.required]"
                         maxlength="60"
@@ -101,46 +101,48 @@
                       </v-combobox>
                     </v-col>
 
-                    <!-- Agência (Obrigatório) -->
+                    <!-- Agência (Obrigatório) - Autocomplete para buscar pelas agências já carregadas -->
                     <v-col cols="12" md="6">
-                      <v-text-field
-                        :model-value="agenciaSelecionada?.nome || ''"
+                      <v-autocomplete
+                        v-model="agenciaSelecionada"
+                        return-object
+                        :items="agenciasAutocomplete"
+                        item-title="label"
+                        item-value="value"
                         label="Agência *"
                         :rules="[rules.agenciaRequired]"
                         variant="outlined"
                         density="compact"
                         class="custom-text-field"
                         prepend-inner-icon="mdi-office-building"
-                        readonly
                         :disabled="!formData.id_banco"
-                        :placeholder="!formData.id_banco ? 'Selecione um banco primeiro' : 'Clique na lupa para buscar'"
+                        :loading="financeiroStore.loading"
+                        clearable
+                        @update:model-value="onAgenciaChange"
                       >
-                        <template v-slot:append-inner>
-                          <BuscaPadraoMenu
-                            v-model="menuAgencia"
-                            v-model:model-input="buscaAgencia"
-                            :pesquisar="pesquisarAgencia"
-                            :resultados="resultadosAgencia"
-                            :cadastrar-btn="true"
-                            :modal-cadastrar="abrirModalAgencia"
-                            @selecionar="selecionarAgencia"
-                          >
-                            <template #resultados="{ selecionar }">
-                              <div class="flex flex-col gap-2">
-                                <div
-                                  v-for="agencia in resultadosAgencia"
-                                  :key="agencia.id_agencia"
-                                  @click="selecionar(agencia)"
-                                  class="cursor-pointer p-2 hover:bg-gray-100 rounded"
-                                >
-                                  <p class="font-medium">{{ agencia.nome }}</p>
-                                  <p class="text-sm opacity-70">ID: {{ agencia.id_agencia }}</p>
-                                </div>
-                              </div>
-                            </template>
-                          </BuscaPadraoMenu>
+                        <template v-slot:item="{ item, props }">
+                          <v-list-item v-bind="props">
+                            <v-list-item-content>
+                              <v-list-item-title>{{ item.label }}</v-list-item-title>
+                              <v-list-item-subtitle v-if="item.subtitle">{{ item.subtitle }}</v-list-item-subtitle>
+                            </v-list-item-content>
+                          </v-list-item>
                         </template>
-                      </v-text-field>
+
+
+
+                        <template v-slot:no-data>
+                          <v-list-item>
+                            <v-list-item-title>Nenhuma agência encontrada</v-list-item-title>
+                          </v-list-item>
+                        </template>
+
+                        <template v-slot:append-inner>
+                          <v-btn icon variant="text" @click="abrirModalAgencia" :disabled="!formData.id_banco">
+                            <v-icon icon="mdi-magnify-plus"></v-icon>
+                          </v-btn>
+                        </template>
+                      </v-autocomplete>
                     </v-col>
 
                     <!-- Limite (Obrigatório) -->
@@ -319,7 +321,7 @@
           Confirmar Exclusão
         </v-card-title>
         <v-card-text>
-          Tem certeza que deseja excluir a conta "{{ contaParaExcluir?.titulas }}"?
+          Tem certeza que deseja excluir a conta "{{ contaParaExcluir?.titular }}"?
           Esta ação não pode ser desfeita.
         </v-card-text>
         <v-card-actions>
@@ -359,7 +361,8 @@
                   v-model="formAgencia.id"
                   label="Número da Agência *"
                   :rules="[rules.required, rules.number]"
-                  type="number"
+                  type="text"
+                  inputmode="numeric"
                   variant="outlined"
                   density="compact"
                   class="custom-text-field"
@@ -489,10 +492,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useThemeStore } from '@/stores/config-temas/theme'
-import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
+// BuscaPadraoMenu removed for agency inline autocomplete; keep modal for cadastrar
 
 const themeStore = useThemeStore();
 
@@ -507,10 +510,7 @@ const formRef = ref(null)
 const dialogExclusao = ref(false)
 const contaParaExcluir = ref(null)
 
-// Refs para busca de agência
-const menuAgencia = ref(false)
-const buscaAgencia = ref('')
-const resultadosAgencia = ref([])
+// Refs para busca/seleção de agência
 const agenciaSelecionada = ref(null)
 
 // Modal de cadastro de agência
@@ -538,9 +538,9 @@ const snackbar = reactive({
 // Headers da tabela
 const headers = [
   { title: 'ID', key: 'id_ccorrente', sortable: true },
-  { title: 'Número da Conta', key: 'numero_conta', sortable: true },
+  { title: 'Número da Conta', key: 'id_ccorrente', sortable: true },
   { title: 'Dígito', key: 'digito_cc', sortable: true },
-  { title: 'Titular', key: 'titulas', sortable: true },
+  { title: 'Titular', key: 'titular', sortable: true },
   { title: 'Banco', key: 'id_banco', sortable: true },
   { title: 'Agência', key: 'id_agencia', sortable: true },
   { title: 'Limite', key: 'limite', sortable: true },
@@ -553,9 +553,9 @@ const headers = [
 // Dados do formulário
 const formData = reactive({
   id_empresa: 1, // Será obtido do contexto/auth futuramente
-  numero_conta: '',
+  id_ccorrente: '',
   digito_cc: '',
-  titulas: '', // Nome correto do campo titular
+  titular: '', // Nome correto do campo titular
   id_banco: '',
   id_agencia: '',
   limite: '0',
@@ -598,36 +598,62 @@ const onBancoChange = () => {
   // Limpar a agência selecionada quando o banco mudar
   formData.id_agencia = ''
   agenciaSelecionada.value = null
-  resultadosAgencia.value = []
-  buscaAgencia.value = ''
 }
 
-// Métodos para busca de agência
-const pesquisarAgencia = () => {
-  if (!formData.id_banco) {
-    resultadosAgencia.value = []
+// Computed lista formatada para o autocomplete de agências
+const agenciasAutocomplete = computed(() => {
+  // se não houver banco selecionado, não mostrar itens
+  if (!formData.id_banco) return []
+
+  // identificar id do banco (pode ser objeto ou primitivo)
+  const bancoId = typeof formData.id_banco === 'object' ? (formData.id_banco.ID ?? formData.id_banco.id) : formData.id_banco
+  // obter o nome do banco selecionado para comparar com DESCBANCO retornado pela API
+  const bancoObj = financeiroStore.bancos.find(b => b.ID == bancoId || b.id == bancoId)
+  const bancoNome = bancoObj ? (bancoObj.DESCBANCO ?? bancoObj.descbanco ?? '') : ''
+
+  return financeiroStore.agencias
+    .filter(a => {
+      // a API retorna DESCBANCO (nome do banco). Filtrar por igualdade (ou contains) no nome do banco.
+      if (!bancoNome) return true
+      const desc = (a.DESCBANCO ?? a.descbanco ?? '').toString().toLowerCase()
+      return desc.includes(bancoNome.toString().toLowerCase())
+    })
+    .map(a => {
+      const value = a.ID ?? a.id_agencia ?? a.id
+      const descAg = a.DESCAGENCIA ?? a.descagencia ?? a.nome ?? ''
+  const digit = a.DIGITO_AG ?? a.digito_ag ?? ''
+      // label: only DESCAGENCIA with number and digit (e.g. "Agência X (1234-1)")
+      const idPart = value ? `${value}${digit ? '-' + digit : ''}` : (digit ? `-${digit}` : '')
+      const label = idPart ? `${descAg} (${idPart})` : `${descAg}`
+      return { label, value, raw: a }
+    })
+})
+
+const onAgenciaChange = (valor) => {
+  // Quando return-object está ativo, 'valor' será o objeto do item
+  if (!valor) {
+    agenciaSelecionada.value = null
+    formData.id_agencia = ''
     return
   }
 
-  if (!buscaAgencia.value || buscaAgencia.value.length < 2) {
-    resultadosAgencia.value = []
+  // valor pode ser o objeto mapeado { label, value, raw, subtitle }
+  if (typeof valor === 'object' && valor !== null && ('raw' in valor || 'value' in valor)) {
+    agenciaSelecionada.value = valor
+    const raw = valor.raw ?? {}
+    formData.id_agencia = raw.ID ?? raw.id_agencia ?? raw.id ?? valor.value
     return
   }
 
-  // Filtrar agências pelo banco selecionado e pelo termo de busca
-  const termo = buscaAgencia.value.toLowerCase()
-  resultadosAgencia.value = financeiroStore.agencias.filter(agencia => 
-    agencia.id_banco === formData.id_banco &&
-    (agencia.nome?.toLowerCase().includes(termo) ||
-     agencia.id_agencia?.toString().includes(termo))
-  )
-}
-
-const selecionarAgencia = (agencia) => {
-  agenciaSelecionada.value = agencia
-  formData.id_agencia = agencia.id_agencia
-  buscaAgencia.value = ''
-  resultadosAgencia.value = []
+  // fallback: valor primitivo (ID)
+  const found = financeiroStore.agencias.find(a => (a.ID == valor) || (a.id_agencia == valor) || (a.id == valor))
+  if (found) {
+    agenciaSelecionada.value = found
+    formData.id_agencia = found.ID ?? found.id_agencia ?? found.id
+  } else {
+    agenciaSelecionada.value = null
+    formData.id_agencia = valor
+  }
 }
 
 // Modal de cadastro de agência
@@ -650,7 +676,18 @@ const editarConta = (conta) => {
   
   // Buscar e definir a agência selecionada
   if (conta.id_agencia) {
-    agenciaSelecionada.value = financeiroStore.agencias.find(a => a.id_agencia === conta.id_agencia) || null
+      const found = financeiroStore.agencias.find(a => (a.id_agencia == conta.id_agencia) || (a.ID == conta.id_agencia) || (a.id == conta.id_agencia))
+      if (found) {
+        const descAg = found.DESCAGENCIA ?? found.descagencia ?? found.nome ?? ''
+        const digit = found.DIGITO_AG ?? found.digito_ag ?? ''
+        const idVal = found.ID ?? found.id_agencia ?? found.id
+        const idPart = idVal ? `${idVal}${digit ? '-' + digit : ''}` : (digit ? `-${digit}` : '')
+        const label = idPart ? `${descAg} (${idPart})` : `${descAg}`
+        agenciaSelecionada.value = { label, value: idVal, raw: found }
+        formData.id_agencia = found.ID ?? found.id_agencia ?? found.id
+      } else {
+        agenciaSelecionada.value = null
+      }
   }
   
   // Formatar data para input datetime-local
@@ -668,9 +705,9 @@ const cancelarFormulario = () => {
 const resetarForm = () => {
   Object.assign(formData, {
     id_empresa: 1,
-    numero_conta: '',
+    id_ccorrente: '',
     digito_cc: '',
-    titulas: '', // Nome correto
+    titular: '', // Nome correto
     id_banco: '',
     id_agencia: '',
     limite: '0',
@@ -682,8 +719,7 @@ const resetarForm = () => {
   
   // Limpar dados da agência
   agenciaSelecionada.value = null
-  resultadosAgencia.value = []
-  buscaAgencia.value = ''
+  formData.id_agencia = ''
   
   if (formRef.value) {
     formRef.value.resetValidation()
@@ -750,8 +786,13 @@ const getBancoNome = (idBanco) => {
 }
 
 const getAgenciaNome = (idAgencia) => {
-  const agencia = financeiroStore.agencias.find(a => a.id_agencia === idAgencia)
-  return agencia ? agencia.nome : `ID: ${idAgencia}`
+  const agencia = financeiroStore.agencias.find(a => (a.id_agencia == idAgencia) || (a.ID == idAgencia) || (a.id == idAgencia))
+  if (!agencia) return `ID: ${idAgencia}`
+  const descAg = agencia.DESCAGENCIA ?? agencia.descagencia ?? agencia.nome ?? ''
+  const digit = agencia.DIGITO_AG ?? agencia.digito_ag ?? ''
+  const idVal = agencia.id_agencia ?? agencia.ID ?? agencia.id
+  const idPart = idVal ? `${idVal}${digit ? '-' + digit : ''}` : (digit ? `-${digit}` : '')
+  return idPart ? `${descAg} (${idPart})` : `${descAg}`
 }
 
 // Métodos do modal de agência
@@ -759,26 +800,42 @@ const salvarAgencia = async () => {
   if (!formAgenciaRef.value?.validate()) return
   
   try {
-    // Preparar dados para envio - o número da agência vai como 'id'
+    // Preparar dados para envio - o número da agência vai como 'id' e id_uf deve ser a SIGLA
+    // Determinar sigla da UF (pode vir como ID ou SIGLA)
+    let ufSigla = formAgencia.id_uf
+    if (ufSigla == null) ufSigla = ''
+    else {
+      const foundUf = financeiroStore.ufs.find(u => u.ID == ufSigla || u.SIGLA == ufSigla)
+      if (foundUf) ufSigla = foundUf.SIGLA
+    }
+
     const novaAgencia = {
-      id: formAgencia.id,           // Número da agência
+      id: formAgencia.id,
       digito_ag: formAgencia.digito_ag,
       descagencia: formAgencia.descagencia,
-      id_banco: typeof formData.id_banco === 'object' ? formData.id_banco.ID : formData.id_banco,  // Garantir que seja apenas o ID
-      id_uf: formAgencia.id_uf,
+      id_banco: typeof formData.id_banco === 'object' ? formData.id_banco.ID : formData.id_banco,
+      id_uf: ufSigla,
       contato: formAgencia.contato,
       telefone: formAgencia.telefone,
-      id_empresa: 1 // Ajustar conforme necessário
+      id_empresa: 1
     }
-    
+
     console.log('Dados da agência antes do envio:', novaAgencia); // Debug
     
     await financeiroStore.criarAgencia(novaAgencia)
     await financeiroStore.buscarAgencias() // Recarregar lista de agências
-    
-    // Selecionar a nova agência automaticamente no formulário principal
-    agenciaSelecionada.value = novaAgencia
-    formData.id_agencia = novaAgencia.id
+
+    // Selecionar a nova agência automaticamente no formulário principal (achar a criada na store)
+    const created = financeiroStore.agencias.find(a => (a.ID == novaAgencia.id) || (a.id_agencia == novaAgencia.id) || (a.id == novaAgencia.id))
+    if (created) {
+      const descAg = created.DESCAGENCIA ?? created.descagencia ?? created.nome ?? ''
+      const digit = created.DIGITO_AG ?? created.digito_ag ?? ''
+      const idVal = created.ID ?? created.id_agencia ?? created.id
+      const idPart = idVal ? `${idVal}${digit ? '-' + digit : ''}` : (digit ? `-${digit}` : '')
+      const label = idPart ? `${descAg} (${idPart})` : `${descAg}`
+      agenciaSelecionada.value = { label, value: idVal, raw: created }
+      formData.id_agencia = idVal
+    }
     
     mostrarSnackbar('Agência cadastrada com sucesso!', 'success')
     cancelarAgencia()

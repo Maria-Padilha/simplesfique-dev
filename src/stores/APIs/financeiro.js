@@ -95,7 +95,12 @@ export const useFinanceiroStore = defineStore('financeiro', {
         // Garantir que não estamos enviando o id na criação
         const dadosSemId = { ...contaData };
         delete dadosSemId.id;
-        
+
+        // Normalizar id_banco: enviar somente o ID numérico se vier como objeto
+        if (dadosSemId.id_banco && typeof dadosSemId.id_banco === 'object') {
+          dadosSemId.id_banco = dadosSemId.id_banco.ID ?? dadosSemId.id_banco.id ?? dadosSemId.id_banco
+        }
+
         const response = await api.post('/ccorrente', { data: [dadosSemId] }, {
           headers: this.getAuthHeaders()
         });
@@ -120,7 +125,12 @@ export const useFinanceiroStore = defineStore('financeiro', {
         // Remover o id dos dados a serem enviados (vai na URL)
         const dadosParaUpdate = { ...contaData };
         delete dadosParaUpdate.id_ccorrente; // Nome correto do campo ID
-        
+
+        // Normalizar id_banco se necessário
+        if (dadosParaUpdate.id_banco && typeof dadosParaUpdate.id_banco === 'object') {
+          dadosParaUpdate.id_banco = dadosParaUpdate.id_banco.ID ?? dadosParaUpdate.id_banco.id ?? dadosParaUpdate.id_banco
+        }
+
         const response = await api.put(`/ccorrente/${id}`, { data: [dadosParaUpdate] }, {
           headers: this.getAuthHeaders()
         });
@@ -450,7 +460,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       
       const searchLower = state.search.toLowerCase();
       return state.contas.filter(conta => 
-        conta.titulas?.toLowerCase().includes(searchLower) ||
+        conta.titular?.toLowerCase().includes(searchLower) ||
         conta.numero_conta?.toString().includes(searchLower) ||
         conta.digito_cc?.toLowerCase().includes(searchLower)
       );

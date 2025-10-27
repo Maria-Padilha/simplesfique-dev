@@ -11,6 +11,7 @@ import PagarView from "@/views/financeiro/PagarView.vue";
 import ReceberView from "@/views/financeiro/ReceberView.vue";
 import ContaCorrenteView from "@/views/pages/ContaCorrenteView.vue";
 import PessoasView from '@/views/pages/PessoasView.vue';
+import UsuariosView from '@/views/pages/UsuariosView.vue';
 import {useSiteStore} from "@/stores/site";
 
 const routes = [
@@ -32,6 +33,11 @@ const routes = [
     path: '/paginas/manutencao/pessoas',
     name: 'manutencao_pessoas',
     component: PessoasView
+  },
+  {
+    path: '/paginas/manutencao/usuarios',
+    name: 'manutencao_usuarios',
+    component: UsuariosView
   },
 
   //   paginas de autenticação

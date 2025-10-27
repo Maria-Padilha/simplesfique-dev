@@ -39,14 +39,18 @@ export const useSidebarStore = defineStore('sidebar', () => {
       {
           id: 'manutencao',
           titulo: 'Manutenção',
-          icon: 'mdi-currency-usd',
+          icon: 'mdi-tools',
           submenus: [
               {
                   text: 'Pessoas',
                   icon: 'mdi-account-group',
                   route: '/paginas/manutencao/pessoas'
               },
-
+              {
+                  text: 'Usuários',
+                  icon: 'mdi-account-cog',
+                  route: '/paginas/manutencao/usuarios'
+              }
           ]
       },
     // Exemplo de como adicionar outro módulo no futuro:
