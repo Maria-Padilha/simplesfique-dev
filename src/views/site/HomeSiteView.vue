@@ -315,11 +315,29 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!-- DIALOG: Reenviar e-mail de ativação -->
+  <v-dialog v-model="openResendDialog" persistent max-width="500">
+    <v-card class="background-card">
+      <v-card-title class="text-h6">Reenviar e-mail de ativação</v-card-title>
+      <v-card-text>
+        Foi encontrado um cadastro com o e-mail <strong>{{ email }}</strong> que ainda não foi ativado.
+        Deseja reenviar o e-mail de ativação agora?
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="openResendDialog = false">Cancelar</v-btn>
+        <v-btn color="var(--text-color-laranja)" :loading="resendLoading" @click="resendActivation" class="text-white">Reenviar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
 import {ref} from "vue";
 import {toast} from "vue3-toastify";
+import api from '@/services/api'
+import { useRouter } from 'vue-router'
 // import ParticleBackground from "@/components/particle/ParticleBackground.vue";
 
 const openModalTermo = ref(false);
@@ -328,6 +346,31 @@ const termoUso = ref(false);
 const concordarTermo = () => {
   termoUso.value = true;
   openModalTermo.value = false;
+}
+
+const router = useRouter()
+
+// Dialog para reenviar e-mail de ativação
+const openResendDialog = ref(false)
+const resendLoading = ref(false)
+
+const resendActivation = async () => {
+  resendLoading.value = true
+  try {
+    // Tentativa de reenviar ativação - endpoint assumido 'validaemail/reenvio'
+    await api.post('/validaemail', {
+      nome: nome.value,
+      email: email.value,
+      telefone: telefone.value
+    })
+    toast.success('E-mail de ativação reenviado com sucesso.')
+    openResendDialog.value = false
+  } catch (e) {
+    console.error('Erro ao reenviar e-mail de ativação:', e)
+    toast.error('Erro ao reenviar e-mail de ativação. Tente novamente.')
+  } finally {
+    resendLoading.value = false
+  }
 }
 
 // Dados dos segmentos atendidos
@@ -422,7 +465,7 @@ const enviarForms = async () => {
     };
 
     // Fazer a requisição POST para o webhook do n8n adicione aqui o link do webhook
-    const response = await fetch('http://192.168.10.19:9005/saas', {
+    const response = await fetch('http://192.168.10.100:9005/saas', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -430,7 +473,19 @@ const enviarForms = async () => {
       body: JSON.stringify(dadosFormulario)
     });
 
-    if (response.ok) {
+  if (response.ok) {
+      // Após criar no /saas, também enviar dados para validação de e-mail/telefone
+      try {
+        await api.post('/validaemail', {
+          nome: nome.value,
+          email: email.value,
+          telefone: telefone.value
+        })
+      } catch (ve) {
+        // Não bloquear o fluxo principal para outros erros; log para diagnóstico
+        console.error('Erro ao enviar /validaemail:', ve)
+      }
+
       // Limpar o formulário após o envio bem-sucedido
       nomeEmpresa.value = '';
       nome.value = '';
@@ -439,6 +494,13 @@ const enviarForms = async () => {
       termoUso.value = false;
 
       toast.success('Formulário enviado com sucesso! Em breve entraremos em contato.');
+    } else if (response.status === 409) {
+      // E-mail cadastrado mas não ativo - abrir dialog para reenviar e-mail
+      openResendDialog.value = true
+    } else if (response.status === 405) {
+      // Usuário cadastrado e ativo - redirecionar para login
+      toast.info('Usuário já cadastrado e ativo. Redirecionando para o login...');
+      router.push({ name: 'login' })
     } else {
       throw new Error('Erro ao enviar formulário');
     }
