@@ -95,7 +95,12 @@ export const useFinanceiroStore = defineStore('financeiro', {
         // Garantir que não estamos enviando o id na criação
         const dadosSemId = { ...contaData };
         delete dadosSemId.id;
-        
+
+        // Normalizar id_banco: enviar somente o ID numérico se vier como objeto
+        if (dadosSemId.id_banco && typeof dadosSemId.id_banco === 'object') {
+          dadosSemId.id_banco = dadosSemId.id_banco.ID ?? dadosSemId.id_banco.id ?? dadosSemId.id_banco
+        }
+
         const response = await api.post('/ccorrente', { data: [dadosSemId] }, {
           headers: this.getAuthHeaders()
         });
@@ -120,7 +125,12 @@ export const useFinanceiroStore = defineStore('financeiro', {
         // Remover o id dos dados a serem enviados (vai na URL)
         const dadosParaUpdate = { ...contaData };
         delete dadosParaUpdate.id_ccorrente; // Nome correto do campo ID
-        
+
+        // Normalizar id_banco se necessário
+        if (dadosParaUpdate.id_banco && typeof dadosParaUpdate.id_banco === 'object') {
+          dadosParaUpdate.id_banco = dadosParaUpdate.id_banco.ID ?? dadosParaUpdate.id_banco.id ?? dadosParaUpdate.id_banco
+        }
+
         const response = await api.put(`/ccorrente/${id}`, { data: [dadosParaUpdate] }, {
           headers: this.getAuthHeaders()
         });
@@ -220,141 +230,6 @@ export const useFinanceiroStore = defineStore('financeiro', {
         this.loading = false;
       }
     },
-
-    // ========== AGÊNCIAS ==========
-    
-    // Buscar todas as agências
-    async buscarAgencias() {
-      this.loading = true;
-      this.error = null;
-      try {
-        const response = await api.get('/agencia', {
-          headers: this.getAuthHeaders()
-        });
-        
-        // Garantir que response.data seja um array válido
-        const resposta = response.data;
-        
-        // Verificar se a resposta tem a estrutura {data: [...], records: X}
-        let dados;
-        if (resposta && resposta.data && Array.isArray(resposta.data)) {
-          dados = resposta.data;
-        } 
-        // Se é array diretamente
-        else if (Array.isArray(resposta)) {
-          dados = resposta;
-        }
-        // Se é objeto válido (não null, não undefined, não string vazia), transformar em array
-        else if (resposta && resposta !== '' && typeof resposta === 'object' && !resposta.data) {
-          dados = [resposta];
-        }
-        // Qualquer outro caso (null, undefined, string vazia, etc), usar array vazio
-        else {
-          dados = [];
-        }
-        
-        this.agencias = dados;
-        return this.agencias;
-      } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar agências';
-        this.agencias = []; // Garantir que agencias seja um array vazio em caso de erro
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    // Buscar agência por ID
-    async buscarAgenciaPorId(id) {
-      this.loading = true;
-      this.error = null;
-      try {
-        const response = await api.get(`/agencia/${id}`, {
-          headers: this.getAuthHeaders()
-        });
-        return response.data;
-      } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar agência';
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    // Criar nova agência
-    async criarAgencia(agenciaData) {
-      this.loading = true;
-      this.error = null;
-      try {
-        // Para agência, NÃO removemos o ID pois ele representa o número da agência
-        const dadosParaEnvio = { ...agenciaData };
-        
-        console.log('Dados da agência para envio:', dadosParaEnvio); // Debug
-        
-        const response = await api.post('/agencia', { data: [dadosParaEnvio] }, {
-          headers: this.getAuthHeaders()
-        });
-        
-        // Atualizar a lista local
-        this.agencias.push(response.data);
-        
-        return response.data;
-      } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao criar agência';
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    // Atualizar agência existente
-    async atualizarAgencia(id, agenciaData) {
-      this.loading = true;
-      this.error = null;
-      try {
-        const dadosParaUpdate = { ...agenciaData };
-        delete dadosParaUpdate.id;
-        
-        const response = await api.put(`/agencia/${id}`, { data: [dadosParaUpdate] }, {
-          headers: this.getAuthHeaders()
-        });
-        
-        // Atualizar na lista local
-        const index = this.agencias.findIndex(agencia => agencia.id === id);
-        if (index !== -1) {
-          this.agencias[index] = response.data;
-        }
-        
-        return response.data;
-      } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao atualizar agência';
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    // Deletar agência
-    async deletarAgencia(id) {
-      this.loading = true;
-      this.error = null;
-      try {
-        await api.delete(`/agencia/${id}`, {
-          headers: this.getAuthHeaders()
-        });
-        
-        // Remover da lista local
-        this.agencias = this.agencias.filter(agencia => agencia.id !== id);
-        
-        return true;
-      } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao deletar agência';
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
     // ========== UFS ==========
     
     // Buscar todas as UFs
@@ -450,7 +325,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       
       const searchLower = state.search.toLowerCase();
       return state.contas.filter(conta => 
-        conta.titulas?.toLowerCase().includes(searchLower) ||
+        conta.titular?.toLowerCase().includes(searchLower) ||
         conta.numero_conta?.toString().includes(searchLower) ||
         conta.digito_cc?.toLowerCase().includes(searchLower)
       );

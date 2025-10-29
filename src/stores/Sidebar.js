@@ -1,90 +1,82 @@
-import {defineStore} from 'pinia';
-import {ref} from 'vue';
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
 
 export const useSidebarStore = defineStore('sidebar', () => {
 
-    /**
-     * MODULOS - Define toda a estrutura de módulos/seções da sidebar
-     *
-     * Cada módulo contém:
-     * - id: identificador único do módulo (usado como value no v-list-group)
-     * - titulo: nome exibido na sidebar
-     * - icon: ícone MDI exibido ao lado do título
-     * - submenus: array com os links internos do módulo
-     *   - cada submenu tem: text (nome), icon (ícone), route (caminho)
-     */
-    const modulos = ref([
-        {
-            id: 'financeiro',
-            titulo: 'Financeiro',
-            icon: 'mdi-currency-usd',
-            submenus: [
-                {
-                    text: 'Conta Corrente',
-                    icon: 'mdi-bank-outline',
-                    route: '/paginas/financeiro/contacorrente'
-                },
-                {
-                    text: 'Pagar',
-                    icon: 'mdi-credit-card-outline',
-                    route: '/paginas/financeiro/pagar'
-                },
-                {
-                    text: 'Receber',
-                    icon: 'mdi-cash-plus',
-                    route: '/paginas/financeiro/receber'
-                }
-            ]
-        },
-        {
-            id: 'manutencao',
-            titulo: 'Manutenção',
-            icon: 'mdi-currency-usd',
-            submenus: [
-                {
-                    text: 'Pessoas',
-                    icon: 'mdi-account-group',
-                    route: '/paginas/manutencao/pessoas'
-                },
-
-            ]
-        },
-        {
-            id: 'estoque',
-            titulo: 'Estoque',
-            icon: 'mdi-warehouse',
-            submenus: [
-                {
-                    text: 'Produtos',
-                    icon: 'mdi-package-variant-closed',
-                    route: '/paginas/estoque/produtos'
-                },
-            ]
-        }
-        // Exemplo de como adicionar outro módulo no futuro:
-        // {
-        //   id: 'localizacao',
-        //   titulo: 'Localização',
-        //   icon: 'mdi-map-marker',
-        //   submenus: [
-        //     {
-        //       text: 'País',
-        //       icon: 'mdi-earth',
-        //       route: '/paginas/localizacao/pais'
-        //     },
-        //     {
-        //       text: 'Estado',
-        //       icon: 'mdi-map-marker-outline',
-        //       route: '/paginas/localizacao/estado'
-        //     },
-        //     {
-        //       text: 'Cidade',
-        //       icon: 'mdi-city-variant-outline',
-        //       route: '/paginas/localizacao/cidade'
-        //     }
-        //   ]
-        // }
-    ]);
+  /**
+   * MODULOS - Define toda a estrutura de módulos/seções da sidebar
+   *
+   * Cada módulo contém:
+   * - id: identificador único do módulo (usado como value no v-list-group)
+   * - titulo: nome exibido na sidebar
+   * - icon: ícone MDI exibido ao lado do título
+   * - submenus: array com os links internos do módulo
+   *   - cada submenu tem: text (nome), icon (ícone), route (caminho)
+   */
+  const modulos = ref([
+      {
+          id: 'financeiro',
+          titulo: 'Financeiro',
+          icon: 'mdi-currency-usd',
+          submenus: [
+              {
+                  text: 'Conta Corrente',
+                  icon: 'mdi-bank-outline',
+                  route: '/paginas/financeiro/contacorrente'
+              },
+              {
+                  text: 'Pagar',
+                  icon: 'mdi-credit-card-outline',
+                  route: '/paginas/financeiro/pagar'
+              },
+              {
+                  text: 'Receber',
+                  icon: 'mdi-cash-plus',
+                  route: '/paginas/financeiro/receber'
+              }
+          ]
+      },
+      {
+          id: 'manutencao',
+          titulo: 'Manutenção',
+          icon: 'mdi-tools',
+          submenus: [
+              {
+                  text: 'Pessoas',
+                  icon: 'mdi-account-group',
+                  route: '/paginas/manutencao/pessoas'
+              },
+              {
+                  text: 'Usuários',
+                  icon: 'mdi-account-cog',
+                  route: '/paginas/manutencao/usuarios'
+              }
+          ]
+      },
+    // Exemplo de como adicionar outro módulo no futuro:
+    // {
+    //   id: 'localizacao',
+    //   titulo: 'Localização',
+    //   icon: 'mdi-map-marker',
+    //   submenus: [
+    //     {
+    //       text: 'País',
+    //       icon: 'mdi-earth',
+    //       route: '/paginas/localizacao/pais'
+    //     },
+    //     {
+    //       text: 'Estado',
+    //       icon: 'mdi-map-marker-outline',
+    //       route: '/paginas/localizacao/estado'
+    //     },
+    //     {
+    //       text: 'Cidade',
+    //       icon: 'mdi-city-variant-outline',
+    //       route: '/paginas/localizacao/cidade'
+    //     }
+    //   ]
+    // }
+  ]);
 
     /**
      * GETTERS - Funções para acessar os modulos
