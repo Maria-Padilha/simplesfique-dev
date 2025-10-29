@@ -12,6 +12,7 @@ import ReceberView from "@/views/financeiro/ReceberView.vue";
 import ContaCorrenteView from "@/views/pages/ContaCorrenteView.vue";
 import PessoasView from '@/views/pages/PessoasView.vue';
 import {useSiteStore} from "@/stores/site";
+import api from "@/services/api";
 
 const routes = [
 
@@ -124,34 +125,85 @@ router.beforeEach(async (to, from, next) => {
     return next({ name: 'home' });
   }
 
-  // 🔐 2. Proteção da rota "empresa"
-  // if (to.name === 'empresa') {
-  //   const token = to.query.token;
+  // // 🔹 Se vier com token na URL (ex: /empresa?token=abc123)
+  // const tokenUrl = to.query.token;
   //
-  //   // Se não houver token, bloqueia o acesso
+  // if (tokenUrl) {
+  //   // Guarda o token localmente (ou sessionStorage se quiser expirar no reload)
+  //   localStorage.setItem('empresa_token', tokenUrl);
+  //
+  //   // Limpa a URL (sem o ?token=)
+  //   return next({
+  //     path: to.path,
+  //     query: {} // remove o token da barra de endereço
+  //   });
+  // }
+  //
+  // // 🔐 Protege a rota /empresa
+  // if (to.name === 'empresa') {
+  //   const token = localStorage.getItem('empresa_token');
+  //
   //   if (!token) {
-  //     router.push('/');
-  //     return next({ name: 'erro401' }); // ou qualquer rota de erro/autenticação
+  //     return next({ name: 'erro401' });
   //   }
   //
   //   try {
-  //     // Exemplo de verificação via API
-  //     const response = await fetch(`https://api.seuservidor.com/validar-token?token=${token}`);
+  //     const response = await fetch(`https://api.seuservidor.com/validar-token`, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+  //
   //     const data = await response.json();
   //
   //     if (!data.valido) {
-  //       router.push('/');
+  //       localStorage.removeItem('empresa_token');
   //       return next({ name: 'erro401' });
   //     }
   //
-  //     // Caso o token seja válido, permite o acesso
+  //     // Token válido
   //     return next();
   //   } catch (error) {
   //     console.error('Erro ao validar token:', error);
-  //     // router.push('/');
   //     return next({ name: 'erro500' });
   //   }
   // }
+
+
+  // 🔐 2. Proteção da rota "empresa"
+  if (to.name === 'empresa') {
+    const token = to.query.token;
+
+    // Se não houver token, bloqueia o acesso
+    if (!token) {
+      router.push('/');
+      return next({ name: 'nao-autorizado' });
+    }
+
+    try {
+      // Exemplo de verificação via API
+      const response = await api.get(`/empsaas`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+
+      if (!data) {
+        router.push('/');
+        return next({ name: 'erro401' });
+      }
+
+      console.log('Token válido para empresa: ', data);
+
+      // Caso o token seja válido, permite o acesso
+      return next();
+    } catch (error) {
+      console.error('Erro ao validar token:', error);
+      // router.push('/');
+      return next({ name: 'erro500' });
+    }
+  }
 
   // ✅ Se não cair em nenhuma condição acima, segue normalmente
   next();

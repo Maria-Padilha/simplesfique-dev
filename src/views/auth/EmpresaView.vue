@@ -1,275 +1,337 @@
 <template>
   <particle-background/>
   <main class="mx-auto my-10 z-10 w-[90%] md:w-[80%]">
-    <h1 class='text-2xl text-uppercase texto-card position-relative z-10 mb-5'>Cadastrar Empresa</h1>
-    <v-form ref="formRef" v-model="isValid" class="forms">
-      <v-container>
-        <!-- SWITCHES NO TOPO -->
-        <div class="flex items-center justify-end gap-10">
-          <v-switch
-              v-model="data.matriz"
-              label="Matriz"
-              color="primary"
-              hide-details="auto"
-              true-value="S"
-              false-value="N"
-          />
+    <v-tabs v-model="tab" align-tabs="start" class="mb-5 texto-color-primary">
+      <v-tab value="empresa"><p class="text-capitalize">Cadastrar Empresa</p></v-tab>
+      <v-tab value="usuario"><p class="text-capitalize">Cadastrar Usuário</p></v-tab>
+    </v-tabs>
 
-          <v-switch
-              v-model="data.ativo"
-              label="Ativo"
-              color="success"
-              hide-details="auto"
-              true-value="S"
-              false-value="N"
-          />
-        </div>
+    <v-tabs-window v-model="tab" class="texto-color-primary">
 
-        <!-- CAMPOS GERAIS -->
-        <v-row dense>
-          <v-col cols="12" md="2">
-            <v-text-field
-                label="CNPJ *"
-                v-model="data.cnpj"
-                variant="outlined"
-                hide-details="auto"
-                v-mask-cnpj
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-                :rules="[rules.required]"
-            />
-          </v-col>
-          <v-col cols="12" md="5">
-            <v-text-field
-                label="Razão Social *"
-                v-model="data.razao_social"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-          <v-col cols="12" md="5">
-            <v-text-field
-                label="Nome Fantasia *"
-                v-model="data.fantasia"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
+      <div class="flex flex-col align-center justify-center mb-4 gap-3 mt-5">
+        <small>* Campos Obrigatórios preenchidos</small>
+        <v-progress-linear
+            v-model="progresso"
+            :color="progresso === 100 ? 'success' :'var(--text-color-laranja)'"
+            height="14"
+            rounded="sm"
+        >
+          <template v-slot:default="{value}">
+            <small>{{ Math.ceil(value) }}%</small>
+          </template>
+        </v-progress-linear>
+      </div>
 
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="Telefone"
-                v-model="data.telefone"
-                variant="outlined"
-                hide-details="auto"
-                prefix="55"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-                v-mask-phone.br
-            />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="Celular"
-                v-model="data.celular"
-                variant="outlined"
-                hide-details="auto"
-                prefix="55"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-                v-mask-phone.br
-            />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="WhatsApp"
-                v-model="data.whatsapp"
-                variant="outlined"
-                hide-details="auto"
-                prefix="55"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-                v-mask-phone.br
-            />
-          </v-col>
 
-          <v-col cols="12" md="6">
-            <v-text-field
-                label="Inscrição Estadual"
-                v-model="data.insc_estadual"
-                variant="outlined"
-                hide-details="auto"
-                v-mask-number
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-text-field
-                label="Inscrição Municipal"
-                v-model="data.insc_municipal"
-                variant="outlined"
-                hide-details="auto"
-                v-mask-number
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-
-          <v-col cols="12" md="6">
-            <v-text-field
-                label="Inscrição Suframa"
-                v-model="data.insc_suframa"
-                variant="outlined"
-                hide-details="auto"
-                v-mask-number
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-text-field
-                label="Inscrição Subst. Tributária"
-                v-model="data.insc_subst_trib"
-                variant="outlined"
-                hide-details="auto"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="CEP *"
-                v-model="data.cep"
-                variant="outlined"
-                hide-details="auto"
-                v-mask-cep
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-                :rules="[rules.required]"
-            />
-          </v-col>
-          <v-col cols="12" md="8">
-            <v-text-field
-                label="Endereço"
-                v-model="data.endereco"
-                variant="outlined"
-                hide-details="auto"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-
-          <!-- localização -->
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="Número"
-                v-model="data.numero"
-                variant="outlined"
-                hide-details="auto"
-                v-mask-number
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="Cidade *"
-                v-model="cidade"
-                variant="outlined"
-                hide-details="auto"
-                :rules="[rules.required]"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            >
-              <template #append-inner>
-                <cidade-menu @selecionar="selecionarCidade"/>
-              </template>
-            </v-text-field>
-          </v-col>
-          <v-col cols="12" md="4">
-            <div class="d-flex align-center">
-              <v-text-field
-                  label="Bairro *"
-                  v-model="bairro"
-                  variant="outlined"
+      <v-tabs-window-item value="empresa">
+        <v-form ref="formRef" v-model="isValid" class="forms">
+          <v-container>
+            <div class="flex items-center justify-end gap-10">
+              <v-switch
+                  v-model="data.matriz"
+                  label="Matriz"
+                  color="primary"
                   hide-details="auto"
-                  :rules="[rules.required]"
-                  :theme="themeStore.darkMode ? 'dark' : 'light'"
-                  class="flex-grow-1"
-              >
-                <template #append-inner>
-                  <bairro-menu @selecionar="selecionarBairro"/>
-                </template>
-              </v-text-field>
+                  true-value="S"
+                  false-value="N"
+              />
+
+              <v-switch
+                  v-model="data.ativo"
+                  label="Ativo"
+                  color="success"
+                  hide-details="auto"
+                  true-value="S"
+                  false-value="N"
+              />
             </div>
-          </v-col>
 
-          <v-col cols="12" md="6">
-            <v-text-field
-                label="Complemento"
-                v-model="data.complemento"
-                variant="outlined"
-                hide-details="auto"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-text-field
-                label="Perfil"
-                v-model="data.perfil"
-                variant="outlined"
-                hide-details="auto"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
+            <v-row dense>
+              <v-col cols="12" md="2">
+                <v-text-field
+                    label="CNPJ *"
+                    v-model="data.cnpj"
+                    variant="outlined"
+                    hide-details="auto"
+                    v-mask-cnpj
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                    :rules="[rules.required]"
+                />
+              </v-col>
+              <v-col cols="12" md="5">
+                <v-text-field
+                    label="Razão Social *"
+                    v-model="data.razao_social"
+                    variant="outlined"
+                    hide-details="auto"
+                    :rules="[rules.required]"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                />
+              </v-col>
+              <v-col cols="12" md="5">
+                <v-text-field
+                    label="Nome Fantasia *"
+                    v-model="data.fantasia"
+                    variant="outlined"
+                    hide-details="auto"
+                    :rules="[rules.required]"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                />
+              </v-col>
 
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="CRT"
-                v-model="data.crt"
-                variant="outlined"
-                hide-details="auto"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="CNAE"
-                v-model="data.cnae"
-                variant="outlined"
-                hide-details="auto"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-                label="Ident. Interna"
-                v-model="data.ident_interna"
-                variant="outlined"
-                hide-details="auto"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-            />
-          </v-col>
-        </v-row>
+              <v-col cols="12" md="4">
+                <v-text-field
+                    label="Telefone"
+                    v-model="data.telefone"
+                    variant="outlined"
+                    hide-details="auto"
+                    prefix="55"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                    v-mask-phone.br
+                />
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                    label="Celular"
+                    v-model="data.celular"
+                    variant="outlined"
+                    hide-details="auto"
+                    prefix="55"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                    v-mask-phone.br
+                />
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                    label="WhatsApp"
+                    v-model="data.whatsapp"
+                    variant="outlined"
+                    hide-details="auto"
+                    prefix="55"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                    v-mask-phone.br
+                />
+              </v-col>
 
-        <v-row>
-          <v-col cols="12" class="d-flex justify-end">
-            <v-btn color="var(--text-color-laranja)" variant="text" @click="limparForm">
-              Limpar
-            </v-btn>
+              <v-col cols="12" md="6">
+                <v-text-field
+                    label="Inscrição Estadual"
+                    v-model="data.insc_estadual"
+                    variant="outlined"
+                    hide-details="auto"
+                    v-mask-number
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                    label="Inscrição Municipal"
+                    v-model="data.insc_municipal"
+                    variant="outlined"
+                    hide-details="auto"
+                    v-mask-number
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                />
+              </v-col>
 
-            <v-btn color="var(--text-color-laranja)" variant="flat" class="ml-2 text-white" @click="submitForm">
-              Salvar
-            </v-btn>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-form>
+              <v-col cols="12" md="6">
+                <v-text-field
+                    label="Inscrição Suframa"
+                    v-model="data.insc_suframa"
+                    variant="outlined"
+                    hide-details="auto"
+                    v-mask-number
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                    label="Inscrição Subst. Tributária"
+                    v-model="data.insc_subst_trib"
+                    variant="outlined"
+                    hide-details="auto"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                />
+              </v-col>
+
+              <v-col cols="12" md="4">
+                <v-text-field
+                    label="CEP *"
+                    v-model="data.cep"
+                    variant="outlined"
+                    hide-details="auto"
+                    v-mask-cep
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                    :rules="[rules.required]"
+                />
+              </v-col>
+              <v-col cols="12" md="8">
+                <v-text-field
+                    label="Endereço"
+                    v-model="data.endereco"
+                    variant="outlined"
+                    hide-details="auto"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                />
+              </v-col>
+
+              <!-- localização -->
+              <v-col cols="12" md="4">
+                <v-text-field
+                    label="Número"
+                    v-model="data.numero"
+                    variant="outlined"
+                    hide-details="auto"
+                    v-mask-number
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                />
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                    label="Cidade *"
+                    v-model="cidade"
+                    variant="outlined"
+                    hide-details="auto"
+                    :rules="[rules.required]"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                >
+                  <template #append-inner>
+                    <cidade-menu @selecionar="selecionarCidade"/>
+                  </template>
+                </v-text-field>
+              </v-col>
+              <v-col cols="12" md="4">
+                <div class="d-flex align-center">
+                  <v-text-field
+                      label="Bairro *"
+                      v-model="bairro"
+                      variant="outlined"
+                      hide-details="auto"
+                      :rules="[rules.required]"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                      class="flex-grow-1"
+                  >
+                    <template #append-inner>
+                      <bairro-menu @selecionar="selecionarBairro"/>
+                    </template>
+                  </v-text-field>
+                </div>
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-text-field
+                    label="Complemento"
+                    v-model="data.complemento"
+                    variant="outlined"
+                    hide-details="auto"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                    label="Perfil"
+                    v-model="data.perfil"
+                    variant="outlined"
+                    hide-details="auto"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                />
+              </v-col>
+
+              <v-col cols="12" md="4">
+                <v-text-field
+                    label="CRT"
+                    v-model="data.crt"
+                    variant="outlined"
+                    hide-details="auto"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                />
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                    label="CNAE"
+                    v-model="data.cnae"
+                    variant="outlined"
+                    hide-details="auto"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                />
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                    label="Ident. Interna"
+                    v-model="data.ident_interna"
+                    variant="outlined"
+                    hide-details="auto"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                />
+              </v-col>
+            </v-row>
+
+            <v-row>
+              <v-col cols="12" class="d-flex justify-end">
+                <v-btn color="var(--text-color-laranja)" variant="text" @click="limparForm">
+                  Limpar
+                </v-btn>
+
+                <v-btn
+                    color="var(--text-color-laranja)"
+                    variant="flat" class="ml-2 text-white"
+                    @click="submitForm"
+                    :class="data.senha === '' ? 'cursor-not-allowed' : ''"
+                >
+                  Salvar
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-form>
+      </v-tabs-window-item>
+
+      <v-tabs-window-item value="usuario">
+        <v-form class="forms">
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                <v-text-field
+                    label="Senha *"
+                    v-model="data.senha"
+                    variant="outlined"
+                    hide-details="auto"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                    :rules="[rules.required]"
+                    :append-inner-icon="!verSenha ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
+                    :type="verSenha ? 'text' : 'password'"
+                    @click:appendInner="verSenha = !verSenha"
+                />
+              </v-col>
+
+              <v-col cols="12">
+                <v-text-field
+                    label="Confirmar Senha *"
+                    v-model="confirmarSenha"
+                    variant="outlined"
+                    hide-details="auto"
+                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                    :rules="[rules.required]"
+                    :append-inner-icon="!verSenha ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
+                    :type="verSenha ? 'text' : 'password'"
+                    @click:appendInner="verSenha = !verSenha"
+                />
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-form>
+      </v-tabs-window-item>
+    </v-tabs-window>
   </main>
 </template>
 
 <script setup>
-import {ref, watch} from 'vue'
-import ParticleBackground from "@/components/particle/ParticleBackground.vue";
+import CidadeMenu from "@/components/base/menu/CidadeMenu.vue";
+import BairroMenu from "@/components/base/menu/BairroMenu.vue";
+import {computed, ref, watch} from "vue";
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {useLocalizacaoStore} from "@/stores/APIs/localizacao";
 import {useEmpresaStore} from "@/stores/APIs/empresa";
-import BairroMenu from "@/components/base/menu/BairroMenu.vue";
-import CidadeMenu from "@/components/base/menu/CidadeMenu.vue";
 import {toast} from "vue3-toastify";
 
 const themeStore = useThemeStore();
@@ -278,9 +340,11 @@ const empresaStore = useEmpresaStore();
 
 const formRef = ref(null)
 const isValid = ref(false)
+const verSenha = ref(false)
+const tab = ref(null);
 
 const data = ref({
-  id_saas: 6,
+  id_saas: 1,
   razao_social: '',
   fantasia: '',
   telefone: '',
@@ -304,7 +368,11 @@ const data = ref({
   ident_interna: '',
   matriz: 'S',
   ativo: 'S',
+  primeira_empresa: 'S',
+  senha: '',
 });
+
+const confirmarSenha = ref('');
 
 const cidade = ref('');
 const bairro = ref('');
@@ -326,6 +394,10 @@ const limparForm = () => {
   cidade.value = ''
 }
 
+function limparInput(input) {
+  return input ? input.replace(/\D/g, '') : ''
+}
+
 /**
  * CADASTRANDO EMPRESA
  * @returns {Promise<void>}
@@ -334,6 +406,16 @@ const submitForm = async () => {
   const valid = await formRef.value.validate();
   if (!valid.valid) {
     toast.error("Por favor, preencha os campos obrigatórios.");
+    return;
+  }
+
+  if (data.value.senha === '') {
+    toast.error("Por favor, cadastre o usuário na aba ao lado.");
+    return;
+  }
+
+  if (data.value.senha !== confirmarSenha.value) {
+    toast.error("As senhas não coincidem.");
     return;
   }
 
@@ -346,13 +428,6 @@ const submitForm = async () => {
 
   console.log(data.value.cnpj);
 
-  // await localizacaoStore.verificandoExistenciaCidade(
-  //     cidade.value,
-  //     data.value.id_cidade,
-  //     bairro.value,
-  //     data.value.id_bairro
-  // );
-
   if (!localizacaoStore.errorMessage) {
     console.log("DADOS PARA CADASTRO: ", data.value);
 
@@ -360,10 +435,6 @@ const submitForm = async () => {
       data: [data.value]
     });
   }
-}
-
-function limparInput(input) {
-  return input ? input.replace(/\D/g, '') : ''
 }
 
 /**
@@ -412,6 +483,7 @@ watch(
             data.value.id_bairro = localizacaoStore.cnpj?.id_bairro || '';
             bairro.value = localizacaoStore.cnpj?.bairro || '';
             data.value.complemento = localizacaoStore.cnpj?.complemento || '';
+            data.value.email = localizacaoStore.cnpj?.email || '';
           }
         }
       }
@@ -436,11 +508,36 @@ const selecionarBairro = (b) => {
   data.value.id_bairro = b.ID;
   bairro.value = b.DESCBAIRRO;
 };
+
+// PROGRESSO
+
+// Campos obrigatórios que você quer monitorar
+const camposObrigatorios = [
+  'razao_social',
+  'fantasia',
+  'cnpj',
+  'cep',
+  'cidade',
+  'bairro',
+  'email',
+  'senha',
+  'confirmarSenha',
+];
+
+// Cálculo do progresso em tempo real
+const progresso = computed(() => {
+  const total = camposObrigatorios.length;
+  const preenchidos = camposObrigatorios.filter(campo => {
+    const valor = data.value[campo] || (campo === 'cidade' ? cidade.value : campo === 'bairro' ? bairro.value : null) || (campo === 'confirmarSenha' ? confirmarSenha.value : null);
+    return valor !== '' && valor !== null && valor !== undefined;
+  }).length;
+
+  // Retorna percentual (0–100)
+  return (preenchidos / total) * 100;
+});
 </script>
 
-
 <style scoped>
-
 .forms {
   padding: 10px 0;
   border-radius: 10px;
