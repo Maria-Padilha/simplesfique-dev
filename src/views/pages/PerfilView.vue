@@ -21,6 +21,7 @@
           </div>
         </div>
       </section>
+
       <section v-else class="background-third px-2 py-2 gap-5 display-start-center">
         <div class="w-[350px]">
           <upload-image width="100%" height="200px">
@@ -65,6 +66,8 @@
           </v-text-field>
         </div>
       </section>
+
+      {{empresa}}
     </template>
   </top-all-pages>
 </template>
@@ -73,12 +76,20 @@
 import UploadImage from "@/components/base/image/UploadImage.vue";
 import TopAllPages from "@/components/base/TopAllPages.vue";
 import {useThemeStore} from "@/stores/config-temas/theme";
-import {ref} from "vue";
+import {useEmpresaStore} from "@/stores/APIs/empresa";
+import {ref, computed, watchEffect} from "vue";
 
 const themeStore = useThemeStore();
+const empresaStore = useEmpresaStore();
+
+const empresas = computed(() => empresaStore.empresas);
+const empresa = computed(() => empresaStore.empresa);
+
+watchEffect(() => {
+  if (empresas.value.length === 0) empresaStore.buscarTodasEmpresas();
+});
 
 // valores dos inputs
-
 const nomeEmpresa = ref('teste aqui');
 
 const infos = ref([
