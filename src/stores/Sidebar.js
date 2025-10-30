@@ -25,6 +25,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                   route: '/paginas/financeiro/contacorrente'
               },
               {
+                  text: 'Centro de Custo',
+                  icon: 'mdi-warehouse',
+                  route: '/paginas/financeiro/centrodecusto'
+              },
+              {
                   text: 'Pagar',
                   icon: 'mdi-credit-card-outline',
                   route: '/paginas/financeiro/pagar'
@@ -39,7 +44,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
       {
           id: 'manutencao',
           titulo: 'Manutenção',
+<<<<<<< Updated upstream
           icon: 'mdi-tools',
+=======
+          icon: 'mdi-cog-outline',
+>>>>>>> Stashed changes
           submenus: [
               {
                   text: 'Pessoas',

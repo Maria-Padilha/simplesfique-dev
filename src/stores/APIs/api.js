@@ -51,11 +51,14 @@ export const useApiStore = defineStore('api', {
                 }
 
                 console.log(response.data);
+                // Return the response data so callers can react to success
+                return response.data;
 
             } catch (error) {
                 this.errorMessage = error.response?.data?.message || 'Erro na operação.';
                 console.error(`Erro ao executar ação em ${entidade}:`, error);
                 toast.error(this.errorMessage);
+                return null;
             } finally {
                 this.loading = false;
             }
