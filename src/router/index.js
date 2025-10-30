@@ -13,6 +13,7 @@ import ContaCorrenteView from "@/views/pages/ContaCorrenteView.vue";
 import PessoasView from '@/views/pages/PessoasView.vue';
 import UsuariosView from '@/views/pages/UsuariosView.vue';
 import {useSiteStore} from "@/stores/site";
+import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
 
 const routes = [
@@ -120,6 +121,8 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const siteStore = useSiteStore();
+  const apiStore = useApiStore();
+
   const manutencao = siteStore.manutencao;
 
   // 🔧 1. Modo de manutenção
@@ -130,50 +133,6 @@ router.beforeEach(async (to, from, next) => {
   if (!manutencao && to.name === 'manutencao') {
     return next({ name: 'home' });
   }
-
-  // // 🔹 Se vier com token na URL (ex: /empresa?token=abc123)
-  // const tokenUrl = to.query.token;
-  //
-  // if (tokenUrl) {
-  //   // Guarda o token localmente (ou sessionStorage se quiser expirar no reload)
-  //   localStorage.setItem('empresa_token', tokenUrl);
-  //
-  //   // Limpa a URL (sem o ?token=)
-  //   return next({
-  //     path: to.path,
-  //     query: {} // remove o token da barra de endereço
-  //   });
-  // }
-  //
-  // // 🔐 Protege a rota /empresa
-  // if (to.name === 'empresa') {
-  //   const token = localStorage.getItem('empresa_token');
-  //
-  //   if (!token) {
-  //     return next({ name: 'erro401' });
-  //   }
-  //
-  //   try {
-  //     const response = await fetch(`https://api.seuservidor.com/validar-token`, {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
-  //
-  //     const data = await response.json();
-  //
-  //     if (!data.valido) {
-  //       localStorage.removeItem('empresa_token');
-  //       return next({ name: 'erro401' });
-  //     }
-  //
-  //     // Token válido
-  //     return next();
-  //   } catch (error) {
-  //     console.error('Erro ao validar token:', error);
-  //     return next({ name: 'erro500' });
-  //   }
-  // }
 
 
   // 🔐 2. Proteção da rota "empresa"
@@ -193,14 +152,15 @@ router.beforeEach(async (to, from, next) => {
           Authorization: `Bearer ${token}`,
         },
       });
-      const data = await response.json();
+      const data = await response.data;
 
       if (!data) {
         router.push('/');
         return next({ name: 'erro401' });
       }
 
-      console.log('Token válido para empresa: ', data);
+      apiStore.dataEmpresa = data;
+      apiStore.tokenEmpresa = token;
 
       // Caso o token seja válido, permite o acesso
       return next();

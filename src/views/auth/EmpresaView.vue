@@ -1,28 +1,44 @@
 <template>
   <particle-background/>
-  <main class="mx-auto my-10 z-10 w-[90%] md:w-[80%]">
+  <main class="mx-auto my-10 z-10 w-[90%] md:w-[85%]">
     <v-tabs v-model="tab" align-tabs="start" class="mb-5 texto-color-primary">
-      <v-tab value="empresa"><p class="text-capitalize">Cadastrar Empresa</p></v-tab>
-      <v-tab value="usuario"><p class="text-capitalize">Cadastrar Usuário</p></v-tab>
+      <v-tab value="empresa">
+        <div class="flex items-center gap-2">
+          <v-icon
+              :icon="camposFaltando.length ? 'mdi-close-circle-outline' : 'mdi-check-circle-outline'"
+              :color="camposFaltando.length ? 'red' : 'green'"
+              size="23px"
+          />
+          <p
+              class="text-capitalize font-medium"
+              :class="camposFaltando.length ? 'text-red' : 'text-green'"
+          >
+            Empresa
+          </p>
+        </div>
+      </v-tab>
+
+
+      <v-tab value="usuario">
+        <div class="flex items-center gap-2">
+          <v-icon
+              :icon="camposFaltandoUsuario.length ? 'mdi-close-circle-outline' : 'mdi-check-circle-outline'"
+              :color="camposFaltandoUsuario.length ? 'red' : 'green'"
+              size="23px"
+          />
+          <p
+              class="text-capitalize font-medium"
+              :class="camposFaltandoUsuario.length ? 'text-red' : 'text-green'"
+          >
+            Usuário
+          </p>
+        </div>
+      </v-tab>
+
+      <v-tab value="cadastrar"><p class="text-capitalize">Cadastrar</p></v-tab>
     </v-tabs>
 
     <v-tabs-window v-model="tab" class="texto-color-primary">
-
-      <div class="flex flex-col align-center justify-center mb-4 gap-3 mt-5">
-        <small>* Campos Obrigatórios preenchidos</small>
-        <v-progress-linear
-            v-model="progresso"
-            :color="progresso === 100 ? 'success' :'var(--text-color-laranja)'"
-            height="14"
-            rounded="sm"
-        >
-          <template v-slot:default="{value}">
-            <small>{{ Math.ceil(value) }}%</small>
-          </template>
-        </v-progress-linear>
-      </div>
-
-
       <v-tabs-window-item value="empresa">
         <v-form ref="formRef" v-model="isValid" class="forms">
           <v-container>
@@ -268,17 +284,12 @@
 
             <v-row>
               <v-col cols="12" class="d-flex justify-end">
-                <v-btn color="var(--text-color-laranja)" variant="text" @click="limparForm">
+                <v-btn color="var(--text-color-laranja)" variant="text" @click="limparForm" size="small">
                   Limpar
                 </v-btn>
 
-                <v-btn
-                    color="var(--text-color-laranja)"
-                    variant="flat" class="ml-2 text-white"
-                    @click="submitForm"
-                    :class="data.senha === '' ? 'cursor-not-allowed' : ''"
-                >
-                  Salvar
+                <v-btn color="var(--text-color-laranja)" variant="tonal" @click="tab = 'usuario'" size="small">
+                  Avançar
                 </v-btn>
               </v-col>
             </v-row>
@@ -318,8 +329,44 @@
                 />
               </v-col>
             </v-row>
+
+            <v-row>
+              <v-col cols="12" class="d-flex justify-end">
+                <v-btn color="var(--text-color-laranja)" variant="text" @click="tab = 'empresa'" size="small">
+                  Voltar
+                </v-btn>
+
+                <v-btn color="var(--text-color-laranja)" variant="tonal" @click="tab = 'cadastrar'" size="small">
+                  Avançar
+                </v-btn>
+              </v-col>
+            </v-row>
           </v-container>
         </v-form>
+      </v-tabs-window-item>
+
+      <v-tabs-window-item value="cadastrar">
+        <div class="forms w-100 flex items-center justify-center py-5 flex-col">
+          <v-icon icon="mdi-check-circle-outline" size="50px" class="opacity-40 mb-2" />
+          <h2 class="text-xl mb-2 opacity-70 texto-color-primary">Finalizar Cadastro</h2>
+          <p class="text-sm opacity-50">Após concluir o seu cadastro, levará cerca de 20 segundos para validar os seus dados.</p>
+          <p class="text-sm opacity-50">Ao final da validação, você será redirecionado para a tela de login!</p>
+
+          <div class="flex items-center gap-2 mt-5">
+            <v-btn color="var(--text-color-laranja)" variant="tonal" @click="tab = 'usuario'" size="small">
+              Voltar
+            </v-btn>
+
+            <v-btn
+                color="var(--text-color-laranja)"
+                variant="flat" class="text-white"
+                @click="submitForm" size="small"
+                :class="data.senha === '' ? 'cursor-not-allowed' : ''"
+            >
+              Cadastrar
+            </v-btn>
+          </div>
+        </div>
       </v-tabs-window-item>
     </v-tabs-window>
   </main>
@@ -328,23 +375,34 @@
 <script setup>
 import CidadeMenu from "@/components/base/menu/CidadeMenu.vue";
 import BairroMenu from "@/components/base/menu/BairroMenu.vue";
-import {computed, ref, watch} from "vue";
+import {computed, ref, watch, onMounted} from "vue";
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {useLocalizacaoStore} from "@/stores/APIs/localizacao";
 import {useEmpresaStore} from "@/stores/APIs/empresa";
+import {useApiStore} from "@/stores/APIs/api";
 import {toast} from "vue3-toastify";
+import router from "@/router";
 
 const themeStore = useThemeStore();
 const localizacaoStore = useLocalizacaoStore();
 const empresaStore = useEmpresaStore();
+const apiStore = useApiStore();
+
+const dataEmpresa = computed(() => apiStore.dataEmpresa);
+const tokenEmpresa = computed(() => apiStore.tokenEmpresa);
+
+onMounted(() => {
+  dataEmpresa.value ? data.value.email = dataEmpresa.value.email : null;
+  dataEmpresa.value ? data.value.id_saas = dataEmpresa.value.idsaas : null;
+})
 
 const formRef = ref(null)
 const isValid = ref(false)
 const verSenha = ref(false)
-const tab = ref(null);
+const tab = ref('empresa');
 
 const data = ref({
-  id_saas: 1,
+  id_saas: dataEmpresa.value ? dataEmpresa.value.idsaas : null,
   razao_social: '',
   fantasia: '',
   telefone: '',
@@ -370,6 +428,7 @@ const data = ref({
   ativo: 'S',
   primeira_empresa: 'S',
   senha: '',
+  email: dataEmpresa.value ? dataEmpresa.value.email : '',
 });
 
 const confirmarSenha = ref('');
@@ -403,8 +462,7 @@ function limparInput(input) {
  * @returns {Promise<void>}
  */
 const submitForm = async () => {
-  const valid = await formRef.value.validate();
-  if (!valid.valid) {
+  if (camposFaltandoUsuario.value.length && camposFaltando.value.length) {
     toast.error("Por favor, preencha os campos obrigatórios.");
     return;
   }
@@ -426,14 +484,21 @@ const submitForm = async () => {
   data.value.celular = limparInput(data.value.celular)
   data.value.whatsapp = limparInput(data.value.whatsapp)
 
-  console.log(data.value.cnpj);
-
   if (!localizacaoStore.errorMessage) {
     console.log("DADOS PARA CADASTRO: ", data.value);
 
     await empresaStore.cadastrarEmpresa({
       data: [data.value]
+    }, tokenEmpresa.value);
+
+    limparForm();
+
+    toast.info('Você será redirecionado para a tela de login.', {
+      autoClose: 3500,
     });
+    setTimeout(() => {
+      router.push('/login');
+    }, 3500);
   }
 }
 
@@ -483,7 +548,6 @@ watch(
             data.value.id_bairro = localizacaoStore.cnpj?.id_bairro || '';
             bairro.value = localizacaoStore.cnpj?.bairro || '';
             data.value.complemento = localizacaoStore.cnpj?.complemento || '';
-            data.value.email = localizacaoStore.cnpj?.email || '';
           }
         }
       }
@@ -509,7 +573,6 @@ const selecionarBairro = (b) => {
   bairro.value = b.DESCBAIRRO;
 };
 
-// PROGRESSO
 
 // Campos obrigatórios que você quer monitorar
 const camposObrigatorios = [
@@ -519,21 +582,27 @@ const camposObrigatorios = [
   'cep',
   'cidade',
   'bairro',
-  'email',
-  'senha',
-  'confirmarSenha',
 ];
 
-// Cálculo do progresso em tempo real
-const progresso = computed(() => {
-  const total = camposObrigatorios.length;
-  const preenchidos = camposObrigatorios.filter(campo => {
-    const valor = data.value[campo] || (campo === 'cidade' ? cidade.value : campo === 'bairro' ? bairro.value : null) || (campo === 'confirmarSenha' ? confirmarSenha.value : null);
-    return valor !== '' && valor !== null && valor !== undefined;
-  }).length;
+const camposObrigatoriosUsuario = [
+  'senha',
+   'confirmarSenha',
+];
 
-  // Retorna percentual (0–100)
-  return (preenchidos / total) * 100;
+// computed que verifica quais campos ainda estão vazios
+const camposFaltando = computed(() => {
+  return camposObrigatorios.filter((campo) => {
+    if (campo === 'cidade') return !cidade.value
+    if (campo === 'bairro') return !bairro.value
+    return !data.value[campo]
+  })
+});
+
+const camposFaltandoUsuario = computed(() => {
+  return camposObrigatoriosUsuario.filter((campo) => {
+    if (campo === 'confirmarSenha') return !confirmarSenha.value
+    return !data.value[campo]
+  })
 });
 </script>
 

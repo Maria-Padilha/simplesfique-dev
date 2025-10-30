@@ -66,8 +66,6 @@ export const useLocalizacaoStore = defineStore('localizacao', {
                 this.cnpj = response.data;
                 this.errorMessage = '';
 
-                console.log('CNPJ encontrado:', this.cnpj);
-
             } catch (error) {
                 this.errorMessage = error.response;
                 console.error('Erro ao buscar CNPJ:', error);

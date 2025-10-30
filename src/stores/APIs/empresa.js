@@ -18,9 +18,16 @@ export const useEmpresaStore = defineStore('empresa', {
     }),
 
     actions: {
-       async cadastrarEmpresa(empresaData) {
-           this.loading = apiStore.loading;
-           await apiStore.executarAcao('empresa', 'post', empresaData);
-       }
+        async cadastrarEmpresa(empresaData, token) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao('empresa', 'post', empresaData, null, token);
+            } catch (error) {
+                console.error('Erro ao cadastrar empresa:', error);
+            }
+            finally {
+                this.loading = false;
+            }
+        }
     }
 })

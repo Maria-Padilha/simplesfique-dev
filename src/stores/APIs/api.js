@@ -4,15 +4,20 @@ import {toast} from "vue3-toastify";
 
 export const useApiStore = defineStore('api', {
     state: () => ({
-        loading: false, token: localStorage.getItem('token'),
+        loading: false,
+        token: localStorage.getItem('token'),
 
-        errorMessage: '', successMessage: '',
+        errorMessage: '',
+        successMessage: '',
 
         records: 0,
+
+        dataEmpresa: null,
+        tokenEmpresa: null,
     }),
 
     actions: {
-        async executarAcao(entidade, metodo, payload = null, id = null) {
+        async executarAcao(entidade, metodo, payload = null, id = null, token = this.token) {
             this.loading = true;
             this.successMessage = '';
             this.errorMessage = '';
@@ -24,7 +29,7 @@ export const useApiStore = defineStore('api', {
                 switch (metodo) {
                     case 'post':
                         response = await api.post(url, payload, {
-                            headers: {Authorization: `Bearer ${this.token}`}
+                            headers: {Authorization: `Bearer ${token}`}
 
                         });
                         this.successMessage = `${entidade} cadastrado(a) com sucesso!`;
