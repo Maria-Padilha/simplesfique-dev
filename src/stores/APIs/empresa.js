@@ -13,7 +13,8 @@ export const useEmpresaStore = defineStore('empresa', {
         successMessage: '',
 
         empresas: [],
-        empresa: null
+        empresa: null,
+        empresaSelecionada: null
     }),
 
     actions: {
@@ -73,5 +74,18 @@ export const useEmpresaStore = defineStore('empresa', {
                 this.loading = false;
             }
         },
+
+        selecionarEmpresa(empresa) {
+            this.empresaSelecionada = empresa;
+            localStorage.setItem('empresaSelecionada', JSON.stringify(empresa));
+            console.log('Empresa selecionada:', this.empresaSelecionada);
+        },
+
+        carregarEmpresaSelecionada() {
+            const empresa = localStorage.getItem('empresaSelecionada');
+            if (empresa) {
+                this.empresaSelecionada = JSON.parse(empresa);
+            }
+        }
     }
 })

@@ -14,6 +14,7 @@ import PessoasView from '@/views/pages/PessoasView.vue';
 import UsuariosView from '@/views/pages/UsuariosView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
+import CentroDeCustoView from "@/views/pages/financeiro/CentroDeCustoView.vue";
 import api from "@/services/api";
 
 const routes = [
