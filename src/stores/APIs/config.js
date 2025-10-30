@@ -27,11 +27,10 @@ export const useConfigParfinStore = defineStore('config-parfin', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/parfin/`,
+                const response = await api.get(`ccustoparametro`,
 
                     {
                         headers: {Authorization: `Bearer ${this.token}`}
-
                     });
 
 
@@ -50,14 +49,24 @@ export const useConfigParfinStore = defineStore('config-parfin', {
         async cadastrarParfin(parfinData) {
 
             this.loading = apiStore.loading;
-            await apiStore.executarAcao('parfin', 'post', parfinData);
+            const result = await apiStore.executarAcao('ccustoparametro', 'post', parfinData);
+
+            // If the POST succeeded, refresh the stored config so the UI switches to PUT mode
+            if (result) {
+                await this.buscarparfin();
+            }
 
         },
 
 
         async alterarParfin(parfinData) {
             this.loading = apiStore.loading;
-            await apiStore.executarAcao('parfin', 'put', parfinData);
+            const result = await apiStore.executarAcao('ccustoparametro', 'put', parfinData);
+
+            // If the PUT succeeded, refresh the stored config
+            if (result) {
+                await this.buscarparfin();
+            }
         },
 
 

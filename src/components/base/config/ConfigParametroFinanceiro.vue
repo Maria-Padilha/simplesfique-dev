@@ -59,7 +59,7 @@
     </div>
 
     <div class="pt-4 flex justify-end w-100">
-      <v-btn variant="flat" color="var(--text-color-laranja)" size="small" class="text-white" @click="enviarParfin">
+      <v-btn variant="flat" color="var(--text-color-laranja)" size="small" class="text-white" @click="enviarParfin" :disabled="!canSave">
         Salvar
       </v-btn>
     </div>
@@ -75,6 +75,12 @@ const parfin = computed(() => useConfig.config);
 const parfinData = ref({ccusto_nivel1: 1, ccusto_nivel2: 1, ccusto_nivel3: 1});
 const dadosExistem = ref(false);
 
+// enable/disable Save button
+const canSave = computed(() => {
+  // Disabled while the store is loading. You can add further validation here.
+  return !useConfig.loading;
+});
+
 const enviarParfin = async () => {
   if (dadosExistem.value) {
     await useConfig.alterarParfin({
@@ -88,16 +94,45 @@ const enviarParfin = async () => {
 };
 
 watchEffect(() => {
-  if (parfin.value.length === 0) {
+  const p = parfin.value;
+
+  // Detect the common "empty" shapes:
+  // - initial state: [] (array with length === 0)
+  // - API response: { data: [], records: 0 }
+  const isEmptyArray = Array.isArray(p) && p.length === 0;
+  const isEmptyApiResponse = p && (
+    (typeof p.records === 'number' && p.records === 0) ||
+    (Array.isArray(p.data) && p.data.length === 0)
+  );
+
+  // If we have no value yet (initial state) or the store was initialized as an empty array,
+  // fetch the config. But if the API already returned an empty response object
+  // (isEmptyApiResponse), that means the GET succeeded but there's no data —
+  // treat that as "no existing data" and don't re-fetch repeatedly.
+  if (!p || isEmptyArray) {
     useConfig.buscarparfin();
     dadosExistem.value = false;
-  } else {
+    return;
+  }
+
+  if (isEmptyApiResponse) {
+    // API returned {data: [], records: 0} — there's nothing to load, so we stay in "create" mode.
+    dadosExistem.value = false;
+    return;
+  }
+
+  // Normalize the source item: either response.data[0] or the first element
+  const sourceItem = p.data ? p.data[0] : (Array.isArray(p) ? p[0] : null);
+
+  if (sourceItem) {
     parfinData.value = {
-      ccusto_nivel1: parfin.value?.data[0]?.CCUSTO_NIVEL1,
-      ccusto_nivel2: parfin.value?.data[0]?.CCUSTO_NIVEL2,
-      ccusto_nivel3: parfin.value?.data[0]?.CCUSTO_NIVEL3
+      ccusto_nivel1: sourceItem.CCUSTO_NIVEL1 ?? parfinData.value.ccusto_nivel1,
+      ccusto_nivel2: sourceItem.CCUSTO_NIVEL2 ?? parfinData.value.ccusto_nivel2,
+      ccusto_nivel3: sourceItem.CCUSTO_NIVEL3 ?? parfinData.value.ccusto_nivel3
     };
     dadosExistem.value = true;
+  } else {
+    dadosExistem.value = false;
   }
 });
 

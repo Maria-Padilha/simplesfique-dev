@@ -1,4 +1,4 @@
-<template>
+  <template>
   <v-app :style="{ filter: `brightness(${themeStore.brightness})` }">
     <side-bar v-if="$route.path.startsWith('/paginas/')" />
 

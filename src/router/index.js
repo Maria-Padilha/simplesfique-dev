@@ -7,9 +7,9 @@ import HomeSiteView from "@/views/site/HomeSiteView.vue";
 import FuncionalidadesSiteView from "@/views/site/FuncionalidadesSiteView.vue";
 import IntegracoesView from "@/views/site/IntegracoesSiteView.vue";
 import PlanosSiteView from "@/views/site/PlanosSiteView.vue";
-import PagarView from "@/views/financeiro/PagarView.vue";
-import ReceberView from "@/views/financeiro/ReceberView.vue";
-import ContaCorrenteView from "@/views/pages/ContaCorrenteView.vue";
+import PagarView from "@/views/pages/financeiro/PagarView.vue";
+import ReceberView from "@/views/pages/financeiro/ReceberView.vue";
+import ContaCorrenteView from "@/views/pages/financeiro/ContaCorrenteView.vue";
 import PessoasView from '@/views/pages/PessoasView.vue';
 import UsuariosView from '@/views/pages/UsuariosView.vue';
 import {useSiteStore} from "@/stores/site";
@@ -18,12 +18,13 @@ import api from "@/services/api";
 
 const routes = [
 
-  //   pagina não encontrada
-  {
-    path: '/:pathMatch(.*)*',
-    name: 'notFound',
-    component: NotFoundView
-  },
+    //   pagina não encontrada
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'notFound',
+        component: NotFoundView
+    },
+
 
   //   pagina de manutenção
   {
@@ -42,74 +43,93 @@ const routes = [
     component: UsuariosView
   },
 
-  //   paginas de autenticação
-  {
-    path: '/login',
-    name: 'login',
-    component: LoginView
-  },
-  {
-    path: '/empresa',
-    name: 'empresa',
-    component: () => import('@/views/auth/EmpresaView.vue'),
-    meta: { requiresToken: true }
-  },
+    //   pagina de manutenção
+    {
+        path: '/manutencao',
+        name: 'manutencao',
+        component: () => import('@/views/ManutencaoView.vue')
+    },
+    {
+        path: '/paginas/manutencao/pessoas',
+        name: 'manutencao_pessoas',
+        component: PessoasView
+    },
 
-  //   paginas do sistema
-  {
-    path: '/paginas/perfil',
-    name: 'perfil',
-    component: PerfilView
-  },
+
+    //   paginas de autenticação
+    {
+        path: '/login',
+        name: 'login',
+        component: LoginView
+    },
+    {
+        path: '/empresa',
+        name: 'empresa',
+        component: () => import('@/views/auth/EmpresaView.vue'),
+        meta: {requiresToken: true}
+    },
+
+    //   paginas do sistema
+    {
+        path: '/paginas/perfil',
+        name: 'perfil',
+        component: PerfilView
+    },
     {
         path: '/paginas/configuracoes',
         name: 'configuracoes',
         component: () => import('@/views/pages/ConfigView.vue')
     },
-  {
-    path: '/paginas/home',
-    name: 'home',
-    component: HomeView
-  },
+    {
+        path: '/paginas/home',
+        name: 'home',
+        component: HomeView
+    },
 
-  //    Páginas do módulo financeiro
-  {
-    path: '/paginas/financeiro/pagar',
-    name: 'financeiro_pagar',
-    component: PagarView
-  },
-  {
-    path: '/paginas/financeiro/receber',
-    name: 'financeiro_receber',
-    component: ReceberView
-  },
-  {
-    path: '/paginas/financeiro/contacorrente',
-    name: 'financeiro_contacorrente',
-    component: ContaCorrenteView
-  },
+    //    Páginas do módulo financeiro
+    {
+        path: '/paginas/financeiro/pagar',
+        name: 'financeiro_pagar',
+        component: PagarView
+    },
+    {
+        path: '/paginas/financeiro/receber',
+        name: 'financeiro_receber',
+        component: ReceberView
+    },
+    {
+        path: '/paginas/financeiro/contacorrente',
+        name: 'financeiro_contacorrente',
+        component: ContaCorrenteView
+    },
+    {
 
-  //    Páginas do site
-  {
-    path: '/',
-    name: 'site_home',
-    component: HomeSiteView,
-  },
-  {
-    path: '/funcionalidades',
-    name: 'site_funcionalidades',
-    component: FuncionalidadesSiteView
-  },
-  {
-    path: '/integracoes',
-    name: 'site_integracoes',
-    component: IntegracoesView
-  },
-  {
-    path: '/planos',
-    name: 'site_planos',
-    component: PlanosSiteView
-  },
+        path: '/paginas/financeiro/centrodecusto',
+        name: 'financeiro_centrodecusto',
+        component: CentroDeCustoView
+    },
+
+    //    Páginas do site
+    {
+        path: '/',
+        name: 'site_home',
+        component: HomeSiteView,
+    },
+    {
+        path: '/funcionalidades',
+        name: 'site_funcionalidades',
+        component: FuncionalidadesSiteView
+    },
+    {
+        path: '/integracoes',
+        name: 'site_integracoes',
+        component: IntegracoesView
+    },
+    {
+        path: '/planos',
+        name: 'site_planos',
+        component: PlanosSiteView
+    },
 ]
 
 const router = createRouter({
