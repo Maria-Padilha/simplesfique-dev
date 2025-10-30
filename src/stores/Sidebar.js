@@ -85,78 +85,78 @@ export const useSidebarStore = defineStore('sidebar', () => {
     // }
   ]);
 
-  /**
-   * GETTERS - Funções para acessar os modulos
-   */
+    /**
+     * GETTERS - Funções para acessar os modulos
+     */
 
-  /**
-   * Retorna todos os módulos
-   */
-  const getModulos = () => modulos.value;
+    /**
+     * Retorna todos os módulos
+     */
+    const getModulos = () => modulos.value;
 
-  /**
-   * Busca um módulo específico pelo ID
-   * @param {string} id - ID do módulo (ex: 'financeiro')
-   * @returns {object} O módulo encontrado ou undefined
-   */
-  const getModuloById = (id) => {
-    return modulos.value.find(modulo => modulo.id === id);
-  };
+    /**
+     * Busca um módulo específico pelo ID
+     * @param {string} id - ID do módulo (ex: 'financeiro')
+     * @returns {object} O módulo encontrado ou undefined
+     */
+    const getModuloById = (id) => {
+        return modulos.value.find(modulo => modulo.id === id);
+    };
 
-  /**
-   * ACTIONS - Funções para modificar o estado
-   */
+    /**
+     * ACTIONS - Funções para modificar o estado
+     */
 
-  /**
-   * Adiciona um novo módulo na sidebar
-   * @param {object} novoModulo - Estrutura do módulo a adicionar
-   *
-   * Exemplo de uso:
-   * adicionarModulo({
-   *   id: 'vendas',
-   *   titulo: 'Vendas',
-   *   icon: 'mdi-cart',
-   *   submenus: [...]
-   * })
-   */
-  const adicionarModulo = (novoModulo) => {
-    if (!novoModulo.id || !novoModulo.titulo || !Array.isArray(novoModulo.submenus)) {
-      console.error('Módulo inválido. Verifique id, titulo e submenus.');
-      return;
-    }
-    modulos.value.push(novoModulo);
-  };
+    /**
+     * Adiciona um novo módulo na sidebar
+     * @param {object} novoModulo - Estrutura do módulo a adicionar
+     *
+     * Exemplo de uso:
+     * adicionarModulo({
+     *   id: 'vendas',
+     *   titulo: 'Vendas',
+     *   icon: 'mdi-cart',
+     *   submenus: [...]
+     * })
+     */
+    const adicionarModulo = (novoModulo) => {
+        if (!novoModulo.id || !novoModulo.titulo || !Array.isArray(novoModulo.submenus)) {
+            console.error('Módulo inválido. Verifique id, titulo e submenus.');
+            return;
+        }
+        modulos.value.push(novoModulo);
+    };
 
-  /**
-   * Remove um módulo da sidebar pelo ID
-   * @param {string} id - ID do módulo a remover
-   */
-  const removerModulo = (id) => {
-    const index = modulos.value.findIndex(m => m.id === id);
-    if (index !== -1) {
-      modulos.value.splice(index, 1);
-    }
-  };
+    /**
+     * Remove um módulo da sidebar pelo ID
+     * @param {string} id - ID do módulo a remover
+     */
+    const removerModulo = (id) => {
+        const index = modulos.value.findIndex(m => m.id === id);
+        if (index !== -1) {
+            modulos.value.splice(index, 1);
+        }
+    };
 
-  /**
-   * Atualiza um submenu dentro de um módulo
-   * @param {string} moduloId - ID do módulo
-   * @param {array} novoSubmenus - Array com os novos submenus
-   */
-  const atualizarSubmenus = (moduloId, novoSubmenus) => {
-    const modulo = getModuloById(moduloId);
-    if (modulo) {
-      modulo.submenus = novoSubmenus;
-    }
-  };
+    /**
+     * Atualiza um submenu dentro de um módulo
+     * @param {string} moduloId - ID do módulo
+     * @param {array} novoSubmenus - Array com os novos submenus
+     */
+    const atualizarSubmenus = (moduloId, novoSubmenus) => {
+        const modulo = getModuloById(moduloId);
+        if (modulo) {
+            modulo.submenus = novoSubmenus;
+        }
+    };
 
-  return {
-    modulos,
-    getModulos,
-    getModuloById,
-    adicionarModulo,
-    removerModulo,
-    atualizarSubmenus
-  };
+    return {
+        modulos,
+        getModulos,
+        getModuloById,
+        adicionarModulo,
+        removerModulo,
+        atualizarSubmenus
+    };
 });
 

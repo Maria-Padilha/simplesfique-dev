@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory} from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/pages/HomeView.vue'
 import NotFoundView from "@/views/NotFoundView.vue";
 import LoginView from "@/views/auth/LoginView.vue";
@@ -13,7 +13,8 @@ import ContaCorrenteView from "@/views/pages/financeiro/ContaCorrenteView.vue";
 import PessoasView from '@/views/pages/PessoasView.vue';
 import UsuariosView from '@/views/pages/UsuariosView.vue';
 import {useSiteStore} from "@/stores/site";
-import CentroDeCustoView from "@/views/pages/financeiro/CentroDeCustoView.vue";
+import {useApiStore} from "@/stores/APIs/api";
+import api from "@/services/api";
 
 const routes = [
 
@@ -132,56 +133,66 @@ const routes = [
 ]
 
 const router = createRouter({
-    history: createWebHistory(process.env.BASE_URL),
-    routes
+  history: createWebHistory(process.env.BASE_URL),
+  routes
 })
 
 // Middleware de navegação
 
 router.beforeEach(async (to, from, next) => {
-    const siteStore = useSiteStore();
-    const manutencao = siteStore.manutencao;
+  const siteStore = useSiteStore();
+  const apiStore = useApiStore();
 
-    // 🔧 1. Modo de manutenção
-    if (manutencao && to.name !== 'manutencao') {
-        return next({name: 'manutencao'});
+  const manutencao = siteStore.manutencao;
+
+  // 🔧 1. Modo de manutenção
+  if (manutencao && to.name !== 'manutencao') {
+    return next({ name: 'manutencao' });
+  }
+
+  if (!manutencao && to.name === 'manutencao') {
+    return next({ name: 'home' });
+  }
+
+
+  // 🔐 2. Proteção da rota "empresa"
+  if (to.name === 'empresa') {
+    const token = to.query.token;
+
+    // Se não houver token, bloqueia o acesso
+    if (!token) {
+      router.push('/');
+      return next({ name: 'nao-autorizado' });
     }
 
-    if (!manutencao && to.name === 'manutencao') {
-        return next({name: 'home'});
+    try {
+      // Exemplo de verificação via API
+      const response = await api.get(`/empsaas`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.data;
+
+      if (!data) {
+        router.push('/');
+        return next({ name: 'erro401' });
+      }
+
+      apiStore.dataEmpresa = data;
+      apiStore.tokenEmpresa = token;
+
+      // Caso o token seja válido, permite o acesso
+      return next();
+    } catch (error) {
+      console.error('Erro ao validar token:', error);
+      // router.push('/');
+      return next({ name: 'erro500' });
     }
+  }
 
-    // 🔐 2. Proteção da rota "empresa"
-    // if (to.name === 'empresa') {
-    //   const token = to.query.token;
-    //
-    //   // Se não houver token, bloqueia o acesso
-    //   if (!token) {
-    //     router.push('/');
-    //     return next({ name: 'erro401' }); // ou qualquer rota de erro/autenticação
-    //   }
-    //
-    //   try {
-    //     // Exemplo de verificação via API
-    //     const response = await fetch(`https://api.seuservidor.com/validar-token?token=${token}`);
-    //     const data = await response.json();
-    //
-    //     if (!data.valido) {
-    //       router.push('/');
-    //       return next({ name: 'erro401' });
-    //     }
-    //
-    //     // Caso o token seja válido, permite o acesso
-    //     return next();
-    //   } catch (error) {
-    //     console.error('Erro ao validar token:', error);
-    //     // router.push('/');
-    //     return next({ name: 'erro500' });
-    //   }
-    // }
-
-    // ✅ Se não cair em nenhuma condição acima, segue normalmente
-    next();
+  // ✅ Se não cair em nenhuma condição acima, segue normalmente
+  next();
 });
 
 export default router
