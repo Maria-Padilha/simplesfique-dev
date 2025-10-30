@@ -24,7 +24,7 @@ const routes = [
         component: NotFoundView
     },
 
-<<<<<<< Updated upstream
+
   //   pagina de manutenção
   {
     path: '/manutencao',
@@ -41,7 +41,7 @@ const routes = [
     name: 'manutencao_usuarios',
     component: UsuariosView
   },
-=======
+
     //   pagina de manutenção
     {
         path: '/manutencao',
@@ -53,7 +53,7 @@ const routes = [
         name: 'manutencao_pessoas',
         component: PessoasView
     },
->>>>>>> Stashed changes
+
 
     //   paginas de autenticação
     {

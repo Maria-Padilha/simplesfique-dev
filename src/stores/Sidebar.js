@@ -44,11 +44,9 @@ export const useSidebarStore = defineStore('sidebar', () => {
       {
           id: 'manutencao',
           titulo: 'Manutenção',
-<<<<<<< Updated upstream
+
           icon: 'mdi-tools',
-=======
-          icon: 'mdi-cog-outline',
->>>>>>> Stashed changes
+
           submenus: [
               {
                   text: 'Pessoas',
