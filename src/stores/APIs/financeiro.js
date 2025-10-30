@@ -5,7 +5,6 @@ export const useFinanceiroStore = defineStore('financeiro', {
   state: () => ({
     contas: [],
     bancos: [],
-    agencias: [],
     ufs: [],
     loading: false,
     error: null,
@@ -30,7 +29,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get('/ccorrente', {
+        const response = await api.get('/ccorrente/1', {
           headers: this.getAuthHeaders()
         });
         
@@ -277,7 +276,6 @@ export const useFinanceiroStore = defineStore('financeiro', {
     limparEstado() {
       this.contas = [];
       this.bancos = [];
-      this.agencias = [];
       this.ufs = [];
       this.error = null;
       this.loading = false;
@@ -298,17 +296,6 @@ export const useFinanceiroStore = defineStore('financeiro', {
           acc[conta.id_banco] = [];
         }
         acc[conta.id_banco].push(conta);
-        return acc;
-      }, {});
-    },
-
-    // Getter para agências por banco
-    agenciasPorBanco: (state) => {
-      return state.agencias.reduce((acc, agencia) => {
-        if (!acc[agencia.id_banco]) {
-          acc[agencia.id_banco] = [];
-        }
-        acc[agencia.id_banco].push(agencia);
         return acc;
       }, {});
     },

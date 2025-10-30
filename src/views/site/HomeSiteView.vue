@@ -357,7 +357,7 @@ const resendLoading = ref(false)
 const resendActivation = async () => {
   resendLoading.value = true
   try {
-    // Tentativa de reenviar ativação - endpoint assumido 'validaemail/reenvio'
+    // Tentativa de reenviar ativação - endpoint assumido 'validaemail'
     await api.post('/validaemail', {
       nome: nome.value,
       email: email.value,
