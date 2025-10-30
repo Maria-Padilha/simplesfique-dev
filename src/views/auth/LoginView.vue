@@ -15,8 +15,15 @@
         <h3 class='text-center text-xl text-uppercase texto-card'>Simples <span>Fique</span></h3>
         <p class='mt-4 texto-card'>Login</p>
 
-        <v-form class="mt-5 d-flex flex-column ga-4">
-          <v-text-field hide-details="auto" v-model="usuario" prepend-inner-icon="mdi-account-outline" placeholder="Usuário" variant="outlined" :rules="rules.usuario" />
+        <v-form class="mt-5 d-flex flex-column ga-4" @keyup.enter="login">
+          <v-text-field
+              hide-details="auto"
+              v-model="usuario"
+              prepend-inner-icon="mdi-account-outline"
+              placeholder="Usuário" variant="outlined"
+              :rules="rules.usuario"
+              :theme="themeStore.darkMode ? 'dark' : 'light'"
+          />
 
           <v-text-field
               hide-details="auto" prepend-inner-icon="mdi-lock-outline"
@@ -25,6 +32,7 @@
               :type="exibirSenha ? 'text' : 'password'"
               placeholder="Senha" variant="outlined"
               :rules="rules.senha" v-model="senha"
+              :theme="themeStore.darkMode ? 'dark' : 'light'"
           />
 
           <router-link class="text-end text-decoration-underline texto-card texto-color-laranja text-sm" to="/resetar-senha">
@@ -34,7 +42,7 @@
           <v-btn
               class="w-[100%] text-none" color="var(--text-color-laranja)"
               size="large" variant="outlined"
-              @click="login"
+              @click="login" :loading="loading"
           >
             Entrar
           </v-btn>
@@ -89,8 +97,11 @@ const login = () => {
   // }
 };
 
+const loading = ref(false);
+
 // ========== FUNÇÃO TEMPORÁRIA - API LOGIN ==========
 const loginApi = async () => {
+  loading.value = true;
   try {
     // POST vazio para API temporária
     const response = await fetch('http://192.168.10.100:9005/vstsaaslogin', {
@@ -121,6 +132,9 @@ const loginApi = async () => {
   } catch (error) {
     console.error('Erro no login:', error);
     toast.error('Erro ao conectar com o servidor!');
+  }
+  finally {
+    loading.value = false;
   }
 };
 // ===================================================
