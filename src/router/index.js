@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import {createRouter, createWebHistory} from 'vue-router'
 import HomeView from '../views/pages/HomeView.vue'
 import NotFoundView from "@/views/NotFoundView.vue";
 import LoginView from "@/views/auth/LoginView.vue";
@@ -27,22 +27,22 @@ const routes = [
     },
 
 
-  //   pagina de manutenção
-  {
-    path: '/manutencao',
-    name: 'manutencao',
-    component: () => import('@/views/ManutencaoView.vue')
-  },
-  {
-    path: '/paginas/manutencao/pessoas',
-    name: 'manutencao_pessoas',
-    component: PessoasView
-  },
-  {
-    path: '/paginas/manutencao/usuarios',
-    name: 'manutencao_usuarios',
-    component: UsuariosView
-  },
+    //   pagina de manutenção
+    {
+        path: '/manutencao',
+        name: 'manutencao',
+        component: () => import('@/views/ManutencaoView.vue')
+    },
+    {
+        path: '/paginas/manutencao/pessoas',
+        name: 'manutencao_pessoas',
+        component: PessoasView
+    },
+    {
+        path: '/paginas/manutencao/usuarios',
+        name: 'manutencao_usuarios',
+        component: UsuariosView
+    },
 
     //   pagina de manutenção
     {
@@ -109,6 +109,25 @@ const routes = [
         component: CentroDeCustoView
     },
 
+    // páginas do estoque
+    {
+      path: '/paginas/estoque/grupo',
+      name: 'grupo',
+      component: () => import('@/views/pages/estoque/GruposView.vue')
+    },
+    {
+      path: '/paginas/estoque/ncm',
+      name: 'ncm'
+    },
+    {
+      path: '/paginas/estoque/cest',
+      name: 'cest'
+    },
+    {
+      path: '/paginas/estoque/nbs',
+      name: 'nbs'
+    },
+
     //    Páginas do site
     {
         path: '/',
@@ -133,66 +152,66 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
-  routes
+    history: createWebHistory(process.env.BASE_URL),
+    routes
 })
 
 // Middleware de navegação
 
 router.beforeEach(async (to, from, next) => {
-  const siteStore = useSiteStore();
-  const apiStore = useApiStore();
+    const siteStore = useSiteStore();
+    const apiStore = useApiStore();
 
-  const manutencao = siteStore.manutencao;
+    const manutencao = siteStore.manutencao;
 
-  // 🔧 1. Modo de manutenção
-  if (manutencao && to.name !== 'manutencao') {
-    return next({ name: 'manutencao' });
-  }
-
-  if (!manutencao && to.name === 'manutencao') {
-    return next({ name: 'home' });
-  }
-
-
-  // 🔐 2. Proteção da rota "empresa"
-  if (to.name === 'empresa') {
-    const token = to.query.token;
-
-    // Se não houver token, bloqueia o acesso
-    if (!token) {
-      router.push('/');
-      return next({ name: 'nao-autorizado' });
+    // 🔧 1. Modo de manutenção
+    if (manutencao && to.name !== 'manutencao') {
+        return next({name: 'manutencao'});
     }
 
-    try {
-      // Exemplo de verificação via API
-      const response = await api.get(`/empsaas`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.data;
-
-      if (!data) {
-        router.push('/');
-        return next({ name: 'erro401' });
-      }
-
-      apiStore.dataEmpresa = data;
-      apiStore.tokenEmpresa = token;
-
-      // Caso o token seja válido, permite o acesso
-      return next();
-    } catch (error) {
-      console.error('Erro ao validar token:', error);
-      // router.push('/');
-      return next({ name: 'erro500' });
+    if (!manutencao && to.name === 'manutencao') {
+        return next({name: 'home'});
     }
-  }
 
-  // ✅ Se não cair em nenhuma condição acima, segue normalmente
-  next();
+
+    // 🔐 2. Proteção da rota "empresa"
+    if (to.name === 'empresa') {
+        const token = to.query.token;
+
+        // Se não houver token, bloqueia o acesso
+        if (!token) {
+            router.push('/');
+            return next({name: 'nao-autorizado'});
+        }
+
+        try {
+            // Exemplo de verificação via API
+            const response = await api.get(`/empsaas`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            const data = await response.data;
+
+            if (!data) {
+                router.push('/');
+                return next({name: 'erro401'});
+            }
+
+            apiStore.dataEmpresa = data;
+            apiStore.tokenEmpresa = token;
+
+            // Caso o token seja válido, permite o acesso
+            return next();
+        } catch (error) {
+            console.error('Erro ao validar token:', error);
+            // router.push('/');
+            return next({name: 'erro500'});
+        }
+    }
+
+    // ✅ Se não cair em nenhuma condição acima, segue normalmente
+    next();
 });
 
 export default router

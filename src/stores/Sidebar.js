@@ -44,9 +44,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
       {
           id: 'manutencao',
           titulo: 'Manutenção',
-
           icon: 'mdi-tools',
-
           submenus: [
               {
                   text: 'Pessoas',
@@ -60,29 +58,33 @@ export const useSidebarStore = defineStore('sidebar', () => {
               }
           ]
       },
-    // Exemplo de como adicionar outro módulo no futuro:
-    // {
-    //   id: 'localizacao',
-    //   titulo: 'Localização',
-    //   icon: 'mdi-map-marker',
-    //   submenus: [
-    //     {
-    //       text: 'País',
-    //       icon: 'mdi-earth',
-    //       route: '/paginas/localizacao/pais'
-    //     },
-    //     {
-    //       text: 'Estado',
-    //       icon: 'mdi-map-marker-outline',
-    //       route: '/paginas/localizacao/estado'
-    //     },
-    //     {
-    //       text: 'Cidade',
-    //       icon: 'mdi-city-variant-outline',
-    //       route: '/paginas/localizacao/cidade'
-    //     }
-    //   ]
-    // }
+      {
+          id: 'estoque',
+          titulo: 'Estoque',
+          icon: 'mdi-package-variant',
+          submenus: [
+              {
+                  text: 'Grupos',
+                  icon: 'mdi-shape-plus',
+                  route: '/paginas/estoque/grupo'
+              },
+              {
+                  text: 'NCM',
+                  icon: 'mdi-barcode-scan',
+                  route: '/paginas/estoque/ncm'
+              },
+              {
+                  text: 'CEST',
+                  icon: 'mdi-file-table-box-outline',
+                  route: '/paginas/estoque/cest'
+              },
+              {
+                  text: 'NBS',
+                  icon: 'mdi-clipboard-text-outline',
+                  route: '/paginas/estoque/nbs'
+              }
+          ]
+      }
   ]);
 
     /**
