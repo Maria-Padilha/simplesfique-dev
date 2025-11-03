@@ -16,7 +16,6 @@ export const useFinanceiroStore = defineStore('financeiro', {
     // Função auxiliar para obter headers com token
     getAuthHeaders() {
       const token = localStorage.getItem('token')
-      console.log('Token obtido:', token) // Debug
       return {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -37,8 +36,6 @@ export const useFinanceiroStore = defineStore('financeiro', {
         // Garantir que response.data seja um array válido
         const resposta = response.data;
         
-        console.log('Resposta completa da API:', resposta); // Debug
-        
         // Verificar se a resposta tem a estrutura {data: [...], records: X}
         let dados;
         if (resposta && resposta.data && Array.isArray(resposta.data)) {
@@ -58,7 +55,6 @@ export const useFinanceiroStore = defineStore('financeiro', {
         }
         
         this.contas = dados;
-        console.log('Contas processadas:', this.contas); // Debug
         
         return this.contas;
       } catch (error) {
@@ -240,7 +236,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         const response = await api.get('/uf', {
           headers: this.getAuthHeaders()
         });
-        console.log('Resposta UFs da API:', response.data); // Debug
+
 
         // Normalizar a resposta para garantir chaves consistentes (SIGLA, ID, DESCUF, NOMEPAIS)
         let raw = []
@@ -263,7 +259,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
           NOMEPAIS: u.NOMEPAIS ?? u.nomepais ?? u.nomePais ?? ''
         }))
 
-        console.log('UFs carregadas (normalizadas):', this.ufs); // Debug
+
         return this.ufs;
       } catch (error) {
         console.error('Erro ao buscar UFs:', error);
@@ -319,9 +315,14 @@ export const useFinanceiroStore = defineStore('financeiro', {
         this.loading = true
         this.error = null
         try {
+
+          
           const response = await api.get(`/ccorrenteusu/${contaId}`, {
             headers: this.getAuthHeaders()
           })
+          
+
+          
           const resp = response.data
           let dados = []
           if (resp && resp.data && Array.isArray(resp.data)) {
@@ -334,9 +335,12 @@ export const useFinanceiroStore = defineStore('financeiro', {
             dados = []
           }
 
-          // retorno: array de objetos que representam vínculo (esperado campos como id_usuario, ativo)
+
+
+          // retorno: array de objetos que representam vínculo (esperado campos como id_usuario, ativo, nome, email)
           return dados
         } catch (error) {
+          console.error('Erro ao buscar usuários vinculados à conta:', error)
           this.error = error.response?.data?.message || 'Erro ao buscar usuários vinculados à conta'
           throw error
         } finally {
@@ -532,6 +536,208 @@ export const useFinanceiroStore = defineStore('financeiro', {
         throw error;
       } finally {
         this.loading = false;
+      }
+    },
+
+    // ========== CAIXAS ==========
+
+    // Buscar caixas por empresa (GET /caixa/:idempresa)
+    async buscarCaixas(idEmpresa) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get(`/caixa/${idEmpresa}`, {
+          headers: this.getAuthHeaders()
+        });
+
+        // Normalizar retorno THorse: { data: [...] }
+        const resp = response.data;
+        let dados;
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data;
+        } else if (Array.isArray(resp)) {
+          dados = resp;
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp];
+        } else {
+          dados = [];
+        }
+
+        return dados;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar caixas';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Buscar caixa por ID (GET /caixa/:idempresa/id/:id)
+    async buscarCaixaPorId(idEmpresa, idCaixa) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get(`/caixa/${idEmpresa}/id/${idCaixa}`, {
+          headers: this.getAuthHeaders()
+        });
+
+        // Normalizar retorno
+        const resp = response.data;
+        if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0];
+        if (Array.isArray(resp)) return resp[0];
+        return resp;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar caixa';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Criar nova caixa (POST /caixa)
+    async criarCaixa(caixaData) {
+      this.loading = true;
+      this.error = null;
+      try {
+        // Garantir que não estamos enviando o ID na criação
+        const dadosSemId = { ...caixaData };
+        delete dadosSemId.id;
+
+        // THorse expects payload wrapped in { data: [ ... ] }
+        const payload = { data: [dadosSemId] };
+        const response = await api.post('/caixa', payload, {
+          headers: this.getAuthHeaders()
+        });
+
+        // Normalizar retorno: pode retornar { data: [...] } ou o objeto criado
+        const resp = response.data;
+        let created;
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          created = resp.data[0];
+        } else if (resp && typeof resp === 'object') {
+          created = resp;
+        }
+
+        return created || response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao criar caixa';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Atualizar caixa existente (PUT /caixa/:idempresa/id/:id)
+    async atualizarCaixa(idEmpresa, id, caixaData) {
+      this.loading = true;
+      this.error = null;
+      try {
+        // Remover o id dos dados a serem enviados (vai na URL)
+        const dadosParaUpdate = { ...caixaData };
+        delete dadosParaUpdate.id;
+
+        // THorse expects payload wrapped in { data: [ ... ] }
+        const payload = { data: [dadosParaUpdate] };
+        const response = await api.put(`/caixa/${idEmpresa}/id/${id}`, payload, {
+          headers: this.getAuthHeaders()
+        });
+
+        // Normalizar retorno
+        const resp = response.data;
+        let updated;
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          updated = resp.data[0];
+        } else if (resp && typeof resp === 'object') {
+          updated = resp;
+        }
+
+        return updated || response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao atualizar caixa';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Deletar caixa (DELETE /caixa/:idempresa/id/:id)
+    async deletarCaixa(idEmpresa, id) {
+      this.loading = true;
+      this.error = null;
+      try {
+        await api.delete(`/caixa/${idEmpresa}/id/${id}`, {
+          headers: this.getAuthHeaders()
+        });
+
+        return true;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao deletar caixa';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // ========== CAIXA USUÁRIOS ==========
+    
+    // Buscar usuários vinculados a um caixa (GET /caixausu/:idempresa/id/:id)
+    async buscarUsuariosPorCaixa(idEmpresa, caixaId) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get(`/caixausu/${idEmpresa}/id/${caixaId}`, {
+          headers: this.getAuthHeaders()
+        })
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+        } else if (Array.isArray(resp)) {
+          dados = resp
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+        } else {
+          dados = []
+        }
+
+        // retorno: array de objetos que representam vínculo (esperado campos como id_usuario, ativo, nome, email)
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar usuários vinculados ao caixa'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Atualizar acessos de usuários para um caixa (POST /caixausu/:idempresa/id/:id)
+    // payload: { idEmpresa, caixaId, users: [{ id: <usuarioId>, acesso: true|false }, ...] }
+    async atualizarAcessoCaixa(payload) {
+      this.loading = true
+      this.error = null
+      try {
+        const idEmpresa = payload.idEmpresa
+        const caixaId = payload.caixaId
+        const users = Array.isArray(payload.users) ? payload.users : []
+
+        // Enviar as atualizações; o backend pode aceitar múltiplos registros em data array
+        // Construir array de objetos com { id_usuario, ativo }
+        const dataArray = users.map(u => ({ id_usuario: u.id, ativo: u.acesso ? 'S' : 'N' }))
+
+        // Enviar em um único POST encapsulado em { data: [...] }
+        const response = await api.post(`/caixausu/${idEmpresa}/id/${caixaId}`, { data: dataArray }, {
+          headers: this.getAuthHeaders()
+        })
+
+        // Opcional: retornar o body normalizado
+        const resp = response.data
+        if (resp && resp.data && Array.isArray(resp.data)) return resp.data
+        return resp
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao atualizar acessos de usuários no caixa'
+        throw error
+      } finally {
+        this.loading = false
       }
     },
 

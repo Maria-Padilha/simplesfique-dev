@@ -282,6 +282,8 @@
                   color="secondary"
                   variant="text"
                   title="Gerenciar Usuários"
+                  :loading="loadingUsuarios"
+                  :disabled="loadingUsuarios"
                   @click="abrirModalUsuarios(item)"
                 >
                   <v-icon icon="mdi-account-multiple" />
@@ -337,12 +339,13 @@
       </v-card>
     </v-dialog>
 
-    <!-- Modal para cadastrar agência (estilo padrão das páginas) -->
+    <!-- Modal para cadastrar agência -->
     <v-dialog v-model="openAgenciaModal" persistent max-width="600px">
       <v-card class="background-secondary">
         <v-card-title class="text-h6 pa-4">
           Cadastrar Agência
         </v-card-title>
+        
         <v-card-text class="pa-4">
           <v-form>
             <v-row>
@@ -351,7 +354,6 @@
                   v-model="agenciaForm.id"
                   label="Número da Agência *"
                   type="text"
-                  inputmode="numeric"
                   variant="outlined"
                   density="compact"
                   :theme="themeStore.darkMode ? 'dark' : 'light'"
@@ -385,7 +387,7 @@
               <v-col cols="12" md="6">
                 <v-select
                   v-model="agenciaForm.id_uf"
-                  :items="financeiroStore.ufs"
+                  :items="financeiroStore.ufs || []"
                   item-title="SIGLA"
                   item-value="SIGLA"
                   label="UF"
@@ -420,68 +422,153 @@
             </v-row>
           </v-form>
         </v-card-text>
+        
         <v-card-actions class="pa-4">
-          <v-spacer />
-          <v-btn color="grey" variant="text" @click="fecharModalAgencia">Cancelar</v-btn>
-          <v-btn color="var(--text-color-laranja)" :loading="financeiroStore.loading" @click="salvarAgencia" variant="flat" class="text-white">Salvar</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="fecharModalAgencia">
+            Cancelar
+          </v-btn>
+          <v-btn 
+            color="var(--text-color-laranja)" 
+            :loading="financeiroStore.loading" 
+            @click="salvarAgencia" 
+            variant="flat" 
+            class="text-white"
+          >
+            Salvar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
 
-    <!-- Snackbar para feedback -->
     <!-- Modal de Gerenciamento de Usuários -->
-    <v-dialog v-model="openUsuariosModal" persistent max-width="800px">
+    <v-dialog v-model="openUsuariosModal" persistent max-width="900px">
       <v-card class="background-secondary">
         <v-card-title class="text-h6 pa-4 d-flex justify-space-between align-center">
-          <div>Gerenciar Usuários - Conta {{ contaParaUsuarios?.numero_ccorrente || contaParaUsuarios?.id || contaParaUsuarios?.ID }}</div>
+          <div class="d-flex align-center">
+            <v-icon icon="mdi-account-multiple" class="mr-3"></v-icon>
+            Gerenciar Usuários - Conta {{ contaParaUsuarios?.numero_ccorrente || contaParaUsuarios?.id || contaParaUsuarios?.ID }}
+          </div>
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            @click="openUsuariosModal = false"
+          ></v-btn>
         </v-card-title>
 
-        <v-card-text>
-          <v-row>
-            <v-col cols="12">
-          <v-data-table
-          :headers="[
-            { title: 'Nome', key: 'nome' },
-            { title: 'Email', key: 'email' },
-            { title: 'Ativo', key: 'ativo' },
-            { title: 'Permissão', key: 'permissao' }
-          ]"
-          :items="usuariosList"
-          item-key="ID"
-          dense
-          class="elevation-0"
-          >
-          <template v-slot:[`item.nome`]="{ item }">
-            {{ item.nome || item.NOME || item.raw?.nome || ('ID: ' + (item.ID || item.id)) }}
-          </template>
-          <template v-slot:[`item.email`]="{ item }">
-            {{ item.email || item.raw?.email || '-' }}
-          </template>
-          <template v-slot:[`item.ativo`]="{ item }">
-            <v-chip small :color="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'green' : 'grey'" text-color="white">
-            {{ (item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'Ativo' : 'Inativo' }}
-            </v-chip>
-          </template>
-          <template v-slot:[`item.permissao`]="{ item }">
-            <v-checkbox
-            :model-value="userAccessMap[String(item.ID ?? item.id ?? '')] || false"
-            @update:model-value="val => userAccessMap[String(item.ID ?? item.id ?? '')] = val"
-            density="compact"
-            />
-          </template>
-          <template #no-data>
-            <div class="pa-4 text-center">Nenhum usuário disponível</div>
-          </template>
-          </v-data-table>
-            </v-col>
-          </v-row>
+        <v-divider></v-divider>
+
+        <v-card-text class="pa-4">
+          <!-- Loading interno enquanto carrega dados -->
+          <div v-if="loadingUsuarios" class="text-center pa-8">
+            <v-progress-circular
+              indeterminate
+              color="var(--text-color-laranja)"
+              size="48"
+              class="mb-4"
+            ></v-progress-circular>
+            <p class="text-body-1">Carregando usuários...</p>
+          </div>
+
+          <!-- Tabela de usuários -->
+          <div v-else>
+            <v-alert
+              v-if="usuariosList.length === 0"
+              type="info"
+              variant="tonal"
+              class="mb-4"
+            >
+              <template v-slot:prepend>
+                <v-icon icon="mdi-information"></v-icon>
+              </template>
+              Nenhum usuário vinculado a esta conta encontrado.
+            </v-alert>
+
+            <v-data-table
+              v-else
+              :headers="headersUsuarios"
+              :items="usuariosList"
+              item-key="ID"
+              class="elevation-1 background-secondary"
+              :theme="themeStore.darkMode ? 'dark' : 'light'"
+            >
+              <template v-slot:[`item.nome`]="{ item }">
+                <div class="d-flex align-center">
+                  <v-avatar size="32" class="mr-3" :color="themeStore.darkMode ? 'grey-darken-3' : 'grey-lighten-2'">
+                    <v-icon icon="mdi-account" :color="themeStore.darkMode ? 'grey-lighten-1' : 'grey-darken-2'"></v-icon>
+                  </v-avatar>
+                  <span>{{ item.nome || `Usuário ${item.ID}` }}</span>
+                </div>
+              </template>
+              
+              <template v-slot:[`item.email`]="{ item }">
+                <div class="d-flex align-center">
+                  <v-icon icon="mdi-email" size="16" class="mr-2 opacity-60"></v-icon>
+                  {{ item.email || '-' }}
+                </div>
+              </template>
+              
+              <template v-slot:[`item.ativo`]="{ item }">
+                <v-chip 
+                  size="small" 
+                  :color="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'success' : 'default'" 
+                  :variant="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'flat' : 'outlined'"
+                >
+                  <v-icon 
+                    :icon="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'mdi-check-circle' : 'mdi-close-circle'" 
+                    size="16" 
+                    class="mr-1"
+                  ></v-icon>
+                  {{ (item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'Ativo' : 'Inativo' }}
+                </v-chip>
+              </template>
+              
+              <template v-slot:[`item.permissao`]="{ item }">
+                <v-checkbox
+                  v-model="userAccessMap[String(item.ID)]"
+                  density="compact"
+                  hide-details
+                  color="var(--text-color-laranja)"
+                  :theme="themeStore.darkMode ? 'dark' : 'light'"
+                ></v-checkbox>
+              </template>
+              
+              <template v-slot:no-data>
+                <div class="pa-8 text-center">
+                  <v-icon icon="mdi-account-off" size="64" class="mb-4 opacity-60" :color="themeStore.darkMode ? '#fff' : '#666'"></v-icon>
+                  <p class="text-body-1 mb-2">Nenhum usuário disponível</p>
+                  <p class="text-body-2 opacity-60">Não há usuários vinculados a esta conta.</p>
+                </div>
+              </template>
+            </v-data-table>
+          </div>
         </v-card-text>
 
-        <v-card-actions>
-          <v-spacer />
-          <v-btn color="grey" variant="text" @click="openUsuariosModal = false">Cancelar</v-btn>
-          <v-btn color="var(--text-color-laranja)" :loading="financeiroStore.loading" @click="salvarUsuariosAcesso" variant="flat" class="text-white">Salvar</v-btn>
+        <v-divider></v-divider>
+
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn 
+            color="grey" 
+            variant="text" 
+            @click="openUsuariosModal = false"
+            :disabled="loadingUsuarios"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn 
+            color="var(--text-color-laranja)" 
+            :loading="financeiroStore.loading" 
+            :disabled="loadingUsuarios || usuariosList.length === 0"
+            @click="salvarUsuariosAcesso" 
+            variant="flat" 
+            class="text-white"
+          >
+            <v-icon icon="mdi-content-save" class="mr-2"></v-icon>
+            Salvar Permissões
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -545,12 +632,20 @@ const headers = [
   { title: 'Dígito', key: 'digito_cc', sortable: true },
   { title: 'Titular', key: 'titular', sortable: true },
   { title: 'Banco', key: 'descbanco', sortable: true },
-
   { title: 'Limite', key: 'limite', sortable: true },
   { title: 'Venc. Limite', key: 'dtvenctolimite', sortable: true },
   { title: 'Abertura', key: 'dtabertura', sortable: true },
   { title: 'Cadastro', key: 'dhinc', sortable: true },
   { title: 'Ações', key: 'actions', sortable: false }
+]
+
+// Headers do modal de usuários
+const headersUsuarios = [
+  { title: 'ID', key: 'ID', sortable: true },
+  { title: 'Nome', key: 'nome', sortable: true },
+  { title: 'Email', key: 'email', sortable: true },
+  { title: 'Status', key: 'ativo', sortable: true },
+  { title: 'Permissão', key: 'permissao', sortable: false }
 ]
 
 // Dados do formulário
@@ -576,21 +671,20 @@ const rules = {
 }
 
 // Computed: agencias filtradas pelo banco selecionado
-// Also add a DISPLAY_NAME field used as item-title so the combobox shows
-// "Nome da agência — número-dígito" in the select.
 const agenciasFiltradas = computed(() => {
-  if (!formData.id_banco) return []
+  if (!formData.id_banco || !financeiroStore) return []
+  
   const list = Array.isArray(financeiroStore.agencias) ? financeiroStore.agencias : []
   return list
     .filter(a => {
-      const bankId = a?.ID_BANCO ?? a?.id_banco ?? a?.IDBANCO ?? a?.idBanco ?? a?.ID
-      // normalize to string for safe comparison (backend may use number or string)
+      if (!a) return false
+      const bankId = a.ID_BANCO ?? a.id_banco ?? a.IDBANCO ?? a.idBanco ?? a.ID
       return String(bankId) === String(formData.id_banco)
     })
     .map(a => {
-      const id = a?.ID ?? a?.id ?? a?.id_agencia ?? a?.ID_AGENCIA ?? ''
-      const desc = a?.DESCAGENCIA ?? a?.descagencia ?? a?.DESCRICAO ?? a?.descricao ?? ''
-      const dig = a?.DIGITO_AG ?? a?.digito_ag ?? a?.digito ?? ''
+      const id = a.ID ?? a.id ?? a.id_agencia ?? a.ID_AGENCIA ?? ''
+      const desc = a.DESCAGENCIA ?? a.descagencia ?? a.DESCRICAO ?? a.descricao ?? ''
+      const dig = a.DIGITO_AG ?? a.digito_ag ?? a.digito ?? ''
       const display = desc ? `${desc} — ${id}${dig ? '-' + dig : ''}` : `${id}${dig ? '-' + dig : ''}`
       return { ...a, DISPLAY_NAME: display, ID: id }
     })
@@ -654,112 +748,123 @@ const openUsuariosModal = ref(false)
 const contaParaUsuarios = ref(null)
 const usuariosList = ref([]) // será carregado se houver endpoint
 const userAccessMap = reactive({}) // { [userId]: boolean }
+const loadingUsuarios = ref(false) // Loading state para o modal
 
 // Nota: não usamos mais o endpoint /usuario para listar usuários do gerenciador.
 // A lista agora vem exclusivamente de /ccorrenteusu/:id via `buscarUsuariosPorConta`.
 
 const abrirModalUsuarios = async (conta) => {
-  contaParaUsuarios.value = conta
-  const contaId = conta?.id ?? conta?.ID
-
   try {
-    // Buscar exclusivamente via ccorrenteusu/:id
-    const vinculados = await financeiroStore.buscarUsuariosPorConta(contaId)
+    // Iniciar loading
+    loadingUsuarios.value = true
+    contaParaUsuarios.value = conta
+    const contaId = conta?.id ?? conta?.ID
 
-    // O endpoint pode retornar objetos de vínculo (com id_usuario, ativo)
-    // ou objetos completos de usuário. Normalizamos para a shape esperada pela UI.
-    usuariosList.value = (vinculados || []).map(v => {
-      const uid = v.id_usuario ?? v.ID_USUARIO ?? v.id ?? v.ID
-      return {
-        ID: uid,
-        nome: v.nome ?? v.NOME ?? v.NOME_USUARIO ?? '',
-        email: v.email ?? v.EMAIL ?? '',
-        ativo: v.ativo ?? v.ATIVO ?? (v.ativo === undefined ? 'S' : v.ativo),
-        raw: v
-      }
-    })
-
-    // Inicializar o mapa de acessos a partir do campo retornado (ativo) ou false
-    usuariosList.value.forEach(u => {
-      const uid = String(u.ID ?? u.id ?? '')
-      const ativoRaw = u.raw?.ativo ?? u.ativo ?? u.raw?.ATIVO
-      userAccessMap[uid] = (ativoRaw === 'S' || ativoRaw === 's' || ativoRaw === true)
-    })
-  } catch (e) {
-    console.warn('Não foi possível carregar usuários vinculados pela conta (ccorrenteusu):', e)
+    // Limpar dados anteriores
     usuariosList.value = []
-  }
+    Object.keys(userAccessMap).forEach(key => delete userAccessMap[key])
 
-  openUsuariosModal.value = true
+    // Buscar usuários vinculados ANTES de abrir o modal
+    const vinculados = await financeiroStore.buscarUsuariosPorConta(contaId)
+    
+    // Se os dados vêm em uma estrutura diferente, vamos normalizar
+    let dadosNormalizados = vinculados
+    if (vinculados && vinculados.data && Array.isArray(vinculados.data)) {
+      dadosNormalizados = vinculados.data
+    } else if (vinculados && !Array.isArray(vinculados) && typeof vinculados === 'object') {
+      dadosNormalizados = [vinculados]
+    }
+    
+    if (Array.isArray(dadosNormalizados) && dadosNormalizados.length > 0) {
+      usuariosList.value = dadosNormalizados.map(v => ({
+        ID: v.data.id ?? v.ID ?? v.id_usuario ?? '',
+        nome: v.data.nome ?? v.NOME ?? '',
+        email: v.data.email ?? v.EMAIL ?? '',
+        ativo: v.data.ativo ?? v.ATIVO ?? 'S'
+      }))
+
+      // Inicializar permissões
+      usuariosList.value.forEach(usuario => {
+        if (usuario.ID) {
+          const isActive = usuario.ativo === 'S' || usuario.ativo === 's' || usuario.ativo === true
+          userAccessMap[String(usuario.ID)] = isActive
+        }
+      })
+    } else {
+      usuariosList.value = []
+    }
+
+    // Finalizar loading e abrir modal APENAS após carregar os dados
+    loadingUsuarios.value = false
+    openUsuariosModal.value = true
+    
+  } catch (error) {
+    loadingUsuarios.value = false
+    mostrarSnackbar('Erro ao carregar usuários: ' + error.message, 'error')
+  }
 }
 
 const salvarUsuariosAcesso = async () => {
-  // Aqui deve ser implementada a chamada ao backend que persiste as permissões
-  // payload exemplo: { contaId: contaParaUsuarios.value.id, users: [{ id: x, acesso: true }, ...] }
   try {
-    // Construir lista de usuários preservando a ordem de usuariosList e
-    // filtrando entradas inválidas (ids vazios)
+    const contaId = contaParaUsuarios.value?.id ?? contaParaUsuarios.value?.ID
+    
+    if (!contaId) {
+      mostrarSnackbar('ID da conta não encontrado', 'error')
+      return
+    }
+
     const usersPayload = usuariosList.value
-      .map(u => {
-        const uid = u.ID ?? u.id ?? u.id_usuario ?? u.id_user ?? ''
-        return uid ? { id: uid, acesso: !!userAccessMap[String(uid)] } : null
-      })
-      .filter(Boolean)
+      .filter(u => u.ID)
+      .map(u => ({
+        id: u.ID,
+        acesso: !!userAccessMap[String(u.ID)]
+      }))
 
     const payload = {
-      contaId: contaParaUsuarios.value?.id ?? contaParaUsuarios.value?.ID,
+      contaId,
       users: usersPayload
     }
 
-    // Chama o método do store que faz o POST para /ccorrenteusu/:id com { data: [...] }
-    try {
-      console.debug('Enviando payload de acessos:', payload)
-      await financeiroStore.atualizarAcessoConta(payload)
-      mostrarSnackbar('Permissões atualizadas com sucesso.', 'success')
-      // Opcional: recarregar vínculos para garantir estado atualizado
-      try {
-        await financeiroStore.buscarUsuariosPorConta(payload.contaId)
-      } catch (e) {
-        // não bloquear se o refresh falhar
-        console.warn('Erro ao recarregar vínculos após update:', e)
-      }
-      openUsuariosModal.value = false
-    } catch (err) {
-      console.error('Erro ao chamar atualizarAcessoConta:', err)
-      mostrarSnackbar('Erro ao salvar atribuições de usuários: ' + (err?.message || err), 'error')
-    }
-  } catch (e) {
-    console.error('Erro ao salvar acessos:', e)
-    mostrarSnackbar('Erro ao salvar atribuições de usuários: ' + (e?.message || e), 'error')
+    await financeiroStore.atualizarAcessoConta(payload)
+    
+    mostrarSnackbar('Permissões atualizadas com sucesso!', 'success')
+    openUsuariosModal.value = false
+    
+    // Limpar dados do modal
+    usuariosList.value = []
+    Object.keys(userAccessMap).forEach(key => delete userAccessMap[key])
+    contaParaUsuarios.value = null
+    
+  } catch (error) {
+    mostrarSnackbar('Erro ao salvar permissões: ' + error.message, 'error')
   }
 }
 
 const salvarAgencia = async () => {
-  // validações mínimas
   if (!agenciaForm.id || !agenciaForm.descagencia || !agenciaForm.id_banco) {
     mostrarSnackbar('Preencha ID, descrição e o banco da agência', 'error')
     return
   }
+  
   try {
     const payload = {
       id: agenciaForm.id,
       digito_ag: agenciaForm.digito_ag,
       descagencia: agenciaForm.descagencia,
-      id_banco
-      : agenciaForm.id_banco,
+      id_banco: agenciaForm.id_banco,
       id_uf: agenciaForm.id_uf,
       contato: agenciaForm.contato,
       telefone: agenciaForm.telefone
     }
+    
     await financeiroStore.criarAgencia(payload)
-    // recarregar agencias e selecionar a criada
     await financeiroStore.buscarAgencias()
+    
     formData.id_agencia = agenciaForm.id
     mostrarSnackbar('Agência criada com sucesso', 'success')
     fecharModalAgencia()
-  } catch (e) {
-    console.error('Erro ao criar agência:', e)
-    mostrarSnackbar('Erro ao criar agência', 'error')
+  } catch (error) {
+    mostrarSnackbar('Erro ao criar agência: ' + error.message, 'error')
   }
 }
 
@@ -831,7 +936,6 @@ const editarConta = async (conta) => {
     }
   } catch (e) {
     // Não bloquear edição se as buscas falharem — usar o que já temos
-    console.warn('Erro ao buscar banco/agência por ID:', e)
   }
 
   formularioAberto.value = true

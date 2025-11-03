@@ -44,6 +44,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     icon: 'mdi-cash-register',
                     route: '/paginas/financeiro/caixa'
               },
+              {
+                    text: 'Plano de Conta',
+                    icon: 'mdi-format-list-bulleted-type',
+                    route: '/paginas/financeiro/planoconta'
+              },
           ]
       },
       {

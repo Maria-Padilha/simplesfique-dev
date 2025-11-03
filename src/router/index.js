@@ -13,6 +13,7 @@ import ContaCorrenteView from "@/views/pages/financeiro/ContaCorrenteView.vue";
 import CentroDeCustoView from "@/views/pages/financeiro/CentroDeCustoView.vue";
 import PessoasView from '@/views/pages/PessoasView.vue';
 import CaixaView from '@/views/pages/financeiro/CaixaView.vue';
+import PlanoContaView from '@/views/pages/financeiro/PlanoContaView.vue';
 import UsuariosView from '@/views/pages/UsuariosView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
@@ -114,6 +115,11 @@ const routes = [
       path: '/paginas/financeiro/caixa',
       name: 'financeiro_caixa',
       component: CaixaView
+    },
+    {
+      path: '/paginas/financeiro/planoconta',
+      name: 'financeiro_planoconta',
+      component: PlanoContaView
     },
 
     //    Páginas do site
