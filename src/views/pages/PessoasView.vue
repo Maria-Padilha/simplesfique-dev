@@ -363,7 +363,7 @@
 import {ref, reactive, computed, watchEffect} from 'vue'
 import {useThemeStore} from '@/stores/config-temas/theme'
 import {usePessoasStore} from "@/stores/APIs/pessoas";
-import BotaoExpandTransition from "@/components/base/button/BotaoExpandTransition.vue";
+import BotaoExpandTransition from "@/components/base/padrao-paginas/BotaoExpandTransition.vue";
 
 const themeStore = useThemeStore();
 const pessoasStore = usePessoasStore();
