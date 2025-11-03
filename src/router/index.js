@@ -10,7 +10,9 @@ import PlanosSiteView from "@/views/site/PlanosSiteView.vue";
 import PagarView from "@/views/pages/financeiro/PagarView.vue";
 import ReceberView from "@/views/pages/financeiro/ReceberView.vue";
 import ContaCorrenteView from "@/views/pages/financeiro/ContaCorrenteView.vue";
+import CentroDeCustoView from "@/views/pages/financeiro/CentroDeCustoView.vue";
 import PessoasView from '@/views/pages/PessoasView.vue';
+import CaixaView from '@/views/pages/financeiro/CaixaView.vue';
 import UsuariosView from '@/views/pages/UsuariosView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
@@ -107,6 +109,11 @@ const routes = [
         path: '/paginas/financeiro/centrodecusto',
         name: 'financeiro_centrodecusto',
         component: CentroDeCustoView
+    },
+    {
+      path: '/paginas/financeiro/caixa',
+      name: 'financeiro_caixa',
+      component: CaixaView
     },
 
     //    Páginas do site

@@ -38,7 +38,12 @@ export const useSidebarStore = defineStore('sidebar', () => {
                   text: 'Receber',
                   icon: 'mdi-cash-plus',
                   route: '/paginas/financeiro/receber'
-              }
+              },
+              {
+                    text: 'Caixa',
+                    icon: 'mdi-cash-register',
+                    route: '/paginas/financeiro/caixa'
+              },
           ]
       },
       {

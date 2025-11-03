@@ -6,6 +6,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
     contas: [],
     bancos: [],
     ufs: [],
+    usuarios: [],
     loading: false,
     error: null,
     search: ''
@@ -29,7 +30,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get('/ccorrente/1', {
+        const response = await api.get('/ccorrente', {
           headers: this.getAuthHeaders()
         });
         
@@ -239,26 +240,295 @@ export const useFinanceiroStore = defineStore('financeiro', {
         const response = await api.get('/uf', {
           headers: this.getAuthHeaders()
         });
-        
         console.log('Resposta UFs da API:', response.data); // Debug
-        
-        // Normalizar a resposta para o formato esperado pelo THorse
-        // A resposta vem com campos: ID, SIGLA, DESCUF, ID_PAIS, NOMEPAIS
-        if (response.data && response.data.data) {
-          this.ufs = response.data.data;
+
+        // Normalizar a resposta para garantir chaves consistentes (SIGLA, ID, DESCUF, NOMEPAIS)
+        let raw = []
+        if (response.data && response.data.data && Array.isArray(response.data.data)) {
+          raw = response.data.data
         } else if (Array.isArray(response.data)) {
-          this.ufs = response.data;
+          raw = response.data
+        } else if (response.data && typeof response.data === 'object') {
+          raw = [response.data]
         } else {
-          console.warn('Formato inesperado na resposta das UFs:', response.data);
-          this.ufs = [];
+          raw = []
         }
-        
-        console.log('UFs carregadas:', this.ufs); // Debug
+
+        // Mapear cada item para uma forma previsível usada pela UI
+        this.ufs = raw.map(u => ({
+          ID: u.ID ?? u.id ?? u.Id ?? '',
+          SIGLA: u.SIGLA ?? u.sigla ?? u.Sigla ?? '',
+          DESCUF: u.DESCUF ?? u.descuf ?? u.DescUf ?? u.DESCRICAO ?? u.descricao ?? '',
+          ID_PAIS: u.ID_PAIS ?? u.id_pais ?? u.idPais ?? '',
+          NOMEPAIS: u.NOMEPAIS ?? u.nomepais ?? u.nomePais ?? ''
+        }))
+
+        console.log('UFs carregadas (normalizadas):', this.ufs); // Debug
         return this.ufs;
       } catch (error) {
         console.error('Erro ao buscar UFs:', error);
         this.error = error.response?.data?.message || 'Erro ao buscar UFs';
         this.ufs = [];
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Buscar usuários (GET /usuario) - normalize THorse style { data: [...] }
+    async buscarUsuarios() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get('/usuario', {
+          headers: this.getAuthHeaders()
+        })
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+        } else if (Array.isArray(resp)) {
+          dados = resp
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+        } else {
+          dados = []
+        }
+
+        // Normalizar campos mais usados pela UI
+        this.usuarios = dados.map(u => ({
+          ID: u.ID ?? u.id ?? u.id_saas ?? '',
+          nome: u.nome ?? u.NOME ?? u.name ?? '',
+          email: u.email ?? u.EMAIL ?? '',
+          ativo: u.ativo ?? 'S',
+          raw: u
+        }))
+
+        return this.usuarios
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar usuários'
+        this.usuarios = []
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+      // Buscar usuários vinculados a uma conta corrente (GET /ccorrenteusu/:id)
+      async buscarUsuariosPorConta(contaId) {
+        this.loading = true
+        this.error = null
+        try {
+          const response = await api.get(`/ccorrenteusu/${contaId}`, {
+            headers: this.getAuthHeaders()
+          })
+          const resp = response.data
+          let dados = []
+          if (resp && resp.data && Array.isArray(resp.data)) {
+            dados = resp.data
+          } else if (Array.isArray(resp)) {
+            dados = resp
+          } else if (resp && typeof resp === 'object') {
+            dados = [resp]
+          } else {
+            dados = []
+          }
+
+          // retorno: array de objetos que representam vínculo (esperado campos como id_usuario, ativo)
+          return dados
+        } catch (error) {
+          this.error = error.response?.data?.message || 'Erro ao buscar usuários vinculados à conta'
+          throw error
+        } finally {
+          this.loading = false
+        }
+      },
+
+      // Atualizar acessos de usuários para uma conta (POST /ccorrenteusu/:id)
+      // payload: { contaId, users: [{ id: <usuarioId>, acesso: true|false }, ...] }
+      async atualizarAcessoConta(payload) {
+        this.loading = true
+        this.error = null
+        try {
+          const contaId = payload.contaId
+          const users = Array.isArray(payload.users) ? payload.users : []
+
+          // Enviar as atualizações; o backend pode aceitar múltiplos registros em data array
+          // Construir array de objetos com { id_usuario, ativo }
+          const dataArray = users.map(u => ({ id_usuario: u.id, ativo: u.acesso ? 'S' : 'N' }))
+
+          // Enviar em um único POST encapsulado em { data: [...] }
+          const response = await api.post(`/ccorrenteusu/${contaId}`, { data: dataArray }, {
+            headers: this.getAuthHeaders()
+          })
+
+          // Opcional: retornar o body normalizado
+          const resp = response.data
+          if (resp && resp.data && Array.isArray(resp.data)) return resp.data
+          return resp
+        } catch (error) {
+          this.error = error.response?.data?.message || 'Erro ao atualizar acessos de usuários'
+          throw error
+        } finally {
+          this.loading = false
+        }
+      },
+
+    // ========== AGENCIA =============
+
+    async buscarAgencias() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get('/agencia', {
+          headers: this.getAuthHeaders()
+        });
+        // Normalizar resposta no padrão THorse: { data: [...] }
+        const resp = response.data;
+        let dados;
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data;
+        } else if (Array.isArray(resp)) {
+          dados = resp;
+        } else if (resp && resp !== '' && typeof resp === 'object') {
+          // Single object -> transformar em array
+          dados = [resp];
+        } else {
+          dados = [];
+        }
+
+        this.agencias = dados;
+        return this.agencias;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar agências';
+        this.agencias = [];
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async criarAgencia(agenciaData) {
+      this.loading = true;
+      this.error = null;
+      try {
+        // Garantir que id_banco e id_uf estejam no formato esperado pelo backend
+        const ag = { ...agenciaData }
+        // id_banco: pode vir como objeto -> extrair ID ou id
+        if (ag.id_banco && typeof ag.id_banco === 'object') {
+          ag.id_banco = ag.id_banco.ID ?? ag.id_banco.id ?? ag.id_banco
+        }
+        // id_uf: backend expects SIGLA (string). If an object was provided, extract SIGLA/sigla
+        if (ag.id_uf && typeof ag.id_uf === 'object') {
+          ag.id_uf = ag.id_uf.SIGLA ?? ag.id_uf.sigla ?? ag.id_uf.Sigla ?? ag.id_uf.ID ?? ag.id_uf.id ?? ''
+        }
+
+        // THorse expects payload wrapped in { data: [ ... ] }
+        const payload = { data: [ag] };
+        const response = await api.post('/agencia', payload, {
+          headers: this.getAuthHeaders()
+        });
+
+        // Normalizar resposta: pode retornar { data: [...] } ou o objeto criado
+        const resp = response.data;
+        let created;
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          created = resp.data[0];
+        } else if (resp && typeof resp === 'object') {
+          created = resp;
+        } else {
+          created = null;
+        }
+
+        if (created) this.agencias.push(created);
+        return created || response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao criar agência';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Buscar uma agência por ID (agora requer id do banco na rota)
+    // usar: buscarAgenciaPorId(idBanco, idAgencia)
+    async buscarAgenciaPorId(idBanco, id) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get(`/agencia/${idBanco}/id/${id}`, {
+          headers: this.getAuthHeaders()
+        });
+
+        // Normalizar retorno
+        const resp = response.data;
+        if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0];
+        return resp;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar agência';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Atualizar agência (rota agora inclui id do banco)
+    // usar: atualizarAgencia(idBanco, idAgencia, agenciaData)
+    async atualizarAgencia(idBanco, id, agenciaData) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const ag = { ...agenciaData }
+        if (ag.id_banco && typeof ag.id_banco === 'object') {
+          ag.id_banco = ag.id_banco.ID ?? ag.id_banco.id ?? ag.id_banco
+        }
+        if (ag.id_uf && typeof ag.id_uf === 'object') {
+          ag.id_uf = ag.id_uf.SIGLA ?? ag.id_uf.sigla ?? ag.id_uf.Sigla ?? ag.id_uf.ID ?? ag.id_uf.id ?? ''
+        }
+
+        const payload = { data: [ag] };
+        const response = await api.put(`/agencia/${idBanco}/id/${id}`, payload, {
+          headers: this.getAuthHeaders()
+        });
+
+        const resp = response.data;
+        let updated;
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          updated = resp.data[0];
+        } else if (resp && typeof resp === 'object') {
+          updated = resp;
+        }
+
+        // Atualizar na lista local (tenta casar por várias chaves possíveis)
+        if (updated) {
+          const findIndex = this.agencias.findIndex(a => String(a.ID ?? a.id ?? a.id_agencia) === String(id));
+          if (findIndex !== -1) this.agencias[findIndex] = updated;
+        }
+
+        return updated || response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao atualizar agência';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Deletar agência (rota agora inclui id do banco)
+    // usar: deletarAgencia(idBanco, idAgencia)
+    async deletarAgencia(idBanco, id) {
+      this.loading = true;
+      this.error = null;
+      try {
+        await api.delete(`/agencia/${idBanco}/id/${id}`, {
+          headers: this.getAuthHeaders()
+        });
+
+        // Remover da lista local com chaves variantes
+        this.agencias = this.agencias.filter(a => String(a.ID ?? a.id ?? a.id_agencia) !== String(id));
+        return true;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao deletar agência';
         throw error;
       } finally {
         this.loading = false;
