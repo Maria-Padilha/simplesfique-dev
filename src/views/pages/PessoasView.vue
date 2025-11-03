@@ -1,209 +1,357 @@
 <template>
   <div class="pa-4">
-    <v-card class="background-secondary mb-4">
+    <v-card class="background-secondary my-4" elevation="1">
       <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
         <div class="d-flex align-center">
           <v-icon icon="mdi-account-group" class="mr-3"></v-icon>
           Pessoas
         </div>
-        
+
       </v-card-title>
     </v-card>
 
-    <v-card class="background-secondary">
+    <v-card elevation="0" class="background-secondary">
       <v-card-text class="pa-4">
-        <v-btn 
-        color="var(--text-color-laranja)" 
-        @click="toggleFormulario()" 
-        :prepend-icon="formularioAberto ? 'mdi-minus' : 'mdi-plus'"
-        variant="flat" 
-        class="mb-3 ml-3 text-white">
-          {{ formularioAberto ? 'Cancelar' : 'Nova Pessoa' }}
-        </v-btn>
+        <botao-expand-transition :formulario-aberto="formularioAberto" :toggle-formulario="toggleFormulario">
+          <template #default>{{ formularioAberto ? 'Cancelar' : 'Nova Pessoa' }}</template>
+        </botao-expand-transition>
 
-          <!-- Formulário expansível -->
-    <v-expand-transition>
-      <div v-if="formularioAberto">
-        <v-card class="background-card mb-7" elevation="2">
-          <v-card-title class="text-h6 pa-4">
-            <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-            {{ editando ? 'Editar Pessoa' : 'Nova Pessoa' }}
-          </v-card-title>
-          <v-card-text class="pa-4">
-            <v-form ref="formRef" v-model="formValido">
-              <v-row>
-                <v-col cols="12" md="3">
-                  <v-select 
-                    v-model="form.tipo_pessoa" 
-                    :items="[{label:'Física', value:'F'},{label:'Jurídica', value:'J'}]" 
-                    item-title="label" 
-                    item-value="value" 
-                    label="Tipo *" 
-                    :rules="[rules.required]"
-                    variant="outlined"
-                    density="compact"
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    class="custom-text-field"
-                    prepend-inner-icon="mdi-account-circle"
-                  ></v-select>
-                </v-col>
+        <!-- Formulário expansível -->
+        <v-expand-transition>
+          <div v-if="formularioAberto">
+            <v-card class="background-card mb-7" elevation="0">
+              <v-card-title class="text-h6 pa-4">
+                <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2" size="23px"/>
+                {{ editando ? 'Editar Pessoa' : 'Nova Pessoa' }}
+              </v-card-title>
 
-                <v-col cols="12" md="4">
-                  <v-text-field 
-                    v-model="form.nome_razao" 
-                    label="Nome / Razão *" 
-                    :rules="[rules.required]" 
-                    maxlength="100"
-                    variant="outlined"
-                    density="compact"
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    class="custom-text-field"
-                    prepend-inner-icon="mdi-account"
-                  ></v-text-field>
-                </v-col>
-
-                <v-col cols="12" md="5">
-                  <v-text-field 
-                    v-model="form.apelido_fantasia" 
-                    label="Apelido / Fantasia *" 
-                    :rules="[rules.required]" 
-                    maxlength="100"
-                    variant="outlined"
-                    density="compact"
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    class="custom-text-field"
-                    prepend-inner-icon="mdi-rename-box"
-                  ></v-text-field>
-                </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field 
-                    v-model="form.cpf_cnpj" 
-                    label="CPF / CNPJ" 
-                    maxlength="14"
-                    variant="outlined"
-                    density="compact"
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    class="custom-text-field"
-                    prepend-inner-icon="mdi-card-account-details"
-                  ></v-text-field>
-                </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field 
-                    v-model="form.telefone" 
-                    label="Telefone" 
-                    maxlength="15"
-                    variant="outlined"
-                    density="compact"
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    class="custom-text-field"
-                    prepend-inner-icon="mdi-phone"
-                  ></v-text-field>
-                </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field 
-                    v-model="form.celular" 
-                    label="Celular" 
-                    maxlength="15"
-                    variant="outlined"
-                    density="compact"
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    class="custom-text-field"
-                    prepend-inner-icon="mdi-cellphone"
-                  ></v-text-field>
-                </v-col>
-
-                <v-col cols="12" md="6">
-                  <v-text-field 
-                    v-model="form.email" 
-                    label="E-mail" 
-                    maxlength="120"
-                    variant="outlined"
-                    density="compact"
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    class="custom-text-field"
-                    prepend-inner-icon="mdi-email"
-                  ></v-text-field>
-                </v-col>
-
-                <v-col cols="12">
+              <v-card-text class="pa-4">
+                <v-form ref="formRef" v-model="formValido">
                   <v-row>
-                    <v-col cols="12" md="2"><v-checkbox v-model="form.cliente" label="Cliente" true-value="S" false-value="N"></v-checkbox></v-col>
-                    <v-col cols="12" md="2"><v-checkbox v-model="form.fornecedor" label="Fornecedor" true-value="S" false-value="N"></v-checkbox></v-col>
-                    <v-col cols="12" md="2"><v-checkbox v-model="form.transportadora" label="Transportadora" true-value="S" false-value="N"></v-checkbox></v-col>
-                    <v-col cols="12" md="2"><v-checkbox v-model="form.colaborador" label="Colaborador" true-value="S" false-value="N"></v-checkbox></v-col>
-                    <v-col cols="12" md="2"><v-checkbox v-model="form.representante" label="Representante" true-value="S" false-value="N"></v-checkbox></v-col>
+                    <!-- Tipo Pessoa -->
+                    <v-col cols="12" md="3">
+                      <v-select
+                          v-model="form.tipo_pessoa"
+                          :items="[{label:'Física', value:'F'},{label:'Jurídica', value:'J'}]"
+                          item-title="label"
+                          item-value="value"
+                          label="Tipo *"
+                          :rules="[rules.required]"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                          prepend-inner-icon="mdi-account-circle"
+                      />
+                    </v-col>
+
+                    <!-- Nome / Razão -->
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                          v-model="form.nome_razao"
+                          label="Nome / Razão *"
+                          :rules="[rules.required]"
+                          maxlength="100"
+                          variant="outlined"
+                          density="compact"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                          prepend-inner-icon="mdi-account"
+                          hide-details="auto"
+                      />
+                    </v-col>
+
+                    <!-- Apelido / Fantasia -->
+                    <v-col cols="12" md="5">
+                      <v-text-field
+                          v-model="form.apelido_fantasia"
+                          label="Apelido / Fantasia *"
+                          :rules="[rules.required]"
+                          maxlength="100"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                          prepend-inner-icon="mdi-rename-box"
+                      />
+                    </v-col>
+
+                    <!-- CPF / CNPJ -->
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                          v-if="form.tipo_pessoa === 'F'"
+                          v-model="form.cpf_cnpj"
+                          label="CPF"
+                          maxlength="14"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                          prepend-inner-icon="mdi-card-account-details"
+                          v-mask-cpf
+                      />
+                      <v-text-field
+                          v-else
+                          v-model="form.cpf_cnpj"
+                          label="CNPJ"
+                          maxlength="14"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                          prepend-inner-icon="mdi-card-account-details"
+                          v-mask-cnpj
+                      />
+                    </v-col>
+
+                    <!-- RG / Inscrição -->
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                          v-model="form.rg_inscricao"
+                          label="RG / Inscrição Estadual"
+                          maxlength="20"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                          prepend-inner-icon="mdi-identifier"
+                      />
+                    </v-col>
+
+                    <!-- Telefone -->
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                          v-model="form.telefone"
+                          label="Telefone"
+                          maxlength="15"
+                          variant="outlined"
+                          hide-details="auto"
+                          density="compact"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                          prepend-inner-icon="mdi-phone"
+                          v-mask-phone.br
+                      />
+                    </v-col>
+
+                    <!-- Celular -->
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                          v-model="form.celular"
+                          label="Celular"
+                          maxlength="15"
+                          variant="outlined"
+                          hide-details="auto"
+                          density="compact"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                          prepend-inner-icon="mdi-cellphone"
+                          v-mask-phone.br
+                      />
+                    </v-col>
+
+                    <!-- WhatsApp -->
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                          v-model="form.whats"
+                          label="WhatsApp"
+                          maxlength="15"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                          prepend-inner-icon="mdi-whatsapp"
+                          v-mask-phone.br
+                      />
+                    </v-col>
+
+                    <!-- Redes sociais -->
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                          v-model="form.instagram"
+                          label="Instagram"
+                          maxlength="80"
+                          prepend-inner-icon="mdi-instagram"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                      />
+                    </v-col>
+
+                    <!-- Website -->
+                    <v-col cols="12">
+                      <v-text-field
+                          v-model="form.website"
+                          label="Website"
+                          maxlength="150"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                          prepend-inner-icon="mdi-web"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                          v-model="form.facebook"
+                          label="Facebook"
+                          maxlength="80"
+                          prepend-inner-icon="mdi-facebook"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                          v-model="form.twitter_x"
+                          label="Twitter / X"
+                          maxlength="80"
+                          prepend-inner-icon="mdi-twitter"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                          v-model="form.tik_tok"
+                          label="TikTok"
+                          maxlength="80"
+                          prepend-inner-icon="mdi-music-note"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3">
+                      <v-text-field
+                          v-model="form.telegram"
+                          label="Telegram"
+                          maxlength="80"
+                          prepend-inner-icon="mdi-send"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                      />
+                    </v-col>
+
+                    <!-- Coordenadas -->
+                    <v-col cols="12" md="3">
+                      <v-text-field
+                          v-model="form.latitude"
+                          label="Latitude"
+                          type="number"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                          prepend-inner-icon="mdi-map-marker"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3">
+                      <v-text-field
+                          v-model="form.longitude"
+                          label="Longitude"
+                          type="number"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="custom-text-field"
+                          prepend-inner-icon="mdi-map-marker-outline"
+                      />
+                    </v-col>
                   </v-row>
-                </v-col>
+                </v-form>
+              </v-card-text>
 
-              </v-row>
-            </v-form>
-          </v-card-text>
-          <v-card-actions class="pa-4">
-            <v-spacer></v-spacer>
-            <v-btn color="grey" variant="text" @click="cancelarFormulario">Cancelar</v-btn>
-            <v-btn
-              color="var(--text-color-laranja)"
-              :loading="loading"
-              :disabled="!formValido"
-              @click="salvarPessoa"
-              variant="flat"
-              class="text-white">
-              {{ editando ? 'Atualizar' : 'Salvar' }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </div>
-    </v-expand-transition>
+              <v-card-actions class="pa-4">
+                <v-spacer></v-spacer>
+                <v-btn color="grey" variant="text" @click="cancelarFormulario" size="small">Cancelar</v-btn>
+                <v-btn
+                    color="var(--text-color-laranja)"
+                    :loading="loading"
+                    :disabled="!formValido"
+                    @click="salvarPessoa"
+                    variant="flat" size="small"
+                    class="text-white">
+                  {{ editando ? 'Atualizar' : 'Salvar' }}
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </div>
+        </v-expand-transition>
 
-    <v-expand-transition>
-      <div v-if="!formularioAberto">
-        <v-row class="mb-4">
-          <v-col cols="12" md="6">
-            <v-text-field
-             class="ml-3"
-             width="480"
-             v-model="search"
-             label="Pesquisar"
-             append-inner-icon="mdi-magnify"
-             variant="outlined"
-             density="compact"
-           ></v-text-field>
-          </v-col>
-        </v-row>
+        <v-expand-transition>
+          <div v-if="!formularioAberto">
+            <v-row class="mb-4">
+              <v-col cols="12" md="6">
+                <v-text-field
+                    class="ml-3"
+                    width="480"
+                    v-model="search"
+                    label="Pesquisar"
+                    append-inner-icon="mdi-magnify"
+                    variant="outlined"
+                    density="compact"
+                ></v-text-field>
+              </v-col>
+            </v-row>
 
-        <v-data-table
-          :headers="headers"
-          :items="pessoas"
-          :loading="loading"
-          item-key="id"
-          class="elevation-1 background-secondary"
-        >
-          <template v-slot:[`item.tipo_pessoa`]='{ item }'>
-            {{ item.tipo_pessoa === 'F' ? 'Física' : 'Jurídica' }}
-          </template>
+            <v-data-table
+                :headers="headers"
+                :items="pessoas"
+                :loading="loading"
+                item-key="id"
+                class="background-secondary"
+            >
+              <template v-slot:[`item.tipo_pessoa`]='{ item }'>
+                {{ item.tipo_pessoa === 'F' ? 'Física' : 'Jurídica' }}
+              </template>
 
-          <template v-slot:[`item.acoes`]='{ item }'>
-            <v-btn icon="mdi-pencil" size="small" color="primary" variant="text" @click="editarPessoa(item)"></v-btn>
-            <v-btn icon="mdi-delete" size="small" color="error" variant="text" @click="confirmarExclusao(item)"></v-btn>
-          </template>
+              <template v-slot:[`item.acoes`]='{ item }'>
+                <v-btn icon="mdi-pencil" size="small" color="primary" variant="text"
+                       @click="editarPessoa(item)"></v-btn>
+                <v-btn icon="mdi-delete" size="small" color="error" variant="text"
+                       @click="confirmarExclusao(item)"></v-btn>
+              </template>
 
-          <template v-slot:no-data>
-            <div class="text-center pa-4">
-              <v-icon icon="mdi-account-off" size="64" class="mb-2 opacity-60"></v-icon>
-              <p class="text-body-1">Nenhuma pessoa encontrada</p>
-            </div>
-          </template>
-        </v-data-table>
-      </div>
-    </v-expand-transition>
-
+              <template v-slot:no-data>
+                <div class="text-center pa-4">
+                  <v-icon icon="mdi-account-off" size="64" class="mb-2 opacity-60"></v-icon>
+                  <p class="text-body-1">Nenhuma pessoa encontrada</p>
+                </div>
+              </template>
+            </v-data-table>
+          </div>
+        </v-expand-transition>
       </v-card-text>
     </v-card>
 
-    
 
     <!-- Snackbar -->
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000">{{ snackbar.message }}</v-snackbar>
@@ -212,15 +360,17 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted} from 'vue'
-import api from '@/services/api'
-import { useThemeStore } from '@/stores/config-temas/theme'
+import {ref, reactive, computed, watchEffect} from 'vue'
+import {useThemeStore} from '@/stores/config-temas/theme'
+import {usePessoasStore} from "@/stores/APIs/pessoas";
+import BotaoExpandTransition from "@/components/base/button/BotaoExpandTransition.vue";
 
 const themeStore = useThemeStore();
+const pessoasStore = usePessoasStore();
 
 // State
-const pessoas = ref([])
-const loading = ref(false)
+const pessoas = computed(() => pessoasStore.pessoas);
+const loading = computed(() => pessoasStore.loading);
 const search = ref('')
 
 // Formulário expansível
@@ -230,46 +380,43 @@ const formRef = ref(null)
 const editando = ref(false)
 
 const form = reactive({
-  id_empresa: 1,
-  id: null,
-  tipo_pessoa: 'F',
-  nome_razao: '',
-  apelido_fantasia: '',
-  cpf_cnpj: '',
-  rg_inscricao: '',
-  telefone: '',
-  celular: '',
-  whats: '',
-  website: '',
-  email: '',
-  cliente: 'N',
-  fornecedor: 'N',
-  transportadora: 'N',
-  colaborador: 'N',
-  representante: 'N',
-  instagram: '',
-  facebook: '',
-  twitter_x: '',
-  tik_tok: '',
-  telegram: '',
-  latitude: null,
-  longitude: null,
-  ativo: 'S'
-})
+  "tipo_pessoa": "",
+  "nome_razao": "",
+  "apelido_fantasia": "",
+  "cpf_cnpj": "",
+  "rg_inscricao": "",
+  "telefone": "",
+  "celular": "",
+  "whats": "",
+  "website": "",
+  "cliente": "",
+  "fornecedor": "",
+  "transportadora": "",
+  "colaborador": "",
+  "representante": "",
+  "instagram": "",
+  "facebook": "",
+  "twitter_x": "",
+  "tik_tok": "",
+  "telegram": "",
+  "latitude": "",
+  "longitude": "",
+  "ativo": ""
+});
 
 // Snackbar
-const snackbar = reactive({ show:false, message:'', color:'success' })
+const snackbar = reactive({show: false, message: '', color: 'success'})
 
 const headers = [
-  { title: 'ID', key: 'id', sortable: true },
-  { title: 'Tipo', key: 'tipo_pessoa', sortable: true },
-  { title: 'Nome / Razão', key: 'nome_razao', sortable: true },
-  { title: 'Apelido', key: 'apelido_fantasia', sortable: true },
-  { title: 'CPF/CNPJ', key: 'cpf_cnpj', sortable: true },
-  { title: 'Telefone', key: 'telefone', sortable: false },
-  { title: 'Celular', key: 'celular', sortable: false },
-  { title: 'Flags', key: 'flags', sortable: false },
-  { title: 'Ações', key: 'acoes', sortable: false }
+  {title: 'ID', key: 'id', sortable: true},
+  {title: 'Tipo', key: 'tipo_pessoa', sortable: true},
+  {title: 'Nome / Razão', key: 'nome_razao', sortable: true},
+  {title: 'Apelido', key: 'apelido_fantasia', sortable: true},
+  {title: 'CPF/CNPJ', key: 'cpf_cnpj', sortable: true},
+  {title: 'Telefone', key: 'telefone', sortable: false},
+  {title: 'Celular', key: 'celular', sortable: false},
+  {title: 'Ativo', key: 'ativo', sortable: false},
+  {title: 'Ações', key: 'acoes', sortable: false}
 ]
 
 const rules = {
@@ -278,17 +425,8 @@ const rules = {
 
 // CRUD
 const buscarPessoas = async () => {
-  loading.value = true
-  try {
-    const resp = await api.get('/pessoa', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-    const data = resp.data && resp.data.data ? resp.data.data : Array.isArray(resp.data) ? resp.data : []
-    pessoas.value = data
-  } catch (e) {
-    console.error(e)
-    pessoas.value = []
-  } finally {
-    loading.value = false
-  }
+  if (pessoas.value.length === 0)
+    await pessoasStore.buscarTodasPessoas();
 }
 
 const toggleFormulario = () => {
@@ -314,8 +452,6 @@ const cancelarFormulario = () => {
 
 const resetarForm = () => {
   Object.assign(form, {
-    id_empresa: 1,
-    id: null,
     tipo_pessoa: 'F',
     nome_razao: '',
     apelido_fantasia: '',
@@ -325,7 +461,6 @@ const resetarForm = () => {
     celular: '',
     whats: '',
     website: '',
-    email: '',
     cliente: 'N',
     fornecedor: 'N',
     transportadora: 'N',
@@ -344,29 +479,8 @@ const resetarForm = () => {
 }
 
 const salvarPessoa = async () => {
-  if (!formRef.value?.validate()) return
-  loading.value = true
-  try {
-    const payload = { data: [ { ...form } ] }
-    if (editando.value) {
-      await api.put(`/pessoa/${form.id}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-      snackbar.message = 'Pessoa atualizada com sucesso!'
-    } else {
-      await api.post('/pessoa', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-      snackbar.message = 'Pessoa criada com sucesso!'
-    }
-    snackbar.color = 'success'
-    snackbar.show = true
-    buscarPessoas()
-    cancelarFormulario()
-  } catch (e) {
-    console.error(e)
-    snackbar.message = 'Erro ao salvar pessoa'
-    snackbar.color = 'error'
-    snackbar.show = true
-  } finally {
-    loading.value = false
-  }
+  await pessoasStore.salvarPessoa(formRef.value, form, editando.value, snackbar);
+  if (!pessoasStore.errorMessage) cancelarFormulario();
 }
 
 const confirmarExclusao = (p) => {
@@ -375,24 +489,10 @@ const confirmarExclusao = (p) => {
 }
 
 const deletarPessoa = async (id) => {
-  loading.value = true
-  try {
-    await api.delete(`/pessoa/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-    snackbar.message = 'Pessoa excluída'
-    snackbar.color = 'success'
-    snackbar.show = true
-    buscarPessoas()
-  } catch (e) {
-    console.error(e)
-    snackbar.message = 'Erro ao excluir pessoa'
-    snackbar.color = 'error'
-    snackbar.show = true
-  } finally {
-    loading.value = false
-  }
+  await pessoasStore.deletarPessoa(id, snackbar)
 }
 
-onMounted(() => {
+watchEffect(() => {
   buscarPessoas()
 })
 </script>
