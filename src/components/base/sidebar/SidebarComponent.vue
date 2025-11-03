@@ -6,6 +6,22 @@
 
     <v-spacer></v-spacer>
 
+    <!-- SELECT DE EMPRESAS -->
+    <div>
+      <v-select
+          v-model="empresaStore.empresaSelecionada"
+          :items="empresas"
+          item-title="RAZAO_SOCIAL"
+          item-value="ID"
+          variant="outlined"
+          density="compact" class="mt-6"
+          @update:model-value="selecionarEmpresa"
+          :theme="themeStore.darkMode ? 'dark' : 'light'"
+      />
+    </div>
+
+    <v-spacer></v-spacer>
+
     <v-menu :close-on-content-click="false">
       <template v-slot:activator="{ props: menu }">
         <v-tooltip location="top">
@@ -23,7 +39,7 @@
       </template>
 
       <v-card class="mx-auto w-[300px]">
-        <v-list class="background-primary py-3" :items="items" nav density="compact">
+        <v-list class="background-primary py-3" nav density="compact">
           <v-list-subheader>
             <p class="text-sm font-medium color-btn">Seja bem vindo, <span class="font-normal">Sandra Adams</span></p>
             <span class="texto-color-primary">Painel de usuário Admin</span>
@@ -148,7 +164,8 @@
 <script setup>
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {useSidebarStore} from "@/stores/Sidebar";
-import {ref, onMounted, onBeforeUnmount, mergeProps} from 'vue'
+import {useEmpresaStore} from "@/stores/APIs/empresa";
+import {ref, onMounted, onBeforeUnmount, mergeProps, computed, watchEffect} from 'vue'
 import ErrorAlertModal from "@/components/base/modais/ErrorAlertModal.vue";
 
 // Inicializar o store da sidebar
@@ -157,16 +174,9 @@ const sidebarStore = useSidebarStore();
 // Alterando o tema do site
 const themeStore = useThemeStore();
 
-const alterarTema = () => {
-  themeStore.darkMode = !themeStore.darkMode
-  themeStore.darkMode ? themeStore.tipoBtn = true : themeStore.tipoBtn = false
-}
-
-const sidebarRail = ref(false);
-
-const openSidebar = () => {
-  drawer.value = !drawer.value;
-}
+// Store de empresas
+const empresaStore = useEmpresaStore();
+const empresas = computed(() => empresaStore.empresas?.data || []);
 
 // modal de erro
 const errorModal = ref(false);
@@ -174,23 +184,46 @@ const errorModal = ref(false);
 // links do menu perfil
 const items = ref([
   { text: 'Visualizar seu Perfil', icon: 'mdi-account-outline', route: '/paginas/perfil' },
-  {text: 'Configurações', icon: 'mdi-cog-outline', route: '/paginas/configuracoes' },
+  { text: 'Configurações', icon: 'mdi-cog-outline', route: '/paginas/configuracoes' },
   { text: 'Sair', icon: 'mdi-logout', route: '/login' },
 ])
-
 
 // Ajustando o sidebar para ficar responsivo
 const drawer = ref(true);
 const rail = ref(false);
+const sidebarRail = ref(false);
 
 const onResize = () => {
   drawer.value = window.innerWidth >= 967;
   rail.value = window.innerWidth <= 967;
 };
 
+const openSidebar = () => {
+  drawer.value = !drawer.value;
+}
+
+const alterarTema = () => {
+  themeStore.darkMode = !themeStore.darkMode
+  themeStore.darkMode ? themeStore.tipoBtn = true : themeStore.tipoBtn = false
+}
+
+// Função para selecionar empresa
+const selecionarEmpresa = (empresa) => {
+  empresaStore.selecionarEmpresa(empresa);
+};
+
+// Consolidar todos os onMounted em um único
 onMounted(() => {
+  empresaStore.carregarEmpresaSelecionada();
+
+  // Event listener para resize
   window.addEventListener('resize', onResize);
   onResize();
+});
+
+// Buscar empresas se a lista estiver vazia
+watchEffect(() => {
+  if (empresas.value.length === 0) empresaStore.buscarTodasEmpresas();
 });
 
 onBeforeUnmount(() => {
@@ -215,10 +248,6 @@ onBeforeUnmount(() => {
   color: white;
 }
 
-.hover-link {
-  color: var(--text-color-secodary);
-  background: transparent;
-}
 
 .menu-scroll {
   scrollbar-color: transparent transparent;

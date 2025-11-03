@@ -1,0 +1,108 @@
+import {defineStore} from "pinia"
+// import {toast} from "vue3-toastify";
+import api from "@/services/api";
+
+export const usePessoasStore = defineStore('pessoas', {
+    state: () => ({
+        loading: false,
+        token: localStorage.getItem('token'),
+
+        errorMessage: '',
+        successMessage: '',
+
+        pessoas: [],
+        pessoa: null
+    }),
+
+    actions: {
+        async salvarPessoa (formRef, form, editando, snackbar) {
+            if (!formRef?.validate()) return
+
+            // limpar mascaras
+            form.cpf_cnpj = form.cpf_cnpj.replace(/\D/g, '');
+            form.telefone = form.telefone.replace(/\D/g, '');
+            form.celular = form.celular.replace(/\D/g, '');
+            form.whats = form.whats.replace(/\D/g, '');
+            form.latitude = Number(form.latitude);
+            form.longitude = Number(form.longitude);
+
+            this.loading = true
+            try {
+                const payload = {data: [{...form}]}
+                if (editando) {
+                    await api.put(`/pessoa/${form.id}`, payload, {headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}})
+                    snackbar.message = 'Pessoa atualizada com sucesso!'
+                } else {
+                    await api.post('/pessoa', payload, {headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}})
+                    snackbar.message = 'Pessoa criada com sucesso!'
+                }
+                snackbar.color = 'success'
+                snackbar.show = true
+                await this.buscarTodasPessoas();
+            } catch (e) {
+                console.error(e)
+                this.errorMessage = 'Erro ao salvar pessoa!'
+                snackbar.message = 'Erro ao salvar pessoa'
+                snackbar.color = 'error'
+                snackbar.show = true
+            } finally {
+                this.loading = false
+            }
+        },
+
+        async buscarTodasPessoas() {
+            this.loading = true
+            try {
+                const resp = await api.get('/pessoa', {headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}})
+                const data = resp.data && resp.data.data ? resp.data.data : Array.isArray(resp.data) ? resp.data : []
+                this.pessoas = data
+                console.log('Pessoas buscadas: ', this.pessoas)
+            } catch (e) {
+                console.error(e)
+                this.pessoas = []
+            } finally {
+                this.loading = false
+            }
+        },
+
+        async buscarpessoaId(id) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/pessoa/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                this.pessoa = response.data;
+                this.errorMessage = '';
+                console.log('pessoa encontrada: ', this.pessoa);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar pessoa pelo ID:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async deletarPessoa(id, snackbar) {
+            this.loading = true
+            try {
+                await api.delete(`/pessoa/${id}`, {headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}})
+                snackbar.message = 'Pessoa excluída'
+                snackbar.color = 'success'
+                snackbar.show = true
+                await this.buscarTodasPessoas();
+            } catch (e) {
+                console.error(e)
+                snackbar.message = 'Erro ao excluir pessoa'
+                snackbar.color = 'error'
+                snackbar.show = true
+            } finally {
+                this.loading = false
+            }
+        }
+    }
+})

@@ -106,7 +106,6 @@ const routes = [
         component: ContaCorrenteView
     },
     {
-
         path: '/paginas/financeiro/centrodecusto',
         name: 'financeiro_centrodecusto',
         component: CentroDeCustoView
