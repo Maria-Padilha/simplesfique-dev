@@ -74,7 +74,7 @@
 
 <script setup>
 import UploadImage from "@/components/base/image/UploadImage.vue";
-import TopAllPages from "@/components/base/TopAllPages.vue";
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {useEmpresaStore} from "@/stores/APIs/empresa";
 import {ref, computed, watchEffect} from "vue";

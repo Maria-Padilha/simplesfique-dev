@@ -47,7 +47,7 @@
 
 <script setup>
 import { defineAsyncComponent } from 'vue';
-import TopAllPages from "@/components/base/TopAllPages.vue";
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import { useConfigStore } from "@/stores/config";
 
 // Inicializar o store de configurações

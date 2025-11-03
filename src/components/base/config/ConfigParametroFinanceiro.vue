@@ -75,7 +75,7 @@ const parfin = computed(() => useConfig.config);
 const parfinData = ref({ccusto_nivel1: 1, ccusto_nivel2: 1, ccusto_nivel3: 1});
 const dadosExistem = ref(false);
 
-// enable/disable Save button
+// enable/disable Save padrao-paginas
 const canSave = computed(() => {
   // Disabled while the store is loading. You can add further validation here.
   return !useConfig.loading;
