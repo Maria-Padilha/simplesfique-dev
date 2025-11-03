@@ -11,14 +11,12 @@
 
     <v-card class="background-secondary">
       <v-card-text class="pa-4">
-        <v-btn
-          color="var(--text-color-laranja)"
-          @click="toggleFormulario()"
-          :prepend-icon="formularioAberto ? 'mdi-minus' : 'mdi-plus'"
-          variant="flat"
-          class="mb-3 ml-3 text-white">
-          {{ formularioAberto ? 'Cancelar' : 'Novo Usuário' }}
-        </v-btn>
+        <BotaoExpandTransition
+          :formulario-aberto="formularioAberto"
+          texto-abrir="Novo Usuário"
+          texto-fechar="Cancelar"
+          @toggle="toggleFormulario"
+        />
 
         <v-expand-transition>
           <div v-if="formularioAberto">
@@ -82,47 +80,29 @@
           </div>
         </v-expand-transition>
 
-        <v-expand-transition>
-          <div v-if="!formularioAberto">
-            <v-row class="mb-4">
-              <v-col cols="12" md="6">
-                <v-text-field
-                  class="ml-3"
-                  width="480"
-                  v-model="search"
-                  label="Pesquisar"
-                  append-inner-icon="mdi-magnify"
-                  variant="outlined"
-                  density="compact"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-
-            <v-data-table
-              :headers="headers"
-              :items="usuarios"
-              :loading="loading"
-              item-key="id"
-              class="elevation-1 background-secondary"
-            >
-              <template v-slot:[`item.consolidar`]='{ item }'>
-                {{ item.consolidar === 'S' ? 'Sim' : 'Não' }}
-              </template>
-
-              <template v-slot:[`item.acoes`]='{ item }'>
-                <v-btn icon="mdi-pencil" size="small" color="primary" variant="text" @click="editarUsuario(item)"></v-btn>
-                <v-btn icon="mdi-delete" size="small" color="error" variant="text" @click="confirmarExclusao(item)"></v-btn>
-              </template>
-
-              <template v-slot:no-data>
-                <div class="text-center pa-4">
-                  <v-icon icon="mdi-account-off" size="64" class="mb-2 opacity-60"></v-icon>
-                  <p class="text-body-1">Nenhum usuário encontrado</p>
-                </div>
-              </template>
-            </v-data-table>
-          </div>
-        </v-expand-transition>
+        <!-- Tabela de Usuários -->
+        <TabelaPadrao
+          :formulario-aberto="formularioAberto"
+          :headers="headers"
+          :items="usuarios"
+          :loading="loading"
+          :search="search"
+          @update:search="(value) => search = value"
+          search-label="Pesquisar Usuário"
+          item-key="id"
+          no-data-icon="mdi-account-off"
+          no-data-text="Nenhum usuário encontrado"
+          :show-custom-action="false"
+          delete-dialog-message="Esta ação não pode ser desfeita."
+          delete-item-display-field="nome"
+          @edit-item="editarUsuario"
+          @confirm-delete="deletarUsuario"
+        >
+          <!-- Slots para formatação customizada -->
+          <template v-slot:[`item.consolidar`]="{ item }">
+            {{ item.consolidar === 'S' ? 'Sim' : 'Não' }}
+          </template>
+        </TabelaPadrao>
 
       </v-card-text>
     </v-card>
@@ -135,6 +115,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import api from '@/services/api'
 import { useThemeStore } from '@/stores/config-temas/theme'
+import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
+import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 
 const themeStore = useThemeStore();
 
@@ -165,7 +147,7 @@ const headers = [
   { title: 'Nome', key: 'nome', sortable: true },
   { title: 'E-mail', key: 'email', sortable: true },
   { title: 'Consolidar', key: 'consolidar', sortable: false },
-  { title: 'Ações', key: 'acoes', sortable: false }
+  { title: 'Ações', key: 'actions', sortable: false }
 ]
 
 const rules = {
@@ -246,16 +228,12 @@ const salvarUsuario = async () => {
   }
 }
 
-const confirmarExclusao = (u) => {
-  if (!confirm('Confirmar exclusão?')) return
-  deletarUsuario(u.id)
-}
-
-const deletarUsuario = async (id) => {
+const deletarUsuario = async (usuario) => {
   loading.value = true
   try {
+    const id = usuario?.id || usuario
     await api.delete(`/usuario/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-    snackbar.message = 'Usuário excluído'
+    snackbar.message = 'Usuário excluído com sucesso!'
     snackbar.color = 'success'
     snackbar.show = true
     buscarUsuarios()

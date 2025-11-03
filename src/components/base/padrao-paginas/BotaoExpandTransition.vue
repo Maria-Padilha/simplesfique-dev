@@ -1,21 +1,41 @@
 <template>
   <div class="w-100 flex justify-end">
     <v-btn
-        color="var(--text-color-laranja)"
-        @click="props.toggleFormulario"
-        :prepend-icon="props.formularioAberto ? 'mdi-minus' : 'mdi-plus'"
-        variant="flat" size="small"
-        class="mb-3 ml-3 text-white">
-      <slot />
+      color="var(--text-color-laranja)"
+      @click="$emit('toggle')"
+      :prepend-icon="formularioAberto ? 'mdi-minus' : 'mdi-plus'"
+      variant="flat" 
+      :size="size"
+      class="mb-3 ml-3 text-white"
+    >
+      <slot>
+        {{ formularioAberto ? textoFechar : textoAbrir }}
+      </slot>
     </v-btn>
   </div>
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
+import { defineProps, defineEmits } from 'vue'
 
-const props = defineProps({
-  formularioAberto: { type: Boolean, default: false },
-  toggleFormulario: { type: Function }
+defineProps({
+  formularioAberto: { 
+    type: Boolean, 
+    default: false 
+  },
+  size: { 
+    type: String, 
+    default: 'default' 
+  },
+  textoAbrir: { 
+    type: String, 
+    default: 'Novo' 
+  },
+  textoFechar: { 
+    type: String, 
+    default: 'Cancelar' 
+  }
 })
+
+defineEmits(['toggle'])
 </script>

@@ -13,15 +13,12 @@
     <!-- Lista de Contas -->
     <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
       <v-card-text class="pa-4">
-        <v-btn
-          color="var(--text-color-laranja)"
-          @click="toggleFormulario()"
-          :prepend-icon="formularioAberto ? 'mdi-minus' : 'mdi-plus'"
-          variant="flat"
-          class="mb-3 ml-3 text-white"
-          >
-          {{ formularioAberto ? 'Cancelar' : 'Nova Conta' }}
-        </v-btn>
+        <BotaoExpandTransition
+          :formulario-aberto="formularioAberto"
+          texto-abrir="Nova Conta"
+          texto-fechar="Cancelar"
+          @toggle="toggleFormulario"
+        />
         
         <!-- Formulário Expansível -->
         <v-expand-transition>
@@ -233,111 +230,49 @@
           </div>
         </v-expand-transition>
         
-        <!-- Campo de Pesquisa e Tabela - Só aparecem quando formulário está fechado -->
-        <v-expand-transition>
-          <div v-if="!formularioAberto">
-            <v-text-field
-              v-model="financeiroStore.search"
-              label="Pesquisar Conta"
-              width="480"
-              append-inner-icon="mdi-magnify"
-              variant="outlined"
-              density="compact"
-              class="mb-2 ml-3 custom-text-field ">
-            </v-text-field>
-            <v-data-table
-              :headers="headers"
-              :items="financeiroStore.contas"
-              :loading="financeiroStore.loading"
-              item-key="id"
-              class="elevation-1 background-secondary"
-            >
-              <template v-slot:[`item.descbanco`]="{ item }">
-                {{ item.descbanco || getBancoNome(item.id_banco) }}
-              </template>
-              
-              <template v-slot:[`item.limite`]="{ item }">
-                {{ formatarMoeda(item.limite) }}
-              </template>
-              
-              <template v-slot:[`item.dtvenctolimite`]="{ item }">
-                {{ item.dtvenctolimite ? formatarData(item.dtvenctolimite) : '-' }}
-              </template>
-              
-              <template v-slot:[`item.dhinc`]="{ item }">
-                {{ item.dhinc ? formatarDataHora(item.dhinc) : '-' }}
-              </template>
-              
-              <template v-slot:[`item.actions`]="{ item }">
-                <v-btn
-                  icon="mdi-pencil"
-                  size="small"
-                  color="primary"
-                  variant="text"
-                  @click="editarConta(item)"
-                ></v-btn>
-                <v-btn
-                  icon
-                  size="small"
-                  color="secondary"
-                  variant="text"
-                  title="Gerenciar Usuários"
-                  :loading="loadingUsuarios"
-                  :disabled="loadingUsuarios"
-                  @click="abrirModalUsuarios(item)"
-                >
-                  <v-icon icon="mdi-account-multiple" />
-                </v-btn>
-                <v-btn
-                  icon="mdi-delete"
-                  size="small"
-                  color="error"
-                  variant="text"
-                  @click="confirmarExclusao(item)"
-                ></v-btn>
-              </template>
-
-              <template v-slot:no-data>
-                <div class="text-center pa-4">
-                  <v-icon icon="mdi-bank-off" size="64" class="mb-2 opacity-60" :color="themeStore.darkMode ? '#ffff' : ''"></v-icon>
-                  <p class="text-body-1">Nenhuma conta cadastrada</p>
-                </div>
-              </template>
-            </v-data-table>
-          </div>
-        </v-expand-transition>
+        <!-- Tabela de Contas -->
+        <TabelaPadrao
+          :formulario-aberto="formularioAberto"
+          :headers="headers"
+          :items="financeiroStore.contas"
+          :loading="financeiroStore.loading"
+          :search="financeiroStore.search"
+          @update:search="(value) => financeiroStore.search = value"
+          search-label="Pesquisar Conta"
+          item-key="id"
+          no-data-icon="mdi-bank-off"
+          no-data-text="Nenhuma conta cadastrada"
+          :show-custom-action="true"
+          custom-action-icon="mdi-account-multiple"
+          custom-action-title="Gerenciar Usuários"
+          :custom-action-loading="loadingUsuarios"
+          delete-dialog-message="Esta ação não pode ser desfeita."
+          delete-item-display-field="titular"
+          @edit-item="editarConta"
+          @custom-action="abrirModalUsuarios"
+          @confirm-delete="excluirConta"
+        >
+          <!-- Slots para formatação customizada -->
+          <template v-slot:[`item.descbanco`]="{ item }">
+            {{ item.descbanco || getBancoNome(item.id_banco) }}
+          </template>
+          
+          <template v-slot:[`item.limite`]="{ item }">
+            {{ formatarMoeda(item.limite) }}
+          </template>
+          
+          <template v-slot:[`item.dtvenctolimite`]="{ item }">
+            {{ item.dtvenctolimite ? formatarData(item.dtvenctolimite) : '-' }}
+          </template>
+          
+          <template v-slot:[`item.dhinc`]="{ item }">
+            {{ item.dhinc ? formatarDataHora(item.dhinc) : '-' }}
+          </template>
+        </TabelaPadrao>
       </v-card-text>
     </v-card>
 
-    <!-- Dialog de Confirmação de Exclusão -->
-    <v-dialog v-model="dialogExclusao" max-width="400px">
-      <v-card class="background-secondary">
-        <v-card-title class="text-h6">
-          Confirmar Exclusão
-        </v-card-title>
-        <v-card-text>
-          Tem certeza que deseja excluir a conta "{{ contaParaExcluir?.titular }}"?
-          Esta ação não pode ser desfeita.
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="dialogExclusao = false"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            color="error"
-            :loading="financeiroStore.loading"
-            @click="excluirConta"
-          >
-            Excluir
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+
 
     <!-- Modal para cadastrar agência -->
     <v-dialog v-model="openAgenciaModal" persistent max-width="600px">
@@ -587,6 +522,8 @@
 import { ref, reactive, onMounted, computed, nextTick, watch } from 'vue'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useThemeStore } from '@/stores/config-temas/theme'
+import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
+import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 // BuscaPadraoMenu removed for agency inline autocomplete; keep modal for cadastrar
 
 const themeStore = useThemeStore();
@@ -599,8 +536,6 @@ const formularioAberto = ref(false)
 const editando = ref(false)
 const formValido = ref(false)
 const formRef = ref(null)
-const dialogExclusao = ref(false)
-const contaParaExcluir = ref(null)
 // refs for agency modal/select
 const agenciaRef = ref(null)
 const openAgenciaModal = ref(false)
@@ -996,17 +931,11 @@ const salvarConta = async () => {
   }
 }
 
-const confirmarExclusao = (conta) => {
-  contaParaExcluir.value = conta
-  dialogExclusao.value = true
-}
-
-const excluirConta = async () => {
+const excluirConta = async (conta) => {
   try {
-  await financeiroStore.deletarConta(contaParaExcluir.value.id)
+    const contaId = conta?.id
+    await financeiroStore.deletarConta(contaId)
     mostrarSnackbar('Conta excluída com sucesso!', 'success')
-    dialogExclusao.value = false
-    contaParaExcluir.value = null
   } catch (error) {
     mostrarSnackbar('Erro ao excluir conta: ' + error.message, 'error')
   }

@@ -13,15 +13,12 @@
     <!-- Lista de Centros de Custo -->
     <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
       <v-card-text class="pa-4">
-        <v-btn
-          color="var(--text-color-laranja)"
-          @click="toggleFormulario()"
-          :prepend-icon="formularioAberto ? 'mdi-minus' : 'mdi-plus'"
-          variant="flat"
-          class="mb-3 ml-3 text-white"
-          >
-          {{ formularioAberto ? 'Cancelar' : 'Novo Centro de Custo' }}
-        </v-btn>
+        <BotaoExpandTransition
+          :formulario-aberto="formularioAberto"
+          texto-abrir="Novo Centro de Custo"
+          texto-fechar="Cancelar"
+          @toggle="toggleFormulario"
+        />
 
         <!-- Formulário Expansível -->
         <v-expand-transition>
@@ -95,84 +92,28 @@
           </div>
         </v-expand-transition>
 
-        <!-- Campo de Pesquisa e Tabela - Só aparecem quando formulário está fechado -->
-        <v-expand-transition>
-          <div v-if="!formularioAberto">
-            <v-text-field
-              v-model="search"
-              label="Pesquisar Centro de Custo"
-              width="480"
-              append-inner-icon="mdi-magnify"
-              variant="outlined"
-              density="compact"
-              class="mb-2 ml-3 custom-text-field ">
-            </v-text-field>
-            <v-data-table
-              :headers="headers"
-              :items="centrosCustoFiltrados"
-              :loading="loading"
-              item-key="id"
-              class="elevation-1 background-secondary"
-            >
-
-              <template v-slot:[`item.actions`]="{ item }">
-                <v-btn
-                  icon="mdi-pencil"
-                  size="small"
-                  color="primary"
-                  variant="text"
-                  @click="editarCentroCusto(item)"
-                ></v-btn>
-                <v-btn
-                  icon="mdi-delete"
-                  size="small"
-                  color="error"
-                  variant="text"
-                  @click="confirmarExclusao(item)"
-                ></v-btn>
-              </template>
-
-              <template v-slot:no-data>
-                <div class="text-center pa-4">
-                  <v-icon icon="mdi-file-tree-outline" size="64" class="mb-2 opacity-60" :color="themeStore.darkMode ? '#ffff' : ''"></v-icon>
-                  <p class="text-body-1">Nenhum centro de custo cadastrado</p>
-                </div>
-              </template>
-            </v-data-table>
-          </div>
-        </v-expand-transition>
+        <!-- Tabela de Centros de Custo -->
+        <TabelaPadrao
+          :formulario-aberto="formularioAberto"
+          :headers="headers"
+          :items="centrosCustoFiltrados"
+          :loading="loading"
+          :search="search"
+          @update:search="(value) => search = value"
+          search-label="Pesquisar Centro de Custo"
+          item-key="id"
+          no-data-icon="mdi-file-tree-outline"
+          no-data-text="Nenhum centro de custo cadastrado"
+          :show-custom-action="false"
+          delete-dialog-message="Esta ação não pode ser desfeita."
+          delete-item-display-field="desccentrocusto"
+          @edit-item="editarCentroCusto"
+          @confirm-delete="excluirCentroCusto"
+        ></TabelaPadrao>
       </v-card-text>
     </v-card>
 
-    <!-- Dialog de Confirmação de Exclusão -->
-    <v-dialog v-model="dialogExclusao" max-width="400px">
-      <v-card class="background-secondary">
-        <v-card-title class="text-h6">
-          Confirmar Exclusão
-        </v-card-title>
-        <v-card-text>
-          Tem certeza que deseja excluir o centro de custo "{{ itemParaExcluir?.descricao }}"?
-          Esta ação não pode ser desfeita.
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="dialogExclusao = false"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            color="error"
-            :loading="loading"
-            @click="excluirCentroCusto"
-          >
-            Excluir
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+
 
     <!-- Snackbar para feedback -->
     <v-snackbar
@@ -190,6 +131,8 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
+import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
+import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 
 const themeStore = useThemeStore()
 const ccustoStore = useCCustoStore()
@@ -199,8 +142,6 @@ const formularioAberto = ref(false)
 const editando = ref(false)
 const formValido = ref(false)
 const formRef = ref(null)
-const dialogExclusao = ref(false)
-const itemParaExcluir = ref(null)
 const search = ref('')
 
 // Snackbar
@@ -241,15 +182,7 @@ const loading = computed(() => ccustoStore.loading)
 
 const centrosCustoFiltrados = computed(() => {
   const dados = centrosCusto.value || []
-
-  if (!Array.isArray(dados)) return []
-  if (!search.value) return dados
-
-  const termo = search.value.toLowerCase()
-  return dados.filter(cc =>
-    (cc.id_classificador && cc.id_classificador.toLowerCase().includes(termo)) ||
-    (cc.desccentrocusto && cc.desccentrocusto.toLowerCase().includes(termo))
-  )
+  return Array.isArray(dados) ? dados : []
 })
 
 // Ciclo de vida
@@ -318,16 +251,9 @@ const salvarCentroCusto = async () => {
   }
 }
 
-const confirmarExclusao = (item) => {
-  itemParaExcluir.value = item
-  dialogExclusao.value = true
-}
-
-const excluirCentroCusto = async () => {
+const excluirCentroCusto = async (item) => {
   try {
-    await ccustoStore.deletarCCusto(itemParaExcluir.value.id)
-    dialogExclusao.value = false
-    itemParaExcluir.value = null
+    await ccustoStore.deletarCCusto(item.id)
   } catch (error) {
     console.error('Erro ao excluir:', error)
   }

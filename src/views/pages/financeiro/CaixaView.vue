@@ -11,15 +11,13 @@
 
      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
       <v-card-text class="pa-4">
-        <v-btn
-          color="var(--text-color-laranja)"
-          @click="toggleFormulario()"
-          :prepend-icon="formularioAberto ? 'mdi-minus' : 'mdi-plus'"
-          variant="flat"
-          class="mb-3 ml-3 text-white"
-          >
-          {{ formularioAberto ? 'Cancelar' : 'Nova Caixa' }}
-        </v-btn>
+        <BotaoExpandTransition
+          :formulario-aberto="formularioAberto"
+          texto-abrir="Nova Caixa"
+          texto-fechar="Cancelar"
+          size="default"
+          @toggle="toggleFormulario"
+        />
 
         <!-- Formulário Expansível -->
         <v-expand-transition>
@@ -66,105 +64,52 @@
           </div>
         </v-expand-transition>
 
-        <v-data-table
+        <!-- Tabela de Caixas -->
+        <TabelaPadrao
+          :formulario-aberto="formularioAberto"
           :headers="headers"
           :items="filteredCaixas"
           :loading="loading"
+          :search="search"
+          @update:search="(value) => search = value"
+          search-label="Pesquisar Caixa"
           item-key="id"
-          dense
-          class="elevation-1 background-secondary"
+          no-data-icon="mdi-cash-register"
+          no-data-text="Nenhum caixa encontrado"
+          :show-custom-action="true"
+          custom-action-icon="mdi-account-multiple"
+          custom-action-title="Gerenciar Usuários"
+          :custom-action-loading="loadingUsuarios"
+          delete-dialog-message="Esta ação não pode ser desfeita."
+          delete-item-display-field="desccaixa"
+          @edit-item="editarCaixa"
+          @custom-action="abrirModalUsuarios"
+          @confirm-delete="excluirCaixa"
         >
+          <!-- Slots para formatação customizada -->
           <template v-slot:[`item.dhinc`]="{ item }">
             {{ item.dhinc ? formatarDataHora(item.dhinc) : '-' }}
           </template>
 
           <template v-slot:[`item.ativo`]="{ item }">
-            <v-chip small :color="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'green' : 'grey'" text-color="white">
+            <v-chip 
+              size="small" 
+              :color="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'success' : 'default'" 
+              :variant="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'flat' : 'outlined'"
+            >
+              <v-icon 
+                :icon="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'mdi-check-circle' : 'mdi-close-circle'" 
+                size="16" 
+                class="mr-1"
+              ></v-icon>
               {{ (item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'Ativo' : 'Inativo' }}
             </v-chip>
           </template>
-
-          <template v-slot:[`item.actions`]="{ item }">
-            <div class="d-flex gap-1">
-              <v-tooltip text="Editar">
-                <template v-slot:activator="{ props }">
-                  <v-btn
-                    v-bind="props"
-                    icon="mdi-pencil"
-                    size="small"
-                    variant="text"
-                    color="primary"
-                    @click="editarCaixa(item)"
-                  />
-                </template>
-              </v-tooltip>
-              <v-tooltip text="Gerenciar Usuários">
-                <template v-slot:activator="{ props }">
-                  <v-btn
-                    v-bind="props"
-                    icon="mdi-account-multiple"
-                    size="small"
-                    variant="text"
-                    color="secondary"
-                    @click="abrirModalUsuarios(item)"
-                  />
-                </template>
-              </v-tooltip>
-              <v-tooltip text="Excluir">
-                <template v-slot:activator="{ props }">
-                  <v-btn
-                    v-bind="props"
-                    icon="mdi-delete"
-                    size="small"
-                    variant="text"
-                    color="error"
-                    @click="confirmarExclusao(item)"
-                  />
-                </template>
-              </v-tooltip>
-            </div>
-          </template>
-
-          <template #no-data>
-            <div class="text-center pa-4">Nenhum caixa encontrado</div>
-          </template>
-        </v-data-table>
+        </TabelaPadrao>
       </v-card-text>
     </v-card>
 
-    <!-- Dialog de confirmação de exclusão -->
-    <v-dialog v-model="dialogExclusao" max-width="400">
-      <v-card>
-        <v-card-title class="text-h6">
-          <v-icon icon="mdi-alert" class="mr-2 text-warning"></v-icon>
-          Confirmar Exclusão
-        </v-card-title>
-        <v-card-text>
-          Tem certeza que deseja excluir o caixa "{{ caixaExclusao?.desccaixa }}"?
-          <br><br>
-          <strong>Esta ação não pode ser desfeita.</strong>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="cancelarExclusao"
-            :disabled="excluindo"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            color="error"
-            variant="flat"
-            @click="excluirCaixa"
-            :loading="excluindo"
-          >
-            Excluir
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+
 
     <!-- Modal de Gerenciamento de Usuários -->
     <v-dialog v-model="openUsuariosModal" persistent max-width="900px">
@@ -315,6 +260,8 @@
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
+import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
+import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -374,15 +321,7 @@ const fetchCaixas = async () => {
 }
 
 const filteredCaixas = computed(() => {
-  if (!search.value) return caixas.value
-  const q = search.value.toLowerCase()
-  return caixas.value.filter(c =>
-    String(c.id_saas ?? c.ID_SAAS ?? c.id ?? '').toLowerCase().includes(q) ||
-    String(c.id ?? '').toLowerCase().includes(q) ||
-    (c.desccaixa ?? c.DESCCAIXA ?? '').toLowerCase().includes(q) ||
-    (c.participa_fluxo ?? '').toLowerCase().includes(q) ||
-    (c.ativo ?? '').toLowerCase().includes(q)
-  )
+  return Array.isArray(caixas.value) ? caixas.value : []
 })
 
 // Form visibility for the expandable create form (keeps same pattern as other pages)
@@ -439,10 +378,7 @@ const novoCaixa = ref({
 const editando = ref(false)
 const caixaEdicao = ref(null)
 
-// Estados para exclusão
-const dialogExclusao = ref(false)
-const caixaExclusao = ref(null)
-const excluindo = ref(false)
+
 
 // Estados para modal de usuários
 const openUsuariosModal = ref(false)
@@ -500,37 +436,20 @@ const editarCaixa = (caixa) => {
   formularioAberto.value = true
 }
 
-// Funções de exclusão
-const confirmarExclusao = (caixa) => {
-  caixaExclusao.value = caixa
-  dialogExclusao.value = true
-}
-
-const excluirCaixa = async () => {
-  if (!caixaExclusao.value) return
-  
-  excluindo.value = true
+// Função de exclusão
+const excluirCaixa = async (caixa) => {
   try {
     const idEmpresa = localStorage.getItem('id_empresa') || '1'
-    const idCaixa = caixaExclusao.value.id
+    const idCaixa = caixa.id
     
     await financeiroStore.deletarCaixa(idEmpresa, idCaixa)
     
-    dialogExclusao.value = false
-    caixaExclusao.value = null
     await fetchCaixas()
     mostrarSnackbar('Caixa excluído com sucesso', 'success')
   } catch (e) {
     console.error('Erro ao excluir caixa:', e)
     mostrarSnackbar('Erro ao excluir caixa', 'error')
-  } finally {
-    excluindo.value = false
   }
-}
-
-const cancelarExclusao = () => {
-  dialogExclusao.value = false
-  caixaExclusao.value = null
 }
 
 // Funções do modal de usuários
