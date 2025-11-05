@@ -58,6 +58,35 @@ const toggleFormulario = () => {
   Texto Personalizado
 </BotaoExpandTransition>
 ```
+---
+
+## TopAllPages
+
+Componente de layout para páginas, incluindo título e seção principal.
+
+### Uso Básico
+
+```vue
+<template>
+  <TopAllPages icon="mdi-home">
+    <template #titulo>Minha Página</template>
+    <template #section>
+      <!-- Conteúdo da seção -->
+    </template>
+  </TopAllPages>
+</template>
+
+<script setup>
+import TopAllPages from '@/components/layout/TopAllPages.vue'
+</script>
+```
+
+### Slots e Props
+| Prop      | Tipo           | Padrão | Descrição                            |
+|-----------|----------------|--------|--------------------------------------|
+| `titulo`  | Slot           | '' | Título da página no cabeçalho        |
+| `section` | Slot           | '' | Todo o conteúdo que deseja adicionar |
+| `icon`    | Props - string | '' | Ícone exibido ao lado do título      |
 
 ---
 
@@ -198,80 +227,75 @@ Use slots para personalizar a formatação de colunas específicas:
 
 ```vue
 <template>
-  <div class="pa-4">
-    <!-- Cabeçalho -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-account" class="mr-3"></v-icon>
-          Usuários
-        </div>
-      </v-card-title>
-    </v-card>
+  <top-all-pages>
+    <template #titulo>Usuários</template>
 
     <!-- Conteúdo Principal -->
-    <v-card class="background-secondary">
-      <v-card-text class="pa-4">
-        <!-- Botão de Expansão -->
-        <BotaoExpandTransition
-          :formulario-aberto="formularioAberto"
-          texto-abrir="Novo Usuário"
-          texto-fechar="Cancelar"
-          @toggle="toggleFormulario"
-        />
-        
-        <!-- Formulário Expansível -->
-        <v-expand-transition>
-          <div v-if="formularioAberto">
-            <!-- Seu formulário aqui -->
-          </div>
-        </v-expand-transition>
-        
-        <!-- Tabela -->
-        <TabelaPadrao
-          :formulario-aberto="formularioAberto"
-          :headers="headers"
-          :items="usuarios"
-          :loading="loading"
-          :search="search"
-          @update:search="(value) => search = value"
-          search-label="Pesquisar Usuário"
-          item-key="id"
-          no-data-icon="mdi-account-off"
-          no-data-text="Nenhum usuário encontrado"
-          :show-custom-action="true"
-          custom-action-icon="mdi-key"
-          custom-action-title="Gerenciar Permissões"
-          delete-item-display-field="nome"
-          @edit-item="editarUsuario"
-          @custom-action="gerenciarPermissoes"
-          @confirm-delete="excluirUsuario"
-        >
-          <!-- Formatação personalizada -->
-          <template v-slot:[`item.ativo`]="{ item }">
-            <v-chip 
-              size="small"
-              :color="item.ativo ? 'success' : 'default'"
-              :variant="item.ativo ? 'flat' : 'outlined'"
-            >
-              <v-icon 
-                :icon="item.ativo ? 'mdi-check-circle' : 'mdi-close-circle'"
-                size="16"
-                class="mr-1"
-              />
-              {{ item.ativo ? 'Ativo' : 'Inativo' }}
-            </v-chip>
-          </template>
-        </TabelaPadrao>
-      </v-card-text>
-    </v-card>
-  </div>
+    <template #section>
+      <v-card class="background-secondary">
+        <v-card-text class="pa-4">
+          <!-- Botão de Expansão -->
+          <BotaoExpandTransition
+              :formulario-aberto="formularioAberto"
+              texto-abrir="Novo Usuário"
+              texto-fechar="Cancelar"
+              @toggle="toggleFormulario"
+          />
+
+          <!-- Formulário Expansível -->
+          <v-expand-transition>
+            <div v-if="formularioAberto">
+              <!-- Seu formulário aqui -->
+            </div>
+          </v-expand-transition>
+
+          <!-- Tabela -->
+          <TabelaPadrao
+              :formulario-aberto="formularioAberto"
+              :headers="headers"
+              :items="usuarios"
+              :loading="loading"
+              :search="search"
+              @update:search="(value) => search = value"
+              search-label="Pesquisar Usuário"
+              item-key="id"
+              no-data-icon="mdi-account-off"
+              no-data-text="Nenhum usuário encontrado"
+              :show-custom-action="true"
+              custom-action-icon="mdi-key"
+              custom-action-title="Gerenciar Permissões"
+              delete-item-display-field="nome"
+              @edit-item="editarUsuario"
+              @custom-action="gerenciarPermissoes"
+              @confirm-delete="excluirUsuario"
+          >
+            <!-- Formatação personalizada -->
+            <template v-slot:[`item.ativo`]="{ item }">
+              <v-chip
+                  size="small"
+                  :color="item.ativo ? 'success' : 'default'"
+                  :variant="item.ativo ? 'flat' : 'outlined'"
+              >
+                <v-icon
+                    :icon="item.ativo ? 'mdi-check-circle' : 'mdi-close-circle'"
+                    size="16"
+                    class="mr-1"
+                />
+                {{ item.ativo ? 'Ativo' : 'Inativo' }}
+              </v-chip>
+            </template>
+          </TabelaPadrao>
+        </v-card-text>
+      </v-card>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
+import TopAllPages from '@/components/layout/TopAllPages.vue'
 
 // Estado
 const formularioAberto = ref(false)

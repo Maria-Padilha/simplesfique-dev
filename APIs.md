@@ -347,7 +347,7 @@ API sendo consumida em: stores/APIs/localizacao.js
 }
 ```
 
-### CLASSE: 
+### CLASSE: - ok
 
 | Método     | Endpoint      | Descrição                     |
 | ---------- | ------------- | ----------------------------- |
