@@ -17,6 +17,9 @@ export const useEstoqueStore = defineStore('estoque', {
 
         subgrupos: [],
         subgrupo: null,
+
+        classes: [],
+        classe: null,
     }),
 
     actions: {
@@ -183,6 +186,89 @@ export const useEstoqueStore = defineStore('estoque', {
                 await this.buscarTodosSubgrupos(idgrupo);
             } catch (error) {
                 console.error('Erro ao Deletar SubGrupo:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * BUSCAR TODAS AS CLASSES
+         * @return {Promise<void>}
+         */
+
+        async buscarTodasClasses() {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/classe`, {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`
+                    }
+                });
+
+                this.classes = response.data.data;
+                this.errorMessage = '';
+
+                console.log('Classes encontradas:', this.grupos);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar classes:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * CADASTRAR CLASSE
+         * @param {Object} classeData - Dados da classe a ser cadastrada.
+         * @return {Promise<void>}
+         */
+
+        async cadastrarClasse(classeData) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`classe`, 'post', classeData);
+                await this.buscarTodasClasses();
+            } catch (error) {
+                console.error('Erro ao cadastrar classe:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * EDITAR CLASSE
+         * @param {number} id - ID da classe a ser editada.
+         * @param {Object} classeData - Dados da classe a ser editada.
+         * @return {Promise<void>}
+         */
+
+        async editarClasse(id, classeData) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`classe/${id}`, 'put', classeData);
+                await this.buscarTodasClasses();
+            } catch (error) {
+                console.error('Erro ao editar classe:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * DELETAR CLASSE
+         * @param {number} id - ID da classe a ser deletada
+         * @return {Promise<void>}
+         */
+
+        async deletarClasse(id) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`classe/${id}`, 'delete');
+                await this.buscarTodasClasses();
+            } catch (error) {
+                console.error('Erro ao deletar classe:', error);
             } finally {
                 this.loading = false;
             }

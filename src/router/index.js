@@ -128,6 +128,11 @@ const routes = [
       component: () => import('@/views/pages/estoque/GruposView.vue')
     },
     {
+      path: '/paginas/estoque/classe',
+      name: 'classe',
+      component: () => import('@/views/pages/estoque/ClassesView.vue')
+    },
+    {
       path: '/paginas/estoque/ncm',
       name: 'ncm'
     },
