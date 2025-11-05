@@ -28,7 +28,7 @@ Content-Type: application/json
 }
 ``` 
 
-### Empresas:
+### Empresas: - ok
 
 | Método | Endpoint | Descrição                                  |
 |--------|-----------|--------------------------------------------|
@@ -121,7 +121,7 @@ API sendo consumida em: stores/APIs/localizacao.js
 | **GET** | `/uf/:id` | Retornar dados da UF                  |
 
 
-### Cidade:
+### Cidade: - ok
 
 ``` Plaintext
 API sendo consumida em: stores/APIs/localizacao.js
@@ -160,7 +160,7 @@ API sendo consumida em: stores/APIs/localizacao.js
 }
 ```
 
-### CEP:
+### CEP: - ok
 
 ``` Plaintext
 API sendo consumida em: stores/APIs/localizacao.js
@@ -172,7 +172,7 @@ API sendo consumida em: stores/APIs/localizacao.js
 | **GET** | `/cep/:cep` | retornar dados do cep  |
 
 
-### Bairro:
+### Bairro: - ok
 
 ``` Plaintext
 API sendo consumida em: stores/APIs/localizacao.js
@@ -224,7 +224,7 @@ API sendo consumida em: stores/APIs/localizacao.js
 }
 ```
 
-### Pessoa: 
+### Pessoa: - ok
 
 | Método | Endpoint | Descrição                                  |
 |--------|-----------|--------------------------------------------|
@@ -287,33 +287,154 @@ API sendo consumida em: stores/APIs/localizacao.js
 }
 ```
 
-### NCM:
-
-| Método | Endpoint     | Descrição                              |
-|:-------|:--------------|:---------------------------------------|
-| **POST**   | `/ncm`        | Cadastrar um novo NCM                 |
-| **GET**    | `/ncm`        | Retornar dados de todos os NCM        |
-| **GET**    | `/ncm/:id`    | Retornar dados de um NCM específico   |
-| **PUT**    | `/ncm/:id`    | Alterar dados de um NCM específico    |
-| **DELETE** | `/ncm/:id`    | Inativar ou excluir um NCM específico |
-
-```bash
-### Exemplo de JSON para cadastro/alteração de pessoa:
-
-{
-  "data": [{
-    "id": "000000000001",
-    "desc_ncm": "Descrição completa do NCM",
-    "dh_cadastro": "2025-10-21T10:00:00Z",
-    "dh_alteracao": null,
-    "id_user_inc": 1,
-    "id_user_alt": null
-  }]
-}
-```
-
-### CNPJ:
+### CNPJ: - ok
 
 | Método  | Endpoint      | Descrição              |
 |---------|---------------|------------------------|
 | **GET** | `/cnpj/:cnpj` | retornar dados do cnpj |
+|         |               |                        |
+
+
+### NBS:
+
+| Método     | Endpoint   | Descrição                 |
+| ---------- | ---------- | ------------------------- |
+| **POST**   | `/nbs`     | Cadastra um novo NBS      |
+| **GET**    | `/nbs`     | Lista todos os NBS        |
+| **GET**    | `/nbs/:id` | Retorna um NBS específico |
+| **PUT**    | `/nbs/:id` | Altera um NBS existente   |
+| **DELETE** | `/nbs/:id` | Exclui um NBS             |
+
+```bash
+### Exemplo de JSON:
+{
+  "data": [{
+    "item_lc": "12345",
+    "descricao": "Serviços de Software",
+    "dhinc": "2025-11-04T12:00:00",
+    "dhalt": null,
+    "id_user_inc": 1,
+    "id_user_alt": null,
+    "ativo": "S"
+  }]
+}
+```
+
+### CEST:
+
+| Método     | Endpoint                 | Descrição                  |
+| ---------- | ------------------------ | -------------------------- |
+| **POST**   | `/cest`                  | Cadastra um novo CEST      |
+| **GET**    | `/cest`                  | Lista todos os CEST        |
+| **GET**    | `/cest/:id/:idncm/:iduf` | Retorna um CEST específico |
+| **PUT**    | `/cest/:id/:idncm/:iduf` | Altera um CEST existente   |
+| **DELETE** | `/cest/:id/:idncm/:iduf` | Exclui um CEST             |
+
+```bash
+### Exemplo de JSON:
+{
+  "data": [{
+    "id_ncm": 12345678,
+    "id_uf": 51,
+    "descricao": "Cesta básica - Alimentos",
+    "pmva": 12.5,
+    "dhinc": "2025-11-04T12:00:00",
+    "dhalt": null,
+    "id_user_inc": 1,
+    "id_user_alt": null,
+    "ativo": "S"
+  }]
+}
+```
+
+### CLASSE: 
+
+| Método     | Endpoint      | Descrição                     |
+| ---------- | ------------- | ----------------------------- |
+| **POST**   | `/classe`     | Cadastra uma nova Classe      |
+| **GET**    | `/classe`     | Lista todas as Classes        |
+| **GET**    | `/classe/:id` | Retorna uma Classe específica |
+| **PUT**    | `/classe/:id` | Altera uma Classe existente   |
+| **DELETE** | `/classe/:id` | Exclui uma Classe             |
+
+```bash
+### Exemplo de JSON:
+{
+  "data": [{
+    "id_saas": 1,
+    "descclasse": "Serviços de Tecnologia",
+    "ativo": "S"
+  }]
+}
+```
+
+### NCM: 
+
+| Método  | Endpoint   | Descrição                 |
+| ------- | ---------- | ------------------------- |
+| **GET** | `/ncm`     | Lista todos os NCM        |
+| **GET** | `/ncm/:id` | Retorna um NCM específico |
+| **PUT** | `/ncm/:id` | Altera um NCM existente   |
+
+```bash
+### Exemplo de JSON:
+{
+  "data": [{
+    "desc_ncm": "Produtos eletrônicos",
+    "dhinc": "2025-11-04T12:00:00",
+    "dhalt": null,
+    "id_user_inc": 1,
+    "id_user_alt": null,
+    "ativo": "S"
+  }]
+}
+```
+
+### GRUPO: - ok
+
+| Método     | Endpoint     | Descrição                   |
+| ---------- | ------------ | --------------------------- |
+| **POST**   | `/grupo`     | Cadastra um novo Grupo      |
+| **GET**    | `/grupo`     | Lista todos os Grupos       |
+| **GET**    | `/grupo/:id` | Retorna um Grupo específico |
+| **PUT**    | `/grupo/:id` | Altera um Grupo existente   |
+| **DELETE** | `/grupo/:id` | Exclui um Grupo             |
+
+```bash
+### Exemplo de JSON:
+{
+  "data": [{
+    "id_saas": 1,
+    "descgrupo": "Financeiro",
+    "foto": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA...",
+    "ativo": "S"
+  }]
+}
+```
+
+### SUBGRUPO: - ok
+
+| Método     | Endpoint                 | Descrição                                 |
+| ---------- | ------------------------ | ----------------------------------------- |
+| **POST**   | `/Subgrupo/:idgrupo`     | Cadastra um Subgrupo vinculado a um Grupo |
+| **GET**    | `/Subgrupo/:idgrupo`     | Lista Subgrupos de um Grupo               |
+| **GET**    | `/Subgrupo/:idgrupo/:id` | Retorna um Subgrupo específico            |
+| **PUT**    | `/Subgrupo/:idgrupo/:id` | Altera um Subgrupo existente              |
+| **DELETE** | `/Subgrupo/:idgrupo/:id` | Exclui um Subgrupo                        |
+
+```bash
+### Exemplo de JSON:
+{
+  "data": [{
+    "id_saas": 1,
+    "id_grupo": 2,
+    "descsubgrupo": "Contas a Pagar",
+    "perc_comissao_vendedor": 5.0,
+    "perc_comissao_tecnico": 2.5,
+    "indice_custo": 1.1,
+    "indice_venda": 1.4,
+    "foto": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA...",
+    "ativo": "S"
+  }]
+}
+```
