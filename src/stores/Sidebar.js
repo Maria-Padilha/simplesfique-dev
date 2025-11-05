@@ -79,6 +79,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                   route: '/paginas/estoque/grupo'
               },
               {
+                  text: 'Classe',
+                  icon: 'mdi-clipboard-text-outline',
+                  route: '/paginas/estoque/classe'
+              },
+              {
                   text: 'NCM',
                   icon: 'mdi-barcode-scan',
                   route: '/paginas/estoque/ncm'
@@ -88,11 +93,6 @@ export const useSidebarStore = defineStore('sidebar', () => {
                   icon: 'mdi-file-table-box-outline',
                   route: '/paginas/estoque/cest'
               },
-              {
-                  text: 'NBS',
-                  icon: 'mdi-clipboard-text-outline',
-                  route: '/paginas/estoque/nbs'
-              }
           ]
       }
   ]);

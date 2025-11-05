@@ -30,7 +30,6 @@ export const useApiStore = defineStore('api', {
                     case 'post':
                         response = await api.post(url, payload, {
                             headers: {Authorization: `Bearer ${token}`}
-
                         });
                         this.successMessage = `${entidade} cadastrado(a) com sucesso!`;
                         toast.success(this.successMessage);
@@ -40,15 +39,17 @@ export const useApiStore = defineStore('api', {
                     case 'put':
                         response = await api.put(url, payload, {
                             headers: {Authorization: `Bearer ${this.token}`}
-
                         });
                         this.successMessage = `${entidade} atualizado(a) com sucesso!`;
                         toast.success(this.successMessage);
                         break;
 
                     case 'delete':
-                        response = await api.delete(url);
+                        response = await api.delete(url, {
+                            headers: {Authorization: `Bearer ${this.token}`}
+                        });
                         this.successMessage = `${entidade} excluído(a) com sucesso!`;
+                        toast.success(this.successMessage);
                         break;
 
                     default:
