@@ -84,11 +84,6 @@ export const useSidebarStore = defineStore('sidebar', () => {
                   route: '/paginas/estoque/classe'
               },
               {
-                  text: 'NCM',
-                  icon: 'mdi-barcode-scan',
-                  route: '/paginas/estoque/ncm'
-              },
-              {
                   text: 'CEST',
                   icon: 'mdi-file-table-box-outline',
                   route: '/paginas/estoque/cest'
