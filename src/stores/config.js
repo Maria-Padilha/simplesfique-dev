@@ -30,7 +30,13 @@ export const useConfigStore = defineStore('config', () => {
       titulo: 'Parâmetro Financeiro',
       icon: 'mdi-calculator',
       componente: 'ConfigParametroFinanceiro',
-      descricao: 'Configurações financeiras'
+
+    },
+    {
+      id: 'acessousuarios',
+      titulo: 'Acesso de Usuários',
+      icon: 'mdi-account-key',
+        componente: 'ConfigAcessoUsuarios',
     }
   ]);
 
