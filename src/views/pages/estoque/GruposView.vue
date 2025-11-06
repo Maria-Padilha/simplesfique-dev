@@ -35,10 +35,6 @@
               <v-card-text class="pa-4">
                 <v-form ref="formRef">
                   <v-row dense>
-                    <v-col cols="12">
-                      <v-switch hide-details label="Produto Ativo" v-model="form.ativo" color="var(--text-color-laranja)" />
-                    </v-col>
-
                     <v-col cols="12" md="6">
                       <v-text-field
                           density="compact"
@@ -102,10 +98,6 @@
               <v-card-text class="pa-4">
                 <v-form ref="formRef">
                   <v-row>
-                    <v-col cols="12">
-                      <v-switch hide-details label="Subgrupo Ativo" v-model="formSub.ativo" color="var(--text-color-laranja)" />
-                    </v-col>
-
                     <v-col cols="12" md="6">
                       <v-text-field
                           density="compact"
@@ -455,7 +447,6 @@ const exibirSubGrupo = ref(false);
 const form = reactive({
   "descgrupo": "",
   "foto": "",
-  "ativo": true
 });
 
 const formSub = reactive({
@@ -465,7 +456,6 @@ const formSub = reactive({
   "indice_custo": 0.1,
   "indice_venda": 0.1,
   "foto": "",
-  "ativo": true
 });
 
 /**
@@ -507,7 +497,6 @@ const cancelarFormulario = () => {
   Object.assign(form, {
     descgrupo: "",
     foto: "",
-    ativo: true
   });
   if (formRef.value) formRef.value.resetValidation()
 };
@@ -520,7 +509,6 @@ const cancelarFormularioSub = () => {
     indice_custo: 0,
     indice_venda: 0,
     foto: "",
-    ativo: true
   });
   if (formRef.value) formRef.value.resetValidation()
 };
@@ -553,7 +541,6 @@ const grupoSelecionado = ref(null);
 
 const salvarGrupo = () => {
   form.foto = base64.value;
-  form.ativo = form.ativo ? 'S' : 'N';
 
   if (erro.value) {
     toast.error('Corrija os erros antes de salvar.');
@@ -566,7 +553,6 @@ const salvarGrupo = () => {
         {
           descgrupo: form.descgrupo,
           foto: form.foto,
-          ativo: form.ativo
         }
       ]
     });
@@ -577,7 +563,6 @@ const salvarGrupo = () => {
         {
           descgrupo: form.descgrupo,
           foto: form.foto,
-          ativo: form.ativo
         }
       ]
     }, grupoSelecionado.value);
@@ -592,7 +577,6 @@ const salvarGrupo = () => {
  */
 const editar = (item) => {
   editando.value = true
-  item.ativo = item.ativo ? 'S' : 'N'
   grupoSelecionado.value = item.id;
 
   Object.assign(form, item)
@@ -623,7 +607,6 @@ const ocultarSubgrupos = () => {
  */
 const salvarSubgrupo = () => {
   formSub.foto = base64.value;
-  formSub.ativo = formSub.ativo ? 'S' : 'N';
 
   if (!editando.value) {
     estoqueStore.cadastrarSubgrupo({
@@ -635,7 +618,6 @@ const salvarSubgrupo = () => {
           indice_custo: formSub.indice_custo,
           indice_venda: formSub.indice_venda,
           foto: formSub.foto,
-          ativo: formSub.ativo,
           grupo_id: grupoSelecionado.value.id
         }
       ]
@@ -651,7 +633,6 @@ const salvarSubgrupo = () => {
           indice_custo: formSub.indice_custo,
           indice_venda: formSub.indice_venda,
           foto: formSub.foto,
-          ativo: formSub.ativo,
           grupo_id: grupoSelecionado.value.id
         }
       ]
@@ -666,7 +647,6 @@ const salvarSubgrupo = () => {
  */
 const editarSub = (item) => {
   editando.value = true
-  item.ativo = item.ativo === 'S'
   subgrupoSelecionado.value = item.id;
 
   Object.assign(formSub, item)

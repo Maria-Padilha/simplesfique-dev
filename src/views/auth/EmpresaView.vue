@@ -559,8 +559,8 @@ watch(
  */
 
 const selecionarCidade = (c) => {
-  data.value.id_cidade = c.ID;
-  cidade.value = c.DESCCIDADE;
+  data.value.id_cidade = c.id;
+  cidade.value = c.desccidade;
 };
 
 /**
@@ -569,8 +569,8 @@ const selecionarCidade = (c) => {
  */
 
 const selecionarBairro = (b) => {
-  data.value.id_bairro = b.ID;
-  bairro.value = b.DESCBAIRRO;
+  data.value.id_bairro = b.id;
+  bairro.value = b.descbairro;
 };
 
 
