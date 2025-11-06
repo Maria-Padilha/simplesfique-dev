@@ -30,6 +30,7 @@ Content-Type: application/json
 
 ### Empresas: - ok
 
+
 | Método | Endpoint | Descrição                                  |
 |--------|-----------|--------------------------------------------|
 | **POST** | `/empresa` | Cadastrar empresa — passar um JSON `"data"` |
@@ -75,7 +76,7 @@ Content-Type: application/json
 }
 ````
 
-### SAAS:
+### SAAS: - ok
 
 | Método | Endpoint | Descrição                                    |
 |--------|---------|----------------------------------------------|
@@ -121,7 +122,7 @@ API sendo consumida em: stores/APIs/localizacao.js
 | **GET** | `/uf/:id` | Retornar dados da UF                  |
 
 
-### Cidade: - ok
+### Cidade: - (modal - consumir na tela de produtos - ok)
 
 ``` Plaintext
 API sendo consumida em: stores/APIs/localizacao.js
@@ -172,7 +173,7 @@ API sendo consumida em: stores/APIs/localizacao.js
 | **GET** | `/cep/:cep` | retornar dados do cep  |
 
 
-### Bairro: - ok
+### Bairro: - (modal - consumir na tela de produtos - ok)
 
 ``` Plaintext
 API sendo consumida em: stores/APIs/localizacao.js
@@ -320,7 +321,7 @@ API sendo consumida em: stores/APIs/localizacao.js
 }
 ```
 
-### CEST:
+### CEST: - ok
 
 | Método     | Endpoint                 | Descrição                  |
 | ---------- | ------------------------ | -------------------------- |
@@ -368,7 +369,7 @@ API sendo consumida em: stores/APIs/localizacao.js
 }
 ```
 
-### NCM: 
+### NCM: (modal - consumir na tela de produtos - ok)
 
 | Método  | Endpoint   | Descrição                 |
 | ------- | ---------- | ------------------------- |
@@ -438,3 +439,89 @@ API sendo consumida em: stores/APIs/localizacao.js
   }]
 }
 ```
+
+### Marca:
+
+| Método     | Endpoint     | Descrição                    |
+| ---------- | ------------ | ---------------------------- |
+| **POST**   | `/marca`     | Cadastra uma nova Marca      |
+| **GET**    | `/marca`     | Lista todas as Marcas        |
+| **GET**    | `/marca/:id` | Retorna uma Marca específica |
+| **PUT**    | `/marca/:id` | Altera uma Marca existente   |
+| **DELETE** | `/marca/:id` | Exclui uma Marca             |
+
+```bash
+### Exemplo de JSON:
+{
+  "data": [{
+    "descmarca": "Apple",
+    "ativo": "S"
+  }]
+}
+```
+
+### Localização: 
+
+| Método     | Endpoint           | Descrição                          |
+| ---------- | ------------------ | ---------------------------------- |
+| **POST**   | `/localizacao`     | Cadastra uma nova Localização      |
+| **GET**    | `/localizacao`     | Lista todas as Localizações        |
+| **GET**    | `/localizacao/:id` | Retorna uma Localização específica |
+| **PUT**    | `/localizacao/:id` | Altera uma Localização existente   |
+| **DELETE** | `/localizacao/:id` | Exclui uma Localização             |
+
+```bash
+### Exemplo de JSON:
+{
+  "data": [{
+    "desclocalizacao": "Depósito Central",
+    "rua": "A",
+    "bloco": "3",
+    "prateleira": "Superior",
+    "coluna": "4",
+    "ativo": "S"
+  }]
+}
+```
+
+### Medida: (modal)
+
+| Método  | Endpoint      | Descrição                          |
+| ------- | ------------- | ---------------------------------- |
+| **GET** | `/medida`     | Lista todas as Medidas disponíveis |
+| **GET** | `/medida/:id` | Retorna uma Medida específica      |
+
+```bash
+### Exemplo de JSON (retorno esperado):
+{
+  "data": [{
+    "id": 1,
+    "descmedida": "Unidade",
+    "sigla": "UN",
+    "ativo": "S"
+  }]
+}
+```
+
+### Garantia: (modal)
+
+| Método     | Endpoint        | Descrição                       |
+| ---------- | --------------- | ------------------------------- |
+| **POST**   | `/garantia`     | Cadastra uma nova Garantia      |
+| **GET**    | `/garantia`     | Lista todas as Garantias        |
+| **GET**    | `/garantia/:id` | Retorna uma Garantia específica |
+| **PUT**    | `/garantia/:id` | Altera uma Garantia existente   |
+| **DELETE** | `/garantia/:id` | Exclui uma Garantia             |
+
+```bash
+### Exemplo de JSON:
+{
+  "data": [{
+    "descgarantia": "Garantia Estendida",
+    "tipo": "M", 
+    "quantidade": 12,
+    "ativo": "S"
+  }]
+}
+```
+

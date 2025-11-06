@@ -24,10 +24,6 @@
           <template #form>
             <v-form ref="formRef">
               <v-row>
-                <v-col cols="12">
-                  <v-switch hide-details label="Ativo" v-model="forms.ativo" color="var(--text-color-laranja)" />
-                </v-col>
-
                 <v-col cols="12" md="12">
                   <v-text-field
                       density="compact"
@@ -58,7 +54,6 @@
             no-data-text="Nenhum item encontrado"
 
         >
-
           <template v-slot:[`item.acoes`]='{ item }'>
             <v-btn
                 icon="mdi-pencil" size="small"
@@ -139,13 +134,11 @@ const validacao = [
 
 const forms = reactive({
   descclasse: '',
-  ativo: true,
 })
 
 const cancelarFormulario = () => {
   Object.assign(forms, {
     descclasse: "",
-    ativo: true
   });
   if (formRef.value) formRef.value.resetValidation()
 
@@ -166,7 +159,6 @@ const salvarFormulario = async () => {
       data: [
         {
           descclasse: forms.descclasse,
-          ativo: forms.ativo ? 'S' : 'N'
         }
       ]
     });
@@ -178,7 +170,6 @@ const salvarFormulario = async () => {
     data: [
       {
         descclasse: forms.descclasse,
-        ativo: forms.ativo ? 'S' : 'N'
       }
     ]
   })
@@ -190,9 +181,7 @@ const salvarFormulario = async () => {
  */
 const editarItem = (item) => {
   editando.value = true
-  // item.ativo = item.ativo || item.ativo === 'S' ? 'S' : 'N'
   itemSelecionado.value = item.id;
-
   Object.assign(forms, item)
   formularioAberto.value = true
 };

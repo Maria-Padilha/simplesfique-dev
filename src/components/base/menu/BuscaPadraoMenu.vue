@@ -26,9 +26,13 @@
             @click:append-inner="pesquisar"
         />
 
-        <div v-if="resultados.length" class="mt-3 flex flex-col gap-3">
+        <div v-if="resultados.length && !loading" class="mt-3 flex flex-col gap-3">
           <p class="text-sm font-italic opacity-70">Resultados:</p>
           <slot name="resultados" :selecionar="emitSelecionar" />
+        </div>
+
+        <div v-else-if="loading">
+          <p class="text-sm font-italic opacity-70 mt-3">Carregando resultados...</p>
         </div>
 
         <div v-else class="mt-3 flex flex-col gap-3">
@@ -64,9 +68,15 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(["update:modelValue", "update:modelInput", "selecionar"]);
+
+const loading = computed(() => props.loading);
 
 const localMenu = ref(props.modelValue);
 

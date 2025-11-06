@@ -83,6 +83,7 @@
   <v-navigation-drawer
       class="background-sidebar menu-scroll"
       v-model="drawer"
+      :width="240"
       rail-width="65"
   >
     <v-list class="flex items-center flex-col justify-center">
