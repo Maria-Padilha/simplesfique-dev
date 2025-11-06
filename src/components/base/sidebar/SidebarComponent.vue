@@ -11,10 +11,12 @@
       <v-select
           v-model="empresaStore.empresaSelecionada"
           :items="empresas"
-          item-title="RAZAO_SOCIAL"
-          item-value="ID"
+          item-title="razao_social"
+          item-value="id"
           variant="outlined"
-          density="compact" class="mt-6"
+          return-object
+          density="compact"
+          class="mt-6"
           @update:model-value="selecionarEmpresa"
           :theme="themeStore.darkMode ? 'dark' : 'light'"
       />
@@ -222,10 +224,30 @@ onMounted(() => {
 });
 
 // Buscar empresas se a lista estiver vazia
-watchEffect(() => {
-  if (empresas.value.length === 0) empresaStore.buscarTodasEmpresas();
+watchEffect(async () => {
+  if (empresas.value.length === 0) {
+    await empresaStore.buscarTodasEmpresas();
+
+    // Se não houver empresa selecionada no localStorage
+    if (!empresaStore.empresaSelecionada) {
+      // Seleciona a primeira empresa da lista se existir
+      const primeiraEmpresa = empresaStore.empresas?.data?.[0];
+      if (primeiraEmpresa) {
+        empresaStore.selecionarEmpresa(primeiraEmpresa);
+      }
+    }
+  }
 });
 
+// Modifique o onMounted para garantir a ordem correta de carregamento
+onMounted(async () => {
+  // Primeiro tenta carregar a empresa salva
+  empresaStore.carregarEmpresaSelecionada();
+
+  // Event listener para resize
+  window.addEventListener('resize', onResize);
+  onResize();
+});
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onResize);
 });
