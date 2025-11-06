@@ -21,6 +21,23 @@ const pinia = createPinia();
 pinia.use(piniaPersistedstate);
 AOS.init();
 
+// Suprimir erro do ResizeObserver no desenvolvimento
+const debounce = (fn, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn.apply(null, args), delay);
+  };
+};
+
+const _ResizeObserver = window.ResizeObserver;
+window.ResizeObserver = class ResizeObserver extends _ResizeObserver {
+  constructor(callback) {
+    callback = debounce(callback, 20);
+    super(callback);
+  }
+};
+
 loadFonts()
 
 createApp(App)

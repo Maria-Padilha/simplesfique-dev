@@ -741,6 +741,451 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
+    // ========== CONTAS A PAGAR ==========
+
+    // Calcular parcelas para conta a pagar (POST /contaspagarcalcparc)
+    async calcularParcelasContaPagar(dadosCalculo) {
+      this.loading = true
+      this.error = null
+      try {
+        // Payload esperado pelo backend no formato THorse
+        const dadosParcela = {
+          vlrdocumento: dadosCalculo.vlrdocumento,
+          vlrprimeiraparcela: dadosCalculo.vlrprimeiraparcela || 0,
+          qtdparcelas: dadosCalculo.qtdparcelas,
+          primeirovencimento: dadosCalculo.primeirovencimento,
+          intervalo: dadosCalculo.intervalo || 30 // Default 30 dias se não informado
+        }
+
+        // THorse expects payload wrapped in { data: [ ... ] }
+        const payload = { data: [dadosParcela] }
+
+        const response = await api.post('/contaspagarcalcparc', payload, {
+          headers: this.getAuthHeaders()
+        })
+
+        // Normalizar retorno: pode retornar { data: [...] } ou array direto
+        const resp = response.data
+        let parcelas = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          parcelas = resp.data
+        } else if (Array.isArray(resp)) {
+          parcelas = resp
+        } else if (resp && typeof resp === 'object') {
+          parcelas = [resp]
+        }
+
+        return parcelas
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao calcular parcelas'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar contas a pagar (GET /contaspagar/:idempresa)
+    async buscarContasPagar(idEmpresa) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get(`/contaspagar/${idEmpresa}`, {
+          headers: this.getAuthHeaders()
+        })
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+        } else if (Array.isArray(resp)) {
+          dados = resp
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar contas a pagar'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar conta a pagar por ID (GET /contaspagar/:idempresa/id/:id)
+    async buscarContaPagarPorId(idEmpresa, id) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get(`/contaspagar/${idEmpresa}/id/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        // Normalizar retorno
+        const resp = response.data
+        if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0]
+        if (Array.isArray(resp)) return resp[0]
+        return resp
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar conta a pagar'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Criar conta a pagar (POST /contaspagar/:idempresa)
+    async criarContaPagar(idEmpresa, payload) {
+      this.loading = true
+      this.error = null
+      try {
+        console.log('criarContaPagar - payload recebido:', payload)
+        
+        // O payload já vem no formato correto: { data: [{}], parcela: [...] }
+        // Não precisamos fazer nenhuma transformação adicional
+        const response = await api.post(`/contaspagar/${idEmpresa}`, payload, {
+          headers: this.getAuthHeaders()
+        })
+
+        console.log('criarContaPagar - resposta da API:', response.data)
+
+        // Normalizar retorno
+        const resp = response.data
+        let created
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          created = resp.data[0]
+        } else if (resp && typeof resp === 'object') {
+          created = resp
+        }
+
+        return created || response.data
+      } catch (error) {
+        console.error('criarContaPagar - erro:', error.response?.data)
+        this.error = error.response?.data?.message || 'Erro ao criar conta a pagar'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Atualizar conta a pagar (PUT /contaspagar/:idempresa/id/:id)
+    async atualizarContaPagar(idEmpresa, id, payload) {
+      this.loading = true
+      this.error = null
+      try {
+        console.log('atualizarContaPagar - payload recebido:', payload)
+        console.log('atualizarContaPagar - id:', id)
+        
+        // O payload já vem no formato correto: { data: [{}], parcela: [...] }
+        // Não precisamos fazer nenhuma transformação adicional
+        const response = await api.put(`/contaspagar/${idEmpresa}/id/${id}`, payload, {
+          headers: this.getAuthHeaders()
+        })
+
+        console.log('atualizarContaPagar - resposta da API:', response.data)
+
+        // Normalizar retorno
+        const resp = response.data
+        let updated
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          updated = resp.data[0]
+        } else if (resp && typeof resp === 'object') {
+          updated = resp
+        }
+
+        return updated || response.data
+      } catch (error) {
+        console.error('atualizarContaPagar - erro:', error.response?.data)
+        this.error = error.response?.data?.message || 'Erro ao atualizar conta a pagar'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Deletar conta a pagar (DELETE /contaspagar/:idempresa/id/:id)
+    async deletarContaPagar(idEmpresa, id) {
+      this.loading = true
+      this.error = null
+      try {
+        await api.delete(`/contaspagar/${idEmpresa}/id/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        return true
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao deletar conta a pagar'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // ========== PLANO CONTA ==========
+
+    // Buscar planos de conta (GET /planoconta)
+    async buscarPlanosConta() {
+      this.loading = true
+      this.error = null
+      try {
+      const response = await api.get('/planoconta', {
+        headers: this.getAuthHeaders()
+      })
+      const resp = response.data
+      let dados = []
+      if (resp && resp.data && Array.isArray(resp.data)) {
+        dados = resp.data
+      } else if (Array.isArray(resp)) {
+        dados = resp
+      } else if (resp && typeof resp === 'object') {
+        dados = [resp]
+      } else {
+        dados = []
+      }
+
+      return dados
+      } catch (error) {
+      this.error = error.response?.data?.message || 'Erro ao buscar planos de conta'
+      throw error
+      } finally {
+      this.loading = false
+      }
+    },
+
+    // Buscar plano de conta por ID (GET /planoconta/:id)
+    async buscarPlanoContaPorId(id) {
+      this.loading = true
+      this.error = null
+      try {
+      const response = await api.get(`/planoconta/${id}`, {
+        headers: this.getAuthHeaders()
+      })
+      
+      const resp = response.data
+      if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0]
+      if (Array.isArray(resp)) return resp[0]
+      return resp
+      } catch (error) {
+      this.error = error.response?.data?.message || 'Erro ao buscar plano de conta'
+      throw error
+      } finally {
+      this.loading = false
+      }
+    },
+
+    // Criar novo plano de conta (POST /planoconta)
+    async criarPlanoConta(planoData) {
+      this.loading = true
+      this.error = null
+      try {
+      // Garantir que não estamos enviando o ID na criação
+      const dadosSemId = { ...planoData }
+      delete dadosSemId.id
+
+      // THorse expects payload wrapped in { data: [ ... ] }
+      const payload = { data: [dadosSemId] }
+      const response = await api.post('/planoconta', payload, {
+        headers: this.getAuthHeaders()
+      })
+
+      // Normalizar retorno: pode retornar { data: [...] } ou o objeto criado
+      const resp = response.data
+      let created
+      if (resp && resp.data && Array.isArray(resp.data)) {
+        created = resp.data[0]
+      } else if (resp && typeof resp === 'object') {
+        created = resp
+      }
+
+      return created || response.data
+      } catch (error) {
+      this.error = error.response?.data?.message || 'Erro ao criar plano de conta'
+      throw error
+      } finally {
+      this.loading = false
+      }
+    },
+
+    // Atualizar plano de conta (PUT /planoconta/:id)
+    async atualizarPlanoConta(id, planoData) {
+      this.loading = true
+      this.error = null
+      try {
+      // Remover o id dos dados a serem enviados (vai na URL)
+      const dadosParaUpdate = { ...planoData }
+      delete dadosParaUpdate.id
+
+      // THorse expects payload wrapped in { data: [ ... ] }
+      const payload = { data: [dadosParaUpdate] }
+      const response = await api.put(`/planoconta/${id}`, payload, {
+        headers: this.getAuthHeaders()
+      })
+
+      // Normalizar retorno
+      const resp = response.data
+      let updated
+      if (resp && resp.data && Array.isArray(resp.data)) {
+        updated = resp.data[0]
+      } else if (resp && typeof resp === 'object') {
+        updated = resp
+      }
+
+      return updated || response.data
+      } catch (error) {
+      this.error = error.response?.data?.message || 'Erro ao atualizar plano de conta'
+      throw error
+      } finally {
+      this.loading = false
+      }
+    },
+
+    // Deletar plano de conta (DELETE /planoconta/:id)
+    async deletarPlanoConta(id) {
+      this.loading = true
+      this.error = null
+      try {
+      await api.delete(`/planoconta/${id}`, {
+        headers: this.getAuthHeaders()
+      })
+
+      return true
+      } catch (error) {
+      this.error = error.response?.data?.message || 'Erro ao deletar plano de conta'
+      throw error
+      } finally {
+      this.loading = false
+      }
+    },
+
+    // ========== AUXILIARES PARA FORMULÁRIO ==========
+
+    // Buscar tipos de documento (GET /tipodocumento)
+    async buscarTiposDocumento() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get('/tipodocumento', {
+          headers: this.getAuthHeaders()
+        })
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+        } else if (Array.isArray(resp)) {
+          dados = resp
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar tipos de documento'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar locais de cobrança (GET /localcobranca)
+    async buscarLocaisCobranca() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get('/localcobranca', {
+          headers: this.getAuthHeaders()
+        })
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+        } else if (Array.isArray(resp)) {
+          dados = resp
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar locais de cobrança'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar pessoas/fornecedores (GET /pessoa)
+    async buscarPessoas() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get('/pessoa', {
+          headers: this.getAuthHeaders()
+        })
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+        } else if (Array.isArray(resp)) {
+          dados = resp
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar pessoas'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Criar tipo de documento (POST /tipodocumento)
+    async criarTipoDocumento(dados) {
+      this.loading = true
+      this.error = null
+      try {
+        const payload = {
+          data: [{
+            desctipodocumento: dados.descricao,
+            abreviatura: dados.abreviatura
+          }]
+        }
+        
+        const response = await api.post('/tipodocumento', payload, {
+          headers: this.getAuthHeaders()
+        })
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao criar tipo de documento'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Criar local de cobrança (POST /localcobranca)
+    async criarLocalCobranca(dados) {
+      this.loading = true
+      this.error = null
+      try {
+        const payload = {
+          data: [{
+            desclocalcobranca: dados.desclocalcobranca
+          }]
+        }
+        
+        const response = await api.post('/localcobranca', payload, {
+          headers: this.getAuthHeaders()
+        })
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao criar local de cobrança'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     // ========== UTILITÁRIOS ==========
     
     // Limpar erros
