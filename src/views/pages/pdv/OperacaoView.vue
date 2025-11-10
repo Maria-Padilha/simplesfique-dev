@@ -70,7 +70,7 @@ const handlePrint = () => {
   const content = printArea.value.innerHTML
   const printWindow = window.open('', '_blank')
 
-  // ⚠️ Evita conflito com <script> no arquivo Vue
+  // evita conflito com <script> no arquivo .vue
   const openScriptTag = '<scr' + 'ipt>'
   const closeScriptTag = '</scr' + 'ipt>'
 
@@ -81,8 +81,11 @@ const handlePrint = () => {
     '<meta charset="UTF-8">',
     '<title>Impressão PDV</title>',
     '<style>',
-    'body { font-family: "Courier New", monospace; margin: 0; padding: 20px; }',
-    '.receipt-content { max-width: 300px; margin: 0 auto; }',
+    '@page { size: 80mm auto; margin: 0; }',
+    'body { font-family: "Courier New", monospace; margin: 0; padding: 0; }',
+    '.receipt-content { width: 80mm; margin: 0 auto; font-size: 12px; }',
+    '.receipt-content h2 { font-size: 14px; margin-bottom: 8px; }',
+    '.receipt-content p, .receipt-content li { font-size: 12px; }',
     '</style>',
     '</head>',
     '<body>',
@@ -106,9 +109,30 @@ const handlePrint = () => {
 }
 
 @media print {
+  @page {
+    size: 80mm auto; /* define largura fixa da bobina */
+    margin: 0; /* remove margens padrão */
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
   .receipt-content {
     width: 80mm;
     font-family: 'Courier New', monospace;
+    font-size: 12px;
+    margin: 0 auto;
+  }
+
+  .receipt-content h2 {
+    font-size: 14px;
+  }
+
+  .receipt-content p,
+  .receipt-content li {
+    font-size: 12px;
   }
 }
 </style>

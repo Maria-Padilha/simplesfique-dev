@@ -97,7 +97,7 @@ const routes = [
         component: CentroDeCustoView
     },
 
- 
+
 
     // páginas do estoque (substituídas por placeholder até criar os arquivos reais)
     {
