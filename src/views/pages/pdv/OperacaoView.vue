@@ -70,7 +70,6 @@ const handlePrint = () => {
   const content = printArea.value.innerHTML
   const printWindow = window.open('', '_blank')
 
-  // evita conflito com <script> no arquivo .vue
   const openScriptTag = '<scr' + 'ipt>'
   const closeScriptTag = '</scr' + 'ipt>'
 
@@ -79,13 +78,19 @@ const handlePrint = () => {
     '<html lang="pt-BR">',
     '<head>',
     '<meta charset="UTF-8">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1">', // importante
     '<title>Impressão PDV</title>',
     '<style>',
-    '@page { size: 80mm auto; margin: 0; }',
-    'body { font-family: "Courier New", monospace; margin: 0; padding: 0; }',
-    '.receipt-content { width: 80mm; margin: 0 auto; font-size: 12px; }',
+    '@page { size: 80mm; margin: 0; }', // corrigido: removido "auto"
+    'html, body { width: 80mm; height: auto; margin: 0; padding: 0; }',
+    'body { font-family: "Courier New", monospace; margin: 0; padding: 0; -webkit-print-color-adjust: exact; }',
+    '.receipt-content { width: 80mm; max-width: 80mm; box-sizing: border-box; font-size: 12px; margin: 0 auto; }',
     '.receipt-content h2 { font-size: 14px; margin-bottom: 8px; }',
     '.receipt-content p, .receipt-content li { font-size: 12px; }',
+    '@media print {',
+    '  html, body { width: 80mm !important; }',
+    '  .receipt-content { width: 80mm !important; }',
+    '}',
     '</style>',
     '</head>',
     '<body>',
@@ -110,17 +115,20 @@ const handlePrint = () => {
 
 @media print {
   @page {
-    size: 80mm auto; /* define largura fixa da bobina */
-    margin: 0; /* remove margens padrão */
+    size: 80mm; /* largura fixa da bobina */
+    margin: 0;
   }
 
-  body {
+  html, body {
+    width: 80mm;
     margin: 0;
     padding: 0;
   }
 
   .receipt-content {
     width: 80mm;
+    max-width: 80mm;
+    box-sizing: border-box;
     font-family: 'Courier New', monospace;
     font-size: 12px;
     margin: 0 auto;
