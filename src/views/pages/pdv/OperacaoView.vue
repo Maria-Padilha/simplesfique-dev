@@ -96,14 +96,14 @@ const handlePrint = () => {
     '    /* ajustar largura base para compensar o scale */',
     '    width: calc(80mm / 1.4) !important;',
     '    max-width: calc(80mm / 1.4) !important;',
-    '    font-weight: 900;',
+    '    font-weight: 500;',
     '    color: #000;',
     '    line-height: 1.0;',
     '    text-shadow: 0 0 1.6px rgba(0,0,0,1);',
     '    filter: contrast(1.25);',
     '  }',
-    '  .receipt-content h2 { font-size: 10.8mm !important; }',
-    '  .receipt-content p, .receipt-content li { font-size: 7.2mm !important; }',
+    '  .receipt-content h2 { font-size: 3.8mm !important; }',
+    '  .receipt-content p, .receipt-content li { font-size: 1ssmm !important; }',
     '}',
     '</style>',
     '</head>',
@@ -144,10 +144,10 @@ const handlePrint = () => {
     max-width: 80mm;
     box-sizing: border-box;
     font-family: 'Courier New', monospace;
-    font-size: 6mm;
+    font-size: 2mm;
     margin: 0 auto;
     color: #000;
-    font-weight: 900;
+    font-weight: 500;
     letter-spacing: 0.5px;
     line-height: 1.02;
     text-rendering: optimizeLegibility;
@@ -158,7 +158,7 @@ const handlePrint = () => {
   .receipt-content h2 {
     font-size: 10.5mm;
     margin-bottom: 6px;
-    font-weight: 900;
+    font-weight: 500;
     letter-spacing: 1px;
     text-transform: uppercase;
   }
@@ -166,7 +166,7 @@ const handlePrint = () => {
   .receipt-content p,
   .receipt-content li {
     font-size: 7mm;
-    font-weight: 900;
+    font-weight: 500;
     text-shadow: 0 0 1.4px rgba(0,0,0,1);
   }
 }
