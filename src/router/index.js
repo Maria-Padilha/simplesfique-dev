@@ -13,6 +13,7 @@ import ContaCorrenteView from "@/views/pages/financeiro/ContaCorrenteView.vue";
 import CentroDeCustoView from "@/views/pages/financeiro/CentroDeCustoView.vue";
 import PessoasView from '@/views/pages/PessoasView.vue';
 import UsuariosView from '@/views/pages/UsuariosView.vue';
+import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
@@ -108,6 +109,49 @@ const routes = [
         name: 'financeiro_centrodecusto',
         component: CentroDeCustoView
     },
+<<<<<<< Updated upstream
+=======
+    {
+      path: '/paginas/financeiro/caixa',
+      name: 'financeiro_caixa',
+      component: CaixaView
+    },
+    {
+      path: '/paginas/financeiro/planoconta',
+      name: 'financeiro_planoconta',
+      component: PlanoContaView
+    },
+
+    // páginas do estoque
+    {
+      path: '/paginas/estoque/grupo',
+      name: 'grupo',
+      component: () => import('@/views/pages/estoque/GruposView.vue')
+    },
+    {
+      path: '/paginas/estoque/classe',
+      name: 'classe',
+      component: () => import('@/views/pages/estoque/ClassesView.vue')
+    },
+    {
+      path: '/paginas/estoque/ncm',
+      name: 'ncm'
+    },
+    {
+      path: '/paginas/estoque/cest',
+      name: 'cest'
+    },
+    {
+      path: '/paginas/estoque/nbs',
+      name: 'nbs'
+    },
+    // páginas do pdv
+    {
+        path: '/paginas/pdv/operacao',
+        name: 'pdv_operacao',
+        component: OperacaoView
+    },
+>>>>>>> Stashed changes
 
     //    Páginas do site
     {

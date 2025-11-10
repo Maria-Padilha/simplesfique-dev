@@ -3,6 +3,7 @@ import { ref } from 'vue';
 
 export const useSidebarStore = defineStore('sidebar', () => {
 
+<<<<<<< Updated upstream
   /**
    * MODULOS - Define toda a estrutura de módulos/seções da sidebar
    *
@@ -84,6 +85,113 @@ export const useSidebarStore = defineStore('sidebar', () => {
     //   ]
     // }
   ]);
+=======
+    /**
+     * MODULOS - Define toda a estrutura de módulos/seções da sidebar
+     *
+     * Cada módulo contém:
+     * - id: identificador único do módulo (usado como value no v-list-group)
+     * - titulo: nome exibido na sidebar
+     * - icon: ícone MDI exibido ao lado do título
+     * - submenus: array com os links internos do módulo
+     *   - cada submenu tem: text (nome), icon (ícone), route (caminho)
+     */
+    const modulos = ref([
+        {
+            id: 'financeiro',
+            titulo: 'Financeiro',
+            icon: 'mdi-currency-usd',
+            submenus: [
+                {
+                    text: 'Conta Corrente',
+                    icon: 'mdi-bank-outline',
+                    route: '/paginas/financeiro/contacorrente'
+                },
+                {
+                    text: 'Centro de Custo',
+                    icon: 'mdi-warehouse',
+                    route: '/paginas/financeiro/centrodecusto'
+                },
+                {
+                    text: 'Pagar',
+                    icon: 'mdi-credit-card-outline',
+                    route: '/paginas/financeiro/pagar'
+                },
+                {
+                    text: 'Receber',
+                    icon: 'mdi-cash-plus',
+                    route: '/paginas/financeiro/receber'
+                },
+                {
+                    text: 'Caixa',
+                    icon: 'mdi-cash-register',
+                    route: '/paginas/financeiro/caixa'
+                },
+                {
+                    text: 'Plano de Conta',
+                    icon: 'mdi-format-list-bulleted-type',
+                    route: '/paginas/financeiro/planoconta'
+                },
+            ]
+        },
+        {
+            id: 'manutencao',
+            titulo: 'Manutenção',
+            icon: 'mdi-tools',
+            submenus: [
+                {
+                    text: 'Pessoas',
+                    icon: 'mdi-account-group',
+                    route: '/paginas/manutencao/pessoas'
+                },
+                {
+                    text: 'Usuários',
+                    icon: 'mdi-account-cog',
+                    route: '/paginas/manutencao/usuarios'
+                }
+            ]
+        },
+        {
+            id: 'estoque',
+            titulo: 'Estoque',
+            icon: 'mdi-package-variant',
+            submenus: [
+                {
+                    text: 'Grupos',
+                    icon: 'mdi-shape-plus',
+                    route: '/paginas/estoque/grupo'
+                },
+                {
+                    text: 'Classe',
+                    icon: 'mdi-clipboard-text-outline',
+                    route: '/paginas/estoque/classe'
+                },
+                {
+                    text: 'NCM',
+                    icon: 'mdi-barcode-scan',
+                    route: '/paginas/estoque/ncm'
+                },
+                {
+                    text: 'CEST',
+                    icon: 'mdi-file-table-box-outline',
+                    route: '/paginas/estoque/cest'
+                },
+            ]
+        },
+        {
+            id: 'PDV',
+            titulo: 'PDV',
+            icon: 'mdi-package-variant',
+            submenus: [
+                {
+                    text: 'Operação',
+                    icon: 'mdi-shape-plus',
+                    route: '/paginas/pdv/operacao'
+                },
+            ]
+        }
+    ]);
+>>>>>>> Stashed changes
 
     /**
      * GETTERS - Funções para acessar os modulos
