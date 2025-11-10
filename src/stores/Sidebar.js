@@ -1,5 +1,5 @@
-import {defineStore} from 'pinia';
-import {ref} from 'vue';
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
 
 export const useSidebarStore = defineStore('sidebar', () => {
 
@@ -104,6 +104,18 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     text: 'Entrada de DFe',
                     icon: 'mdi-file-document-outline',
                     route: '/paginas/entradadfe'
+                },
+            ]
+        },
+        {
+            id: 'PDV',
+            titulo: 'PDV',
+            icon: 'mdi-package-variant',
+            submenus: [
+                {
+                    text: 'Operação',
+                    icon: 'mdi-shape-plus',
+                    route: '/paginas/pdv/operacao'
                 },
             ]
         }

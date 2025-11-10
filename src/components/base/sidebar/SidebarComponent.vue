@@ -223,7 +223,7 @@ const selecionarEmpresa = (empresa) => {
 };
 
 // Consolidar todos os onMounted em um único
-onMounted(() => {
+onMounted(() => {  
   empresaStore.carregarEmpresaSelecionada();
 
   // Event listener para resize
@@ -231,7 +231,6 @@ onMounted(() => {
   onResize();
 });
 
-// Buscar empresas se a lista estiver vazia
 watchEffect(async () => {
   if (empresas.value.length === 0) {
     await empresaStore.buscarTodasEmpresas();
@@ -252,7 +251,7 @@ onMounted(async () => {
   // Primeiro tenta carregar a empresa salva
   empresaStore.carregarEmpresaSelecionada();
 
-  // Event listener para resize
+
   window.addEventListener('resize', onResize);
   onResize();
 });

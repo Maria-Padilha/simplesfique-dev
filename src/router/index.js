@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory} from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/pages/HomeView.vue'
 import NotFoundView from "@/views/NotFoundView.vue";
 import LoginView from "@/views/auth/LoginView.vue";
@@ -15,6 +15,7 @@ import PessoasView from '@/views/pages/PessoasView.vue';
 import CaixaView from '@/views/pages/financeiro/CaixaView.vue';
 import PlanoContaView from '@/views/pages/financeiro/PlanoContaView.vue';
 import UsuariosView from '@/views/pages/UsuariosView.vue';
+import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
@@ -29,22 +30,22 @@ const routes = [
     },
 
 
-    //   pagina de manutenção
-    {
-        path: '/manutencao',
-        name: 'manutencao',
-        component: () => import('@/views/ManutencaoView.vue')
-    },
-    {
-        path: '/paginas/manutencao/pessoas',
-        name: 'manutencao_pessoas',
-        component: PessoasView
-    },
-    {
-        path: '/paginas/manutencao/usuarios',
-        name: 'manutencao_usuarios',
-        component: UsuariosView
-    },
+  //   pagina de manutenção
+  {
+    path: '/manutencao',
+    name: 'manutencao',
+    component: () => import('@/views/ManutencaoView.vue')
+  },
+  {
+    path: '/paginas/manutencao/pessoas',
+    name: 'manutencao_pessoas',
+    component: PessoasView
+  },
+  {
+    path: '/paginas/manutencao/usuarios',
+    name: 'manutencao_usuarios',
+    component: UsuariosView
+  },
 
     //   pagina de manutenção
     {
@@ -154,6 +155,13 @@ const routes = [
         path: '/paginas/entradadfe',
         name: 'entradadfe',
         component: () => import('@/views/pages/produtos/EntradaDfeView.vue')
+    },
+
+    // páginas do pdv
+    {
+        path: '/paginas/pdv/operacao',
+        name: 'pdv_operacao',
+        component: OperacaoView
     },
 
     //    Páginas do site
