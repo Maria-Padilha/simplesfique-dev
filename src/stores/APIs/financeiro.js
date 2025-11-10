@@ -7,6 +7,9 @@ export const useFinanceiroStore = defineStore('financeiro', {
     bancos: [],
     ufs: [],
     usuarios: [],
+    tiposDocumento: [],
+    locaisCobranca: [],
+    planosConta: [],
     loading: false,
     error: null,
     search: ''
@@ -942,6 +945,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         dados = []
       }
 
+      this.planosConta = dados
       return dados
       } catch (error) {
       this.error = error.response?.data?.message || 'Erro ao buscar planos de conta'
@@ -1076,6 +1080,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
           dados = [resp]
         }
 
+        this.tiposDocumento = dados
         return dados
       } catch (error) {
         this.error = error.response?.data?.message || 'Erro ao buscar tipos de documento'
@@ -1103,6 +1108,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
           dados = [resp]
         }
 
+        this.locaisCobranca = dados
         return dados
       } catch (error) {
         this.error = error.response?.data?.message || 'Erro ao buscar locais de cobrança'

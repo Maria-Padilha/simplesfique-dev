@@ -6,9 +6,22 @@
         Contas a Receber
       </v-card-title>
       <v-card-text class="pa-4">
-        <p class="text-body-1">
-          Esta tela está em desenvolvimento. Em breve você poderá gerenciar suas contas a receber aqui.
-        </p>
+        <TabelaPadrao
+          :headers="[
+            { text: 'Cliente', value: 'cliente' },
+            { text: 'Valor', value: 'valor' },
+            { text: 'Data de Vencimento', value: 'dataVencimento' },
+            { text: 'Status', value: 'status' },
+            { text: 'Ações', value: 'actions', sortable: false }
+          ]"
+          :items="[]"
+          item-key="id"
+          :loading="false"
+          show-edit-action
+          show-delete-action
+          edit-title="Editar Conta a Receber"
+          delete-title="Excluir Conta a Receber"
+          />
       </v-card-text>
     </v-card>
   </div>

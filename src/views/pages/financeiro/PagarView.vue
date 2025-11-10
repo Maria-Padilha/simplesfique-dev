@@ -74,26 +74,20 @@
 
                     <!-- Tipo de Documento -->
                     <v-col cols="12" md="4">
-                      <div class="d-flex align-center">
-                        <v-select
-                          v-model="formData.id_tipodocumen"
-                          :items="tiposDocumento"
-                          item-title="descricaodocumento"
-                          item-value="id"
-                          label="Tipo Documento"
-                          variant="outlined"
-                          density="compact"
-                          class="custom-text-field mr-2"
-                          prepend-inner-icon="mdi-file-document-outline"
-                        ></v-select>
-                        <v-btn
-                          icon="mdi-plus"
-                          size="small"
-                          color="primary"
-                          variant="elevated"
-                          @click="abrirModalTipoDocumento"
-                        ></v-btn>
-                      </div>
+                      <v-text-field
+                        label="Tipo Documento *"
+                        v-model="tipoDocumentoSelecionado"
+                        variant="outlined"
+                        density="compact"
+                        hide-details="auto"
+                        :rules="[rules.required]"
+                        class="custom-text-field"
+                        prepend-inner-icon="mdi-file-document-outline"
+                      >
+                        <template #append-inner>
+                          <TipoDocumentoMenu @selecionar="selecionarTipoDocumento"/>
+                        </template>
+                      </v-text-field>
                     </v-col>
 
                     <!-- Fornecedor -->
@@ -101,7 +95,7 @@
                       <v-select
                         v-model="formData.id_fornecedor"
                         :items="pessoas"
-                        item-title="nome"
+                        item-title="apelido_fantasia"
                         item-value="id"
                         label="Fornecedor"
                         variant="outlined"
@@ -111,8 +105,27 @@
                       ></v-select>
                     </v-col>
 
-                    <!-- Valor Original (Obrigatório) -->
+                    <!-- Plano de Conta -->
                     <v-col cols="12" md="4">
+                      <v-text-field
+                        label="Plano de Conta *"
+                        v-model="planoContaSelecionado"
+                        variant="outlined"
+                        density="compact"
+                        hide-details="auto"
+                        :rules="[rules.required]"
+                        class="custom-text-field"
+                        prepend-inner-icon="mdi-chart-tree"
+                      >
+                        <template #append-inner>
+                          <PlanoContaMenu @selecionar="selecionarPlanoConta"/>
+                        </template>
+                      </v-text-field>
+                    </v-col>
+
+                    
+                    <!-- Valor Original (Obrigatório) -->
+                    <v-col cols="12" md="2">
                       <v-text-field
                         v-model="formData.vlroriginal"
                         label="Valor Original *"
@@ -124,27 +137,16 @@
                         class="custom-text-field"
                         prepend-inner-icon="mdi-currency-usd"
                         prefix="R$"
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Origem -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        v-model="formData.origem"
-                        label="Origem"
-                        maxlength="3"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-source-branch"
+                        :hint="formData.vlroriginal ? formatarMoeda(formData.vlroriginal) : ''"
+                        persistent-hint
                       ></v-text-field>
                     </v-col>
 
                     <!-- Quantidade de Parcelas -->
-                    <v-col cols="12" md="4">
+                    <v-col cols="12" md="2">
                       <v-text-field
                         v-model.number="formData.qtdparcelas"
-                        label="Quantidade de Parcelas"
+                        label="Qtd Parcelas"
                         type="number"
                         min="1"
                         variant="outlined"
@@ -155,10 +157,10 @@
                     </v-col>
 
                     <!-- Data de Emissão (Obrigatório) -->
-                    <v-col cols="12" md="4">
+                    <v-col cols="12" md="2">
                       <v-text-field
                         v-model="formData.dtemissao"
-                        label="Data de Emissão *"
+                        label="Data Emissão *"
                         :rules="[rules.required]"
                         type="date"
                         variant="outlined"
@@ -168,8 +170,9 @@
                       ></v-text-field>
                     </v-col>
 
+
                     <!-- Juros -->
-                    <v-col cols="12" md="4">
+                    <v-col cols="12" md="2">
                       <v-text-field
                         v-model="formData.juros"
                         label="Juros"
@@ -180,11 +183,13 @@
                         class="custom-text-field"
                         prefix="R$"
                         prepend-inner-icon="mdi-percent"
+                        :hint="formData.juros ? formatarMoeda(formData.juros) : ''"
+                        persistent-hint
                       ></v-text-field>
                     </v-col>
 
                     <!-- Multa -->
-                    <v-col cols="12" md="4">
+                    <v-col cols="12" md="2">
                       <v-text-field
                         v-model="formData.multa"
                         label="Multa"
@@ -195,11 +200,13 @@
                         class="custom-text-field"
                         prefix="R$"
                         prepend-inner-icon="mdi-alert-circle"
+                        :hint="formData.multa ? formatarMoeda(formData.multa) : ''"
+                        persistent-hint
                       ></v-text-field>
                     </v-col>
 
                     <!-- Desconto -->
-                    <v-col cols="12" md="4">
+                    <v-col cols="12" md="2">
                       <v-text-field
                         v-model="formData.desconto"
                         label="Desconto"
@@ -210,7 +217,14 @@
                         class="custom-text-field"
                         prefix="R$"
                         prepend-inner-icon="mdi-sale"
+                        :hint="formData.desconto ? formatarMoeda(formData.desconto) : ''"
+                        persistent-hint
                       ></v-text-field>
+                    </v-col>
+
+                    <!-- Placeholder col for balance -->
+                    <v-col cols="12" md="2">
+                      <!-- Empty column to maintain layout -->
                     </v-col>
 
                     <!-- Campos de Cálculo e Botão - Apenas para múltiplas parcelas -->
@@ -234,6 +248,8 @@
                                 density="compact"
                                 prefix="R$"
                                 prepend-inner-icon="mdi-cash"
+                                :hint="formData.valor_primeira_parcela ? formatarMoeda(formData.valor_primeira_parcela) : ''"
+                                persistent-hint
                               ></v-text-field>
                             </v-col>
 
@@ -384,25 +400,19 @@
 
                             <template v-slot:[`item.id_localcobranca`]="{ item }">
                               <div class="d-flex align-center">
-                                <v-select
-                                  v-model="item.id_localcobranca"
-                                  :items="locaisCobranca"
-                                  item-title="desclocalcobranca"
-                                  item-value="id"
+                                <v-text-field
+                                  v-model="item.localCobrancaTexto"
                                   variant="outlined"
                                   density="compact"
                                   hide-details
                                   placeholder="Selecione o local"
                                   prepend-inner-icon="mdi-map-marker"
-                                  class="mr-2"
-                                ></v-select>
-                                <v-btn
-                                  icon="mdi-plus"
-                                  size="x-small"
-                                  color="primary"
-                                  variant="elevated"
-                                  @click="abrirModalLocalCobranca"
-                                ></v-btn>
+                                  :class="item.nrparcela === 1 ? 'mr-2' : ''"
+                                >
+                                  <template #append-inner>
+                                    <LocalCobrancaMenu @selecionar="(local) => selecionarLocalCobranca(local, item)"/>
+                                  </template>
+                                </v-text-field>
                               </div>
                             </template>
 
@@ -442,7 +452,7 @@
                                     color="success"
                                     variant="elevated"
                                   >
-                                    Total: R$ {{ totalParcelas.toFixed(2) }}
+                                    Total: {{ formatarMoeda(totalParcelas) }}
                                   </v-chip>
                                 </div>
                               </v-card>
@@ -506,125 +516,52 @@
           :loading="loading"
           :search="search"
           @update:search="(value) => search = value"
-          search-label="Pesquisar Conta a Pagar"
+          search-label="Pesquisar Parcelas"
           item-key="id"
           no-data-icon="mdi-credit-card-outline"
-          no-data-text="Nenhuma conta a pagar cadastrada"
+          no-data-text="Nenhuma parcela cadastrada"
           :show-custom-action="false"
-          delete-dialog-message="Esta ação não pode ser desfeita."
+          delete-dialog-message="Esta ação excluirá esta parcela específica. Não pode ser desfeita."
           delete-item-display-field="nrdocumento"
           @edit-item="editarContaPagar"
           @confirm-delete="excluirContaPagar"
-        ></TabelaPadrao>
+        >
+          <!-- Formatação para Valor do Documento -->
+          <template v-slot:[`item.vlrdocumento`]="{ item }">
+            <span class="font-weight-medium">{{ formatarMoeda(item.vlrdocumento) }}</span>
+          </template>
+
+          <!-- Formatação para Valor da Parcela -->
+          <template v-slot:[`item.vlrparcela`]="{ item }">
+            <v-chip 
+              :color="parseFloat(item.vlrparcela) > 1000 ? 'orange' : 'primary'"
+              variant="tonal"
+              size="small"
+            >
+              {{ formatarMoeda(item.vlrparcela) }}
+            </v-chip>
+          </template>
+
+          <!-- Formatação para Data de Emissão -->
+          <template v-slot:[`item.dtemissao`]="{ item }">
+            <span v-if="item.dtemissao">
+              {{ new Date(item.dtemissao).toLocaleDateString('pt-BR') }}
+            </span>
+            <span v-else class="text-grey">-</span>
+          </template>
+
+          <!-- Formatação para Data de Vencimento -->
+          <template v-slot:[`item.dtvencimento`]="{ item }">
+            <span v-if="item.dtvencimento">
+              {{ new Date(item.dtvencimento).toLocaleDateString('pt-BR') }}
+            </span>
+            <span v-else class="text-grey">-</span>
+          </template>
+        </TabelaPadrao>
       </v-card-text>
     </v-card>
 
-    <!-- Modal Tipo Documento -->
-    <v-dialog v-model="modalTipoDocumento" max-width="500px">
-      <v-card>
-        <v-card-title class="text-h6 pa-4">
-          <v-icon icon="mdi-file-document-plus" class="mr-2"></v-icon>
-          Novo Tipo de Documento
-        </v-card-title>
 
-        <v-card-text class="pa-4">
-          <v-form ref="formTipoDocRef" v-model="formTipoDocValido">
-            <v-row>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="novoTipoDoc.descricaodocumento"
-                  label="Descrição *"
-                  :rules="[rules.required]"
-                  maxlength="60"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-text"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="novoTipoDoc.abreviatura"
-                  label="Abreviatura *"
-                  :rules="[rules.required]"
-                  maxlength="3"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-format-letter-case"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-          </v-form>
-        </v-card-text>
-
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="fecharModalTipoDocumento"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            color="primary"
-            :loading="loadingModal"
-            :disabled="!formTipoDocValido"
-            @click="salvarTipoDocumento"
-            variant="elevated"
-          >
-            Salvar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Modal Local Cobrança -->
-    <v-dialog v-model="modalLocalCobranca" max-width="500px">
-      <v-card>
-        <v-card-title class="text-h6 pa-4">
-          <v-icon icon="mdi-map-marker-plus" class="mr-2"></v-icon>
-          Novo Local de Cobrança
-        </v-card-title>
-
-        <v-card-text class="pa-4">
-          <v-form ref="formLocalCobrancaRef" v-model="formLocalCobrancaValido">
-            <v-row>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="novoLocalCobranca.desclocalcobranca"
-                  label="Descrição *"
-                  :rules="[rules.required]"
-                  maxlength="60"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-text"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-          </v-form>
-        </v-card-text>
-
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="fecharModalLocalCobranca"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            color="primary"
-            :loading="loadingModal"
-            :disabled="!formLocalCobrancaValido"
-            @click="salvarLocalCobranca"
-            variant="elevated"
-          >
-            Salvar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
 
     <!-- Snackbar para feedback -->
     <v-snackbar
@@ -643,6 +580,9 @@ import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
+import TipoDocumentoMenu from '@/components/base/menu/TipoDocumentoMenu.vue'
+import LocalCobrancaMenu from '@/components/base/menu/LocalCobrancaMenu.vue'
+import PlanoContaMenu from '@/components/base/menu/PlanoContaMenu.vue'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -674,16 +614,20 @@ const snackbar = reactive({
 
 // Headers da tabela
 const headers = [
-  { title: 'ID', key: 'id', sortable: true },
   { title: 'Documento', key: 'nrdocumento', sortable: true },
   { title: 'Série', key: 'serie', sortable: true },
   { title: 'Espécie', key: 'especie', sortable: true },
-  { title: 'Tipo Doc.', key: 'id_tipodocumen', sortable: true },
-  { title: 'Fornecedor', key: 'id_fornecedor', sortable: true },
-  { title: 'Valor Original', key: 'vlroriginal', sortable: true },
-  { title: 'Origem', key: 'origem', sortable: true },
-  { title: 'Parcelas', key: 'qtdparcelas', sortable: true },
+  { title: 'Parcela', key: 'id_parcela', sortable: true },
+  { title: 'Qtd Total', key: 'qtdparcelas', sortable: true },
   { title: 'Data Emissão', key: 'dtemissao', sortable: true },
+  { title: 'Vencimento', key: 'dtvencimento', sortable: true },
+  { title: 'Fornecedor', key: 'fornecedor', sortable: true },
+  { title: 'Vlr Documento', key: 'vlrdocumento', sortable: true },
+  { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
+  { title: 'Origem', key: 'origem', sortable: true },
+  { title: 'Tipo Doc.', key: 'abreviatura', sortable: true },
+  { title: 'Local Cobrança', key: 'desclocalcobranca', sortable: true },
+  { title: 'Usuário', key: 'user_inc', sortable: true },
   { title: 'Ações', key: 'actions', sortable: false }
 ]
 
@@ -704,9 +648,9 @@ const formData = reactive({
   especie: '',
   id_tipodocumen: null,
   id_fornecedor: null,
+  id_planoconta: null,
   observacao: '',
   vlroriginal: null,
-  origem: '',
   qtdparcelas: 1,
   dtemissao: '',
   // Campos simplificados
@@ -726,24 +670,26 @@ const tiposDocumento = ref([])
 const locaisCobranca = ref([])
 const pessoas = ref([])
 
-// Controle dos modais
-const modalTipoDocumento = ref(false)
-const modalLocalCobranca = ref(false)
-const loadingModal = ref(false)
-const formTipoDocValido = ref(false)
-const formLocalCobrancaValido = ref(false)
-const formTipoDocRef = ref(null)
-const formLocalCobrancaRef = ref(null)
+// Campos de texto para os menus
+const tipoDocumentoSelecionado = ref('')
+const planoContaSelecionado = ref('')
 
-// Dados dos formulários dos modais
-const novoTipoDoc = reactive({
-  descricaodocumento: '',
-  abreviatura: ''
-})
 
-const novoLocalCobranca = reactive({
-  desclocalcobranca: ''
-})
+
+// Função para formatação monetária brasileira
+const formatarMoeda = (valor) => {
+  if (!valor && valor !== 0) return 'R$ 0,00'
+  
+  const numero = parseFloat(valor)
+  if (isNaN(numero)) return 'R$ 0,00'
+  
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(numero)
+}
 
 // Regras de validação
 const rules = {
@@ -797,8 +743,27 @@ const carregarContasPagar = async () => {
   try {
     loading.value = true
     const dados = await financeiroStore.buscarContasPagar(idEmpresa.value)
-    contasPagar.value = dados
-    console.log('Contas a pagar carregadas:', dados)
+    
+    // A API agora retorna dados expandidos de parcelas
+    contasPagar.value = dados?.map(item => ({
+      id: item.id || null,
+      nrdocumento: item.nrdocumento || '',
+      serie: item.serie || '',
+      especie: item.especie || '',
+      id_parcela: item.id_parcela || 1,
+      qtdparcelas: item.qtdparcelas || 1,
+      dtemissao: item.dtemissao || '',
+      dtvencimento: item.dtvencimento || '',
+      fornecedor: item.fornecedor || '',
+      vlrdocumento: parseFloat(item.vlrdocumento || 0),
+      vlrparcela: parseFloat(item.vlrparcela || 0),
+      origem: item.origem || '',
+      user_inc: item.user_inc || '',
+      abreviatura: item.abreviatura || '',
+      desclocalcobranca: item.desclocalcobranca || ''
+    })) || []
+    
+    console.log('Contas a pagar carregadas:', contasPagar.value)
   } catch (error) {
     console.error('Erro ao carregar contas a pagar:', error)
     mostrarMensagem('Erro ao carregar contas a pagar', 'error')
@@ -823,10 +788,14 @@ const carregarDadosAuxiliares = async () => {
     const pessoasData = await financeiroStore.buscarPessoas()
     pessoas.value = pessoasData
 
+    // Carregar planos de conta
+    await financeiroStore.buscarPlanosConta()
+
     console.log('Dados auxiliares carregados:', {
       tiposDocumento: tiposDocumento.value,
       locaisCobranca: locaisCobranca.value,
-      pessoas: pessoas.value
+      pessoas: pessoas.value,
+      planosConta: financeiroStore.planosConta
     })
   } catch (error) {
     console.error('Erro ao carregar dados auxiliares:', error)
@@ -857,19 +826,44 @@ const abrirFormulario = () => {
 
 const editarContaPagar = (item) => {
   editando.value = true
+  
+  // Como agora cada linha é uma parcela, buscar todas as parcelas do mesmo documento
+  const parcelasDoDocumento = contasPagar.value.filter(cp => 
+    cp.nrdocumento === item.nrdocumento && 
+    cp.serie === item.serie && 
+    cp.especie === item.especie
+  )
+  
   Object.assign(formData, {
-    id: item.id,
+    id: item.id || null,
     nrdocumento: item.nrdocumento || '',
     serie: item.serie || '',
     especie: item.especie || '',
-    id_tipodocumen: item.id_tipodocumen || null,
-    id_fornecedor: item.id_fornecedor || null,
-    observacao: item.observacao || '',
-    vlroriginal: item.vlroriginal || null,
-    origem: item.origem || '',
+    id_tipodocumen: null, // Será preenchido pelos menus
+    id_fornecedor: null, // Será derivado do nome do fornecedor
+    id_planoconta: null, // Será preenchido pelos menus
+    observacao: '',
+    vlroriginal: item.vlrdocumento || null,
     qtdparcelas: item.qtdparcelas || 1,
     dtemissao: item.dtemissao || ''
   })
+  
+  // Atualizar campos de texto dos menus com os valores já existentes
+  tipoDocumentoSelecionado.value = item.abreviatura || ''
+  planoContaSelecionado.value = '' // Não temos essa informação na nova API
+  
+  // Montar as parcelas a partir dos dados retornados
+  parcelas.value = parcelasDoDocumento.map(parcela => ({
+    nrparcela: parcela.id_parcela,
+    dtvencimento: parcela.dtvencimento || '',
+    vlrparcela: parseFloat(parcela.vlrparcela || 0).toFixed(2),
+    id_localcobranca: null, // Será derivado do nome
+    localCobrancaTexto: parcela.desclocalcobranca || '',
+    _localcobrancaEdited: false,
+    observacao: ''
+  }))
+  
+  calcularTotalParcelas()
   formularioAberto.value = true
 }
 
@@ -886,9 +880,9 @@ const resetarForm = () => {
     especie: '',
     id_tipodocumen: null,
     id_fornecedor: null,
+    id_planoconta: null,
     observacao: '',
     vlroriginal: null,
-    origem: '',
     qtdparcelas: 1,
     dtemissao: '',
     juros: 0,
@@ -898,6 +892,10 @@ const resetarForm = () => {
     venc_primeira_parcela: '',
     intervalo_parcelas: 30
   })
+
+  // Limpar campos de texto dos menus
+  tipoDocumentoSelecionado.value = ''
+  planoContaSelecionado.value = ''
 
   // Limpar parcelas
   parcelas.value = []
@@ -933,9 +931,10 @@ const salvarContaPagar = async () => {
       especie: formData.especie,
       id_tipodocumento: formData.id_tipodocumen,
       id_fornecedor: formData.id_fornecedor,
+      id_planoconta: formData.id_planoconta,
       observacao: formData.observacao,
       vlroriginal: parseFloat(formData.vlroriginal),
-      origem: formData.origem,
+      origem: "FIN",
       qtdparcelas: parseInt(formData.qtdparcelas),
       dtemissao: formData.dtemissao
     }
@@ -997,91 +996,41 @@ const mostrarMensagem = (mensagem, tipo) => {
   snackbar.show = true
 }
 
-// Métodos para Modal Tipo Documento
-const abrirModalTipoDocumento = () => {
-  modalTipoDocumento.value = true
-  resetarFormTipoDocumento()
+// Funções de seleção dos menus
+const selecionarTipoDocumento = (tipoDoc) => {
+  formData.id_tipodocumen = tipoDoc.id
+  tipoDocumentoSelecionado.value = tipoDoc.abreviatura || tipoDoc.desctipodocumento || tipoDoc.descricao
 }
 
-const fecharModalTipoDocumento = () => {
-  modalTipoDocumento.value = false
-  resetarFormTipoDocumento()
+const selecionarPlanoConta = (planoConta) => {
+  formData.id_planoconta = planoConta.id
+  planoContaSelecionado.value = planoConta.descconta || planoConta.descricao
 }
 
-const resetarFormTipoDocumento = () => {
-  novoTipoDoc.descricaodocumento = ''
-  novoTipoDoc.abreviatura = ''
-  if (formTipoDocRef.value) {
-    formTipoDocRef.value.resetValidation()
-  }
-}
-
-const salvarTipoDocumento = async () => {
-  try {
-    loadingModal.value = true
+const selecionarLocalCobranca = (localCobranca, item) => {
+  item.id_localcobranca = localCobranca.id
+  item.localCobrancaTexto = localCobranca.desclocalcobranca || localCobranca.descricao
+  
+  // Aplicar a lógica de propagação da primeira parcela
+  if (item.nrparcela === 1) {
+    console.log('Propagando local cobrança da primeira parcela para todas as outras:', localCobranca.id)
     
-    const payload = {
-      descricao: novoTipoDoc.descricaodocumento,
-      abreviatura: novoTipoDoc.abreviatura
+    // Propagar para todas as outras parcelas que não foram editadas manualmente
+    for (let i = 0; i < parcelas.value.length; i++) {
+      if (parcelas.value[i].nrparcela !== 1 && !parcelas.value[i]._localcobrancaEdited) {
+        console.log(`Propagando para parcela ${parcelas.value[i].nrparcela}`)
+        parcelas.value[i].id_localcobranca = localCobranca.id
+        parcelas.value[i].localCobrancaTexto = localCobranca.desclocalcobranca || localCobranca.descricao
+      }
     }
-    
-    console.log('Salvando tipo documento:', payload)
-    await financeiroStore.criarTipoDocumento(payload)
-    
-    // Recarregar lista
-    await carregarDadosAuxiliares()
-    
-    mostrarMensagem('Tipo de documento criado com sucesso!', 'success')
-    fecharModalTipoDocumento()
-  } catch (error) {
-    console.error('Erro ao salvar tipo documento:', error)
-    mostrarMensagem('Erro ao salvar tipo de documento', 'error')
-  } finally {
-    loadingModal.value = false
+  } else {
+    // Para parcelas que não são a primeira, marcar como editada manualmente
+    item._localcobrancaEdited = true
+    console.log(`Parcela ${item.nrparcela} marcada como editada manualmente`)
   }
 }
 
-// Métodos para Modal Local Cobrança
-const abrirModalLocalCobranca = () => {
-  modalLocalCobranca.value = true
-  resetarFormLocalCobranca()
-}
 
-const fecharModalLocalCobranca = () => {
-  modalLocalCobranca.value = false
-  resetarFormLocalCobranca()
-}
-
-const resetarFormLocalCobranca = () => {
-  novoLocalCobranca.desclocalcobranca = ''
-  if (formLocalCobrancaRef.value) {
-    formLocalCobrancaRef.value.resetValidation()
-  }
-}
-
-const salvarLocalCobranca = async () => {
-  try {
-    loadingModal.value = true
-    
-    const payload = {
-      desclocalcobranca: novoLocalCobranca.desclocalcobranca
-    }
-    
-    console.log('Salvando local cobrança:', payload)
-    await financeiroStore.criarLocalCobranca(payload)
-    
-    // Recarregar lista
-    await carregarDadosAuxiliares()
-    
-    mostrarMensagem('Local de cobrança criado com sucesso!', 'success')
-    fecharModalLocalCobranca()
-  } catch (error) {
-    console.error('Erro ao salvar local cobrança:', error)
-    mostrarMensagem('Erro ao salvar local de cobrança', 'error')
-  } finally {
-    loadingModal.value = false
-  }
-}
 
 // Métodos para gerenciar parcelas
 
@@ -1092,6 +1041,8 @@ const calcularTotalParcelas = () => {
     return total + (parseFloat(parcela.vlrparcela) || 0)
   }, 0)
 }
+
+
 
 
 
@@ -1139,6 +1090,8 @@ const calcularParcelas = async () => {
           dtvencimento: parcela.dtvencimento || parcela.data_vencimento || '',
           vlrparcela: parseFloat(valorParcela || 0).toFixed(2),
           id_localcobranca: null,
+          localCobrancaTexto: '',
+          _localcobrancaEdited: false,
           observacao: parcela.observacao || `Parcela ${parcela.id_parcela || (index + 1)} de ${dadosCalculo.qtdparcelas}`
         }
       })
@@ -1178,6 +1131,8 @@ const gerarParcelaUnica = () => {
       dtvencimento: dataVencimento || '',
       vlrparcela: valorFinal.toFixed(2),
       id_localcobranca: null,
+      localCobrancaTexto: '',
+      _localcobrancaEdited: false,
       observacao: 'Parcela única'
     }]
     
@@ -1189,6 +1144,8 @@ const gerarParcelaUnica = () => {
       dtvencimento: dataVencimento || '',
       vlrparcela: '0.00',
       id_localcobranca: null,
+      localCobrancaTexto: '',
+      _localcobrancaEdited: false,
       observacao: 'Parcela única'
     }]
     totalParcelas.value = 0
@@ -1229,6 +1186,8 @@ const gerarParcelasTemporario = () => {
         dtvencimento: dataVencimento || '',
         vlrparcela: valorParcela.toFixed(2),
         id_localcobranca: null,
+        localCobrancaTexto: '',
+        _localcobrancaEdited: false,
         observacao: `Parcela ${i} de ${qtd}`
       })
     }
