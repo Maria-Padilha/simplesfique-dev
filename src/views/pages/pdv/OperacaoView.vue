@@ -9,8 +9,15 @@
 
           <div ref="printArea" class="receipt-content pa-4">
             <div class="text-center mb-4">
+              <pre class="enfeite-top">
+****************************************
+*     S I S T E M A   S I M P L E S F I Q U E     *
+****************************************
+              </pre>
+
               <h2>CUPOM NÃO FISCAL</h2>
               <p>{{ currentDate }}</p>
+              <p>----------------------------------------</p>
             </div>
 
             <v-list lines="two">
@@ -28,7 +35,16 @@
             <v-divider class="my-4"></v-divider>
 
             <div class="text-right">
-              <p class="text-h6">Total: R$ {{ total.toFixed(2) }}</p>
+              <p class="text-h6">TOTAL: R$ {{ total.toFixed(2) }}</p>
+            </div>
+
+            <div class="text-center mt-4">
+              <p>----------------------------------------</p>
+              <pre class="enfeite-bottom">
+****************************************
+*     OBRIGADO POR UTILIZAR O SIMPLESFIQUE     *
+****************************************
+              </pre>
             </div>
           </div>
 
@@ -78,32 +94,22 @@ const handlePrint = () => {
     '<html lang="pt-BR">',
     '<head>',
     '<meta charset="UTF-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">', // importante
+    '<meta name="viewport" content="width=device-width, initial-scale=1">',
     '<title>Impressão PDV</title>',
     '<style>',
     '@page { size: 80mm; margin: 0; }',
-    'html, body { width: 80mm; height: auto; margin: 0; padding: 0; }',
+    'html, body { width: 80mm; margin: 0; padding: 0; }',
     'body { font-family: "Courier New", monospace; margin: 0; padding: 0; -webkit-print-color-adjust: exact; color: #000; }',
-    '.receipt-content { width: 80mm; max-width: 80mm; box-sizing: border-box; font-size: 6mm; margin: 0 auto; color: #000; font-weight: 900; letter-spacing: 0.5px; line-height: 1.02; text-rendering: optimizeLegibility; -webkit-font-smoothing: none; filter: contrast(1.2); }',
-    '.receipt-content h2 { font-size: 10.5mm; margin-bottom: 6px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }',
-    '.receipt-content p, .receipt-content li { font-size: 7mm; font-weight: 900; text-shadow: 0 0 1.4px rgba(0,0,0,1); color: #000; }',
+    '.receipt-content { width: 80mm; max-width: 80mm; box-sizing: border-box; font-size: 3.4mm; margin: 0 auto; color: #000; font-weight: 700; letter-spacing: 0.4px; line-height: 1.05; text-rendering: optimizeLegibility; -webkit-font-smoothing: none; filter: contrast(1.2); }',
+    '.receipt-content pre { font-size: 3.4mm; line-height: 1.05; margin: 4px 0; }',
+    '.receipt-content h2 { font-size: 4.2mm; margin: 6px 0; font-weight: 900; text-transform: uppercase; }',
+    '.receipt-content p, .receipt-content li { font-size: 3.4mm; }',
+    '.text-center { text-align: center; }',
+    '.text-right { text-align: right; }',
+    '.enfeite-top, .enfeite-bottom { text-align: center; white-space: pre; }',
     '@media print {',
     '  html, body { width: 80mm !important; }',
-    '  .receipt-content {',
-    '    /* escala maior para leitura em térmica */',
-    '    transform: scale(1.4);',
-    '    transform-origin: 0 0;',
-    '    /* ajustar largura base para compensar o scale */',
-    '    width: calc(80mm / 1.4) !important;',
-    '    max-width: calc(80mm / 1.4) !important;',
-    '    font-weight: 500;',
-    '    color: #000;',
-    '    line-height: 1.0;',
-    '    text-shadow: 0 0 1.6px rgba(0,0,0,1);',
-    '    filter: contrast(1.25);',
-    '  }',
-    '  .receipt-content h2 { font-size: 3.8mm !important; }',
-    '  .receipt-content p, .receipt-content li { font-size: 1ssmm !important; }',
+    '  .receipt-content { transform: none !important; font-size: 3.4mm; }',
     '}',
     '</style>',
     '</head>',
@@ -127,47 +133,18 @@ const handlePrint = () => {
   padding: 1rem;
 }
 
-@media print {
-  @page {
-    size: 80mm; /* largura fixa da bobina */
-    margin: 0;
-  }
+.receipt-content {
+  font-family: 'Courier New', monospace;
+  text-align: left;
+}
 
-  html, body {
-    width: 80mm;
-    margin: 0;
-    padding: 0;
-  }
-
-  .receipt-content {
-    width: 80mm;
-    max-width: 80mm;
-    box-sizing: border-box;
-    font-family: 'Courier New', monospace;
-    font-size: 2mm;
-    margin: 0 auto;
-    color: #000;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    line-height: 1.02;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: none;
-    filter: contrast(1.2);
-  }
-
-  .receipt-content h2 {
-    font-size: 10.5mm;
-    margin-bottom: 6px;
-    font-weight: 500;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  .receipt-content p,
-  .receipt-content li {
-    font-size: 7mm;
-    font-weight: 500;
-    text-shadow: 0 0 1.4px rgba(0,0,0,1);
-  }
+.enfeite-top,
+.enfeite-bottom {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  text-align: center;
+  white-space: pre;
+  line-height: 1.05;
+  font-size: 3.4mm;
 }
 </style>
