@@ -81,15 +81,29 @@ const handlePrint = () => {
     '<meta name="viewport" content="width=device-width, initial-scale=1">', // importante
     '<title>Impressão PDV</title>',
     '<style>',
-    '@page { size: 80mm; margin: 0; }', // corrigido: removido "auto"
+    '@page { size: 80mm; margin: 0; }',
     'html, body { width: 80mm; height: auto; margin: 0; padding: 0; }',
-    'body { font-family: "Courier New", monospace; margin: 0; padding: 0; -webkit-print-color-adjust: exact; }',
-    '.receipt-content { width: 80mm; max-width: 80mm; box-sizing: border-box; font-size: 12px; margin: 0 auto; }',
-    '.receipt-content h2 { font-size: 14px; margin-bottom: 8px; }',
-    '.receipt-content p, .receipt-content li { font-size: 12px; }',
+    'body { font-family: "Courier New", monospace; margin: 0; padding: 0; -webkit-print-color-adjust: exact; color: #000; }',
+    '.receipt-content { width: 80mm; max-width: 80mm; box-sizing: border-box; font-size: 6mm; margin: 0 auto; color: #000; font-weight: 900; letter-spacing: 0.5px; line-height: 1.02; text-rendering: optimizeLegibility; -webkit-font-smoothing: none; filter: contrast(1.2); }',
+    '.receipt-content h2 { font-size: 10.5mm; margin-bottom: 6px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }',
+    '.receipt-content p, .receipt-content li { font-size: 7mm; font-weight: 900; text-shadow: 0 0 1.4px rgba(0,0,0,1); color: #000; }',
     '@media print {',
     '  html, body { width: 80mm !important; }',
-    '  .receipt-content { width: 80mm !important; }',
+    '  .receipt-content {',
+    '    /* escala maior para leitura em térmica */',
+    '    transform: scale(1.4);',
+    '    transform-origin: 0 0;',
+    '    /* ajustar largura base para compensar o scale */',
+    '    width: calc(80mm / 1.4) !important;',
+    '    max-width: calc(80mm / 1.4) !important;',
+    '    font-weight: 900;',
+    '    color: #000;',
+    '    line-height: 1.0;',
+    '    text-shadow: 0 0 1.6px rgba(0,0,0,1);',
+    '    filter: contrast(1.25);',
+    '  }',
+    '  .receipt-content h2 { font-size: 10.8mm !important; }',
+    '  .receipt-content p, .receipt-content li { font-size: 7.2mm !important; }',
     '}',
     '</style>',
     '</head>',
@@ -130,17 +144,30 @@ const handlePrint = () => {
     max-width: 80mm;
     box-sizing: border-box;
     font-family: 'Courier New', monospace;
-    font-size: 12px;
+    font-size: 6mm;
     margin: 0 auto;
+    color: #000;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    line-height: 1.02;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: none;
+    filter: contrast(1.2);
   }
 
   .receipt-content h2 {
-    font-size: 14px;
+    font-size: 10.5mm;
+    margin-bottom: 6px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
   }
 
   .receipt-content p,
   .receipt-content li {
-    font-size: 12px;
+    font-size: 7mm;
+    font-weight: 900;
+    text-shadow: 0 0 1.4px rgba(0,0,0,1);
   }
 }
 </style>
