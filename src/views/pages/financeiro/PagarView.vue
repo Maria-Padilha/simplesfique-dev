@@ -557,11 +557,186 @@
             </span>
             <span v-else class="text-grey">-</span>
           </template>
+
+          <!-- Ações personalizadas -->
+          <template v-slot:[`item.actions`]="{ item }">
+            <div class="d-flex gap-1">
+              <!-- Visualizar Imagem -->
+              <v-btn
+                icon="mdi-eye"
+                size="small"
+                color="info"
+                variant="text"
+                title="Visualizar Imagem"
+                @click="visualizarImagem(item)"
+              ></v-btn>
+              
+              <!-- Editar -->
+              <v-btn
+                icon="mdi-pencil"
+                size="small"
+                color="primary"
+                variant="text"
+                title="Editar"
+                @click="editarContaPagar(item)"
+              ></v-btn>
+              
+              <!-- Excluir -->
+              <v-btn
+                icon="mdi-delete"
+                size="small"
+                color="error"
+                variant="text"
+                title="Excluir"
+                @click="confirmarExclusao(item)"
+              ></v-btn>
+            </div>
+          </template>
         </TabelaPadrao>
       </v-card-text>
     </v-card>
 
 
+
+    <!-- Modal de Visualização de Imagem -->
+    <v-dialog 
+      v-model="modalImagem.aberto" 
+      max-width="800px"
+      :persistent="false"
+    >
+      <v-card>
+        <v-card-title class="d-flex align-center justify-space-between pa-4">
+          <div class="d-flex align-center">
+            <v-icon icon="mdi-image" class="mr-2" color="primary"></v-icon>
+            <span>Imagem - Documento {{ modalImagem.documento }}</span>
+          </div>
+          <v-btn
+            icon="mdi-close"
+            size="small"
+            variant="text"
+            @click="fecharModalImagem"
+          ></v-btn>
+        </v-card-title>
+        
+        <v-divider></v-divider>
+        
+        <v-card-text class="pa-4">
+          <div class="text-center">
+            <!-- Loading -->
+            <div v-if="modalImagem.carregando" class="pa-8">
+              <v-progress-circular
+                indeterminate
+                color="primary"
+                size="64"
+              ></v-progress-circular>
+              <p class="mt-4 text-grey">Carregando imagem...</p>
+            </div>
+            
+            <!-- Erro -->
+            <div v-else-if="modalImagem.erro" class="pa-8">
+              <v-icon 
+                icon="mdi-alert-circle-outline" 
+                size="64" 
+                color="error"
+              ></v-icon>
+              <p class="mt-4 text-error">{{ modalImagem.mensagemErro }}</p>
+            </div>
+            
+            <!-- Imagem -->
+            <div v-else-if="modalImagem.urlImagem" class="pa-2">
+              <v-img
+                :src="modalImagem.urlImagem"
+                :alt="`Imagem do documento ${modalImagem.documento}`"
+                max-height="500"
+                contain
+                class="mx-auto"
+              >
+                <template v-slot:error>
+                  <div class="d-flex align-center justify-center fill-height">
+                    <v-icon 
+                      icon="mdi-image-broken-variant" 
+                      size="64" 
+                      color="grey"
+                    ></v-icon>
+                  </div>
+                </template>
+              </v-img>
+            </div>
+            
+            <!-- Sem imagem -->
+            <div v-else class="pa-8">
+              <v-icon 
+                icon="mdi-image-off" 
+                size="64" 
+                color="grey"
+              ></v-icon>
+              <p class="mt-4 text-grey">Nenhuma imagem vinculada a este documento</p>
+            </div>
+          </div>
+        </v-card-text>
+        
+        <v-divider></v-divider>
+        
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn
+            v-if="modalImagem.urlImagem && !modalImagem.carregando"
+            color="primary"
+            variant="outlined"
+            :href="modalImagem.urlImagem"
+            target="_blank"
+            prepend-icon="mdi-download"
+          >
+            Baixar Imagem
+          </v-btn>
+          <v-btn
+            color="grey"
+            variant="text"
+            @click="fecharModalImagem"
+          >
+            Fechar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog de Confirmação de Exclusão -->
+    <v-dialog 
+      v-model="dialogExclusao.aberto" 
+      max-width="400px"
+      persistent
+    >
+      <v-card>
+        <v-card-title class="text-h6">
+          <v-icon icon="mdi-delete-alert" color="error" class="mr-2"></v-icon>
+          Confirmar Exclusão
+        </v-card-title>
+        <v-card-text>
+          Tem certeza que deseja excluir a parcela do documento 
+          <strong>{{ dialogExclusao.item?.nrdocumento }}</strong>?
+          <br><br>
+          Esta ação não pode ser desfeita.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="grey"
+            variant="text"
+            @click="dialogExclusao.aberto = false"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="error"
+            variant="flat"
+            @click="confirmarExclusaoFinal"
+            :loading="loading"
+          >
+            Excluir
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Snackbar para feedback -->
     <v-snackbar
@@ -610,6 +785,23 @@ const snackbar = reactive({
   show: false,
   message: '',
   color: 'success'
+})
+
+// Modal de visualização de imagem
+const modalImagem = reactive({
+  aberto: false,
+  carregando: false,
+  erro: false,
+  mensagemErro: '',
+  urlImagem: '',
+  documento: '',
+  item: null
+})
+
+// Dialog de confirmação de exclusão
+const dialogExclusao = reactive({
+  aberto: false,
+  item: null
 })
 
 // Headers da tabela
@@ -994,6 +1186,62 @@ const mostrarMensagem = (mensagem, tipo) => {
   snackbar.message = mensagem
   snackbar.color = tipo
   snackbar.show = true
+}
+
+// Função para visualizar imagem vinculada
+const visualizarImagem = async (item) => {
+  try {
+    modalImagem.aberto = true
+    modalImagem.carregando = true
+    modalImagem.erro = false
+    modalImagem.documento = item.nrdocumento
+    modalImagem.item = item
+    
+    // Buscar imagem vinculada ao documento
+    const imagemData = await financeiroStore.buscarImagemContaPagar(idEmpresa.value, item.id)
+    
+    if (imagemData?.success && imagemData.data?.url) {
+      modalImagem.urlImagem = imagemData.data.url
+    } else if (imagemData?.data?.base64) {
+      // Se retornar base64, converter para URL
+      modalImagem.urlImagem = `data:image/jpeg;base64,${imagemData.data.base64}`
+    } else {
+      modalImagem.erro = true
+      modalImagem.mensagemErro = 'Nenhuma imagem encontrada para este documento'
+    }
+  } catch (error) {
+    console.error('Erro ao carregar imagem:', error)
+    modalImagem.erro = true
+    modalImagem.mensagemErro = 'Erro ao carregar a imagem. Tente novamente.'
+  } finally {
+    modalImagem.carregando = false
+  }
+}
+
+// Função para fechar modal de imagem
+const fecharModalImagem = () => {
+  modalImagem.aberto = false
+  modalImagem.carregando = false
+  modalImagem.erro = false
+  modalImagem.mensagemErro = ''
+  modalImagem.urlImagem = ''
+  modalImagem.documento = ''
+  modalImagem.item = null
+}
+
+// Função para abrir dialog de confirmação de exclusão
+const confirmarExclusao = (item) => {
+  dialogExclusao.item = item
+  dialogExclusao.aberto = true
+}
+
+// Função para confirmar exclusão final
+const confirmarExclusaoFinal = async () => {
+  if (dialogExclusao.item) {
+    await excluirContaPagar(dialogExclusao.item)
+    dialogExclusao.aberto = false
+    dialogExclusao.item = null
+  }
 }
 
 // Funções de seleção dos menus
