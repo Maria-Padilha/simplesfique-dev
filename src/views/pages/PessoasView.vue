@@ -12,7 +12,7 @@
 
     <v-card elevation="0" class="background-secondary">
       <v-card-text class="pa-4">
-        <botao-expand-transition :formulario-aberto="formularioAberto" :toggle-formulario="toggleFormulario">
+        <botao-expand-transition :formulario-aberto="formularioAberto" @toggle="toggleFormulario">
           <template #default>{{ formularioAberto ? 'Cancelar' : 'Nova Pessoa' }}</template>
         </botao-expand-transition>
 

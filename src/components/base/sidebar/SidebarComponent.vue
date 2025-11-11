@@ -128,12 +128,19 @@
         <v-list-item
             v-for="(submenu, i) in modulo.submenus"
             :key="i"
-            class="pl-5"
-            :title="submenu.text"
+            class="submenu-item"
+
             :to="submenu.route"
             :prepend-icon="submenu.icon"
             density="comfortable"
-        />
+        >
+          <template #prepend>
+            <v-icon :icon="submenu.icon" size="21px" />
+          </template>
+          <template #title>
+            <span class="span">{{submenu.text}}</span>
+          </template>
+        </v-list-item>
       </v-list-group>
 
 <!--      <v-list-group value="cep">-->
@@ -274,5 +281,16 @@ onBeforeUnmount(() => {
 
 .menu-scroll {
   scrollbar-color: transparent transparent;
+}
+
+.submenu-item {
+  padding-left: 30px !important; /* padrão costuma ser 24px ou mais */
+}
+.submenu-item .v-list-item__prepend {
+  margin-right: 8px !important; /* ajusta o espaço entre ícone e texto */
+}
+.span {
+  font-size: 12px !important;
+  opacity: .9;
 }
 </style>

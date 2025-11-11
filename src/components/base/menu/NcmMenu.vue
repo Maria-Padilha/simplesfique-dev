@@ -51,12 +51,12 @@ watchEffect(() => {
 })
 
 watch( () => termoPesquisa.value, async (pesquisa) => {
-  if (!pesquisa || pesquisa.lenght < 2) {
+  if (!pesquisa || pesquisa.length < 3) {
     ncms.value = [];
     return;
   }
   console.log("Pesquisando Ncm: ", pesquisa);
-  await estoqueStore.buscarNcms(pesquisa);
+  await estoqueStore.buscarNcms(pesquisa, 0);
 })
 
 const selecionarNcm = (NcmSelecionado) => {

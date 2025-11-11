@@ -523,5 +523,176 @@ API sendo consumida em: stores/APIs/localizacao.js
     "ativo": "S"
   }]
 }
+
+tipo: 
+
+1=HORA
+2=MES
+3=ANO
+4=KM
 ```
 
+### PRODUTO:
+
+| Método | Endpoint       | Operação  |
+| ------ | -------------- | --------- |
+| POST   | `/produto`     | CADASTRAR |
+| GET    | `/produto`     | LISTAR    |
+| GET    | `/produto/:id` | OBTER     |
+| PUT    | `/produto/:id` | ALTERAR   |
+| DELETE | `/produto/:id` | DELETAR   |
+
+```bash
+### Exemplo de JSON para cadastro/alteração de produto:
+{
+  "data": [{
+  "descproduto": "Catalisador Toyota Corolla 1.8",
+  "aplicacao": "A",
+  "tipo": "P",
+  "codigo_gtin": "7896541230001",
+  "codigo_sku": "CAT-COROLLA-18",
+  "codigo_fab": "COR18CAT",
+  "codigo_ref": "REF12345",
+  "id_grupo": 3,
+  "id_subgrupo": 14,
+  "id_marca": 5,
+  "id_medida": 2,
+  "id_classe": 7,
+  "id_garantia": 1,
+  "utiliza_balanca": "N",
+  "utiliza_grade": "S",
+  "utiliza_nserie": "N",
+  "utiliza_lote": "N",
+  "id_ncm": "84213925",
+  "em_promocao": "N",
+  "observacao": "Produto revisado, original.",
+  "ativo": "S"
+}]
+}
+
+Tipo: 
+
+P = Produto
+S = Serviço
+
+Aplicação:
+
+V=PRODUTO PARA COMERCIALIZAÇÃO VENDA
+C=PRODUTO PARA CONSUMO 
+M=MATÉRIA-PRIMA
+I=IMOBILIZADO
+```
+
+### PRODUTO - EMBALAGEM:
+
+| Método | Endpoint             | Operação  |
+| ------ | -------------------- | --------- |
+| POST   | `/proemb`            | CADASTRAR |
+| GET    | `/proemb/:idpro`     | LISTAR    |
+| GET    | `/proemb/:idpro/:id` | OBTER     |
+| PUT    | `/proemb/:idpro/:id` | ALTERAR   |
+| DELETE | `/proemb/:idpro/:id` | DELETAR   |
+
+```bash
+### Exemplo de JSON para cadastro/alteração de embalagem de produto:
+{
+  "data": [{
+  "id_produto": 10,
+  "qtd_embalagem": 2.0000,
+  "descembalagem": "Caixa reforçada tamanho M",
+  "ativo": "S"
+}]
+}
+```
+
+### PRODUTO - FORNECEDOR:
+
+| Método | Endpoint             | Operação  |
+| ------ | -------------------- | --------- |
+| POST   | `/profor`            | CADASTRAR |
+| GET    | `/profor/:idpro`     | LISTAR    |
+| GET    | `/profor/:idpro/:id` | OBTER     |
+| PUT    | `/profor/:idpro/:id` | ALTERAR   |
+| DELETE | `/profor/:idpro/:id` | DELETAR   |
+
+```bash
+### Exemplo de JSON para cadastro/alteração de fornecedor de produto:
+{
+  "data": [{
+  "id_pessoa": 22,
+  "id_nota": 15789,
+  "id_serie": "A1",
+  "dtultima_compra": "2025-02-13T14:32:00",
+  "qtde_ultima_compra": 10.0000,
+  "custo_ultima_compra": 520.90
+}]
+}
+```
+
+### PRODUTO - IMAGEM:
+
+| Método | Endpoint              | Operação  |
+| ------ | --------------------- | --------- |
+| POST   | `/profoto`            | CADASTRAR |
+| GET    | `/profoto/:idpro`     | LISTAR    |
+| GET    | `/profoto/:idpro/:id` | OBTER     |
+| PUT    | `/profoto/:idpro/:id` | ALTERAR   |
+| DELETE | `/profoto/:idpro/:id` | DELETAR   |
+
+```bash
+### Exemplo de JSON para cadastro/alteração de imagem de produto:
+{
+  "data": [{
+  "foto": "iVBORw0KGgoAAAANSUhEUgAAAoAAAADgCAYAAADH...",
+  "ativo": "S"
+}]
+}
+```
+
+### PRODUTO - KIT:
+
+| Método | Endpoint                       | Operação  |
+| ------ | ------------------------------ | --------- |
+| POST   | `/prokit`                      | CADASTRAR |
+| GET    | `/prokit/:idpro`     | LISTAR    |
+| GET    | `/prokit/:idpro/:id` | OBTER     |
+| PUT    | `/prokit/:idpro/:id` | ALTERAR   |
+| DELETE | `/prokit/:idpro/:id` | DELETAR   |
+
+```bash
+### Exemplo de JSON para cadastro/alteração de kit de produto:
+{
+  "data": [{
+  "id_cor": "001",
+  "id_tamanho": "G",
+  "quantidade": 5.0000,
+  "perc_desconto": 10.00,
+  "perc_comissao": 5.00,
+  "preco_venda_kit": 3980.500,
+  "margem": 35.50,
+  "ativo": "S"
+}]
+}
+```
+
+### PRODUTO SIMILAR:
+
+| Método | Endpoint             | Operação  |
+| ------ | -------------------- | --------- |
+| POST   | `/prosim`            | CADASTRAR |
+| GET    | `/prosim/:idpro`     | LISTAR    |
+| GET    | `/prosim/:idpro/:id` | OBTER     |
+| PUT    | `/prosim/:idpro/:id` | ALTERAR   |
+| DELETE | `/prosim/:idpro/:id` | DELETAR   |
+
+```bash
+### Exemplo de JSON para cadastro/alteração de produto similar:
+{
+  "id_produto": 10,
+  "descproduto": "Catalisador Corolla 1.8 – Similar",
+  "id_modelo": 3,
+  "id_marca": 5,
+  "id_pessoa": 22,
+  "ativo": "S"
+}
+```
