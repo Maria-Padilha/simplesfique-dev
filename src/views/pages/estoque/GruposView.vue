@@ -8,7 +8,7 @@
           <botao-expand-transition
               v-if="!exibirSubGrupo"
               :formulario-aberto="formularioAberto"
-              :toggle-formulario="toggleFormulario"
+              @toggle="toggleFormulario"
           >
             <template #default>{{ formularioAberto ? 'Cancelar' : 'Novo Grupo' }}</template>
           </botao-expand-transition>
@@ -17,7 +17,7 @@
           <botao-expand-transition
               v-if="exibirSubGrupo"
               :formulario-aberto="formularioAbertoSub"
-              :toggle-formulario="toggleFormularioSub"
+              @toggle="toggleFormularioSub"
           >
             <template #default>{{ formularioAberto ? 'Cancelar' : 'Novo SubGrupo' }}</template>
           </botao-expand-transition>
@@ -35,10 +35,6 @@
               <v-card-text class="pa-4">
                 <v-form ref="formRef">
                   <v-row dense>
-                    <v-col cols="12">
-                      <v-switch hide-details label="Produto Ativo" v-model="form.ativo" color="var(--text-color-laranja)" />
-                    </v-col>
-
                     <v-col cols="12" md="6">
                       <v-text-field
                           density="compact"
@@ -102,10 +98,6 @@
               <v-card-text class="pa-4">
                 <v-form ref="formRef">
                   <v-row>
-                    <v-col cols="12">
-                      <v-switch hide-details label="Subgrupo Ativo" v-model="formSub.ativo" color="var(--text-color-laranja)" />
-                    </v-col>
-
                     <v-col cols="12" md="6">
                       <v-text-field
                           density="compact"
@@ -360,56 +352,28 @@
       </v-card>
 
       <!-- MODAL EXIBIR IMAGEM -->
-      <v-dialog v-model="modalImagem" max-width="450">
-        <v-card class="background-secondary" elevation="0">
-          <v-card-title class="background-laranja">
-            <div class="flex items-center justify-between text-white">
-              <p class="text-xl font-semibold">{{ imagemAlt }}</p>
-              <v-btn icon="mdi-close" @click="fecharModal" variant="text" />
-            </div>
-          </v-card-title>
-
-          <v-card-text>
-            <v-img :src="decodificarImagemBase64(imagemSrc)" aspect-ratio="1.75" :alt="imagemAlt" class="rounded-md" />
-          </v-card-text>
-        </v-card>
-      </v-dialog>
+      <exibir-imagem-modal
+          :fechar-modal="fecharModal"
+          v-model:modal-imagem="modalImagem"
+          :imagem-alt="imagemAlt"
+          :imagem-src="decodificarImagemBase64(imagemSrc)"
+      />
 
       <!-- MODAL CONFIRMAR EXCLUSÃO -->
-      <v-dialog v-model="modalExcluir" max-width="400">
-        <v-card class="background-secondary" elevation="0">
-          <v-card-title class="px-4 mt-5">
-            <div class="w-100 flex flex-col items-center justify-center">
-              <v-icon icon="mdi-close-circle-outline" color="red" size="70px" class="opacity-70 mb-2" />
-              <p class="text-xl font-semibold texto-color-primary">
-                Excluir {{tipoSelecionado?.tipo === 'grupo' ?
-                  tipoSelecionado?.itemSelecionado?.descgrupo :
-                  tipoSelecionado?.tipo === 'subgrupo' ?
-                  tipoSelecionado?.itemSelecionado?.descsubgrupo : ''
-                }}?
-              </p>
-            </div>
-          </v-card-title>
-
-          <v-card-text class="px-4">
-            Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.
-          </v-card-text>
-
-          <v-card-actions class="pa-4">
-            <v-spacer></v-spacer>
-            <v-btn color="grey" variant="text" @click="modalExcluir = false" size="small">Cancelar</v-btn>
-
-            <v-btn
-                color="error"
-                :loading="loading"
-                @click="deletar"
-                variant="flat" size="small"
-                class="text-white">
-              Excluir
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+      <excluir-modal
+          v-model:modal-excluir="modalExcluir"
+          :deletar="deletar"
+          :loading="loading"
+          :cancelar="cancelarModalExcluir"
+      >
+        <template #item>
+          {{tipoSelecionado?.tipo === 'grupo' ?
+            tipoSelecionado?.itemSelecionado?.descgrupo :
+            tipoSelecionado?.tipo === 'subgrupo' ?
+                tipoSelecionado?.itemSelecionado?.descsubgrupo : ''
+          }}
+        </template>
+      </excluir-modal>
     </template>
   </top-all-pages>
 </template>
@@ -421,6 +385,8 @@ import {useThemeStore} from "@/stores/config-temas/theme";
 import {useEstoqueStore} from "@/stores/APIs/estoque";
 import {ref, computed, watchEffect, reactive} from "vue";
 import {toast} from "vue3-toastify";
+import ExcluirModal from "@/components/base/modais/ExcluirModal.vue";
+import ExibirImagemModal from "@/components/base/modais/ExibirImagemModal.vue";
 
 const themeStore = useThemeStore();
 const estoqueStore = useEstoqueStore();
@@ -439,7 +405,7 @@ watchEffect(() => {
 const headers = ref([
   {title: "ID", key: "id", align: "center"},
   {title: "Foto", key: "foto", align: "start"},
-  {title: "Descrição", key: "descgrupo", align: "start"},
+  {title: "Descrição do Grupo", key: "descgrupo", align: "start"},
   {title: "Ativo", key: "ativo", align: "start"},
   {title: "Ações", key: "acoes", align: "center", sortable: false},
   {title: "Sub Grupos", key: "subgrupos", align: "center", sortable: false},
@@ -448,8 +414,8 @@ const headers = ref([
 const headersSub = ref([
   {title: "ID", key: "id", align: "center"},
   {title: "Foto", key: "foto", align: "start"},
-  {title: "Descrição", key: "descsubgrupo", align: "start"},
-  {title: "Grupo", key: "descgrupo", align: "start"},
+  {title: "Descrição do Subgrupo", key: "descsubgrupo", align: "start"},
+  {title: "Pertence ao Grupo", key: "descgrupo", align: "start"},
   {title: "Comissão Vendedor", key: "perc_comissao_vendedor", align: "start"},
   {title: "Comissão Tecnico", key: "perc_comissao_tecnico", align: "start"},
   {title: "Ações", key: "acoes", align: "center", sortable: false},
@@ -481,7 +447,6 @@ const exibirSubGrupo = ref(false);
 const form = reactive({
   "descgrupo": "",
   "foto": "",
-  "ativo": true
 });
 
 const formSub = reactive({
@@ -491,7 +456,6 @@ const formSub = reactive({
   "indice_custo": 0.1,
   "indice_venda": 0.1,
   "foto": "",
-  "ativo": true
 });
 
 /**
@@ -533,7 +497,6 @@ const cancelarFormulario = () => {
   Object.assign(form, {
     descgrupo: "",
     foto: "",
-    ativo: true
   });
   if (formRef.value) formRef.value.resetValidation()
 };
@@ -546,7 +509,6 @@ const cancelarFormularioSub = () => {
     indice_custo: 0,
     indice_venda: 0,
     foto: "",
-    ativo: true
   });
   if (formRef.value) formRef.value.resetValidation()
 };
@@ -579,7 +541,6 @@ const grupoSelecionado = ref(null);
 
 const salvarGrupo = () => {
   form.foto = base64.value;
-  form.ativo = form.ativo ? 'S' : 'N';
 
   if (erro.value) {
     toast.error('Corrija os erros antes de salvar.');
@@ -592,7 +553,6 @@ const salvarGrupo = () => {
         {
           descgrupo: form.descgrupo,
           foto: form.foto,
-          ativo: form.ativo
         }
       ]
     });
@@ -603,7 +563,6 @@ const salvarGrupo = () => {
         {
           descgrupo: form.descgrupo,
           foto: form.foto,
-          ativo: form.ativo
         }
       ]
     }, grupoSelecionado.value);
@@ -618,36 +577,7 @@ const salvarGrupo = () => {
  */
 const editar = (item) => {
   editando.value = true
-  item.ativo = item.ativo ? 'S' : 'N'
   grupoSelecionado.value = item.id;
-
-  //
-  // if (item.foto && typeof item.foto === 'string') {
-  //   try {
-  //     // 🔧 Remove quebras de linha automáticas
-  //     let base64String = item.foto.replace(/(\r\n|\n|\r)/gm, '')
-  //
-  //     // Adiciona o cabeçalho se faltar
-  //     if (!base64String.startsWith('data:image')) {
-  //       base64String = 'data:image/jpeg;base64,' + base64String
-  //     }
-  //
-  //     // Extrai tipo MIME e conteúdo
-  //     const mimeType = base64String.match(/data:(.*?);base64/)?.[1] || 'image/jpeg'
-  //     const byteCharacters = atob(base64String.split(',')[1])
-  //     const byteNumbers = new Array(byteCharacters.length)
-  //     for (let i = 0; i < byteCharacters.length; i++) {
-  //       byteNumbers[i] = byteCharacters.charCodeAt(i)
-  //     }
-  //     const byteArray = new Uint8Array(byteNumbers)
-  //     const file = new File([byteArray], 'foto.jpg', { type: mimeType })
-  //     item.foto = [file]
-  //   } catch (err) {
-  //     console.error('Erro ao converter Base64 em File:', err)
-  //   }
-  //
-  //   console.log('Item foto convertido para File:', item)
-  // }
 
   Object.assign(form, item)
   formularioAberto.value = true
@@ -677,7 +607,6 @@ const ocultarSubgrupos = () => {
  */
 const salvarSubgrupo = () => {
   formSub.foto = base64.value;
-  formSub.ativo = formSub.ativo ? 'S' : 'N';
 
   if (!editando.value) {
     estoqueStore.cadastrarSubgrupo({
@@ -689,7 +618,6 @@ const salvarSubgrupo = () => {
           indice_custo: formSub.indice_custo,
           indice_venda: formSub.indice_venda,
           foto: formSub.foto,
-          ativo: formSub.ativo,
           grupo_id: grupoSelecionado.value.id
         }
       ]
@@ -705,7 +633,6 @@ const salvarSubgrupo = () => {
           indice_custo: formSub.indice_custo,
           indice_venda: formSub.indice_venda,
           foto: formSub.foto,
-          ativo: formSub.ativo,
           grupo_id: grupoSelecionado.value.id
         }
       ]
@@ -720,7 +647,6 @@ const salvarSubgrupo = () => {
  */
 const editarSub = (item) => {
   editando.value = true
-  item.ativo = item.ativo === 'S'
   subgrupoSelecionado.value = item.id;
 
   Object.assign(formSub, item)
@@ -733,6 +659,10 @@ const editarSub = (item) => {
  */
 const modalExcluir = ref(false);
 const tipoSelecionado = ref({});
+
+const cancelarModalExcluir = () => {
+  modalExcluir.value = false;
+};
 
 const confirmarExclusao = (item, tipo) => {
   modalExcluir.value = true;

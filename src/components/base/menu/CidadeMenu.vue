@@ -18,7 +18,7 @@
               class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
               @click="selecionar(item)"
           >
-            <p class="text-body-1">{{ item.DESCCIDADE + ' - ' + item.ID_UF }}</p>
+            <p class="text-body-1">{{ item.desccidade + ' - ' + item.id_uf }}</p>
           </div>
         </template>
       </v-virtual-scroll>

@@ -111,33 +111,31 @@ const routes = [
         component: CentroDeCustoView
     },
     {
-      path: '/paginas/financeiro/caixa',
-      name: 'financeiro_caixa',
-      component: CaixaView
+        path: '/paginas/financeiro/caixa',
+        name: 'financeiro_caixa',
+        component: CaixaView
     },
     {
-      path: '/paginas/financeiro/planoconta',
-      name: 'financeiro_planoconta',
-      component: PlanoContaView
+        path: '/paginas/financeiro/planoconta',
+        name: 'financeiro_planoconta',
+        component: PlanoContaView
     },
 
     // páginas do estoque
     {
-      path: '/paginas/estoque/grupo',
-      name: 'grupo',
-      component: () => import('@/views/pages/estoque/GruposView.vue')
+        path: '/paginas/estoque/grupo',
+        name: 'grupo',
+        component: () => import('@/views/pages/estoque/GruposView.vue')
     },
     {
-      path: '/paginas/estoque/ncm',
-      name: 'ncm'
+        path: '/paginas/estoque/classe',
+        name: 'classe',
+        component: () => import('@/views/pages/estoque/ClassesView.vue')
     },
     {
-      path: '/paginas/estoque/cest',
-      name: 'cest'
-    },
-    {
-      path: '/paginas/estoque/nbs',
-      name: 'nbs'
+        path: '/paginas/estoque/cest',
+        name: 'cest',
+        component: () => import('@/views/pages/estoque/CestView.vue')
     },
 
     //    Páginas do site
