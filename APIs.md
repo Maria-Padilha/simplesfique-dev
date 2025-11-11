@@ -598,7 +598,6 @@ I=IMOBILIZADO
 {
   "data": [{
   "id_produto": 10,
-  "id_seq": 1,
   "qtd_embalagem": 2.0000,
   "descembalagem": "Caixa reforçada tamanho M",
   "ativo": "S"
@@ -652,13 +651,13 @@ I=IMOBILIZADO
 
 ### PRODUTO - KIT:
 
-| Método | Endpoint                           | Operação  |
-| ------ | ---------------------------------- | --------- |
-| POST   | `/prokit`                          | CADASTRAR |
-| GET    | `/prokit/:idpro/:idcor/:idtam`     | LISTAR    |
-| GET    | `/prokit/:idpro/:idcor/:idtam/:id` | OBTER     |
-| PUT    | `/prokit/:idpro/:idcor/:idtam/:id` | ALTERAR   |
-| DELETE | `/prokit/:idpro/:idcor/:idtam/:id` | DELETAR   |
+| Método | Endpoint                       | Operação  |
+| ------ | ------------------------------ | --------- |
+| POST   | `/prokit`                      | CADASTRAR |
+| GET    | `/prokit/:idpro`     | LISTAR    |
+| GET    | `/prokit/:idpro/:id` | OBTER     |
+| PUT    | `/prokit/:idpro/:id` | ALTERAR   |
+| DELETE | `/prokit/:idpro/:id` | DELETAR   |
 
 ```bash
 ### Exemplo de JSON para cadastro/alteração de kit de produto:
@@ -676,3 +675,24 @@ I=IMOBILIZADO
 }
 ```
 
+### PRODUTO SIMILAR:
+
+| Método | Endpoint             | Operação  |
+| ------ | -------------------- | --------- |
+| POST   | `/prosim`            | CADASTRAR |
+| GET    | `/prosim/:idpro`     | LISTAR    |
+| GET    | `/prosim/:idpro/:id` | OBTER     |
+| PUT    | `/prosim/:idpro/:id` | ALTERAR   |
+| DELETE | `/prosim/:idpro/:id` | DELETAR   |
+
+```bash
+### Exemplo de JSON para cadastro/alteração de produto similar:
+{
+  "id_produto": 10,
+  "descproduto": "Catalisador Corolla 1.8 – Similar",
+  "id_modelo": 3,
+  "id_marca": 5,
+  "id_pessoa": 22,
+  "ativo": "S"
+}
+```
