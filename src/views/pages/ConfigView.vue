@@ -1,5 +1,5 @@
 <template>
-  <TopAllPages :items="['home', 'configurações']">
+  <top-all-pages icon="mdi-cog-outline">
     <template #titulo>Configurações</template>
     <template #section>
       <!-- CONTAINER PRINCIPAL COM LAYOUT SIDEBAR + CONTENT -->
@@ -10,7 +10,7 @@
 
 
           <!-- SCROLL DO MENU -->
-          <div class="overflow-y-auto max-h-[calc(100vh-200px)]">
+          <div class="">
             <!-- LISTA DE SEÇÕES -->
             <div
                 v-for="secao in configStore.getSecoesConfig()"
@@ -42,7 +42,7 @@
 
       </div>
     </template>
-  </TopAllPages>
+  </top-all-pages>
 </template>
 
 <script setup>
@@ -80,23 +80,5 @@ const obterComponente = (nomeComponente) => {
 .background-sidebar {
   background: var(--bg-navbar);
   color: white;
-}
-
-/* Scroll customizado */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
 }
 </style>
