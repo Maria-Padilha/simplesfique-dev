@@ -1,5 +1,5 @@
 <template>
-  <top-all-pages :botao="true" :items="['Home', 'Perfil']" :salvar="atualizarPerfil" @update-editar="editarAtivo = $event">
+  <top-all-pages icon="mdi-account-circle-outline">
     <template #titulo>Perfil do Usuário</template>
 
     <template #section>
@@ -123,10 +123,6 @@ const inputs = ref([
 ])
 
 const editarAtivo = ref(false);
-
-const atualizarPerfil = () => {
-  alert('Perfil Atualizado!');
-}
 </script>
 
 <style scoped>
