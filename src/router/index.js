@@ -138,6 +138,19 @@ const routes = [
         component: () => import('@/views/pages/estoque/CestView.vue')
     },
 
+    // páginas de produtos
+
+    {
+        path: '/paginas/produtos',
+        name: 'produtos',
+        component: () => import('@/views/pages/produtos/ProdutosView.vue')
+    },
+    {
+        path: '/paginas/produtos/:id',
+        name: 'produtos-detalhes',
+        component: () => import('@/views/pages/produtos/ProdutosDetalhesView.vue')
+    },
+
     //    Páginas do site
     {
         path: '/',

@@ -559,11 +559,11 @@ tipo:
   "id_medida": 2,
   "id_classe": 7,
   "id_garantia": 1,
+  "id_ncm": "84213925",
   "utiliza_balanca": "N",
   "utiliza_grade": "S",
   "utiliza_nserie": "N",
   "utiliza_lote": "N",
-  "id_ncm": "84213925",
   "em_promocao": "N",
   "observacao": "Produto revisado, original.",
   "ativo": "S"
