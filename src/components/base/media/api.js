@@ -28,17 +28,9 @@ export const mediaApi = {
   },
   
   // Delete file from R2
-  async deleteFile(idSaas, idUsuario, key) {
-    const response = await fetch(`${API_BASE_URL}/api/files/delete`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        id_saas: idSaas,
-        id_usuario: idUsuario,
-        key: key
-      })
+  async deleteFile(key) {
+    const response = await fetch(`${API_BASE_URL}/api/files/${encodeURIComponent(key)}`, {
+      method: 'DELETE'
     })
     
     return response.json()

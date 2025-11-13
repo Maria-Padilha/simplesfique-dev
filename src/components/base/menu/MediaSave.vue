@@ -273,62 +273,51 @@ const uploadFile = async () => {
     uploading.value = true
     clearResult()
     
-    console.log('Iniciando upload para:', `${mediaApi.baseURL}/api/files/upload`)
-    
     // Fazer upload usando API centralizada
     const responseData = await mediaApi.uploadFile(props.idSaas, props.idUsuario, selectedFile.value)
     
-    if (responseData.success) {
+    // A API retorna { success: true, message: '...', file: { key, uploadDate } }
+    if (responseData.success && responseData.file?.key) {
       // Upload realizado com sucesso
       uploadResult.success = true
-      uploadResult.message = 'Upload realizado com sucesso!'
-      uploadResult.data = responseData.data
+      uploadResult.message = responseData.message || 'Upload realizado com sucesso!'
+      uploadResult.data = responseData.file
       
       showMessage('Imagem enviada com sucesso!', 'success')
       
-      // **REGRA PRINCIPAL: Sempre que retornar uma key, disparar a função callback**
-      if (responseData.data?.key) {
-        console.log('Key retornada do upload:', responseData.data.key)
-        
-        // Emitir evento de sucesso
-        emit('upload-success', {
-          key: responseData.data.key,
-          file: selectedFile.value,
-          response: responseData.data
-        })
-        
-        // Chamar callback se fornecido
-        if (props.onUploadSuccess && typeof props.onUploadSuccess === 'function') {
+      // Emitir evento de sucesso
+      emit('upload-success', {
+        key: responseData.file.key,
+        file: selectedFile.value,
+        response: responseData.file
+      })
+      
+      // Chamar callback se fornecido
+      if (props.onUploadSuccess && typeof props.onUploadSuccess === 'function') {
+        try {
+          await props.onUploadSuccess({
+            key: responseData.file.key,
+            file: selectedFile.value,
+            response: responseData.file
+          })
+        } catch (callbackError) {
+          // **IMPORTANTE: Se o callback falhar, deletar a imagem que foi feita upload**
           try {
-            await props.onUploadSuccess({
-              key: responseData.data.key,
-              file: selectedFile.value,
-              response: responseData.data
-            })
-            console.log('Callback de upload executado com sucesso')
-          } catch (callbackError) {
-            console.error('Erro ao executar callback de upload:', callbackError)
-            
-            // **IMPORTANTE: Se o callback falhar, deletar a imagem que foi feita upload**
-            try {
-              console.log('Tentando deletar imagem devido ao erro no callback...')
-              await deleteUploadedFile(responseData.data.key)
-              showMessage('Erro ao salvar no sistema. Imagem removida automaticamente.', 'error')
-            } catch (deleteError) {
-              console.error('Erro ao deletar imagem após falha do callback:', deleteError)
-              showMessage('Erro ao salvar no sistema. Imagem pode precisar ser removida manualmente.', 'error')
-            }
-            
-            // Limpar resultado de sucesso já que houve erro no callback
-            clearResult()
+            await deleteUploadedFile(responseData.file.key)
+            showMessage('Erro ao salvar no sistema. Imagem removida automaticamente.', 'error')
+          } catch (deleteError) {
+            showMessage('Erro ao salvar no sistema. Imagem pode precisar ser removida manualmente.', 'error')
           }
+          
+          // Limpar resultado de sucesso já que houve erro no callback
+          clearResult()
         }
       }
       
     } else {
       // Erro no upload
       uploadResult.success = false
-      uploadResult.message = responseData.message || 'Erro ao fazer upload'
+      uploadResult.message = responseData.message || responseData.error || 'Erro ao fazer upload'
       uploadResult.data = null
       
       showMessage('Erro ao enviar imagem', 'error')
@@ -336,8 +325,6 @@ const uploadFile = async () => {
     }
     
   } catch (error) {
-    console.error('Erro no upload:', error)
-    
     uploadResult.success = false
     uploadResult.message = 'Erro de conexão ou servidor indisponível'
     uploadResult.data = null
@@ -369,7 +356,7 @@ const deleteUploadedFile = async (key) => {
     console.log('Deletando arquivo com key:', key)
 
     // Usar API centralizada para delete
-    const responseData = await mediaApi.deleteFile(props.idSaas, props.idUsuario, key)
+    const responseData = await mediaApi.deleteFile(key)
     
     if (responseData.success) {
       console.log('Arquivo deletado com sucesso:', key)

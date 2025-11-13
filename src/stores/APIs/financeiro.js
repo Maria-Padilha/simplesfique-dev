@@ -12,7 +12,9 @@ export const useFinanceiroStore = defineStore('financeiro', {
     planosConta: [],
     loading: false,
     error: null,
-    search: ''
+    search: '',
+    // Key da media anexada para contas a pagar
+    mediaKeyTemporaria: null
   }),
 
   actions: {
@@ -23,6 +25,23 @@ export const useFinanceiroStore = defineStore('financeiro', {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
+    },
+
+    // ========== MEDIA TEMPORÁRIA ==========
+    
+    // Definir key da media temporária
+    setMediaKeyTemporaria(key) {
+      this.mediaKeyTemporaria = key
+    },
+
+    // Limpar key da media temporária
+    clearMediaKeyTemporaria() {
+      this.mediaKeyTemporaria = null
+    },
+
+    // Obter key da media temporária
+    getMediaKeyTemporaria() {
+      return this.mediaKeyTemporaria
     },
 
     // ========== CONTAS CORRENTES ==========

@@ -407,7 +407,6 @@
                                   hide-details
                                   placeholder="Selecione o local"
                                   prepend-inner-icon="mdi-map-marker"
-                                  :class="item.nrparcela === 1 ? 'mr-2' : ''"
                                 >
                                   <template #append-inner>
                                     <LocalCobrancaMenu @selecionar="(local) => selecionarLocalCobranca(local, item)"/>
@@ -466,6 +465,44 @@
                       </v-expand-transition>
                     </v-col>
 
+                    <!-- Anexar Documento -->
+                    <v-col cols="12">
+                      <v-card variant="outlined" class="mb-4" elevation="1">
+                        <v-card-title class="text-h6 pa-4 d-flex align-center">
+                          <v-icon icon="mdi-file-image" class="mr-2" color="primary"></v-icon>
+                          Anexar um Documento
+                        </v-card-title>
+
+                        <v-card-text class="pa-4">
+                          <MediaSave
+                            id-saas="1"
+                            id-usuario="1"
+                            :on-upload-success="handleMediaUpload"
+                            @upload-success="onMediaSuccess"
+                            @upload-error="onMediaError"
+                          />
+                          
+                          <!-- Indicador de imagem anexada -->
+                          <v-alert
+                            v-if="formData.id_media || financeiroStore.getMediaKeyTemporaria()"
+                            type="success"
+                            variant="tonal"
+                            density="compact"
+                            class="mt-3"
+                          >
+                            <div class="d-flex align-center">
+                              <v-icon icon="mdi-check-circle" class="mr-2"></v-icon>
+                              <div>
+                                <strong>Documento anexado com sucesso!</strong>
+                                <br>
+                                <small class="text-medium-emphasis">Key: {{ financeiroStore.getMediaKeyTemporaria() || formData.id_media }}</small>
+                              </div>
+                            </div>
+                          </v-alert>
+                        </v-card-text>
+                      </v-card>
+                    </v-col>
+
                     <!-- Observação -->
                     <v-col cols="12">
                       <v-textarea
@@ -519,13 +556,33 @@
           search-label="Pesquisar Parcelas"
           item-key="id"
           no-data-icon="mdi-credit-card-outline"
-          no-data-text="Nenhuma parcela cadastrada"
+          no-data-text="Nenhuma registro encontrado."
           :show-custom-action="false"
           delete-dialog-message="Esta ação excluirá esta parcela específica. Não pode ser desfeita."
           delete-item-display-field="nrdocumento"
           @edit-item="editarContaPagar"
           @confirm-delete="excluirContaPagar"
         >
+          <!-- Coluna de Imagem -->
+          <template v-slot:[`item.imagem`]="{ item }">
+            <MediaShow
+              v-if="item.id_media"
+              :image-key="item.id_media"
+              height="40"
+              width="40"
+              :show-actions="false"
+              :show-loading-text="false"
+              no-image-text=""
+              class="rounded"
+            />
+            <v-icon
+              v-else
+              icon="mdi-image-off-outline"
+              size="20"
+              color="grey"
+            ></v-icon>
+          </template>
+
           <!-- Formatação para Valor do Documento -->
           <template v-slot:[`item.vlrdocumento`]="{ item }">
             <span class="font-weight-medium">{{ formatarMoeda(item.vlrdocumento) }}</span>
@@ -561,16 +618,6 @@
           <!-- Ações personalizadas -->
           <template v-slot:[`item.actions`]="{ item }">
             <div class="d-flex gap-1">
-              <!-- Visualizar Imagem -->
-              <v-btn
-                icon="mdi-eye"
-                size="small"
-                color="info"
-                variant="text"
-                title="Visualizar Imagem"
-                @click="visualizarImagem(item)"
-              ></v-btn>
-              
               <!-- Editar -->
               <v-btn
                 icon="mdi-pencil"
@@ -598,107 +645,7 @@
 
 
 
-    <!-- Modal de Visualização de Imagem -->
-    <v-dialog 
-      v-model="modalImagem.aberto" 
-      max-width="800px"
-      :persistent="false"
-    >
-      <v-card>
-        <v-card-title class="d-flex align-center justify-space-between pa-4">
-          <div class="d-flex align-center">
-            <v-icon icon="mdi-image" class="mr-2" color="primary"></v-icon>
-            <span>Imagem - Documento {{ modalImagem.documento }}</span>
-          </div>
-          <v-btn
-            icon="mdi-close"
-            size="small"
-            variant="text"
-            @click="fecharModalImagem"
-          ></v-btn>
-        </v-card-title>
-        
-        <v-divider></v-divider>
-        
-        <v-card-text class="pa-4">
-          <div class="text-center">
-            <!-- Loading -->
-            <div v-if="modalImagem.carregando" class="pa-8">
-              <v-progress-circular
-                indeterminate
-                color="primary"
-                size="64"
-              ></v-progress-circular>
-              <p class="mt-4 text-grey">Carregando imagem...</p>
-            </div>
-            
-            <!-- Erro -->
-            <div v-else-if="modalImagem.erro" class="pa-8">
-              <v-icon 
-                icon="mdi-alert-circle-outline" 
-                size="64" 
-                color="error"
-              ></v-icon>
-              <p class="mt-4 text-error">{{ modalImagem.mensagemErro }}</p>
-            </div>
-            
-            <!-- Imagem -->
-            <div v-else-if="modalImagem.urlImagem" class="pa-2">
-              <v-img
-                :src="modalImagem.urlImagem"
-                :alt="`Imagem do documento ${modalImagem.documento}`"
-                max-height="500"
-                contain
-                class="mx-auto"
-              >
-                <template v-slot:error>
-                  <div class="d-flex align-center justify-center fill-height">
-                    <v-icon 
-                      icon="mdi-image-broken-variant" 
-                      size="64" 
-                      color="grey"
-                    ></v-icon>
-                  </div>
-                </template>
-              </v-img>
-            </div>
-            
-            <!-- Sem imagem -->
-            <div v-else class="pa-8">
-              <v-icon 
-                icon="mdi-image-off" 
-                size="64" 
-                color="grey"
-              ></v-icon>
-              <p class="mt-4 text-grey">Nenhuma imagem vinculada a este documento</p>
-            </div>
-          </div>
-        </v-card-text>
-        
-        <v-divider></v-divider>
-        
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn
-            v-if="modalImagem.urlImagem && !modalImagem.carregando"
-            color="primary"
-            variant="outlined"
-            :href="modalImagem.urlImagem"
-            target="_blank"
-            prepend-icon="mdi-download"
-          >
-            Baixar Imagem
-          </v-btn>
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="fecharModalImagem"
-          >
-            Fechar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+
 
     <!-- Dialog de Confirmação de Exclusão -->
     <v-dialog 
@@ -758,6 +705,8 @@ import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import TipoDocumentoMenu from '@/components/base/menu/TipoDocumentoMenu.vue'
 import LocalCobrancaMenu from '@/components/base/menu/LocalCobrancaMenu.vue'
 import PlanoContaMenu from '@/components/base/menu/PlanoContaMenu.vue'
+import MediaSave from '@/components/base/menu/MediaSave.vue'
+import MediaShow from '@/components/base/media/MediaShow.vue'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -776,6 +725,8 @@ const parcelas = ref([])
 const totalParcelas = ref(0)
 const valorEntrada = ref(0)
 
+
+
 // Paginação das parcelas
 const currentPageParcelas = ref(1)
 const itemsPerPageParcelas = ref(10)
@@ -787,16 +738,7 @@ const snackbar = reactive({
   color: 'success'
 })
 
-// Modal de visualização de imagem
-const modalImagem = reactive({
-  aberto: false,
-  carregando: false,
-  erro: false,
-  mensagemErro: '',
-  urlImagem: '',
-  documento: '',
-  item: null
-})
+
 
 // Dialog de confirmação de exclusão
 const dialogExclusao = reactive({
@@ -806,6 +748,7 @@ const dialogExclusao = reactive({
 
 // Headers da tabela
 const headers = [
+  { title: '', key: 'imagem', sortable: false, width: '60px' },
   { title: 'Documento', key: 'nrdocumento', sortable: true },
   { title: 'Série', key: 'serie', sortable: true },
   { title: 'Espécie', key: 'especie', sortable: true },
@@ -851,7 +794,9 @@ const formData = reactive({
   desconto: 0,
   valor_primeira_parcela: 0,
   venc_primeira_parcela: '',
-  intervalo_parcelas: 30
+  intervalo_parcelas: 30,
+  // ID da media anexada (key retornada da API)
+  id_media: ''
 })
 
 // ID da empresa (temporário - deve vir do contexto/autenticação)
@@ -952,7 +897,8 @@ const carregarContasPagar = async () => {
       origem: item.origem || '',
       user_inc: item.user_inc || '',
       abreviatura: item.abreviatura || '',
-      desclocalcobranca: item.desclocalcobranca || ''
+      desclocalcobranca: item.desclocalcobranca || '',
+      id_media: item.id_media || ''
     })) || []
     
     console.log('Contas a pagar carregadas:', contasPagar.value)
@@ -1037,7 +983,8 @@ const editarContaPagar = (item) => {
     observacao: '',
     vlroriginal: item.vlrdocumento || null,
     qtdparcelas: item.qtdparcelas || 1,
-    dtemissao: item.dtemissao || ''
+    dtemissao: item.dtemissao || '',
+    id_media: item.id_media || ''
   })
   
   // Atualizar campos de texto dos menus com os valores já existentes
@@ -1065,6 +1012,9 @@ const cancelarFormulario = () => {
 }
 
 const resetarForm = () => {
+  // Limpar key do Pinia
+  financeiroStore.clearMediaKeyTemporaria()
+  
   Object.assign(formData, {
     id: null,
     nrdocumento: '',
@@ -1082,7 +1032,8 @@ const resetarForm = () => {
     desconto: 0,
     valor_primeira_parcela: 0,
     venc_primeira_parcela: '',
-    intervalo_parcelas: 30
+    intervalo_parcelas: 30,
+    id_media: ''
   })
 
   // Limpar campos de texto dos menus
@@ -1142,13 +1093,13 @@ const salvarContaPagar = async () => {
       perc_multa: String(parseFloat(formData.multa) || 0)
     }))
     
-    // Payload completo no formato THorse
+    // Usar key do Pinia para o payload
+    const mediaValue = financeiroStore.getMediaKeyTemporaria() || null
     const payloadCompleto = {
       data: [dadosPrincipais],
-      parcela: parcelasFormatadas
+      parcela: parcelasFormatadas,
+      media: [{ id_media: mediaValue }]
     }
-    
-    console.log('Payload completo para envio:', payloadCompleto)
 
     if (editando.value) {
       await financeiroStore.atualizarContaPagar(idEmpresa.value, formData.id, payloadCompleto)
@@ -1157,6 +1108,9 @@ const salvarContaPagar = async () => {
       await financeiroStore.criarContaPagar(idEmpresa.value, payloadCompleto)
       mostrarMensagem('Conta a pagar cadastrada com sucesso!', 'success')
     }
+    
+    // Limpar key do Pinia após salvar com sucesso
+    financeiroStore.clearMediaKeyTemporaria()
     
     await carregarContasPagar()
     cancelarFormulario()
@@ -1188,46 +1142,27 @@ const mostrarMensagem = (mensagem, tipo) => {
   snackbar.show = true
 }
 
-// Função para visualizar imagem vinculada
-const visualizarImagem = async (item) => {
-  try {
-    modalImagem.aberto = true
-    modalImagem.carregando = true
-    modalImagem.erro = false
-    modalImagem.documento = item.nrdocumento
-    modalImagem.item = item
+// Funções para lidar com upload de media
+const handleMediaUpload = async () => {
+  // Função legacy - não utilizada
+}
+
+const onMediaSuccess = (data) => {
+  // Armazenar a key no Pinia para usar no payload
+  if (data.key) {
+    financeiroStore.setMediaKeyTemporaria(data.key)
     
-    // Buscar imagem vinculada ao documento
-    const imagemData = await financeiroStore.buscarImagemContaPagar(idEmpresa.value, item.id)
+    // Também salvar no formData para mostrar o indicador visual
+    formData.id_media = data.key
     
-    if (imagemData?.success && imagemData.data?.url) {
-      modalImagem.urlImagem = imagemData.data.url
-    } else if (imagemData?.data?.base64) {
-      // Se retornar base64, converter para URL
-      modalImagem.urlImagem = `data:image/jpeg;base64,${imagemData.data.base64}`
-    } else {
-      modalImagem.erro = true
-      modalImagem.mensagemErro = 'Nenhuma imagem encontrada para este documento'
-    }
-  } catch (error) {
-    console.error('Erro ao carregar imagem:', error)
-    modalImagem.erro = true
-    modalImagem.mensagemErro = 'Erro ao carregar a imagem. Tente novamente.'
-  } finally {
-    modalImagem.carregando = false
+    mostrarMensagem('Documento anexado e pronto para envio!', 'success')
   }
 }
 
-// Função para fechar modal de imagem
-const fecharModalImagem = () => {
-  modalImagem.aberto = false
-  modalImagem.carregando = false
-  modalImagem.erro = false
-  modalImagem.mensagemErro = ''
-  modalImagem.urlImagem = ''
-  modalImagem.documento = ''
-  modalImagem.item = null
+const onMediaError = () => {
+  mostrarMensagem('Erro ao anexar documento', 'error')
 }
+
 
 // Função para abrir dialog de confirmação de exclusão
 const confirmarExclusao = (item) => {
