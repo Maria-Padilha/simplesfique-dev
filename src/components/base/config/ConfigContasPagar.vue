@@ -1,5 +1,5 @@
 <template>
-  <div class="contas-pagar-config background-primary">
+  <div class="contas-pagar-config">
     <v-form ref="formRef" v-model="formValid">
       <!-- Códigos de Histórico -->
       <div class="config-section mb-6">
@@ -839,8 +839,16 @@ const carregarParametrosFinanceiros = async () => {
       headers: { Authorization: `Bearer ${token}` }
     })
     const dadosArray = response.data?.data
-    const dados = Array.isArray(dadosArray) && dadosArray.length > 0 ? dadosArray[0] : null
-    if (dados && Object.keys(dados).length > 0) {
+    // Se o array tem pelo menos um objeto com algum campo preenchido, é PUT
+    let dados = null;
+    if (Array.isArray(dadosArray) && dadosArray.length > 0) {
+      // Verifica se algum campo relevante está preenchido
+      const temCampos = Object.keys(dadosArray[0] || {}).filter(k => k.startsWith('pag_id_') || k.startsWith('desc_')).length > 0;
+      if (temCampos) {
+        dados = dadosArray[0];
+      }
+    }
+    if (dados) {
       Object.keys(config).forEach(key => {
         if (Object.prototype.hasOwnProperty.call(dados, key)) {
           config[key] = dados[key]
@@ -930,7 +938,7 @@ const salvarConfiguracoes = async () => {
     }
     let response
     // PUT só se dadosExistem for verdadeiro (edição), POST se for falso (cadastro)
-    if (dadosExistem.value === false) {
+    if (dadosExistem.value === true) {
       response = await axios.put(`http://192.168.10.100:9005/parfin/${idEmpresa}`, dadosParaEnvio, {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -956,6 +964,8 @@ const resetarConfiguracoes = () => {
   config.pag_id_red_ctb_juros_pago = null
   config.pag_id_red_ctb_multa_paga = null
   config.pag_id_red_ctb_desc_obtido = null
+  config.pag_id_hist_est_bxa_banco = null
+  config.pag_id_hist_est_bxa_caixa = null
   config.pag_id_hist_bxa_caixa = null
   config.pag_id_hist_bxa_banco = null
   config.pag_id_hist_adt_for_caixa = null
@@ -968,6 +978,7 @@ const resetarConfiguracoes = () => {
   config.hist_adt_caixa_desc = ''
   config.hist_adt_banco_desc = ''
   config.tipo_doc_desc = ''
+
 }
 
 // Carregar dados ao montar o componente
