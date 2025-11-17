@@ -1,25 +1,24 @@
 <template>
   <div class="parametro-financeiro">
-    <div class="section-header">
-      <h2 class="text-2xl font-bold mb-2">Parâmetro Financeiro</h2>
-      <p class="text-sm opacity-70 mb-8">Configure os parâmetros para os módulos financeiros</p>
-    </div>
 
-    <!-- Sistema de Abas -->
-    <ConfigTabs
-      :tabs="abas"
-      default-tab="contas-pagar"
-      @tab-changed="onTabChanged"
-    >
-      <template #default="{ activeTab }">
-        <div class="tab-content-wrapper">
-          <component 
-            :is="getActiveComponent(activeTab)" 
-            :key="activeTab"
-          />
-        </div>
-      </template>
-    </ConfigTabs>
+
+    <!-- Sistema de Abas no topo -->
+    <div class="tabs-container">
+      <ConfigTabs
+        :tabs="abas"
+        default-tab="contas-pagar"
+        @tab-changed="onTabChanged"
+      >
+        <template #default="{ activeTab: currentTab }">
+          <div class="tab-content">
+            <component 
+              :is="getActiveComponent(currentTab)" 
+              :key="currentTab"
+            />
+          </div>
+        </template>
+      </ConfigTabs>
+    </div>
   </div>
 </template>
 
@@ -29,6 +28,9 @@ import ConfigTabs from './ConfigTabs.vue'
 import ConfigContasPagar from './ConfigContasPagar.vue'
 import ConfigContasReceber from './ConfigContasReceber.vue'
 import ConfigCentroCusto from './ConfigCentroCusto.vue'
+
+// Estado da aba ativa
+const activeTab = ref('contas-pagar')
 
 // Definição das abas
 const abas = ref([
@@ -57,12 +59,13 @@ const componentMap = {
 }
 
 // Função para retornar o componente ativo
-const getActiveComponent = (activeTab) => {
-  return componentMap[activeTab] || ConfigContasPagar
+const getActiveComponent = (tabId) => {
+  return componentMap[tabId] || ConfigContasPagar
 }
 
 // Controlar mudança de aba
 const onTabChanged = (tabId) => {
+  activeTab.value = tabId
   console.log('Aba alterada para:', tabId)
 }
 </script>
@@ -74,11 +77,15 @@ const onTabChanged = (tabId) => {
 }
 
 .section-header {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
-.tab-content-wrapper {
-  overflow: hidden;
-  position: relative;
+.tabs-container {
+  width: 100%;
+}
+
+.tab-content {
+  margin-top: 0;
+  padding-top: 0;
 }
 </style>
