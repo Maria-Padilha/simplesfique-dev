@@ -30,6 +30,7 @@ const routes = [
         component: NotFoundView
     },
 
+
     //   pagina de manutenção
     {
         path: '/manutencao',
@@ -109,7 +110,7 @@ const routes = [
         component: PlanoContaView
     },
 
- 
+
 
     // páginas do estoque (substituídas por placeholder até criar os arquivos reais)
     {
