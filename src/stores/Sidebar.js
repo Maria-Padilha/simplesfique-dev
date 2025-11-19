@@ -100,6 +100,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     icon: 'mdi-tag-outline',
                     route: '/paginas/produtos'
                 },
+                {
+                    text: 'Entrada de DFe',
+                    icon: 'mdi-file-document-outline',
+                    route: '/paginas/entradadfe'
+                },
             ]
         }
     ]);

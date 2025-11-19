@@ -150,6 +150,11 @@ const routes = [
         name: 'produtos-detalhes',
         component: () => import('@/views/pages/produtos/ProdutosDetalhesView.vue')
     },
+    {
+        path: '/paginas/entradadfe',
+        name: 'entradadfe',
+        component: () => import('@/views/pages/produtos/EntradaDfeView.vue')
+    },
 
     //    Páginas do site
     {
