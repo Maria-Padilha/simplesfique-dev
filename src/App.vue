@@ -1,11 +1,15 @@
   <template>
   <v-app :style="{ filter: `brightness(${themeStore.brightness})` }">
-    <side-bar v-if="$route.path.startsWith('/paginas/')" />
+
+    <side-bar v-if="$route.path.startsWith('/paginas/') && !$route.path.startsWith('/paginas/pdv/caixa') && $route.path !== '/paginas/pdv' && $route.path !== '/paginas/pdv/pagamento'" />
 
     <nav-bar
         v-if="!$route.path.startsWith('/paginas/')
         && !$route.path.startsWith('/login')
-        && !$route.path.startsWith('/resetar-senha')"
+        && !$route.path.startsWith('/resetar-senha')
+        && !$route.path.startsWith('/paginas/pdv/caixa')
+        && $route.path !== '/paginas/pdv'
+        && $route.path !== '/paginas/pdv/pagamento'"
     />
 
     <v-main class="background-primary">
@@ -17,7 +21,10 @@
         v-if="!$route.path.startsWith('/paginas/')
         && !$route.path.startsWith('/login')
         && !$route.path.startsWith('/resetar-senha')
-        && !$route.path.startsWith('/manutencao')"
+        && !$route.path.startsWith('/manutencao')
+        && !$route.path.startsWith('/paginas/pdv/caixa')
+        && $route.path !== '/paginas/pdv'
+        && $route.path !== '/paginas/pdv/pagamento'"
     />
   </v-app>
 </template>

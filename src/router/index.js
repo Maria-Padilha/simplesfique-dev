@@ -17,6 +17,9 @@ import CaixaView from '@/views/pages/financeiro/CaixaView.vue';
 import PlanoContaView from '@/views/pages/financeiro/PlanoContaView.vue';
 import UsuariosView from '@/views/pages/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
+import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
+import PdvView from '@/views/pages/pdv/PdvView.vue';
+import PagamentoView from '@/views/pages/pdv/PagamentoView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
@@ -153,9 +156,24 @@ const routes = [
     },
     // páginas do pdv
     {
+        path: '/paginas/pdv',
+        name: 'pdv',
+        component: PdvView
+    },
+    {
+        path: '/paginas/pdv/pagamento',
+        name: 'pdv_pagamento',
+        component: PagamentoView
+    },
+    {
         path: '/paginas/pdv/operacao',
         name: 'pdv_operacao',
         component: OperacaoView
+    },
+    {
+        path: '/paginas/pdv/caixa',
+        name: 'pdv_caixa',
+        component: PdvCaixaView
     },
 
     //    Páginas do site
