@@ -195,3 +195,4 @@ export const useSidebarStore = defineStore('sidebar', () => {
         atualizarSubmenus
     };
 });
+

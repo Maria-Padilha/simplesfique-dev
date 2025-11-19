@@ -30,6 +30,7 @@ const routes = [
         component: NotFoundView
     },
 
+
     //   pagina de manutenção
     {
         path: '/manutencao',
@@ -109,7 +110,9 @@ const routes = [
         component: PlanoContaView
     },
 
-    // páginas do estoque
+
+
+    // páginas do estoque (substituídas por placeholder até criar os arquivos reais)
     {
         path: '/paginas/estoque/grupo',
         name: 'grupo',
@@ -126,31 +129,24 @@ const routes = [
         component: () => import('@/views/pages/estoque/CestView.vue')
     },
 
+    // páginas de produtos
 
+    {
+        path: '/paginas/produtos',
+        name: 'produtos',
+        component: () => import('@/views/pages/produtos/ProdutosView.vue')
+    },
+    {
+        path: '/paginas/produtos/:id',
+        name: 'produtos-detalhes',
+        component: () => import('@/views/pages/produtos/ProdutosDetalhesView.vue')
+    },
+    {
+        path: '/paginas/entradadfe',
+        name: 'entradadfe',
+        component: () => import('@/views/pages/produtos/EntradaDfeView.vue')
+    },
 
-    // páginas do estoque (substituídas por placeholder até criar os arquivos reais)
-    {
-        path: '/paginas/estoque/grupo',
-        name: 'grupo',
-        component: NotFoundView
-    },
-    {
-        path: '/paginas/estoque/classe',
-        name: 'classe',
-        component: NotFoundView
-    },
-    {
-        path: '/paginas/estoque/ncm',
-        name: 'ncm'
-    },
-    {
-        path: '/paginas/estoque/cest',
-        name: 'cest'
-    },
-    {
-        path: '/paginas/estoque/nbs',
-        name: 'nbs'
-    },
     // páginas do pdv
     {
         path: '/paginas/pdv/operacao',
@@ -185,6 +181,8 @@ const router = createRouter({
     history: createWebHistory(process.env.BASE_URL),
     routes
 })
+
+// Middleware de navegação
 
 router.beforeEach(async (to, from, next) => {
     const siteStore = useSiteStore();
