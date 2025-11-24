@@ -25,7 +25,7 @@ defineProps({
   },
   size: { 
     type: String, 
-    default: 'default' 
+    default: 'small'
   },
   textoAbrir: { 
     type: String, 
