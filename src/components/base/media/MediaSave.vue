@@ -3,7 +3,7 @@
     <!-- Upload de Arquivo Único -->
     <v-card variant="outlined" class="pa-4">
       <v-card-title class="d-flex align-center">
-        <v-icon icon="mdi-cloud-upload" class="mr-2" color="primary"></v-icon>
+        <v-icon icon="mdi-cloud-upload" class="mr-2" color="orange"></v-icon>
         Upload de Imagem
       </v-card-title>
       
@@ -30,7 +30,7 @@
           />
           
           <div v-if="!selectedFile && !uploading" class="upload-content text-center">
-            <v-icon size="48" color="primary" class="mb-2">mdi-cloud-upload-outline</v-icon>
+            <v-icon size="48" color="orange" class="mb-2">mdi-cloud-upload-outline</v-icon>
             <p class="text-h6 mb-2">Clique ou arraste uma imagem</p>
             <p class="text-body-2 text-grey">Formatos aceitos: JPG, PNG, GIF, WEBP</p>
             <p class="text-caption text-grey">Tamanho máximo: 100MB</p>
@@ -82,67 +82,7 @@
             <p class="text-h6 mb-2">Fazendo upload...</p>
             <p class="text-body-2 text-grey">{{ selectedFile?.name }}</p>
           </div>
-        </div>
-        
-        <!-- Resultado do Upload -->
-        <v-expand-transition>
-          <div v-if="uploadResult" class="mt-4">
-            <v-alert
-              :type="uploadResult.success ? 'success' : 'error'"
-              variant="tonal"
-              class="mb-3"
-            >
-              <div class="d-flex align-center">
-                <v-icon 
-                  :icon="uploadResult.success ? 'mdi-check-circle' : 'mdi-alert-circle'"
-                  class="mr-2"
-                ></v-icon>
-                <span>{{ uploadResult.message }}</span>
-              </div>
-            </v-alert>
-            
-            <!-- Informações do Arquivo Enviado -->
-            <v-card v-if="uploadResult.success && uploadResult.data" variant="outlined" class="pa-3">
-              <div class="d-flex align-center justify-space-between">
-                <div>
-                  <p class="text-body-1 font-weight-medium mb-1">Arquivo Enviado</p>
-                  <p class="text-caption text-grey mb-2">Key: {{ uploadResult.data.key }}</p>
-                  
-                  <div class="d-flex gap-2">
-                    <v-btn
-                      size="small"
-                      color="primary"
-                      variant="outlined"
-                      @click="copyToClipboard(uploadResult.data.key)"
-                      prepend-icon="mdi-content-copy"
-                    >
-                      Copiar Key
-                    </v-btn>
-                    
-                    <v-btn
-                      v-if="uploadResult.data.url"
-                      size="small"
-                      color="info"
-                      variant="outlined"
-                      :href="uploadResult.data.url"
-                      target="_blank"
-                      prepend-icon="mdi-open-in-new"
-                    >
-                      Visualizar
-                    </v-btn>
-                  </div>
-                </div>
-                
-                <v-btn
-                  icon="mdi-close"
-                  size="small"
-                  variant="text"
-                  @click="clearResult"
-                ></v-btn>
-              </div>
-            </v-card>
-          </div>
-        </v-expand-transition>
+        </div>      
       </v-card-text>
     </v-card>
 
@@ -403,16 +343,6 @@ const deleteUploadedFile = async (key) => {
   } catch (error) {
     console.error('Erro na requisição de delete:', error)
     throw error
-  }
-}
-
-const copyToClipboard = async (text) => {
-  try {
-    await navigator.clipboard.writeText(text)
-    showMessage('Key copiada para a área de transferência!', 'success')
-  } catch (error) {
-    console.error('Erro ao copiar:', error)
-    showMessage('Erro ao copiar key', 'error')
   }
 }
 

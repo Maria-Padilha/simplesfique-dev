@@ -806,6 +806,63 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
+    // ========== HISTÓRICO CONTABIL ==========
+
+    // Buscar históricos contábeis (GET /historicocontabil)
+    async buscarHistoricosContabil() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get('/historicocontabil', {
+          headers: this.getAuthHeaders()
+        })
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+        } else if (Array.isArray(resp)) {
+          dados = resp
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+        }
+        return dados
+      }
+      catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar históricos contábeis'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Criar histórico contábil (POST /historicocontabil)
+    async criarHistoricoContabil(historicoData) {
+      this.loading = true
+      this.error = null
+      try {
+        // THorse expects payload wrapped in { data: [ ... ] }
+        const payload = { data: [historicoData] }
+        const response = await api.post('/historicocontabil', payload, {
+          headers: this.getAuthHeaders()
+        })
+
+        // Normalizar retorno
+        const resp = response.data
+        let created
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          created = resp.data[0]
+        } else if (resp && typeof resp === 'object') {
+          created = resp
+        }
+
+        return created || response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao criar histórico contábil'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
     // Buscar contas a pagar (GET /contaspagar/:idempresa)
     async buscarContasPagar(idEmpresa) {
       this.loading = true

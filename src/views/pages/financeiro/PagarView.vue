@@ -41,7 +41,7 @@
                         maxlength="20"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-file-document"
                       ></v-text-field>
                     </v-col>
@@ -54,7 +54,7 @@
                         maxlength="10"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-numeric"
                       ></v-text-field>
                     </v-col>
@@ -67,7 +67,7 @@
                         maxlength="10"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-tag"
                       ></v-text-field>
                     </v-col>
@@ -81,7 +81,7 @@
                         density="compact"
                         hide-details="auto"
                         :rules="[rules.required]"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-file-document-outline"
                       >
                         <template #append-inner>
@@ -100,7 +100,7 @@
                         label="Fornecedor"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-account-box"
                       ></v-select>
                     </v-col>
@@ -114,13 +114,82 @@
                         density="compact"
                         hide-details="auto"
                         :rules="[rules.required]"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-chart-tree"
                       >
                         <template #append-inner>
                           <PlanoContaMenu @selecionar="selecionarPlanoConta"/>
                         </template>
                       </v-text-field>
+                    </v-col>
+
+                    <!-- Histórico Contábil -->
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        label="Histórico Contábil"
+                        v-model="histContabilLabel"
+                        variant="outlined"
+                        density="compact"
+                        hide-details="auto"
+                        class=""
+                        prepend-inner-icon="mdi-file-document"
+                        readonly
+                        placeholder="Selecione um histórico"
+                      >
+                        <template #append-inner>
+                          <div class="d-flex align-center">
+                            <busca-padrao-menu
+                              v-model="menuHistContabil"
+                              :pesquisar="pesquisarHistoricosContabil"
+                              :modalCadastrar="abrirModalCadastrarHistorico"
+                              :modelInput="termoHistContabil"
+                              :resultados="historicoContabilResultados"
+                              @update:modelInput="termoHistContabil = $event"
+                              @selecionar="selecionarHistoricoContabil"
+                              :cadastrar-btn="true"
+                            >
+                              <template #resultados="{ selecionar }">
+                                <v-virtual-scroll
+                                  :items="historicoContabilResultados"
+                                  :height="120"
+                                  item-height="42"
+                                  class="mt-3"
+                                >
+                                  <template #default="{ item }">
+                                    <div
+                                      class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                                      @click="selecionar(item)"
+                                    >
+                                      <p class="text-body-1">({{ item.id }}) - {{ item.deschistorico || item.descricao }}</p>
+                                    </div>
+                                  </template>
+                                </v-virtual-scroll>
+                              </template>
+                            </busca-padrao-menu>
+                          </div>
+                        </template>
+                      </v-text-field>
+
+                      <CadastrarModal
+                        :cadastrarModal="cadastrarHistoricoModal"
+                        :clearInput="clearHistoricoInputs"
+                        :cadastrarcidade="cadastrarHistorico"
+                      >
+                        <template #titulo>Histórico Contábil</template>
+                        <template #textfields>
+                          <v-card-text>
+                            <v-form class="d-flex flex-column gap-3 w-100">
+                              <v-text-field
+                                label="Descrição do Histórico"
+                                variant="outlined"
+                                density="comfortable"
+                                hide-details="auto"
+                                v-model="descricaoHistorico"
+                              />
+                            </v-form>
+                          </v-card-text>
+                        </template>
+                      </CadastrarModal>
                     </v-col>
 
                     
@@ -134,7 +203,7 @@
                         step="0.01"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-currency-usd"
                         prefix="R$"
                         :hint="formData.vlroriginal ? formatarMoeda(formData.vlroriginal) : ''"
@@ -151,7 +220,7 @@
                         min="1"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-format-list-numbered"
                       ></v-text-field>
                     </v-col>
@@ -165,7 +234,7 @@
                         type="date"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-calendar"
                       ></v-text-field>
                     </v-col>
@@ -180,7 +249,7 @@
                         step="0.01"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prefix="R$"
                         prepend-inner-icon="mdi-percent"
                         :hint="formData.juros ? formatarMoeda(formData.juros) : ''"
@@ -197,7 +266,7 @@
                         step="0.01"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prefix="R$"
                         prepend-inner-icon="mdi-alert-circle"
                         :hint="formData.multa ? formatarMoeda(formData.multa) : ''"
@@ -214,7 +283,7 @@
                         step="0.01"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prefix="R$"
                         prepend-inner-icon="mdi-sale"
                         :hint="formData.desconto ? formatarMoeda(formData.desconto) : ''"
@@ -228,10 +297,10 @@
                     </v-col>
 
                     <!-- Campos de Cálculo e Botão - Apenas para múltiplas parcelas -->
-                    <v-col cols="12" v-if="formData.qtdparcelas > 1">
+                    <v-col cols="12" v-if="formData.qtdparcelas > 1 && !parcelasCalculadas">
                       <v-card variant="outlined" class="mb-4" elevation="1">
                         <v-card-title class="text-h6 pa-4 d-flex align-center">
-                          <v-icon icon="mdi-calculator-variant" class="mr-2" color="primary"></v-icon>
+                          <v-icon icon="mdi-calculator-variant" class="mr-2" color="orange"></v-icon>
                           Configurações das Parcelas
                         </v-card-title>
 
@@ -282,7 +351,7 @@
                             <!-- Botão Calcular -->
                             <v-col cols="12" class="d-flex justify-center">
                               <v-btn
-                                color="primary"
+                                color="orange"
                                 variant="elevated"
                                 @click="calcularParcelas"
                                 :disabled="!formData.vlroriginal || !formData.qtdparcelas"
@@ -306,11 +375,11 @@
                         <div v-if="parcelas.length > 0 || (formData.qtdparcelas === 1 && formData.vlroriginal)">
                           <v-divider class="mb-4"></v-divider>
                           <div class="d-flex align-center mb-4">
-                            <v-icon icon="mdi-format-list-numbered" class="mr-3" color="primary"></v-icon>
+                            <v-icon icon="mdi-format-list-numbered" class="mr-3" color="orange"></v-icon>
                             <h4 class="text-h6 mb-0">Detalhamento das Parcelas</h4>
                             <v-spacer></v-spacer>
                             <v-chip
-                              :color="(parcelas.length === 1 || formData.qtdparcelas === 1) ? 'success' : 'primary'"
+                              :color="(parcelas.length === 1 || formData.qtdparcelas === 1) ? 'success' : 'orange'"
                               variant="elevated"
                               size="small"
                             >
@@ -332,10 +401,11 @@
                           
                           <v-card 
                             variant="outlined" 
-                            class="mb-4"
+                            class="background-secondary"
                             elevation="2"
+                            :color="themeStore.darkMode ? 'text-white' : ''" 
                           >
-                            <v-card-text class="pa-4">
+                            <v-card-text class="background-secondary" :color="themeStore.darkMode ? 'text-white' : ''">
                               <v-data-table
                                 :headers="headersParcelas"
                                 :items="parcelas"
@@ -350,7 +420,7 @@
                             <template v-slot:[`item.nrparcela`]="{ item }">
                               <div class="d-flex align-center">
                                 <v-avatar 
-                                  :color="item.nrparcela === 1 && valorEntrada > 0 ? 'primary' : 'secondary'"
+                                  :color="item.nrparcela === 1 && valorEntrada > 0 ? 'orange' : 'orange lighten-2'"
                                   size="28"
                                   class="mr-2"
                                 >
@@ -433,7 +503,7 @@
                               <v-card 
                                 variant="tonal" 
                                 class="pa-3"
-                                color="success"
+                                color="orange"
                               >
                                 <div class="d-flex align-center justify-space-between">
                                   <div class="d-flex align-center">
@@ -441,7 +511,7 @@
                                       icon="mdi-chart-pie" 
                                       class="mr-2" 
                                       size="small"
-                                      color="success"
+                                      color="orange"
                                     ></v-icon>
                                     <h5 class="text-subtitle-1 mb-0 font-weight-medium">
                                       Resumo das Parcelas
@@ -465,11 +535,101 @@
                       </v-expand-transition>
                     </v-col>
 
+                    <!-- Rateio por Centro de Custo (select acima e tabela de centros selecionados) -->
+                    <v-col cols="12" v-if="parcelas.length > 0">
+                      <v-card variant="outlined" class="mb-4" elevation="1">
+                        <v-card-title class="text-h6 pa-4 d-flex align-center">
+                          <v-icon icon="mdi-swap-horizontal" class="mr-2" color="orange"></v-icon>
+                          Rateio por Centro de Custo
+                          <v-spacer></v-spacer>
+                          <v-btn size="small" color="orange" variant="elevated" @click="distribuirIgualmente">
+                            Distribuir igualmente
+                          </v-btn>
+                        </v-card-title>
+
+                        <v-card-text class="pa-4">
+                          <v-row>
+                            <v-col cols="12" md="6">
+                              <v-select
+                                v-model="selectedCentros"
+                                :items="centrosCusto"
+                                item-title="desccentrocusto"
+                                item-value="id"
+                                label="Selecionar Centros de Custo"
+                                multiple
+                                chips
+                                variant="outlined"
+                                density="compact"
+                                hint="Escolha os centros que participarão do rateio"
+                                hide-details
+                              />
+                            </v-col>
+
+                            <v-col cols="12">
+                              <div v-if="(rateiosArray || []).length === 0" class="text-center text-grey">
+                                Nenhum centro selecionado.
+                              </div>
+
+                              <v-list two-line class="parcelas-table">
+                                <v-list-item v-for="r in rateiosArray" :key="r.id" class="rateio-item">
+                                  <v-list-item-content>
+                                    <v-list-item-title>{{ r.descricao }}</v-list-item-title>
+                                    <v-list-item-subtitle class="text-grey mb-3">ID: {{ r.id }}</v-list-item-subtitle>
+                                  </v-list-item-content>
+
+                                  <v-list-item-action class="d-flex align-center">
+                                    <v-text-field
+                                      v-model="r.valor"
+                                      label="Valor"
+                                      type="number"
+                                      step="0.01"
+                                      variant="outlined"
+                                      density="compact"
+                                      prefix="R$"
+                                      class=""
+                                      style="width:150px; margin-right:8px"
+                                      @input="onRateioValorChange(r.id)"
+                                    ></v-text-field>
+
+                                    <v-text-field
+                                      v-model="r.porcentagem"
+                                      label="%"
+                                      type="number"
+                                      step="0.01"
+                                      variant="outlined"
+                                      density="compact"
+                                      suffix="%"
+                                      class=""
+                                      style="width:110px; margin-right:8px"
+                                      @input="onRateioPercentChange(r.id)"
+                                    ></v-text-field>
+
+                                    <v-btn
+                                      icon="mdi-close"
+                                      size="small"
+                                      color="error"
+                                      variant="text"
+                                      @click="selectedCentros = selectedCentros.filter(i => i !== r.id)"
+                                    ></v-btn>
+                                  </v-list-item-action>
+                                </v-list-item>
+
+                                <div class="mt-4 d-flex justify-space-between align-center pa-2 totals-row">
+                                  <div>Total rateado: <strong>{{ formatarMoeda(totalRateadoValor) }}</strong></div>
+                                  <div>Percent: <strong>{{ Number(totalRateadoPercent).toFixed(2) }}%</strong></div>
+                                </div>
+                              </v-list>
+                            </v-col>
+                          </v-row>
+                        </v-card-text>
+                      </v-card>
+                    </v-col>
+
                     <!-- Anexar Documento -->
                     <v-col cols="12">
                       <v-card variant="outlined" class="mb-4" elevation="1">
                         <v-card-title class="text-h6 pa-4 d-flex align-center">
-                          <v-icon icon="mdi-file-image" class="mr-2" color="primary"></v-icon>
+                          <v-icon icon="mdi-file-image" class="mr-2" color="orange"></v-icon>
                           Anexar um Documento
                         </v-card-title>
 
@@ -501,21 +661,6 @@
                           </v-alert>
                         </v-card-text>
                       </v-card>
-                    </v-col>
-
-                    <!-- Observação -->
-                    <v-col cols="12">
-                      <v-textarea
-                        v-model="formData.observacao"
-                        label="Observação"
-                        maxlength="500"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-note-text"
-                        rows="3"
-                        auto-grow
-                      ></v-textarea>
                     </v-col>
                   </v-row>
                 </v-form>
@@ -700,16 +845,20 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
+import { useCCustoStore } from '@/stores/APIs/ccusto'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import TipoDocumentoMenu from '@/components/base/menu/TipoDocumentoMenu.vue'
 import LocalCobrancaMenu from '@/components/base/menu/LocalCobrancaMenu.vue'
 import PlanoContaMenu from '@/components/base/menu/PlanoContaMenu.vue'
-import MediaSave from '@/components/base/menu/MediaSave.vue'
+import MediaSave from '@/components/base/media/MediaSave.vue'
 import MediaShow from '@/components/base/media/MediaShow.vue'
+import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
+import CadastrarModal from '@/components/base/modais/CadastrarModal.vue'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
+const ccustoStore = useCCustoStore()
 
 // Refs
 const formularioAberto = ref(false)
@@ -724,6 +873,44 @@ const contasPagar = ref([])
 const parcelas = ref([])
 const totalParcelas = ref(0)
 const valorEntrada = ref(0)
+// Flag para controlar quando as parcelas já foram calculadas (esconder configurações)
+const parcelasCalculadas = ref(false)
+
+// Rateio por centro de custo
+const centrosCusto = ref([])
+
+// Mantemos um mapa de rateios por id para preservar valores quando o usuário selecionar/desselecionar centros
+const rateiosMap = ref({})
+// Lista de centros selecionados (ids)
+const selectedCentros = ref([])
+
+// Array derivado para iteração na tabela (ordem conforme seleção)
+const rateiosArray = computed(() => {
+  return (selectedCentros.value || []).map(id => rateiosMap.value[id]).filter(Boolean)
+})
+
+const totalRateadoValor = computed(() => {
+  return rateiosArray.value.reduce((s, r) => s + (parseFloat(r.valor) || 0), 0)
+})
+
+const totalRateadoPercent = computed(() => {
+  return rateiosArray.value.reduce((s, r) => s + (parseFloat(r.porcentagem) || 0), 0)
+})
+
+// Garantir que ao selecionar centros, o mapa de rateios tenha entradas correspondentes
+watch(selectedCentros, (newList) => {
+  (newList || []).forEach(id => {
+    if (!rateiosMap.value[id]) {
+      const centro = (centrosCusto.value || []).find(c => c.id === id)
+      rateiosMap.value[id] = {
+        id,
+        descricao: centro?.desccentrocusto || centro?.descricao || `Centro ${id}`,
+        valor: 0,
+        porcentagem: 0
+      }
+    }
+  })
+})
 
 
 
@@ -784,6 +971,7 @@ const formData = reactive({
   id_tipodocumen: null,
   id_fornecedor: null,
   id_planoconta: null,
+  id_historicocontabil: null,
   observacao: '',
   vlroriginal: null,
   qtdparcelas: 1,
@@ -810,6 +998,14 @@ const pessoas = ref([])
 // Campos de texto para os menus
 const tipoDocumentoSelecionado = ref('')
 const planoContaSelecionado = ref('')
+
+// Histórico Contábil (campo de busca + modal de cadastro)
+const menuHistContabil = ref(false)
+const termoHistContabil = ref('')
+const cadastrarHistoricoModal = ref(false)
+const historicoContabilResultados = ref([])
+const histContabilLabel = ref('')
+const descricaoHistorico = ref('')
 
 
 
@@ -857,6 +1053,7 @@ watch([() => formData.qtdparcelas, () => formData.vlroriginal], () => {
   // Limpar parcelas existentes quando alterar campos principais
   parcelas.value = []
   totalParcelas.value = 0
+  parcelasCalculadas.value = false
   
   // Se for parcela única e tiver valor, gerar automaticamente
   if (formData.qtdparcelas === 1 && formData.vlroriginal) {
@@ -872,6 +1069,24 @@ watch([() => formData.venc_primeira_parcela, () => formData.dtemissao, () => for
   // Se for parcela única e já tiver valor, atualizar automaticamente
   if (formData.qtdparcelas === 1 && formData.vlroriginal && parcelas.value.length > 0) {
     gerarParcelaUnica()
+  }
+})
+
+// Inicializar rateios quando parcelas já foram calculadas
+watch(() => parcelasCalculadas.value, (val) => {
+  if (val && Object.keys(rateiosMap.value).length === 0) {
+    // garantir que centros já foram carregados
+    if ((centrosCusto.value || []).length === 0) {
+      // tentar carregar novamente
+      ccustoStore.listarCCusto().then(() => {
+        centrosCusto.value = ccustoStore.centrosCusto || ccustoStore.centroscusto || []
+        inicializarRateio()
+      }).catch(() => {
+        inicializarRateio()
+      })
+    } else {
+      inicializarRateio()
+    }
   }
 })
 
@@ -929,6 +1144,14 @@ const carregarDadosAuxiliares = async () => {
     // Carregar planos de conta
     await financeiroStore.buscarPlanosConta()
 
+    // Carregar centros de custo
+    try {
+      await ccustoStore.listarCCusto()
+      centrosCusto.value = ccustoStore.centrosCusto || ccustoStore.centroscusto || []
+    } catch (err) {
+      console.warn('Não foi possível carregar centros de custo:', err)
+    }
+
     console.log('Dados auxiliares carregados:', {
       tiposDocumento: tiposDocumento.value,
       locaisCobranca: locaisCobranca.value,
@@ -939,6 +1162,54 @@ const carregarDadosAuxiliares = async () => {
     console.error('Erro ao carregar dados auxiliares:', error)
     mostrarMensagem('Erro ao carregar dados auxiliares', 'error')
   }
+}
+
+// Inicializar rateios (map) com a lista de centros, mantendo chaves por id
+const inicializarRateio = () => {
+  rateiosMap.value = {}
+  ;(centrosCusto.value || []).forEach(c => {
+    const id = c.id
+    rateiosMap.value[id] = {
+      id,
+      descricao: c.desccentrocusto || c.descricao || c.descconta || c.nome || c.apelido_fantasia || `Centro ${id}`,
+      valor: 0,
+      porcentagem: 0
+    }
+  })
+}
+
+// Atualiza porcentagem ao alterar valor (recebe id)
+const onRateioValorChange = (id) => {
+  const total = parseFloat(totalParcelas.value) || 0
+  if (total === 0) return
+  const r = rateiosMap.value[id]
+  if (!r) return
+  const v = parseFloat(r.valor) || 0
+  r.porcentagem = ((v / total) * 100).toFixed(2)
+}
+
+// Atualiza valor ao alterar porcentagem (recebe id)
+const onRateioPercentChange = (id) => {
+  const total = parseFloat(totalParcelas.value) || 0
+  if (total === 0) return
+  const r = rateiosMap.value[id]
+  if (!r) return
+  const p = parseFloat(r.porcentagem) || 0
+  r.valor = ((p / 100) * total).toFixed(2)
+}
+
+// Distribuir igualmente entre os centros selecionados
+const distribuirIgualmente = () => {
+  const total = parseFloat(totalParcelas.value) || 0
+  const ids = selectedCentros.value || []
+  const count = ids.length || 1
+  const per = total / count
+  ids.forEach(id => {
+    const r = rateiosMap.value[id]
+    if (!r) return
+    r.valor = per.toFixed(2)
+    r.porcentagem = ((per / (total || 1)) * 100).toFixed(2)
+  })
 }
 
 const toggleFormulario = () => {
@@ -1003,6 +1274,8 @@ const editarContaPagar = (item) => {
   }))
   
   calcularTotalParcelas()
+  // Marcar que as parcelas já foram carregadas/calculadas (esconder configurações)
+  parcelasCalculadas.value = formData.qtdparcelas > 1 && parcelas.value.length > 0
   formularioAberto.value = true
 }
 
@@ -1044,6 +1317,7 @@ const resetarForm = () => {
   parcelas.value = []
   totalParcelas.value = 0
   valorEntrada.value = 0
+  parcelasCalculadas.value = false
 
   if (formRef.value) {
     formRef.value.resetValidation()
@@ -1069,6 +1343,9 @@ const salvarContaPagar = async () => {
     
     // Dados principais da conta a pagar
     const dadosPrincipais = {
+      fornecedor: formData.fornecedor,
+      abreviatura: tipoDocumentoSelecionado.value,
+      id_empresa: idEmpresa.value,
       nrdocumento: formData.nrdocumento,
       serie: formData.serie,
       especie: formData.especie,
@@ -1190,6 +1467,56 @@ const selecionarPlanoConta = (planoConta) => {
   planoContaSelecionado.value = planoConta.descconta || planoConta.descricao
 }
 
+// Histórico Contábil: pesquisar, selecionar e cadastrar
+const pesquisarHistoricosContabil = async () => {
+  try {
+    // carregar lista do backend e aplicar filtro simples pelo termo
+    const dados = await financeiroStore.buscarHistoricosContabil()
+    if (!termoHistContabil.value || termoHistContabil.value.length < 2) {
+      historicoContabilResultados.value = dados || []
+      return
+    }
+    const termo = termoHistContabil.value.toLowerCase()
+    historicoContabilResultados.value = (dados || []).filter(d => {
+      return (d.deschistorico || d.descricao || '').toLowerCase().includes(termo) || String(d.id).includes(termo)
+    })
+  } catch (error) {
+    mostrarMensagem('Erro ao buscar históricos contábeis', 'error')
+  }
+}
+
+const selecionarHistoricoContabil = (item) => {
+  formData.id_historicocontabil = item.id
+  histContabilLabel.value = item.deschistorico || item.descricao || `(${item.id})`
+  menuHistContabil.value = false
+}
+
+const abrirModalCadastrarHistorico = () => {
+  cadastrarHistoricoModal.value = true
+}
+
+const clearHistoricoInputs = () => {
+  descricaoHistorico.value = ''
+  cadastrarHistoricoModal.value = false
+}
+
+const cadastrarHistorico = async () => {
+  if (!descricaoHistorico.value) {
+    mostrarMensagem('Descrição obrigatória para o histórico', 'error')
+    return
+  }
+
+  try {
+    await financeiroStore.criarHistoricoContabil({ deschistorico: descricaoHistorico.value })
+    cadastrarHistoricoModal.value = false
+    descricaoHistorico.value = ''
+    await pesquisarHistoricosContabil()
+    mostrarMensagem('Histórico cadastrado com sucesso', 'success')
+  } catch (error) {
+    mostrarMensagem('Erro ao cadastrar histórico', 'error')
+  }
+}
+
 const selecionarLocalCobranca = (localCobranca, item) => {
   item.id_localcobranca = localCobranca.id
   item.localCobrancaTexto = localCobranca.desclocalcobranca || localCobranca.descricao
@@ -1280,11 +1607,15 @@ const calcularParcelas = async () => {
       })
       
       calcularTotalParcelas()
+      // Após cálculo, esconder o painel de configurações
+      parcelasCalculadas.value = true
       mostrarMensagem('Parcelas calculadas com sucesso!', 'success')
     } else {
       // Fallback para geração local se backend não retornar dados válidos
       console.warn('Backend não retornou parcelas válidas, usando cálculo local')
       gerarParcelasTemporario()
+      // Também considerar como 'calculadas' para ocultar o painel
+      parcelasCalculadas.value = true
       mostrarMensagem('Parcelas calculadas localmente!', 'warning')
     }
     
@@ -1376,6 +1707,8 @@ const gerarParcelasTemporario = () => {
     }
     
     calcularTotalParcelas()
+    // Marcar como calculadas para esconder o card de configurações
+    parcelasCalculadas.value = true
   }
 }
 
@@ -1388,7 +1721,60 @@ const gerarParcelasTemporario = () => {
   color: var(--text-color);
 }
 
+/* Forçar elementos internos do Vuetify (v-data-table etc.) a herdar o tema
+   usando o combinador :deep para scoped styles */
+.background-secondary :deep(.v-data-table),
+.background-secondary :deep(.v-data-table__wrapper),
+.background-secondary :deep(.v-simple-table),
+.background-secondary :deep(.v-data-table__wrapper) > * {
+  background-color: transparent;
+  color: var(--text-color);
+}
+
+/* Aplicar fundo de 'card' ao conteúdo da tabela de parcelas especificamente */
+.parcelas-table :deep(.v-data-table__wrapper),
+.parcelas-table :deep(table),
+.parcelas-table :deep(thead),
+.parcelas-table :deep(tbody),
+.parcelas-table :deep(.v-data-table__divider) {
+  background-color: var(--bg-card);
+  color: var(--text-color);
+}
+
 .custom-text-field :deep(.v-field) {
   background-color: rgba(var(--v-theme-surface), 0.7);
+}
+
+.rateio-item {
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  padding: 10px 6px;
+  background-color: var(--bg-card);
+  color: var(--text-color);
+}
+
+.totals-row {
+  border-top: 1px dashed rgba(255,255,255,0.04);
+  background-color: var(--bg-card);
+  color: var(--text-color);
+  padding: 12px;
+}
+
+/* Forçar elementos internos da lista de rateio a usar o tema e ficar discretos */
+.rateio-item :deep(.v-list-item__content),
+.rateio-item :deep(.v-list-item-title),
+.rateio-item :deep(.v-list-item-subtitle) {
+  color: var(--text-color);
+}
+
+/* Tornar inputs mais discretos: transparência, sem sombra/linha clara */
+
+/* Deixar inputs com o estilo padrão usado por .custom-text-field */
+.rateio-item :deep(.v-field__details) {
+  display: none !important;
+}
+
+/* Garantir que a v-list mantenha fundo transparente para o card controlar o visual */
+.v-list--two-line {
+  background-color: transparent;
 }
 </style>
