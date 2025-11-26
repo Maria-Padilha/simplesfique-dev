@@ -912,16 +912,21 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Criar conta a pagar (POST /contaspagar/:idempresa)
+    // Criar conta a pagar (POST /contaspagar)
+    // Mantém assinatura (idEmpresa, payload) por compatibilidade, mas sempre envia para /contaspagar
     async criarContaPagar(idEmpresa, payload) {
       this.loading = true
       this.error = null
       try {
+        // Compatibilidade: aceitar chamada com (payload) ou (idEmpresa, payload)
+        if (payload === undefined && idEmpresa && typeof idEmpresa === 'object') {
+          payload = idEmpresa
+        }
+
         console.log('criarContaPagar - payload recebido:', payload)
-        
-        // O payload já vem no formato correto: { data: [{}], parcela: [...] }
-        // Não precisamos fazer nenhuma transformação adicional
-        const response = await api.post(`/contaspagar/${idEmpresa}`, payload, {
+
+        // Enviar sempre para a rota sem id_empresa no path; id_empresa deve estar dentro de data[0]
+        const response = await api.post('/contaspagar', payload, {
           headers: this.getAuthHeaders()
         })
 
@@ -1194,6 +1199,36 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
+    // Buscar pessoas/fornecedores (GET /pessoafor/:idempresa)
+      // Buscar pessoas/fornecedores (GET /pessoafor/:idempresa?find=term)
+      async buscarPessoasFornecedores(findTerm = '', idEmpresa) {
+        this.loading = true
+        this.error = null
+        try {
+          const empresaId = idEmpresa || ''
+          const url = empresaId ? `/pessoafor/${empresaId}?find=${encodeURIComponent(findTerm)}` : `/pessoafor?find=${encodeURIComponent(findTerm)}`
+          const response = await api.get(url, {
+            headers: this.getAuthHeaders()
+          })
+          const resp = response.data
+          let dados = []
+          if (resp && resp.data && Array.isArray(resp.data)) {
+            dados = resp.data
+          } else if (Array.isArray(resp)) {
+            dados = resp
+          } else if (resp && typeof resp === 'object') {
+            dados = [resp]
+          }
+
+          return dados
+        } catch (error) {
+          this.error = error.response?.data?.message || 'Erro ao buscar pessoas/fornecedores'
+          throw error
+        } finally {
+          this.loading = false
+        }
+      },
+
     // Buscar pessoas/fornecedores (GET /pessoa)
     async buscarPessoas() {
       this.loading = true
@@ -1284,6 +1319,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = false;
       this.search = '';
     }
+,
+    
   },
 
   getters: {

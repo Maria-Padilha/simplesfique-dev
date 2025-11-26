@@ -90,19 +90,30 @@
                       </v-text-field>
                     </v-col>
 
-                    <!-- Fornecedor -->
+                    <!-- Fornecedor (autocomplete remoto) -->
                     <v-col cols="12" md="4">
-                      <v-select
+                      <v-autocomplete
                         v-model="formData.id_fornecedor"
+                        v-model:search-input="fornecedorSearch"
+                        @input="onFornecedorInput"
                         :items="pessoas"
-                        item-title="apelido_fantasia"
+                        :item-title="item => item.apelido_fantasia || item.nome_razao || item.nome || item.apelido || ''"
                         item-value="id"
                         label="Fornecedor"
                         variant="outlined"
                         density="compact"
                         class=""
                         prepend-inner-icon="mdi-account-box"
-                      ></v-select>
+                        :loading="fornecedorLoading"
+                        hide-no-data
+                        @update:model-value="onFornecedorSelect"
+                      >
+                        <template v-slot:no-data>
+                          <v-list-item>
+                            <v-list-item-title>Nenhum fornecedor encontrado</v-list-item-title>
+                          </v-list-item>
+                        </template>
+                      </v-autocomplete>
                     </v-col>
 
                     <!-- Plano de Conta -->
@@ -842,7 +853,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
@@ -875,6 +886,9 @@ const totalParcelas = ref(0)
 const valorEntrada = ref(0)
 // Flag para controlar quando as parcelas já foram calculadas (esconder configurações)
 const parcelasCalculadas = ref(false)
+
+// Flag para suprimir o watcher que limpa parcelas enquanto carregamos um documento existente
+const suppressParcelWatcher = ref(false)
 
 // Rateio por centro de custo
 const centrosCusto = ref([])
@@ -1007,6 +1021,66 @@ const historicoContabilResultados = ref([])
 const histContabilLabel = ref('')
 const descricaoHistorico = ref('')
 
+// Fornecedor autocomplete
+const fornecedorSearch = ref('')
+const fornecedorLoading = ref(false)
+let fornecedorSearchTimer = null
+
+// store label/name of selected fornecedor to ensure we can include it in payload
+const fornecedorLabel = ref('')
+
+const onFornecedorSelect = (val) => {
+  // val is the selected id (item-value)
+  formData.id_fornecedor = val
+  // find the selected item to capture the display name
+  const sel = (pessoas.value || []).find(p => p.id === val)
+  fornecedorLabel.value = sel ? (sel.apelido_fantasia || sel.nome_razao || sel.nome || sel.apelido || '') : ''
+  // also persist into formData to guarantee payload has name even if pessoas is cleared later
+  formData.fornecedor = fornecedorLabel.value
+}
+
+const onFornecedorInput = (ev) => {
+  try {
+    // If Vuetify emits InputEvent, extract value; otherwise coerce to string
+    if (ev && ev.target && typeof ev.target.value === 'string') {
+      fornecedorSearch.value = ev.target.value
+    } else if (typeof ev === 'string') {
+      fornecedorSearch.value = ev
+    } else {
+      fornecedorSearch.value = String(ev || '')
+    }
+  } catch (err) {
+    fornecedorSearch.value = String(ev || '')
+  }
+}
+
+// Debounced remote search for fornecedores
+watch(fornecedorSearch, (val) => {
+  if (fornecedorSearchTimer) clearTimeout(fornecedorSearchTimer)
+
+  // Only perform remote search when user typed at least 3 characters
+  if (!val || String(val).trim().length < 3) {
+    pessoas.value = []
+    fornecedorLoading.value = false
+    return
+  }
+
+  fornecedorSearchTimer = setTimeout(async () => {
+    try {
+      console.debug('Buscando fornecedores para:', val)
+      fornecedorLoading.value = true
+      const items = await financeiroStore.buscarPessoasFornecedores(val.trim(), idEmpresa.value)
+      console.debug('Fornecedores retornados:', items?.length)
+      pessoas.value = items || []
+    } catch (err) {
+      console.error('Erro buscando fornecedores:', err)
+      pessoas.value = []
+    } finally {
+      fornecedorLoading.value = false
+    }
+  }, 300)
+})
+
 
 
 // Função para formatação monetária brasileira
@@ -1051,6 +1125,11 @@ onMounted(async () => {
 // Resetar parcelas quando campos principais mudarem
 watch([() => formData.qtdparcelas, () => formData.vlroriginal], () => {
   // Limpar parcelas existentes quando alterar campos principais
+  if (suppressParcelWatcher.value) {
+    // ao editar um documento, suprimimos o watcher temporariamente
+    return
+  }
+
   parcelas.value = []
   totalParcelas.value = 0
   parcelasCalculadas.value = false
@@ -1137,9 +1216,8 @@ const carregarDadosAuxiliares = async () => {
     const locaisCobrancaData = await financeiroStore.buscarLocaisCobranca()
     locaisCobranca.value = locaisCobrancaData
 
-    // Carregar pessoas/fornecedores
-    const pessoasData = await financeiroStore.buscarPessoas()
-    pessoas.value = pessoasData
+    // Não carregar fornecedores por padrão — busca remota só ao digitar (>=3 chars)
+    pessoas.value = []
 
     // Carregar planos de conta
     await financeiroStore.buscarPlanosConta()
@@ -1233,50 +1311,238 @@ const abrirFormulario = () => {
   }, 200)
 }
 
-const editarContaPagar = (item) => {
+const editarContaPagar = async (item) => {
   editando.value = true
-  
-  // Como agora cada linha é uma parcela, buscar todas as parcelas do mesmo documento
-  const parcelasDoDocumento = contasPagar.value.filter(cp => 
-    cp.nrdocumento === item.nrdocumento && 
-    cp.serie === item.serie && 
-    cp.especie === item.especie
-  )
-  
-  Object.assign(formData, {
-    id: item.id || null,
-    nrdocumento: item.nrdocumento || '',
-    serie: item.serie || '',
-    especie: item.especie || '',
-    id_tipodocumen: null, // Será preenchido pelos menus
-    id_fornecedor: null, // Será derivado do nome do fornecedor
-    id_planoconta: null, // Será preenchido pelos menus
-    observacao: '',
-    vlroriginal: item.vlrdocumento || null,
-    qtdparcelas: item.qtdparcelas || 1,
-    dtemissao: item.dtemissao || '',
-    id_media: item.id_media || ''
-  })
-  
-  // Atualizar campos de texto dos menus com os valores já existentes
-  tipoDocumentoSelecionado.value = item.abreviatura || ''
-  planoContaSelecionado.value = '' // Não temos essa informação na nova API
-  
-  // Montar as parcelas a partir dos dados retornados
-  parcelas.value = parcelasDoDocumento.map(parcela => ({
-    nrparcela: parcela.id_parcela,
-    dtvencimento: parcela.dtvencimento || '',
-    vlrparcela: parseFloat(parcela.vlrparcela || 0).toFixed(2),
-    id_localcobranca: null, // Será derivado do nome
-    localCobrancaTexto: parcela.desclocalcobranca || '',
-    _localcobrancaEdited: false,
-    observacao: ''
-  }))
-  
-  calcularTotalParcelas()
-  // Marcar que as parcelas já foram carregadas/calculadas (esconder configurações)
-  parcelasCalculadas.value = formData.qtdparcelas > 1 && parcelas.value.length > 0
+  // esconder imediatamente o card de configurações de parcelas antes do template renderizar
+  parcelasCalculadas.value = true
   formularioAberto.value = true
+  loading.value = true
+  try {
+    // Tentar obter o documento completo via API (deve retornar o payload criado)
+    // Suprimir o watcher que limpa parcelas enquanto fazemos o mapeamento
+    suppressParcelWatcher.value = true
+    const documento = await financeiroStore.buscarContaPagarPorId(idEmpresa.value, item.id)
+
+    // documento pode ter a forma { data: [...], parcela: [...], ccusto: [...], media: [...] }
+    const dados = (documento && documento.data && documento.data[0]) ? documento.data[0] : documento
+
+    // Preencher formData com os campos retornados
+    if (dados) {
+      formData.id = dados.id || item.id || null
+      formData.nrdocumento = dados.nrdocumento || dados.nrdocumento || formData.nrdocumento
+      formData.serie = dados.serie || formData.serie
+      formData.especie = dados.especie || formData.especie
+      formData.id_tipodocumen = dados.id_tipodocumento || dados.id_tipodocumen || null
+      formData.observacao = dados.observacao || ''
+      formData.vlroriginal = dados.vlroriginal || parseFloat(dados.vlrdocumento || 0) || formData.vlroriginal
+      formData.qtdparcelas = parseInt(dados.qtdparcelas || formData.qtdparcelas || 1)
+      formData.dtemissao = dados.dtemissao || formData.dtemissao
+      formData.id_media = (dados.id_media || (documento && documento.media && documento.media[0] && documento.media[0].id_media)) || formData.id_media
+
+      // Fornecedor
+      if (dados.id_fornecedor) {
+        formData.id_fornecedor = dados.id_fornecedor
+        // garantir que o fornecedor esteja na lista de pessoas para exibição
+        const exists = (pessoas.value || []).some(p => p.id === dados.id_fornecedor)
+        if (!exists) {
+          pessoas.value = [...(pessoas.value || []), {
+            id: dados.id_fornecedor,
+            apelido_fantasia: dados.fornecedor || dados.apelido_fantasia || dados.nome_razao || '' ,
+            nome_razao: dados.nome_razao || dados.fornecedor || '' ,
+            id_red_ctb_for: dados.id_red_ctb_for || dados.id_red_ctb || null
+          }]
+        }
+        // ensure formData.fornecedor text is set
+        formData.fornecedor = dados.fornecedor || dados.apelido_fantasia || dados.nome_razao || fornecedorLabel.value || ''
+      }
+      // Histórico contábil: set id and label when available
+      const histId = dados.id_historico_ctb || dados.id_historicocontabil || dados.id_historico
+      if (histId) {
+        formData.id_historicocontabil = histId
+        // try to resolve label from previously loaded historicos, or fetch
+        let found = (historicoContabilResultados.value || []).find(h => h.id === histId)
+        if (!found) {
+          try {
+            const all = await financeiroStore.buscarHistoricosContabil()
+            found = (all || []).find(h => h.id === histId)
+          } catch (e) {
+            // ignore
+          }
+        }
+        histContabilLabel.value = found ? (found.deschistorico || found.descricao || `(${histId})`) : (dados.deschistorico || dados.descricao || `(${histId})`)
+      }
+
+        // Resolver labels de Tipo de Documento, Plano de Conta e Fornecedor quando API retornar apenas ids
+        try {
+          // Tipo de documento
+          const tipoId = dados.id_tipodocumento || dados.id_tipodocumen || dados.id_tipo || null
+          if (tipoId) {
+            const tipo = (tiposDocumento.value || []).find(t => String(t.id) === String(tipoId))
+            if (tipo) {
+              tipoDocumentoSelecionado.value = tipo.abreviatura || tipo.desctipodocumento || tipo.descricao || ''
+              formData.id_tipodocumen = tipo.id
+            } else if (dados.abreviatura) {
+              tipoDocumentoSelecionado.value = dados.abreviatura
+            }
+          }
+
+          // Plano de conta
+          const planoId = dados.id_planoconta || dados.id_planoconta || dados.id_plano || null
+          const planos = financeiroStore.planosConta || []
+          if (planoId) {
+            const plano = (planos || []).find(p => String(p.id) === String(planoId))
+            if (plano) {
+              planoContaSelecionado.value = plano.descconta || plano.descricao || plano.abreviatura || ''
+              formData.id_planoconta = plano.id
+            } else if (dados.abreviatura_planoconta || dados.descplanoconta) {
+              planoContaSelecionado.value = dados.abreviatura_planoconta || dados.descplanoconta
+            }
+          }
+
+          // Fornecedor: garantir label exibido no autocomplete
+          if (formData.id_fornecedor) {
+            const foundPessoa = (pessoas.value || []).find(p => String(p.id) === String(formData.id_fornecedor))
+            if (foundPessoa) {
+              fornecedorLabel.value = foundPessoa.apelido_fantasia || foundPessoa.nome_razao || foundPessoa.nome || ''
+            } else if (dados.fornecedor) {
+              // adicionar um item mínimo para exibição no autocomplete + label
+              const novo = {
+                id: formData.id_fornecedor,
+                apelido_fantasia: dados.fornecedor || '',
+                nome_razao: dados.nome_razao || dados.fornecedor || ''
+              }
+              pessoas.value = [...(pessoas.value || []), novo]
+              fornecedorLabel.value = novo.apelido_fantasia || novo.nome_razao || ''
+            }
+          }
+        } catch (e) {
+          // não bloquear o fluxo por erro na resolução de labels
+          console.warn('Erro ao resolver labels a partir dos ids:', e)
+        }
+    }
+
+    // Parcelas: a API pode retornar `pagparcela` aninhado em `data[0]` (dados) ou no objeto raiz (documento).
+    // Priorizar os campos dentro de `dados` (documento.data[0]) quando presentes.
+    const parcelasRet = (dados && dados.pagparcela) ? dados.pagparcela
+      : (dados && dados.parcela) ? dados.parcela
+      : (dados && dados.parcelas) ? dados.parcelas
+      : (documento && documento.pagparcela) ? documento.pagparcela
+      : (documento && documento.parcela) ? documento.parcela
+      : (documento && documento.parcelas) ? documento.parcelas
+      : []
+    if (Array.isArray(parcelasRet) && parcelasRet.length > 0) {
+      parcelas.value = parcelasRet.map((p, idx) => {
+        const nr = p.id || p.id_parcela || p.id_pagconta || (idx + 1)
+        const rawValor = p.vlroriginalparcela ?? p.vlrparcela ?? p.valor ?? 0
+        const vlr = parseFloat(String(rawValor).toString().replace(',', '.')) || 0
+        return {
+          nrparcela: nr,
+          dtvencimento: p.dtvencimento || p.data_vencimento || p.dtvencimento_parcela || '',
+          vlrparcela: vlr.toFixed(2),
+          id_localcobranca: p.id_localcobranca || null,
+          localCobrancaTexto: '',
+          _localcobrancaEdited: false,
+          observacao: p.observacao || ''
+        }
+      })
+      calcularTotalParcelas()
+      parcelasCalculadas.value = true
+      // preencher os campos do card de cálculo com a primeira parcela (valor e vencimento)
+      try {
+        const primeira = parcelas.value[0]
+        if (primeira) {
+          formData.valor_primeira_parcela = parseFloat(primeira.vlrparcela) || 0
+          formData.venc_primeira_parcela = primeira.dtvencimento || ''
+        }
+      } catch (e) {
+        // ignore
+      }
+      // garantir que o watcher não venha a limpar as parcelas carregadas
+      await nextTick()
+      suppressParcelWatcher.value = false
+    } else {
+      // fallback: manter lógica anterior (buscar por documento na lista local)
+      const parcelasDoDocumento = contasPagar.value.filter(cp => 
+        cp.nrdocumento === item.nrdocumento && 
+        cp.serie === item.serie && 
+        cp.especie === item.especie
+      )
+      parcelas.value = parcelasDoDocumento.map(parcela => ({
+        nrparcela: parcela.id_parcela,
+        dtvencimento: parcela.dtvencimento || '',
+        vlrparcela: parseFloat(parcela.vlrparcela || 0).toFixed(2),
+        id_localcobranca: null,
+        localCobrancaTexto: parcela.desclocalcobranca || '',
+        _localcobrancaEdited: false,
+        observacao: ''
+      }))
+      // preencher os campos do card de cálculo com a primeira parcela encontrada
+      if (parcelas.value && parcelas.value.length > 0) {
+        const p0 = parcelas.value[0]
+        formData.valor_primeira_parcela = parseFloat(p0.vlrparcela) || 0
+        formData.venc_primeira_parcela = p0.dtvencimento || ''
+      }
+      calcularTotalParcelas()
+      parcelasCalculadas.value = formData.qtdparcelas > 1 && parcelas.value.length > 0
+    }
+
+    // resolve localCobranca text for each parcela using locaisCobranca list
+    if (Array.isArray(locaisCobranca.value) && locaisCobranca.value.length > 0) {
+      parcelas.value = parcelas.value.map(p => {
+        if (p.id_localcobranca) {
+          const l = locaisCobranca.value.find(lc => String(lc.id) === String(p.id_localcobranca))
+          p.localCobrancaTexto = l ? (l.desclocalcobranca || l.descricao || '') : p.localCobrancaTexto
+        }
+        return p
+      })
+    }
+
+    // Rateios (centros de custo) — API returns `ccusto` as array of { id_ccusto, valor }
+    const ccustos = (documento && documento.ccusto) ? documento.ccusto : (dados && dados.ccusto) ? dados.ccusto : []
+    if (Array.isArray(ccustos) && ccustos.length > 0) {
+      // Ensure centrosCusto list is loaded
+      if ((centrosCusto.value || []).length === 0) {
+        try {
+          await ccustoStore.listarCCusto()
+          centrosCusto.value = ccustoStore.centrosCusto || ccustoStore.centroscusto || []
+        } catch (e) {
+          console.warn('Não foi possível carregar centros de custo ao editar documento', e)
+        }
+      }
+        // suportar diferentes chaves que o backend pode retornar (id_ccusto, id_ccusto_prev_lote, id)
+        selectedCentros.value = ccustos.map(c => c.id_ccusto || c.id_ccusto_prev_lote || c.id)
+        // populate rateiosMap values
+        selectedCentros.value.forEach(id => {
+          const entry = ccustos.find(c => (c.id_ccusto || c.id_ccusto_prev_lote || c.id) === id) || {}
+          const centro = (centrosCusto.value || []).find(c => c.id === id) || {}
+          // extrair o valor do entry em várias chaves possíveis
+          const rawValor = entry.valor ?? entry.vlr ?? entry.valor_ccusto ?? entry.vlroriginalparcela ?? 0
+          const valorNum = parseFloat(String(rawValor).toString().replace(',', '.')) || 0
+          rateiosMap.value[id] = {
+            id,
+            descricao: centro.desccentrocusto || centro.descricao || entry.descricao || `Centro ${id}`,
+            valor: valorNum.toFixed(2),
+            porcentagem: parseFloat(entry.porcentagem) || 0
+          }
+        })
+    }
+
+    // Media: API returns `media` as array (e.g. ["key"]) — persist first element into formData.id_media
+    if (documento && Array.isArray(documento.media) && documento.media.length > 0) {
+      formData.id_media = documento.media[0] || formData.id_media
+    } else if (dados && Array.isArray(dados.media) && dados.media.length > 0) {
+      formData.id_media = dados.media[0] || formData.id_media
+    }
+
+    // caso não tenha entrado no ramo de parcelasRet acima, garantir que o watcher seja reativado
+    suppressParcelWatcher.value = false
+
+  } catch (err) {
+    console.error('Erro ao carregar documento completo:', err)
+    mostrarMensagem('Erro ao carregar dados do documento', 'error')
+  } finally {
+    loading.value = false
+  }
 }
 
 const cancelarFormulario = () => {
@@ -1342,15 +1608,24 @@ const salvarContaPagar = async () => {
     }
     
     // Dados principais da conta a pagar
+    // Determinar nome do fornecedor a partir do id selecionado
+    const fornecedorObj = (pessoas.value || []).find(p => p.id === formData.id_fornecedor) || {}
+    const fornecedorNome = fornecedorObj.apelido_fantasia || fornecedorObj.nome_razao || fornecedorObj.nome || ''
+
     const dadosPrincipais = {
-      fornecedor: formData.fornecedor,
+      // enviar o nome do fornecedor em `fornecedor` (backend espera nome),
+      // manter também `id_fornecedor` separado
+      fornecedor: fornecedorNome,
+      id_fornecedor: formData.id_fornecedor,
+      // Histórico contábil (id) com nome de campo pedido pelo backend
+      id_historico_ctb: formData.id_historicocontabil || null,
+      id_red_ctb_for: fornecedorObj.id_red_ctb_for || fornecedorObj.id_red_ctb || null,
       abreviatura: tipoDocumentoSelecionado.value,
       id_empresa: idEmpresa.value,
       nrdocumento: formData.nrdocumento,
       serie: formData.serie,
       especie: formData.especie,
       id_tipodocumento: formData.id_tipodocumen,
-      id_fornecedor: formData.id_fornecedor,
       id_planoconta: formData.id_planoconta,
       observacao: formData.observacao,
       vlroriginal: parseFloat(formData.vlroriginal),
@@ -1372,17 +1647,41 @@ const salvarContaPagar = async () => {
     
     // Usar key do Pinia para o payload
     const mediaValue = financeiroStore.getMediaKeyTemporaria() || null
+    // Montar array ccusto no formato solicitado: [{ id_ccusto, valor }]
+    const ccustoArray = (rateiosArray.value || []).map(r => ({
+      id_ccusto: r.id,
+      valor: String(parseFloat(r.valor) || 0)
+    }))
+
+    // Validar soma do rateio (se houver rateios) contra o total das parcelas
+    if (ccustoArray.length > 0) {
+      const totalRateado = parseFloat(totalRateadoValor.value) || 0
+      const total = parseFloat(totalParcelas.value) || 0
+      if (Math.abs(totalRateado - total) > 0.01) {
+        mostrarMensagem('Total do rateio por centro de custo não corresponde ao total das parcelas', 'warning')
+        loading.value = false
+        return
+      }
+    }
+
+    // Montar payload no formato solicitado: data, parcela, media, ccusto (top-level)
     const payloadCompleto = {
       data: [dadosPrincipais],
       parcela: parcelasFormatadas,
-      media: [{ id_media: mediaValue }]
+      media: [{ id_media: mediaValue }],
+      ccusto: ccustoArray
     }
 
+    // Log do payload para debug (ver no console do navegador antes do POST)
+    console.log('salvarContaPagar - payloadCompleto:', JSON.parse(JSON.stringify(payloadCompleto)))
+
     if (editando.value) {
+      // Atualização usa rota com id por enquanto
       await financeiroStore.atualizarContaPagar(idEmpresa.value, formData.id, payloadCompleto)
       mostrarMensagem('Conta a pagar atualizada com sucesso!', 'success')
     } else {
-      await financeiroStore.criarContaPagar(idEmpresa.value, payloadCompleto)
+      // Enviar apenas o payload para criar (id_empresa já está dentro de data[0])
+      await financeiroStore.criarContaPagar(payloadCompleto)
       mostrarMensagem('Conta a pagar cadastrada com sucesso!', 'success')
     }
     
