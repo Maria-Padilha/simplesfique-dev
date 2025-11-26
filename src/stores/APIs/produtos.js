@@ -41,6 +41,9 @@ export const useProdutosStore = defineStore('produtos', {
         fornecedores: [],
 
         similar: [],
+
+        entradadfe: [],
+        entradadfeItem: null,
     }),
 
     actions: {
@@ -550,6 +553,120 @@ export const useProdutosStore = defineStore('produtos', {
                 await this.buscarProdutosSimilares(idProduto);
             } catch (error) {
                 console.error('Erro ao atualizar produto similar:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * BUSCAR ENTRADAS DFE
+         * @param {string} id - id da empresa.
+         * @return {Promise<void>}
+         */
+
+        async buscarEntradasDfe(idEmpresa) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/entradadfe/${idEmpresa}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                this.entradadfe = response.data.data;
+                this.errorMessage = '';
+
+                console.log('entradas dfe encontradas: ', this.entradadfe);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar entradas dfe: ', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * BUSCAR ENTRADA DFE POR ID
+         * @param {number} idEmpresa - ID da Empresa.
+         * @param {number} id - ID da entrada dfe a ser buscada.
+         * @return {Promise<void>}
+         */
+
+        async buscarEntradaDfePorId(idEmpresa, id) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/entradadfe/${idEmpresa}/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+                this.entradadfeItem = response.data;
+                this.errorMessage = '';
+                console.log('Entrada DFE encontrada:', this.entradadfeItem);
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar entrada dfe por ID:', error);
+            }
+            finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * CADASTRAR ENTRADA DFE
+         * @param {object} entradadfeData - Dados da entrada dfe a ser cadastrada.
+         * @return {Promise<void>}
+         */
+
+        async cadastrarEntradaDfe(entradadfeData, idEmpresa) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao('entradadfe', 'post', entradadfeData);
+                await this.buscarEntradasDfe(idEmpresa);
+            } catch (error) {
+                console.error('Erro ao cadastrar entrada dfe:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * DELETAR ENTRADA DFE
+         * @param {number} idEmpresa - ID da Empresa.
+         * @param {number} id - ID da entrada dfe a ser deletada.
+         * @return {Promise<void>}
+         */
+        async deletarEntradaDfe(idEmpresa, id) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`entradadfe/${idEmpresa}/${id}`, 'delete');
+                await this.buscarEntradasDfe(idEmpresa);
+            } catch (error) {
+                console.error('Erro ao deletar entrada dfe:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * ATUALIZAR ENTRADA DFE
+         * @param {number} idEmpresa - ID da Empresa.
+         * @param {number} id - ID da entrada dfe a ser atualizada.
+         * @param {object} entradadfeData - Dados da entrada dfe a serem atualizados.
+         * @return {Promise<void>}
+         */
+
+        async atualizarEntradaDfe(idEmpresa, id, entradadfeData) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`entradadfe/${idEmpresa}/${id}`, 'put', entradadfeData);
+                await this.buscarEntradaDfePorId(idEmpresa, id);
+                await this.buscarEntradasDfe(idEmpresa);
+            } catch (error) {
+                console.error('Erro ao atualizar entrada dfe:', error);
             } finally {
                 this.loading = false;
             }

@@ -15,6 +15,8 @@ export const useLocalizacaoStore = defineStore('localizacao', {
         cep: [],
         cnpj: [],
 
+        ufs: [],
+
         bairros: [],
         bairro: null,
         recordsBairros: 0,
@@ -200,6 +202,29 @@ export const useLocalizacaoStore = defineStore('localizacao', {
                 idBairro = null;
                 idCidade = null;
             }
-        }
+        },
+
+        /**
+         * BUSCAR TODAS AS UFs
+         */
+
+        async buscarTodasUfs() {
+            this.loading = true;
+
+            try {
+                const response = await api.get('/uf');
+
+                this.ufs = response.data.data;
+                this.errorMessage = '';
+
+                console.log('UFs encontradas:', this.ufs);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar UFs:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
     }
 })
