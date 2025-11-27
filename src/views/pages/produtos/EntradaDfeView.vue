@@ -56,7 +56,11 @@
                       <!-- id_almoxarifado -->
                       <v-col cols="12" md="3">
                         <v-text-field density="compact" variant="outlined" label="Almoxarifado" hide-details="auto"
-                                      v-model="forms.id_almoxarifado" :rules="validacao"/>
+                                      v-model="almoxarifadoNome" readonly>
+                          <template #append-inner>
+                            <almoxarifado-menu @selecionar="selecionarAlmoxarifado"/>
+                          </template>
+                        </v-text-field>
                       </v-col>
 
                       <!-- id_cfop -->
@@ -574,6 +578,7 @@ import {useThemeStore} from "@/stores/config-temas/theme";
 import {usePessoasStore} from "@/stores/APIs/pessoas";
 import {useLocalizacaoStore} from "@/stores/APIs/localizacao";
 import ExcluirModal from "@/components/base/modais/ExcluirModal.vue";
+import AlmoxarifadoMenu from "@/components/base/menu/AlmoxarifadoMenu.vue";
 
 const localizacaoStore = useLocalizacaoStore();
 const produtosStore = useProdutosStore();
@@ -595,6 +600,7 @@ const itemSelecionado = ref(null);
 const editando = ref(false);
 const panels = ref([]);
 const search = ref("");
+const almoxarifadoNome = ref("");
 
 const toggleFormulario = () => {
   formularioAberto.value = !formularioAberto.value;
@@ -608,6 +614,11 @@ const toggleFormulario = () => {
   }
 
   panels.value = [];
+};
+
+const selecionarAlmoxarifado = (almoxarifado) => {
+  forms.id_almoxarifado = almoxarifado.id;
+  almoxarifadoNome.value = almoxarifado.descalmox || almoxarifado.nome || '';
 };
 
 const headers = ref([
@@ -713,6 +724,7 @@ const cancelarFormulario = () => {
     forms[key] = null;
   }
   forms.id_empresa = idEmpresa?.id ?? null;
+  almoxarifadoNome.value = "";
 
   formularioAberto.value = false;
 };
@@ -851,7 +863,19 @@ const editarItem = async (item) => {
 
   panels.value = [0,1,2,3,4,5,6,7,8,9];
 
-  Object.assign(forms, itemSelecionado.value)
+  Object.assign(forms, itemSelecionado.value);
+
+  // Carregar nome do almoxarifado se existir
+  if (entrada?.id_almoxarifado) {
+    // Se os dados já vêm com descalmox, usar diretamente
+    if (entrada.descalmox) {
+      almoxarifadoNome.value = entrada.descalmox;
+    } else {
+      // Caso contrário, deixar em branco (será preenchido ao selecionar novamente)
+      almoxarifadoNome.value = '';
+    }
+  }
+
   editando.value = true;
   formularioAberto.value = true;
 }
