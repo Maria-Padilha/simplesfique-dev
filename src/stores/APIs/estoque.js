@@ -30,6 +30,10 @@ export const useEstoqueStore = defineStore('estoque', {
         cest: null,
 
         nbs: [],
+
+        almoxarifados: [],
+        almoxarifado: null,
+        recordsAlmoxarifados: 0,
     }),
 
     actions: {
@@ -445,6 +449,126 @@ export const useEstoqueStore = defineStore('estoque', {
                 await this.buscarNbs();
             } catch (error) {
                 console.error('Erro ao cadastrar NBS:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * BUSCAR TODOS OS ALMOXARIFADOS
+         * @param {number} idemp - ID da empresa.
+         * @param {string} find - Termo de busca para filtrar os almoxarifados.
+         * @param {number} limit - Número máximo de almoxarifados a serem retornados.
+         * @return {Promise<void>}
+         */
+
+        async buscarAlmoxarifados(idemp, find = "", limit = 100) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/almoxarifado/${idemp}?find=${find}&limit=${limit}`, {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`
+                    }
+                });
+
+                this.almoxarifados = response.data.data;
+                this.recordsAlmoxarifados = response.data.records;
+                this.errorMessage = '';
+
+                console.log('Almoxarifados encontrados:', this.almoxarifados);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar almoxarifados:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * BUSCAR ALMOXARIFADO POR ID
+         * @param {number} idemp - ID da empresa.
+         * @param {number} id - ID do almoxarifado a ser buscado.
+         * @return {Promise<void>}
+         */
+
+        async buscarAlmoxarifadoPorId(idemp, id) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/almoxarifado/${idemp}/${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`
+                    }
+                });
+
+                this.almoxarifado = response.data;
+                this.errorMessage = '';
+
+                console.log('Almoxarifado encontrado:', this.almoxarifado);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar almoxarifado por ID:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * CADASTRAR ALMOXARIFADO
+         * @param {number} idemp - ID da empresa.
+         * @param {Object} almoxarifadoData - Dados do almoxarifado a ser cadastrado.
+         * @return {Promise<void>}
+         */
+
+        async cadastrarAlmoxarifado(idemp, almoxarifadoData) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao('almoxarifado', 'post', almoxarifadoData);
+                await this.buscarAlmoxarifados(idemp);
+            } catch (error) {
+                console.error('Erro ao cadastrar almoxarifado:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * EDITAR ALMOXARIFADO
+         * @param {number} idemp - ID da empresa.
+         * @param {number} id - ID do almoxarifado a ser editado.
+         * @param {Object} almoxarifadoData - Dados do almoxarifado a ser editado.
+         * @return {Promise<void>}
+         */
+
+        async editarAlmoxarifado(idemp, id, almoxarifadoData) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`almoxarifado/${idemp}/${id}`, 'put', almoxarifadoData);
+                await this.buscarAlmoxarifados(idemp);
+            } catch (error) {
+                console.error('Erro ao editar almoxarifado:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * DELETAR ALMOXARIFADO
+         * @param {number} idemp - ID da empresa.
+         * @param {number} id - ID do almoxarifado a ser deletado.
+         * @return {Promise<void>}
+         */
+
+        async deletarAlmoxarifado(idemp, id) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`almoxarifado/${idemp}/${id}`, 'delete');
+                await this.buscarAlmoxarifados(idemp);
+            } catch (error) {
+                console.error('Erro ao deletar almoxarifado:', error);
             } finally {
                 this.loading = false;
             }
