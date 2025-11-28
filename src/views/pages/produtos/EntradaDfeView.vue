@@ -65,10 +65,12 @@
 
                       <!-- id_cfop -->
                       <v-col cols="12" md="3">
-                        <v-text-field
-                            density="compact" variant="outlined" label="C.F.O.P" hide-details="auto"
-                            v-model="forms.id_cfop" :rules="validacao"
-                        />
+                        <v-text-field density="compact" variant="outlined" label="C.F.O.P" hide-details="auto"
+                                      v-model="cfopNome" readonly>
+                          <template #append-inner>
+                            <cfop-menu @selecionar="selecionarCfop"/>
+                          </template>
+                        </v-text-field>
                       </v-col>
 
                       <!-- id_uf -->
@@ -579,6 +581,7 @@ import {usePessoasStore} from "@/stores/APIs/pessoas";
 import {useLocalizacaoStore} from "@/stores/APIs/localizacao";
 import ExcluirModal from "@/components/base/modais/ExcluirModal.vue";
 import AlmoxarifadoMenu from "@/components/base/menu/AlmoxarifadoMenu.vue";
+import CfopMenu from "@/components/base/menu/CfopMenu.vue";
 
 const localizacaoStore = useLocalizacaoStore();
 const produtosStore = useProdutosStore();
@@ -601,6 +604,7 @@ const editando = ref(false);
 const panels = ref([]);
 const search = ref("");
 const almoxarifadoNome = ref("");
+const cfopNome = ref("");
 
 const toggleFormulario = () => {
   formularioAberto.value = !formularioAberto.value;
@@ -618,7 +622,12 @@ const toggleFormulario = () => {
 
 const selecionarAlmoxarifado = (almoxarifado) => {
   forms.id_almoxarifado = almoxarifado.id;
-  almoxarifadoNome.value = almoxarifado.descalmox || almoxarifado.nome || '';
+  almoxarifadoNome.value = almoxarifado.descalmoxarifado || almoxarifado.nome || '';
+};
+
+const selecionarCfop = (cfop) => {
+  forms.id_cfop = cfop.id;
+  cfopNome.value = cfop.codigo + ' - ' + (cfop.descricao || '');
 };
 
 const headers = ref([
@@ -725,6 +734,7 @@ const cancelarFormulario = () => {
   }
   forms.id_empresa = idEmpresa?.id ?? null;
   almoxarifadoNome.value = "";
+  cfopNome.value = "";
 
   formularioAberto.value = false;
 };
@@ -873,6 +883,17 @@ const editarItem = async (item) => {
     } else {
       // Caso contrário, deixar em branco (será preenchido ao selecionar novamente)
       almoxarifadoNome.value = '';
+    }
+  }
+
+  // Carregar nome do CFOP se existir
+  if (entrada?.id_cfop) {
+    // Se os dados já vêm com a descrição do CFOP, usar diretamente
+    if (entrada.codigo_cfop && entrada.descricao_cfop) {
+      cfopNome.value = entrada.codigo_cfop + ' - ' + entrada.descricao_cfop;
+    } else {
+      // Caso contrário, deixar em branco (será preenchido ao selecionar novamente)
+      cfopNome.value = '';
     }
   }
 

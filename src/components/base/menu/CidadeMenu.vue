@@ -7,22 +7,24 @@
       @selecionar="selecionarcidade"
   >
     <template #resultados="{ selecionar }">
-      <v-virtual-scroll
-          :items="cidades"
-          :height="80"
-          item-height="42"
-          class="mt-3"
-      >
-        <template #default="{ item }">
+      <div class="cidade-menu-scroll-container" style="height: 200px; overflow-y: auto;">
+        <template v-if="cidades.length">
           <div
-              class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+              v-for="item in cidades"
+              :key="item.id"
+              class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer transition-colors"
               @click="selecionar(item)"
           >
             <p class="text-body-1">{{ item.desccidade + ' - ' + item.id_uf }}</p>
           </div>
         </template>
-      </v-virtual-scroll>
-      <p class="text-sm opacity-70 mt-3 font-italic">{{ cidadeStore.cidades.length }} itens encontrados</p>
+        <template v-else>
+          <div class="px-3 py-4">
+            <p class="text-sm opacity-50">Nenhum resultado encontrado</p>
+          </div>
+        </template>
+      </div>
+      <p class="text-sm opacity-70 px-3 py-2 font-italic">{{ cidadeStore.cidades.length }} itens encontrados</p>
     </template>
   </busca-padrao-menu>
 </template>

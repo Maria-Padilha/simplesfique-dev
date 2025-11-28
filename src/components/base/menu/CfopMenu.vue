@@ -4,22 +4,22 @@
       :pesquisar="pesquisar"
       :modalCadastrar="abrirModalCadastrar"
       :modelInput="termoPesquisa"
-      :resultados="almoxarifados"
-      :loading="almoxStore.loading"
+      :resultados="cfops"
+      :loading="estoqueStore.loading"
       @update:modelInput="termoPesquisa = $event"
-      @selecionar="selecionarAlmoxarifado"
+      @selecionar="selecionarCfop"
       :cadastrar-btn="true"
   >
     <template #resultados="{ selecionar }">
-      <div class="almoxarifado-menu-scroll-container" style="height: 200px; overflow-y: auto;">
-        <template v-if="almoxarifados.length">
+      <div class="cfop-menu-scroll-container" style="height: 200px; overflow-y: auto;">
+        <template v-if="cfops.length">
           <div
-              v-for="item in almoxarifados"
+              v-for="item in cfops"
               :key="item.id"
               class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer transition-colors"
               @click="selecionar(item)"
           >
-            <p class="text-body-1">{{ item.descalmoxarifado || 'Sem nome' }}</p>
+            <p class="text-body-1">{{ item.id_cfop || 'Sem código' }} - {{ item.descricao || 'Sem descrição' }}</p>
           </div>
         </template>
         <template v-else>
@@ -28,26 +28,33 @@
           </div>
         </template>
       </div>
-      <p class="text-sm opacity-50 px-3 py-2">Exibindo {{ almoxarifados?.length }} de {{ almoxStore.recordsAlmoxarifados }}</p>
+      <p class="text-sm opacity-50 px-3 py-2">Exibindo {{ cfops?.length }} de {{ estoqueStore.recordsCfop }}</p>
     </template>
   </busca-padrao-menu>
 
    <CadastrarModal
       :cadastrarModal="cadastrarModal"
       :clearInput="clearInput"
-      :cadastrarcidade="cadastrarAlmoxarifado"
+      :cadastrarcidade="cadastrarCfop"
   >
-    <template #titulo>Almoxarifado</template>
+    <template #titulo>CFOP</template>
     <template #textfields>
 
       <v-card-text>
         <v-form class="d-flex flex-column gap-3 w-100">
           <v-text-field
-              label="Almoxarifado"
+              label="Código"
               variant="outlined"
               density="comfortable"
               hide-details="auto"
-              v-model="almoxarifado"
+              v-model="cfopCodigo"
+          />
+          <v-text-field
+              label="Descrição"
+              variant="outlined"
+              density="comfortable"
+              hide-details="auto"
+              v-model="cfopDescricao"
           />
         </v-form>
       </v-card-text>
@@ -68,38 +75,35 @@ const menu = ref(false);
 const termoPesquisa = ref("");
 const cadastrarModal = ref(false);
 
-const almoxarifado = ref("");
+const cfopCodigo = ref("");
+const cfopDescricao = ref("");
 
-const almoxStore = useEstoqueStore();
-const almoxarifados = computed(() => almoxStore.almoxarifados);
-
-// Obtém ID da empresa do localStorage
-const idEmpresa = JSON.parse(localStorage.getItem('empresaSelecionada'))?.id;
+const estoqueStore = useEstoqueStore();
+const cfops = computed(() => estoqueStore.cfops);
 
 watchEffect(() => {
-  if (almoxarifados.value.length === 0 && idEmpresa) {
-    almoxStore.buscarAlmoxarifados(idEmpresa, "", 15);
+  if (cfops.value.length === 0) {
+    estoqueStore.buscarCfops("", 15);
   }
 })
 
 watch( () => termoPesquisa.value, async (pesquisa) => {
-  if (!pesquisa || pesquisa.lenght < 2) {
-    almoxarifados.value = [];
+  if (!pesquisa || pesquisa.length < 2) {
+    cfops.value = [];
     return;
   }
-  console.log("Pesquisando almoxarifado: ", pesquisa);
-  if (idEmpresa) {
-    await almoxStore.buscarAlmoxarifados(idEmpresa, pesquisa);
-  }
+  console.log("Pesquisando CFOP: ", pesquisa);
+  await estoqueStore.buscarCfops(pesquisa);
 })
 
-const selecionarAlmoxarifado = (almoxarifadoSelecionado) => {
-  emit("selecionar", almoxarifadoSelecionado);
+const selecionarCfop = (cfopSelecionado) => {
+  emit("selecionar", cfopSelecionado);
   menu.value = false;
 };
 
 const clearInput = () => {
-  almoxarifado.value = "";
+  cfopCodigo.value = "";
+  cfopDescricao.value = "";
   cadastrarModal.value = false;
 };
 
@@ -107,26 +111,22 @@ const abrirModalCadastrar = () => {
   cadastrarModal.value = true;
 };
 
-const cadastrarAlmoxarifado = async () => {
-  if (!almoxarifado.value) {
-    toast.error("O almoxarifado é obrigatório!");
+const cadastrarCfop = async () => {
+  if (!cfopCodigo.value || !cfopDescricao.value) {
+    toast.error("Código e descrição são obrigatórios!");
     return;
   }
 
-  if (!idEmpresa) {
-    toast.error("Empresa não selecionada!");
-    return;
-  }
-
-  await almoxStore.cadastrarAlmoxarifado(idEmpresa, {
+  await estoqueStore.cadastrarCfop({
     data: [
       {
-        descalmox: almoxarifado.value
+        codigo: cfopCodigo.value,
+        descricao: cfopDescricao.value
       }
     ]
   })
 
-  if (!almoxStore.errorMessage) {
+  if (!estoqueStore.errorMessage) {
     clearInput();
   }
 };

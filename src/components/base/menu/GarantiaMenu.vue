@@ -11,22 +11,24 @@
       :cadastrar-btn="true"
   >
     <template #resultados="{ selecionar }">
-      <v-virtual-scroll
-          :items="garantias"
-          :height="80"
-          item-height="42"
-          class="mt-3"
-      >
-        <template #default="{ item }">
+      <div class="garantia-menu-scroll-container" style="height: 200px; overflow-y: auto;">
+        <template v-if="garantias.length">
           <div
-              class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+              v-for="item in garantias"
+              :key="item.id"
+              class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer transition-colors"
               @click="selecionar(item)"
           >
             <p class="text-body-1">{{ tipoGarantia[item.tipo] + ' - ' + item.descgarantia || 'Sem nome' }}</p>
           </div>
         </template>
-      </v-virtual-scroll>
-      <p class="text-sm opacity-50">Exibindo {{ garantias?.length }} de {{ garantiaStore.recordsGarantias }}</p>
+        <template v-else>
+          <div class="px-3 py-4">
+            <p class="text-sm opacity-50">Nenhum resultado encontrado</p>
+          </div>
+        </template>
+      </div>
+      <p class="text-sm opacity-50 px-3 py-2">Exibindo {{ garantias?.length }} de {{ garantiaStore.recordsGarantias }}</p>
     </template>
   </busca-padrao-menu>
 

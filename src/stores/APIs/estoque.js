@@ -34,6 +34,10 @@ export const useEstoqueStore = defineStore('estoque', {
         almoxarifados: [],
         almoxarifado: null,
         recordsAlmoxarifados: 0,
+
+        cfops: [],
+        cfop: null,
+        recordsCfop: 0,
     }),
 
     actions: {
@@ -569,6 +573,121 @@ export const useEstoqueStore = defineStore('estoque', {
                 await this.buscarAlmoxarifados(idemp);
             } catch (error) {
                 console.error('Erro ao deletar almoxarifado:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * BUSCAR TODOS OS CFOPS
+         * @param {string} find - Termo de busca para filtrar os CFOPs.
+         * @param {number} limit - Número máximo de CFOPs a serem retornados.
+         * @return {Promise<void>}
+         */
+
+        async buscarCfops(find = "", limit = 100) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/cfop?find=${find}&limit=${limit}`, {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`
+                    }
+                });
+
+                this.cfops = response.data.data;
+                this.recordsCfop = response.data.records;
+                this.errorMessage = '';
+
+                console.log('CFOPs encontrados:', this.cfops);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar CFOPs:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * BUSCAR CFOP POR ID
+         * @param {number} id - ID do CFOP a ser buscado.
+         * @return {Promise<void>}
+         */
+
+        async buscarCfopPorId(id) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/cfop/${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`
+                    }
+                });
+
+                this.cfop = response.data;
+                this.errorMessage = '';
+
+                console.log('CFOP encontrado:', this.cfop);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar CFOP por ID:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * CADASTRAR CFOP
+         * @param {Object} cfopData - Dados do CFOP a ser cadastrado.
+         * @return {Promise<void>}
+         */
+
+        async cadastrarCfop(cfopData) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao('cfop', 'post', cfopData);
+                await this.buscarCfops();
+            } catch (error) {
+                console.error('Erro ao cadastrar CFOP:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * EDITAR CFOP
+         * @param {number} id - ID do CFOP a ser editado.
+         * @param {Object} cfopData - Dados do CFOP a ser editado.
+         * @return {Promise<void>}
+         */
+
+        async editarCfop(id, cfopData) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`cfop/${id}`, 'put', cfopData);
+                await this.buscarCfops();
+            } catch (error) {
+                console.error('Erro ao editar CFOP:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * DELETAR CFOP
+         * @param {number} id - ID do CFOP a ser deletado.
+         * @return {Promise<void>}
+         */
+
+        async deletarCfop(id) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`cfop/${id}`, 'delete');
+                await this.buscarCfops();
+            } catch (error) {
+                console.error('Erro ao deletar CFOP:', error);
             } finally {
                 this.loading = false;
             }
