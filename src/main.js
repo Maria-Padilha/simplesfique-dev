@@ -21,6 +21,14 @@ const pinia = createPinia();
 pinia.use(piniaPersistedstate);
 AOS.init();
 
+// Patch global para suprimir ResizeObserver warning
+const resizeObserverErrMsg = 'ResizeObserver loop completed with undelivered notifications.';
+window.addEventListener('error', (e) => {
+  if (e.message === resizeObserverErrMsg) {
+    e.stopImmediatePropagation();
+  }
+});
+
 loadFonts()
 
 createApp(App)
