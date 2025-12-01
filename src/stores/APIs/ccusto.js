@@ -191,6 +191,49 @@ export const useCCustoStore = defineStore('ccusto', {
       } finally {
         this.loading = false
       }
+    },
+
+    /**
+     * BUSCAR PREVISÃO DE DÉBITOS
+     * GET /ccustoprev/:idempresa?dtini=YYYY-MM-DD&dtfim=YYYY-MM-DD&id_ccusto=X
+     *
+     * @param {Object} params - { idEmpresa, dtini, dtfim, id_ccusto (opcional) }
+     * @return {Promise<Array>}
+     */
+    async buscarPrevisaoDebitos({ idEmpresa, dtini, dtfim, id_ccusto }) {
+      this.loading = true
+
+      try {
+        // Construir URL com parâmetros
+        let url = `/ccustoprev/${idEmpresa}?dtini=${dtini}&dtfim=${dtfim}`
+        
+        // Adicionar id_ccusto se for diferente de 'todos'
+        if (id_ccusto && id_ccusto !== 'todos') {
+          url += `&id_ccusto=${id_ccusto}`
+        }
+
+        console.log('🔍 Buscando previsão de débitos:', url)
+
+        const response = await api.get(url, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        })
+
+        // Extrair dados da resposta
+        const dados = response.data.data || response.data
+        const previsoes = this.normalizarDados(dados)
+        
+        console.log('✅ Previsões encontradas:', previsoes?.length || 0)
+        
+        this.errorMessage = ''
+        return previsoes
+      } catch (error) {
+        this.errorMessage = error.response?.data?.message || 'Erro ao buscar previsão de débitos'
+        console.error('❌ Erro ao buscar previsão:', error)
+        toast.error(this.errorMessage)
+        throw error
+      } finally {
+        this.loading = false
+      }
     }
   }
 })

@@ -107,7 +107,7 @@
           </template>
 
           <!-- Formatação dos valores das colunas de dias -->
-          <template v-for="dia in gerarDiasPeriodo()" :key="dia.key" #[`item.${dia.key}`]="{ item }">
+          <template v-for="dia in diasComCobranca" :key="dia.key" #[`item.${dia.key}`]="{ item }">
             <span class="font-weight-medium">
               {{ item[dia.key] ? formatarMoeda(item[dia.key]) : '-' }}
             </span>
@@ -134,7 +134,7 @@
                       <thead>
                         <tr>
                           <th class="text-left">Descrição</th>
-                          <th v-for="dia in gerarDiasPeriodo()" :key="dia.key" class="text-center">
+                          <th v-for="dia in diasComCobranca" :key="dia.key" class="text-center">
                             {{ dia.label }}
                           </th>
                           <th class="text-center">Total</th>
@@ -143,7 +143,7 @@
                       <tbody>
                         <tr v-for="(despesa, index) in item.despesas" :key="index">
                           <td class="text-left">{{ despesa.descricao }}</td>
-                          <td v-for="dia in gerarDiasPeriodo()" :key="dia.key" class="text-center">
+                          <td v-for="dia in diasComCobranca" :key="dia.key" class="text-center">
                             {{ despesa[dia.key] ? formatarMoeda(despesa[dia.key]) : '-' }}
                           </td>
                           <td class="text-center font-weight-medium">
@@ -208,6 +208,8 @@ const ccustoStore = useCCustoStore()
 const loading = ref(false)
 const previsoes = ref([])
 const erroData = ref('')
+const idEmpresa = ref(1) // TODO: Obter do contexto de autenticação
+const diasComCobranca = ref([]) // Dias únicos que têm cobranças
 
 // Filtros
 const filtros = reactive({
@@ -256,8 +258,7 @@ const centrosCustoAgrupados = computed(() => {
       }
       
       // Inicializa as colunas de dias
-      const diasPeriodo = gerarDiasPeriodo()
-      diasPeriodo.forEach(dia => {
+      diasComCobranca.value.forEach(dia => {
         agrupado[item.centroCusto][dia.key] = 0
       })
     }
@@ -267,8 +268,7 @@ const centrosCustoAgrupados = computed(() => {
     agrupado[item.centroCusto].total += item.total || 0
     
     // Soma os valores por dia
-    const diasPeriodo = gerarDiasPeriodo()
-    diasPeriodo.forEach(dia => {
+    diasComCobranca.value.forEach(dia => {
       agrupado[item.centroCusto][dia.key] += item[dia.key] || 0
     })
   })
@@ -276,15 +276,14 @@ const centrosCustoAgrupados = computed(() => {
   return Object.values(agrupado)
 })
 
-// Headers da tabela (será dinâmico baseado nos dias do período)
+// Headers da tabela (será dinâmico baseado nos dias com cobranças)
 const headers = computed(() => {
   const baseHeaders = [
     { title: 'Centro de Custo', key: 'centroCusto', sortable: true, align: 'start' }
   ]
 
-  // Adiciona colunas de dias baseado no período selecionado
-  const diasPeriodo = gerarDiasPeriodo()
-  diasPeriodo.forEach(dia => {
+  // Adiciona colunas apenas para dias que têm cobranças
+  diasComCobranca.value.forEach(dia => {
     baseHeaders.push({
       title: dia.label,
       key: dia.key,
@@ -302,8 +301,7 @@ const headers = computed(() => {
 const totaisPorDia = computed(() => {
   if (!previsoes.value.length) return []
   
-  const dias = gerarDiasPeriodo()
-  return dias.map(dia => {
+  return diasComCobranca.value.map(dia => {
     return previsoes.value.reduce((sum, item) => sum + (item[dia.key] || 0), 0)
   })
 })
@@ -393,47 +391,11 @@ const validarPeriodo = () => {
   const dataInicial = new Date(filtros.dataInicial)
   const dataFinal = new Date(filtros.dataFinal)
   
-  // Verifica se estão no mesmo mês
-  if (dataInicial.getMonth() !== dataFinal.getMonth() || 
-      dataInicial.getFullYear() !== dataFinal.getFullYear()) {
-    erroData.value = 'As datas devem estar no mesmo mês'
-    return
-  }
-  
-  // Verifica se data inicial é menor que data final
+  // Verifica se data inicial é menor ou igual que data final
   if (dataInicial > dataFinal) {
-    erroData.value = 'Data inicial deve ser menor que data final'
+    erroData.value = 'Data inicial deve ser menor ou igual que data final'
     return
   }
-}
-
-const gerarDiasPeriodo = () => {
-  const dias = []
-  
-  if (!filtros.dataInicial || !filtros.dataFinal) {
-    return dias
-  }
-  
-  const dataInicial = new Date(filtros.dataInicial)
-  const dataFinal = new Date(filtros.dataFinal)
-  
-  // Gera dias do período selecionado
-  const dataAtual = new Date(dataInicial)
-  
-  while (dataAtual <= dataFinal) {
-    const dia = dataAtual.getDate()
-    const mes = meses[dataAtual.getMonth()]
-    
-    dias.push({
-      key: `dia${dia}`,
-      label: `${dia}:${mes.substring(0, 3)}`,
-      data: new Date(dataAtual)
-    })
-    
-    dataAtual.setDate(dataAtual.getDate() + 1)
-  }
-  
-  return dias
 }
 
 const buscarPrevisao = async () => {
@@ -452,64 +414,87 @@ const buscarPrevisao = async () => {
   loading.value = true
   
   try {
-    // Simulação de dados - substituir por chamada real à API
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    console.log('🔍 Iniciando busca de previsão...')
+    console.log('Parâmetros:', {
+      idEmpresa: idEmpresa.value,
+      dtini: filtros.dataInicial,
+      dtfim: filtros.dataFinal,
+      id_ccusto: filtros.centroCustoSelecionado
+    })
     
-    // Gera dados de exemplo baseado no período selecionado
-    const diasPeriodo = gerarDiasPeriodo()
+    // Chamada real à API
+    const dados = await ccustoStore.buscarPrevisaoDebitos({
+      idEmpresa: idEmpresa.value,
+      dtini: filtros.dataInicial,
+      dtfim: filtros.dataFinal,
+      id_ccusto: filtros.centroCustoSelecionado
+    })
     
-    // Exemplo de estrutura de dados
-    previsoes.value = [
-      {
-        centroCusto: 'CAMINHAO JER 0664',
-        descricao: 'MANUTENCAO E CONSERT',
-        ...diasPeriodo.reduce((acc, dia) => {
-          acc[dia.key] = dia.data.getDate() === 28 ? 3000.00 : 0
-          return acc
-        }, {}),
-        total: 3000.00
-      },
-      {
-        centroCusto: 'CAMINHAO JER 0664',
-        descricao: 'PROPAGANDA E PUBLICI',
-        ...diasPeriodo.reduce((acc, dia) => {
-          acc[dia.key] = dia.data.getDate() === parseInt(filtros.dataInicial.split('-')[2]) ? 1500.00 : 0
-          return acc
-        }, {}),
-        total: 1500.00
-      },
-      {
-        centroCusto: 'CAMINHAO JYU 4571',
-        descricao: 'MANUTENCAO E CONSERT',
-        ...diasPeriodo.reduce((acc, dia) => {
-          acc[dia.key] = dia.data.getDate() === 28 ? 3000.00 : 0
-          return acc
-        }, {}),
-        total: 3000.00
-      },
-      {
-        centroCusto: 'CAMINHAO JYU 4571',
-        descricao: 'PROPAGANDA E PUBLICI',
-        ...diasPeriodo.reduce((acc, dia) => {
-          acc[dia.key] = dia.data.getDate() === parseInt(filtros.dataInicial.split('-')[2]) ? 1500.00 : 0
-          return acc
-        }, {}),
-        total: 1500.00
-      }
-    ]
+    console.log('📊 Dados recebidos da API:', dados)
     
-    // Aqui você faria a chamada real:
-    // const response = await ccustoStore.buscarPrevisaoDebitos({
-    //   centroCusto: filtros.centroCustoSelecionado,
-    //   periodo: filtros.periodo,
-    //   dataInicial: filtros.dataInicial,
-    //   dataFinal: filtros.dataFinal
-    // })
-    // previsoes.value = response.data
+    // Processar dados da API
+    if (dados && Array.isArray(dados) && dados.length > 0) {
+      // Extrair todas as datas únicas de vencimento
+      const datasUnicas = new Set()
+      dados.forEach(item => {
+        if (item.dtvencimento) {
+          datasUnicas.add(item.dtvencimento)
+        }
+      })
+      
+      // Ordenar datas e criar estrutura de dias
+      const datasOrdenadas = Array.from(datasUnicas).sort()
+      diasComCobranca.value = datasOrdenadas.map(dataStr => {
+        const data = new Date(dataStr + 'T00:00:00')
+        const dia = data.getDate()
+        const mes = meses[data.getMonth()]
+        
+        return {
+          key: `dia_${dataStr}`,
+          label: `${dia}/${mes.substring(0, 3)}`,
+          data: data,
+          dataStr: dataStr
+        }
+      })
+      
+      console.log('📅 Dias com cobrança:', diasComCobranca.value)
+      
+      // Mapear dados da API para o formato esperado pela tabela
+      previsoes.value = dados.map(item => {
+        const previsao = {
+          centroCusto: item.desccentrocusto || '',
+          descricao: item.descconta || item.descplanoconta || '',
+          id_ccusto: item.id_ccusto,
+          id_reduzido_despesa: item.id_reduzido_despesa,
+          dtvencimento: item.dtvencimento,
+          total: parseFloat(item.valor || 0)
+        }
+        
+        // Inicializar todos os dias com 0
+        diasComCobranca.value.forEach(dia => {
+          previsao[dia.key] = 0
+        })
+        
+        // Colocar o valor no dia correto de vencimento
+        if (item.dtvencimento) {
+          const diaKey = `dia_${item.dtvencimento}`
+          previsao[diaKey] = parseFloat(item.valor || 0)
+        }
+        
+        return previsao
+      })
+      
+      console.log('✅ Previsões processadas:', previsoes.value.length)
+    } else {
+      console.warn('⚠️ Nenhuma previsão encontrada')
+      previsoes.value = []
+      diasComCobranca.value = []
+    }
     
   } catch (error) {
-    console.error('Erro ao buscar previsão:', error)
+    console.error('❌ Erro ao buscar previsão:', error)
     previsoes.value = []
+    diasComCobranca.value = []
   } finally {
     loading.value = false
   }
