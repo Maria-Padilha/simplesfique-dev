@@ -20,6 +20,14 @@
           @toggle="toggleFormulario"
         />
 
+        <!-- Busca Avançada -->
+        <div class="my-4">
+          <BuscaAvancada
+            v-model="filtrosAvancados"
+            @aplicar="aplicarFiltrosAvancados"
+          />
+        </div>
+
         <!-- Formulário Expansível -->
         <v-expand-transition>
           <div v-if="formularioAberto">
@@ -859,6 +867,7 @@ import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
+import BuscaAvancada from '@/components/base/padrao-paginas/BuscaAvancada.vue'
 import TipoDocumentoMenu from '@/components/base/menu/TipoDocumentoMenu.vue'
 import LocalCobrancaMenu from '@/components/base/menu/LocalCobrancaMenu.vue'
 import PlanoContaMenu from '@/components/base/menu/PlanoContaMenu.vue'
@@ -880,6 +889,7 @@ const formValido = ref(false)
 const formRef = ref(null)
 const search = ref('')
 const loading = ref(false)
+const filtrosAvancados = ref({})
 
 // Estado dos dados
 const contasPagar = ref([])
@@ -1167,15 +1177,17 @@ const rules = {
 // Computed
 const contasPagarFiltradas = computed(() => {
   const dados = contasPagar.value || []
-  return Array.isArray(dados) ? dados : []
+  if (!Array.isArray(dados)) return []
+  
+  // Toda filtragem é feita pela API
+  return dados
 })
 
 // Ciclo de vida
 onMounted(async () => {
-  await Promise.all([
-    carregarContasPagar(),
-    carregarDadosAuxiliares()
-  ])
+  // Carregar apenas dados auxiliares no mount
+  // As contas a pagar só serão carregadas após aplicar filtros obrigatórios
+  await carregarDadosAuxiliares()
 })
 
 // Watchers - simplificados
@@ -1227,10 +1239,15 @@ watch(() => parcelasCalculadas.value, (val) => {
 })
 
 // Métodos
-const carregarContasPagar = async () => {
+const carregarContasPagar = async (filtrosApi = null) => {
   try {
     loading.value = true
-    const dados = await financeiroStore.buscarContasPagar(idEmpresa.value)
+    
+    // Se filtros foram passados, usa eles; senão busca todos
+    const dados = await financeiroStore.buscarContasPagar(
+      idEmpresa.value,
+      filtrosApi || {}
+    )
     
     // A API agora retorna dados expandidos de parcelas
     contasPagar.value = dados?.map(item => ({
@@ -1868,6 +1885,37 @@ const mostrarMensagem = (mensagem, tipo) => {
   snackbar.message = mensagem
   snackbar.color = tipo
   snackbar.show = true
+}
+
+// Função para aplicar filtros avançados
+const aplicarFiltrosAvancados = async (filtros) => {
+  try {
+    // Guardar filtros para aplicação local dos filtros de valor
+    filtrosAvancados.value = filtros
+    
+    console.log('🔍 Filtros recebidos da BuscaAvancada:', filtros)
+    
+    // Montar objeto de filtros para API (remover valores vazios)
+    const filtrosApi = {}
+    
+    if (filtros.tpperiodo !== undefined) filtrosApi.tpperiodo = filtros.tpperiodo
+    if (filtros.dtini) filtrosApi.dtini = filtros.dtini
+    if (filtros.dtfim) filtrosApi.dtfim = filtros.dtfim
+    if (filtros.idfornecedor) filtrosApi.idfornecedor = filtros.idfornecedor
+    if (filtros.cnpj_cpf) filtrosApi.cnpj_cpf = filtros.cnpj_cpf
+    if (filtros.nrdocumento) filtrosApi.nrdocumento = filtros.nrdocumento
+    if (filtros.idtpdocumento) filtrosApi.idtpdocumento = filtros.idtpdocumento
+    if (filtros.idlocalcobranca) filtrosApi.idlocalcobranca = filtros.idlocalcobranca
+    if (filtros.baixado) filtrosApi.baixado = filtros.baixado
+    
+    console.log('🚀 Filtros enviados para API:', filtrosApi)
+    
+    // Chamar API com filtros
+    await carregarContasPagar(filtrosApi)
+  } catch (error) {
+    console.error('Erro ao aplicar filtros:', error)
+    mostrarMensagem('Erro ao aplicar filtros', 'error')
+  }
 }
 
 // Funções para lidar com upload de media

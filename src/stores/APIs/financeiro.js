@@ -864,11 +864,29 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
     // Buscar contas a pagar (GET /contaspagar/:idempresa)
-    async buscarContasPagar(idEmpresa) {
+    async buscarContasPagar(idEmpresa, filtros = {}) {
       this.loading = true
       this.error = null
       try {
-        const response = await api.get(`/contaspagar/${idEmpresa}`, {
+        // Construir query params
+        const params = new URLSearchParams()
+        
+        if (filtros.tpperiodo !== undefined) params.append('tpperiodo', filtros.tpperiodo)
+        if (filtros.dtini) params.append('dtini', filtros.dtini)
+        if (filtros.dtfim) params.append('dtfim', filtros.dtfim)
+        if (filtros.idfornecedor) params.append('idfornecedor', filtros.idfornecedor)
+        if (filtros.cnpj_cpf) params.append('cnpj_cpf', filtros.cnpj_cpf)
+        if (filtros.nrdocumento) params.append('nrdocumento', filtros.nrdocumento)
+        if (filtros.idtpdocumento) params.append('idtpdocumento', filtros.idtpdocumento)
+        if (filtros.idlocalcobranca) params.append('idlocalcobranca', filtros.idlocalcobranca)
+        if (filtros.baixado) params.append('baixado', filtros.baixado)
+        
+        const queryString = params.toString()
+        const url = queryString ? `/contaspagar/${idEmpresa}?${queryString}` : `/contaspagar/${idEmpresa}`
+        
+        console.log('🔍 Buscando contas a pagar:', url)
+        
+        const response = await api.get(url, {
           headers: this.getAuthHeaders()
         })
         const resp = response.data
