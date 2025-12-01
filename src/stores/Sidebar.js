@@ -10,7 +10,14 @@ export const useSidebarStore = defineStore('sidebar', () => {
             icon: 'mdi-currency-usd',
             submenus: [
                 { text: 'Conta Corrente', icon: 'mdi-bank-outline', route: '/paginas/financeiro/contacorrente' },
-                { text: 'Centro de Custo', icon: 'mdi-warehouse', route: '/paginas/financeiro/centrodecusto' },
+                { 
+                    text: 'Centro de Custo', 
+                    icon: 'mdi-warehouse', 
+                    submenus: [
+                        { text: 'Cadastro', icon: 'mdi-file-tree', route: '/paginas/financeiro/centrodecusto/cadastro' },
+                        { text: 'Previsão de Débitos', icon: 'mdi-chart-timeline-variant', route: '/paginas/financeiro/centrodecusto/previsao' }
+                    ]
+                },
                 { text: 'Pagar', icon: 'mdi-credit-card-outline', route: '/paginas/financeiro/pagar' },
                 { text: 'Receber', icon: 'mdi-cash-plus', route: '/paginas/financeiro/receber' },
                 { text: 'Caixa', icon: 'mdi-cash-register', route: '/paginas/financeiro/caixa' },

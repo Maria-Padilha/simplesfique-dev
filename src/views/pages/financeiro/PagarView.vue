@@ -866,6 +866,8 @@ import MediaSave from '@/components/base/media/MediaSave.vue'
 import MediaShow from '@/components/base/media/MediaShow.vue'
 import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
 import CadastrarModal from '@/components/base/modais/CadastrarModal.vue'
+// eslint-disable-next-line no-unused-vars
+import numeric from 'numeric'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -1256,24 +1258,92 @@ const inicializarRateio = () => {
   })
 }
 
-// Atualiza porcentagem ao alterar valor (recebe id)
+// Atualiza porcentagem ao alterar valor (recebe id) e distribui o restante
 const onRateioValorChange = (id) => {
   const total = parseFloat(totalParcelas.value) || 0
   if (total === 0) return
+  
   const r = rateiosMap.value[id]
   if (!r) return
-  const v = parseFloat(r.valor) || 0
-  r.porcentagem = ((v / total) * 100).toFixed(2)
+  
+  // Usar numeric.js para garantir precisão no cálculo
+  const valorAtual = numeric.add(0, parseFloat(r.valor) || 0)
+  
+  // Calcular porcentagem do centro de custo atual com precisão
+  const porcAtual = numeric.div(numeric.mul(valorAtual, 100), total)
+  r.porcentagem = porcAtual.toFixed(2)
+  
+  // Distribuir o restante entre os outros centros de custo selecionados
+  distribuirRestante(id, valorAtual, total)
 }
 
-// Atualiza valor ao alterar porcentagem (recebe id)
+// Atualiza valor ao alterar porcentagem (recebe id) e distribui o restante
 const onRateioPercentChange = (id) => {
   const total = parseFloat(totalParcelas.value) || 0
   if (total === 0) return
+  
   const r = rateiosMap.value[id]
   if (!r) return
-  const p = parseFloat(r.porcentagem) || 0
-  r.valor = ((p / 100) * total).toFixed(2)
+  
+  // Usar numeric.js para garantir precisão no cálculo
+  const porcAtual = numeric.add(0, parseFloat(r.porcentagem) || 0)
+  
+  // Calcular valor do centro de custo atual com precisão
+  const valorAtual = numeric.div(numeric.mul(porcAtual, total), 100)
+  r.valor = valorAtual.toFixed(2)
+  
+  // Distribuir o restante entre os outros centros de custo selecionados
+  distribuirRestante(id, valorAtual, total)
+}
+
+// Distribui o valor restante proporcionalmente entre os outros centros de custo
+const distribuirRestante = (idExcluir, valorUtilizado, total) => {
+  const outrosIds = (selectedCentros.value || []).filter(id => id !== idExcluir)
+  
+  if (outrosIds.length === 0) return
+  
+  // Calcular valor restante com precisão usando numeric.js
+  const valorRestante = numeric.sub(total, valorUtilizado)
+  
+  // Se o valor restante for negativo ou zero, zerar os outros
+  if (valorRestante <= 0) {
+    outrosIds.forEach(id => {
+      const r = rateiosMap.value[id]
+      if (r) {
+        r.valor = '0.00'
+        r.porcentagem = '0.00'
+      }
+    })
+    return
+  }
+  
+  // Distribuir o valor restante igualmente entre os outros centros
+  const valorPorCentro = numeric.div(valorRestante, outrosIds.length)
+  
+  // Array para acumular os valores já distribuídos (controle de precisão)
+  let valorAcumulado = 0
+  
+  outrosIds.forEach((id, index) => {
+    const r = rateiosMap.value[id]
+    if (!r) return
+    
+    // Para o último centro, calcular o valor exato que falta para completar o total
+    // Isso garante que não haja diferenças por arredondamento
+    if (index === outrosIds.length - 1) {
+      const valorFinal = numeric.sub(
+        numeric.sub(total, valorUtilizado),
+        valorAcumulado
+      )
+      r.valor = Math.max(0, valorFinal).toFixed(2)
+    } else {
+      r.valor = valorPorCentro.toFixed(2)
+      valorAcumulado = numeric.add(valorAcumulado, parseFloat(r.valor))
+    }
+    
+    // Recalcular porcentagem com precisão
+    const valorNum = parseFloat(r.valor)
+    r.porcentagem = numeric.div(numeric.mul(valorNum, 100), total).toFixed(2)
+  })
 }
 
 // Distribuir igualmente entre os centros selecionados
@@ -1281,12 +1351,31 @@ const distribuirIgualmente = () => {
   const total = parseFloat(totalParcelas.value) || 0
   const ids = selectedCentros.value || []
   const count = ids.length || 1
-  const per = total / count
-  ids.forEach(id => {
+  
+  if (count === 0 || total === 0) return
+  
+  // Usar numeric.js para cálculo preciso da divisão
+  const valorPorCentro = numeric.div(total, count)
+  
+  // Acumulador para controlar arredondamento
+  let valorAcumulado = 0
+  
+  ids.forEach((id, index) => {
     const r = rateiosMap.value[id]
     if (!r) return
-    r.valor = per.toFixed(2)
-    r.porcentagem = ((per / (total || 1)) * 100).toFixed(2)
+    
+    // Para o último centro, ajustar para garantir que a soma seja exatamente o total
+    if (index === count - 1) {
+      const valorFinal = numeric.sub(total, valorAcumulado)
+      r.valor = valorFinal.toFixed(2)
+    } else {
+      r.valor = valorPorCentro.toFixed(2)
+      valorAcumulado = numeric.add(valorAcumulado, parseFloat(r.valor))
+    }
+    
+    // Calcular porcentagem com precisão
+    const valorNum = parseFloat(r.valor)
+    r.porcentagem = numeric.div(numeric.mul(valorNum, 100), total).toFixed(2)
   })
 }
 
@@ -1650,7 +1739,8 @@ const salvarContaPagar = async () => {
     // Montar array ccusto no formato solicitado: [{ id_ccusto, valor }]
     const ccustoArray = (rateiosArray.value || []).map(r => ({
       id_ccusto: r.id,
-      valor: String(parseFloat(r.valor) || 0)
+      valor: (parseFloat(r.valor) || 0).toFixed(2),
+      perc_ccusto: (parseFloat(r.porcentagem) || 0).toFixed(2)
     }))
 
     // Validar soma do rateio (se houver rateios) contra o total das parcelas
