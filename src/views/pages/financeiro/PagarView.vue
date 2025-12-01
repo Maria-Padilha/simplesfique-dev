@@ -986,6 +986,7 @@ const formData = reactive({
   especie: '',
   id_tipodocumen: null,
   id_fornecedor: null,
+  id_red_ctb_for: null,
   id_planoconta: null,
   id_historicocontabil: null,
   observacao: '',
@@ -1039,6 +1040,14 @@ const onFornecedorSelect = (val) => {
   fornecedorLabel.value = sel ? (sel.apelido_fantasia || sel.nome_razao || sel.nome || sel.apelido || '') : ''
   // also persist into formData to guarantee payload has name even if pessoas is cleared later
   formData.fornecedor = fornecedorLabel.value
+  
+  // Capturar id_red_ctb_for quando fornecedor for selecionado
+  if (sel && (sel.id_red_ctb_for || sel.id_red_ctb)) {
+    formData.id_red_ctb_for = sel.id_red_ctb_for || sel.id_red_ctb
+    console.log('📋 id_red_ctb_for capturado na seleção:', formData.id_red_ctb_for)
+  } else {
+    formData.id_red_ctb_for = null
+  }
 }
 
 const onFornecedorInput = (ev) => {
@@ -1056,12 +1065,58 @@ const onFornecedorInput = (ev) => {
   }
 }
 
+// Buscar fornecedor específico por ID (usado ao editar documento)
+const buscarFornecedorPorId = async (idFornecedor) => {
+  try {
+    console.log('🔍 Buscando fornecedor por ID:', idFornecedor)
+    fornecedorLoading.value = true
+    
+    // Busca o fornecedor pelo ID na API - isso faz GET /pessoafor/:idempresa?find=ID
+    const items = await financeiroStore.buscarPessoasFornecedores(String(idFornecedor), idEmpresa.value)
+    
+    if (items && items.length > 0) {
+      const fornecedor = items[0]
+      console.log('✅ Fornecedor encontrado:', fornecedor)
+      
+      // Atualizar a lista de pessoas com o fornecedor encontrado
+      pessoas.value = [fornecedor]
+      
+      // Preencher o label do fornecedor
+      fornecedorLabel.value = fornecedor.apelido_fantasia || fornecedor.nome_razao || fornecedor.nome || ''
+      
+      // Atualizar o valor de busca para exibir no autocomplete
+      fornecedorSearch.value = fornecedorLabel.value
+      
+      // IMPORTANTE: Capturar id_red_ctb_for da resposta da API
+      if (fornecedor.id_red_ctb_for || fornecedor.id_red_ctb) {
+        formData.id_red_ctb_for = fornecedor.id_red_ctb_for || fornecedor.id_red_ctb
+        console.log('📋 id_red_ctb_for capturado:', formData.id_red_ctb_for)
+      }
+      
+      return fornecedor
+    } else {
+      console.warn('⚠️ Fornecedor não encontrado com ID:', idFornecedor)
+      return null
+    }
+  } catch (err) {
+    console.error('❌ Erro ao buscar fornecedor por ID:', err)
+    return null
+  } finally {
+    fornecedorLoading.value = false
+  }
+}
+
 // Debounced remote search for fornecedores
 watch(fornecedorSearch, (val) => {
   if (fornecedorSearchTimer) clearTimeout(fornecedorSearchTimer)
 
-  // Only perform remote search when user typed at least 3 characters
-  if (!val || String(val).trim().length < 3) {
+  const searchValue = String(val || '').trim()
+  
+  // Validação: se for numérico, aceita 1+ dígito; se for texto, precisa 3+ caracteres
+  const isNumeric = /^\d+$/.test(searchValue)
+  const minLength = isNumeric ? 1 : 3
+  
+  if (!searchValue || searchValue.length < minLength) {
     pessoas.value = []
     fornecedorLoading.value = false
     return
@@ -1069,9 +1124,9 @@ watch(fornecedorSearch, (val) => {
 
   fornecedorSearchTimer = setTimeout(async () => {
     try {
-      console.debug('Buscando fornecedores para:', val)
+      console.debug('Buscando fornecedores para:', searchValue, isNumeric ? '(numérico)' : '(texto)')
       fornecedorLoading.value = true
-      const items = await financeiroStore.buscarPessoasFornecedores(val.trim(), idEmpresa.value)
+      const items = await financeiroStore.buscarPessoasFornecedores(searchValue, idEmpresa.value)
       console.debug('Fornecedores retornados:', items?.length)
       pessoas.value = items || []
     } catch (err) {
@@ -1488,20 +1543,27 @@ const editarContaPagar = async (item) => {
             }
           }
 
-          // Fornecedor: garantir label exibido no autocomplete
+          // Fornecedor: buscar por ID quando disponível
           if (formData.id_fornecedor) {
+            // Primeiro tenta encontrar na lista já carregada
             const foundPessoa = (pessoas.value || []).find(p => String(p.id) === String(formData.id_fornecedor))
+            
             if (foundPessoa) {
               fornecedorLabel.value = foundPessoa.apelido_fantasia || foundPessoa.nome_razao || foundPessoa.nome || ''
-            } else if (dados.fornecedor) {
-              // adicionar um item mínimo para exibição no autocomplete + label
-              const novo = {
-                id: formData.id_fornecedor,
-                apelido_fantasia: dados.fornecedor || '',
-                nome_razao: dados.nome_razao || dados.fornecedor || ''
+            } else {
+              // Se não encontrar, busca na API pelo ID
+              await buscarFornecedorPorId(formData.id_fornecedor)
+              
+              // Se ainda assim não encontrou mas tem o nome no dados, usar como fallback
+              if (!fornecedorLabel.value && dados.fornecedor) {
+                const novo = {
+                  id: formData.id_fornecedor,
+                  apelido_fantasia: dados.fornecedor || '',
+                  nome_razao: dados.nome_razao || dados.fornecedor || ''
+                }
+                pessoas.value = [...(pessoas.value || []), novo]
+                fornecedorLabel.value = novo.apelido_fantasia || novo.nome_razao || ''
               }
-              pessoas.value = [...(pessoas.value || []), novo]
-              fornecedorLabel.value = novo.apelido_fantasia || novo.nome_razao || ''
             }
           }
         } catch (e) {
@@ -1708,7 +1770,7 @@ const salvarContaPagar = async () => {
       id_fornecedor: formData.id_fornecedor,
       // Histórico contábil (id) com nome de campo pedido pelo backend
       id_historico_ctb: formData.id_historicocontabil || null,
-      id_red_ctb_for: fornecedorObj.id_red_ctb_for || fornecedorObj.id_red_ctb || null,
+      id_red_ctb_for: formData.id_red_ctb_for || null,
       abreviatura: tipoDocumentoSelecionado.value,
       id_empresa: idEmpresa.value,
       nrdocumento: formData.nrdocumento,
@@ -1814,14 +1876,45 @@ const handleMediaUpload = async () => {
 }
 
 const onMediaSuccess = (data) => {
-  // Armazenar a key no Pinia para usar no payload
-  if (data.key) {
-    financeiroStore.setMediaKeyTemporaria(data.key)
+  try {
+    console.log('📤 Upload concluído - Dados recebidos:', data)
     
-    // Também salvar no formData para mostrar o indicador visual
-    formData.id_media = data.key
+    // Tentar extrair a key de múltiplos caminhos possíveis
+    let key = null
     
-    mostrarMensagem('Documento anexado e pronto para envio!', 'success')
+    if (data.key) {
+      key = data.key
+      console.log('✅ Key encontrada em: data.key')
+    } else if (data.data?.key) {
+      key = data.data.key
+      console.log('✅ Key encontrada em: data.data.key')
+    } else if (data.file?.key) {
+      key = data.file.key
+      console.log('✅ Key encontrada em: data.file.key')
+    } else if (data.response?.key) {
+      key = data.response.key
+      console.log('✅ Key encontrada em: data.response.key')
+    }
+    
+    if (key) {
+      console.log('🔑 Key capturada:', key)
+      
+      // Armazenar a key no Pinia para usar no payload
+      financeiroStore.setMediaKeyTemporaria(key)
+      console.log('💾 Key armazenada no Pinia')
+      
+      // Também salvar no formData para mostrar o indicador visual
+      formData.id_media = key
+      console.log('📋 Key salva no formData.id_media')
+      
+      mostrarMensagem('Documento anexado e pronto para envio!', 'success')
+    } else {
+      console.error('❌ Key não encontrada em nenhum caminho. Estrutura recebida:', JSON.stringify(data, null, 2))
+      mostrarMensagem('Documento anexado, mas key não foi capturada', 'warning')
+    }
+  } catch (error) {
+    console.error('❌ Erro ao processar upload:', error)
+    mostrarMensagem('Erro ao processar documento anexado', 'error')
   }
 }
 

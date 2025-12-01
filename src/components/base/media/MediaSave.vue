@@ -238,23 +238,31 @@ const uploadFile = async () => {
       showMessage('Imagem enviada com sucesso!', 'success')
       
       // **REGRA PRINCIPAL: Sempre que retornar uma key, disparar a função callback**
-      if (responseData.data?.key) {
-        console.log('Key retornada do upload:', responseData.data.key)
+      // Extrair key de múltiplos caminhos possíveis
+      const key = responseData.data?.key || responseData.file?.key
+      
+      if (key) {
+        console.log('✅ Key retornada do upload:', key)
+        console.log('📦 Estrutura da resposta:', responseData)
         
         // Emitir evento de sucesso
         emit('upload-success', {
-          key: responseData.data.key,
+          key: key,
           file: selectedFile.value,
-          response: responseData.data
+          response: responseData,
+          data: responseData.data,
+          fileData: responseData.file
         })
         
         // Chamar callback se fornecido
         if (props.onUploadSuccess && typeof props.onUploadSuccess === 'function') {
           try {
             await props.onUploadSuccess({
-              key: responseData.data.key,
+              key: key,
               file: selectedFile.value,
-              response: responseData.data
+              response: responseData,
+              data: responseData.data,
+              fileData: responseData.file
             })
             console.log('Callback de upload executado com sucesso')
           } catch (callbackError) {
@@ -263,7 +271,7 @@ const uploadFile = async () => {
             // **IMPORTANTE: Se o callback falhar, deletar a imagem que foi feita upload**
             try {
               console.log('Tentando deletar imagem devido ao erro no callback...')
-              await deleteUploadedFile(responseData.data.key)
+              await deleteUploadedFile(key)
               showMessage('Erro ao salvar no sistema. Imagem removida automaticamente.', 'error')
             } catch (deleteError) {
               console.error('Erro ao deletar imagem após falha do callback:', deleteError)
@@ -274,6 +282,8 @@ const uploadFile = async () => {
             clearResult()
           }
         }
+      } else {
+        console.error('❌ Key não encontrada na resposta:', responseData)
       }
       
     } else {
