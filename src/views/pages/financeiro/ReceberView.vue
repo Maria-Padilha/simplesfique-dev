@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="pa-4">
     <!-- Cabeçalho -->
     <v-card class="background-secondary mb-4">
@@ -10,6 +10,26 @@
       </v-card-title>
     </v-card>
 
+    <!-- Card com Total das Parcelas -->
+    <v-card class="background-secondary mb-4" elevation="2">
+      <v-card-text class="pa-4">
+        <div class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center">
+            <v-icon icon="mdi-cash-multiple" size="32" color="var(--text-color-laranja)" class="mr-3"></v-icon>
+            <div>
+              <div class="text-caption text-grey">Total A Receber</div>
+              <div class="text-h5 font-weight-bold" style="color: var(--text-color-laranja)">
+                {{ formatarMoeda(totalParcelasFiltradas) }}
+              </div>
+            </div>
+          </div>
+          <v-chip color="var(--text-color-laranja)" variant="tonal">
+            {{ contasReceberFiltradas.length }} {{ contasReceberFiltradas.length === 1 ? 'parcela' : 'parcelas' }}
+          </v-chip>
+        </div>
+      </v-card-text>
+    </v-card>
+
     <!-- Lista de Contas a Receber -->
     <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
       <v-card-text class="pa-4">
@@ -19,6 +39,14 @@
           texto-fechar="Cancelar"
           @toggle="toggleFormulario"
         />
+
+        <!-- Busca Avançada -->
+        <div class="my-4">
+          <BuscaAvancada
+            v-model="filtrosAvancados"
+            @aplicar="aplicarFiltrosAvancados"
+          />
+        </div>
 
         <!-- Formulário Expansível -->
         <v-expand-transition>
@@ -41,7 +69,7 @@
                         maxlength="20"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-file-document"
                       ></v-text-field>
                     </v-col>
@@ -54,7 +82,7 @@
                         maxlength="10"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-numeric"
                       ></v-text-field>
                     </v-col>
@@ -67,7 +95,7 @@
                         maxlength="10"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-tag"
                       ></v-text-field>
                     </v-col>
@@ -81,7 +109,7 @@
                         density="compact"
                         hide-details="auto"
                         :rules="[rules.required]"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-file-document-outline"
                       >
                         <template #append-inner>
@@ -90,19 +118,30 @@
                       </v-text-field>
                     </v-col>
 
-                    <!-- Cliente -->
+                    <!-- Cliente (autocomplete remoto) -->
                     <v-col cols="12" md="4">
-                      <v-select
+                      <v-autocomplete
                         v-model="formData.id_cliente"
+                        v-model:search-input="clienteSearch"
+                        @input="onClienteInput"
                         :items="pessoas"
-                        item-title="apelido_fantasia"
+                        :item-title="item => item.apelido_fantasia || item.nome_razao || item.nome || item.apelido || ''"
                         item-value="id"
                         label="Cliente"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-account"
-                      ></v-select>
+                        class=""
+                        prepend-inner-icon="mdi-account-box"
+                        :loading="clienteLoading"
+                        hide-no-data
+                        @update:model-value="onClienteSelect"
+                      >
+                        <template v-slot:no-data>
+                          <v-list-item>
+                            <v-list-item-title>Nenhum Cliente encontrado</v-list-item-title>
+                          </v-list-item>
+                        </template>
+                      </v-autocomplete>
                     </v-col>
 
                     <!-- Plano de Conta -->
@@ -114,13 +153,82 @@
                         density="compact"
                         hide-details="auto"
                         :rules="[rules.required]"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-chart-tree"
                       >
                         <template #append-inner>
                           <PlanoContaMenu @selecionar="selecionarPlanoConta"/>
                         </template>
                       </v-text-field>
+                    </v-col>
+
+                    <!-- Histórico Contábil -->
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        label="Histórico Contábil"
+                        v-model="histContabilLabel"
+                        variant="outlined"
+                        density="compact"
+                        hide-details="auto"
+                        class=""
+                        prepend-inner-icon="mdi-file-document"
+                        readonly
+                        placeholder="Selecione um histórico"
+                      >
+                        <template #append-inner>
+                          <div class="d-flex align-center">
+                            <busca-padrao-menu
+                              v-model="menuHistContabil"
+                              :pesquisar="pesquisarHistoricosContabil"
+                              :modalCadastrar="abrirModalCadastrarHistorico"
+                              :modelInput="termoHistContabil"
+                              :resultados="historicoContabilResultados"
+                              @update:modelInput="termoHistContabil = $event"
+                              @selecionar="selecionarHistoricoContabil"
+                              :cadastrar-btn="true"
+                            >
+                              <template #resultados="{ selecionar }">
+                                <v-virtual-scroll
+                                  :items="historicoContabilResultados"
+                                  :height="120"
+                                  item-height="42"
+                                  class="mt-3"
+                                >
+                                  <template #default="{ item }">
+                                    <div
+                                      class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                                      @click="selecionar(item)"
+                                    >
+                                      <p class="text-body-1">({{ item.id }}) - {{ item.deschistorico || item.descricao }}</p>
+                                    </div>
+                                  </template>
+                                </v-virtual-scroll>
+                              </template>
+                            </busca-padrao-menu>
+                          </div>
+                        </template>
+                      </v-text-field>
+
+                      <CadastrarModal
+                        :cadastrarModal="cadastrarHistoricoModal"
+                        :clearInput="clearHistoricoInputs"
+                        :cadastrarcidade="cadastrarHistorico"
+                      >
+                        <template #titulo>Histórico Contábil</template>
+                        <template #textfields>
+                          <v-card-text>
+                            <v-form class="d-flex flex-column gap-3 w-100">
+                              <v-text-field
+                                label="Descrição do Histórico"
+                                variant="outlined"
+                                density="comfortable"
+                                hide-details="auto"
+                                v-model="descricaoHistorico"
+                              />
+                            </v-form>
+                          </v-card-text>
+                        </template>
+                      </CadastrarModal>
                     </v-col>
 
                     
@@ -134,7 +242,7 @@
                         step="0.01"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-currency-usd"
                         prefix="R$"
                         :hint="formData.vlroriginal ? formatarMoeda(formData.vlroriginal) : ''"
@@ -151,7 +259,7 @@
                         min="1"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-format-list-numbered"
                       ></v-text-field>
                     </v-col>
@@ -165,7 +273,7 @@
                         type="date"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prepend-inner-icon="mdi-calendar"
                       ></v-text-field>
                     </v-col>
@@ -180,7 +288,7 @@
                         step="0.01"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prefix="R$"
                         prepend-inner-icon="mdi-percent"
                         :hint="formData.juros ? formatarMoeda(formData.juros) : ''"
@@ -197,7 +305,7 @@
                         step="0.01"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prefix="R$"
                         prepend-inner-icon="mdi-alert-circle"
                         :hint="formData.multa ? formatarMoeda(formData.multa) : ''"
@@ -214,7 +322,7 @@
                         step="0.01"
                         variant="outlined"
                         density="compact"
-                        class="custom-text-field"
+                        class=""
                         prefix="R$"
                         prepend-inner-icon="mdi-sale"
                         :hint="formData.desconto ? formatarMoeda(formData.desconto) : ''"
@@ -228,10 +336,10 @@
                     </v-col>
 
                     <!-- Campos de Cálculo e Botão - Apenas para múltiplas parcelas -->
-                    <v-col cols="12" v-if="formData.qtdparcelas > 1">
+                    <v-col cols="12" v-if="formData.qtdparcelas > 1 && !parcelasCalculadas">
                       <v-card variant="outlined" class="mb-4" elevation="1">
                         <v-card-title class="text-h6 pa-4 d-flex align-center">
-                          <v-icon icon="mdi-calculator-variant" class="mr-2" color="primary"></v-icon>
+                          <v-icon icon="mdi-calculator-variant" class="mr-2" color="orange"></v-icon>
                           Configurações das Parcelas
                         </v-card-title>
 
@@ -282,7 +390,7 @@
                             <!-- Botão Calcular -->
                             <v-col cols="12" class="d-flex justify-center">
                               <v-btn
-                                color="primary"
+                                color="orange"
                                 variant="elevated"
                                 @click="calcularParcelas"
                                 :disabled="!formData.vlroriginal || !formData.qtdparcelas"
@@ -306,11 +414,11 @@
                         <div v-if="parcelas.length > 0 || (formData.qtdparcelas === 1 && formData.vlroriginal)">
                           <v-divider class="mb-4"></v-divider>
                           <div class="d-flex align-center mb-4">
-                            <v-icon icon="mdi-format-list-numbered" class="mr-3" color="primary"></v-icon>
+                            <v-icon icon="mdi-format-list-numbered" class="mr-3" color="orange"></v-icon>
                             <h4 class="text-h6 mb-0">Detalhamento das Parcelas</h4>
                             <v-spacer></v-spacer>
                             <v-chip
-                              :color="(parcelas.length === 1 || formData.qtdparcelas === 1) ? 'success' : 'primary'"
+                              :color="(parcelas.length === 1 || formData.qtdparcelas === 1) ? 'success' : 'orange'"
                               variant="elevated"
                               size="small"
                             >
@@ -332,10 +440,11 @@
                           
                           <v-card 
                             variant="outlined" 
-                            class="mb-4"
+                            class="background-secondary"
                             elevation="2"
+                            :color="themeStore.darkMode ? 'text-white' : ''" 
                           >
-                            <v-card-text class="pa-4">
+                            <v-card-text class="background-secondary" :color="themeStore.darkMode ? 'text-white' : ''">
                               <v-data-table
                                 :headers="headersParcelas"
                                 :items="parcelas"
@@ -350,7 +459,7 @@
                             <template v-slot:[`item.nrparcela`]="{ item }">
                               <div class="d-flex align-center">
                                 <v-avatar 
-                                  :color="item.nrparcela === 1 && valorEntrada > 0 ? 'primary' : 'secondary'"
+                                  :color="item.nrparcela === 1 && valorEntrada > 0 ? 'orange' : 'orange lighten-2'"
                                   size="28"
                                   class="mr-2"
                                 >
@@ -407,7 +516,6 @@
                                   hide-details
                                   placeholder="Selecione o local"
                                   prepend-inner-icon="mdi-map-marker"
-                                  :class="item.nrparcela === 1 ? 'mr-2' : ''"
                                 >
                                   <template #append-inner>
                                     <LocalCobrancaMenu @selecionar="(local) => selecionarLocalCobranca(local, item)"/>
@@ -434,7 +542,7 @@
                               <v-card 
                                 variant="tonal" 
                                 class="pa-3"
-                                color="success"
+                                color="orange"
                               >
                                 <div class="d-flex align-center justify-space-between">
                                   <div class="d-flex align-center">
@@ -442,7 +550,7 @@
                                       icon="mdi-chart-pie" 
                                       class="mr-2" 
                                       size="small"
-                                      color="success"
+                                      color="orange"
                                     ></v-icon>
                                     <h5 class="text-subtitle-1 mb-0 font-weight-medium">
                                       Resumo das Parcelas
@@ -466,19 +574,42 @@
                       </v-expand-transition>
                     </v-col>
 
-                    <!-- Observação -->
+                    <!-- Anexar Documento -->
                     <v-col cols="12">
-                      <v-textarea
-                        v-model="formData.observacao"
-                        label="Observação"
-                        maxlength="500"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-note-text"
-                        rows="3"
-                        auto-grow
-                      ></v-textarea>
+                      <v-card variant="outlined" class="mb-4" elevation="1">
+                        <v-card-title class="text-h6 pa-4 d-flex align-center">
+                          <v-icon icon="mdi-file-image" class="mr-2" color="orange"></v-icon>
+                          Anexar um Documento
+                        </v-card-title>
+
+                        <v-card-text class="pa-4">
+                          <MediaSave
+                            id-saas="1"
+                            id-usuario="1"
+                            :on-upload-success="handleMediaUpload"
+                            @upload-success="onMediaSuccess"
+                            @upload-error="onMediaError"
+                          />
+                          
+                          <!-- Indicador de imagem anexada -->
+                          <v-alert
+                            v-if="formData.id_media || financeiroStore.getMediaKeyTemporaria()"
+                            type="success"
+                            variant="tonal"
+                            density="compact"
+                            class="mt-3"
+                          >
+                            <div class="d-flex align-center">
+                              <v-icon icon="mdi-check-circle" class="mr-2"></v-icon>
+                              <div>
+                                <strong>Documento anexado com sucesso!</strong>
+                                <br>
+                                <small class="text-medium-emphasis">Key: {{ financeiroStore.getMediaKeyTemporaria() || formData.id_media }}</small>
+                              </div>
+                            </div>
+                          </v-alert>
+                        </v-card-text>
+                      </v-card>
                     </v-col>
                   </v-row>
                 </v-form>
@@ -519,13 +650,33 @@
           search-label="Pesquisar Parcelas"
           item-key="id"
           no-data-icon="mdi-cash-plus"
-          no-data-text="Nenhuma parcela cadastrada"
+          no-data-text="Nenhuma registro encontrado."
           :show-custom-action="false"
           delete-dialog-message="Esta ação excluirá esta parcela específica. Não pode ser desfeita."
           delete-item-display-field="nrdocumento"
           @edit-item="editarContaReceber"
           @confirm-delete="excluirContaReceber"
         >
+          <!-- Coluna de Imagem -->
+          <template v-slot:[`item.imagem`]="{ item }">
+            <MediaShow
+              v-if="item.id_media"
+              :image-key="item.id_media"
+              height="40"
+              width="40"
+              :show-actions="false"
+              :show-loading-text="false"
+              no-image-text=""
+              class="rounded"
+            />
+            <v-icon
+              v-else
+              icon="mdi-image-off-outline"
+              size="20"
+              color="grey"
+            ></v-icon>
+          </template>
+
           <!-- Formatação para Valor do Documento -->
           <template v-slot:[`item.vlrdocumento`]="{ item }">
             <span class="font-weight-medium">{{ formatarMoeda(item.vlrdocumento) }}</span>
@@ -534,7 +685,7 @@
           <!-- Formatação para Valor da Parcela -->
           <template v-slot:[`item.vlrparcela`]="{ item }">
             <v-chip 
-              :color="parseFloat(item.vlrparcela) > 1000 ? 'orange' : 'success'"
+              :color="parseFloat(item.vlrparcela) > 1000 ? 'orange' : 'primary'"
               variant="tonal"
               size="small"
             >
@@ -561,16 +712,6 @@
           <!-- Ações personalizadas -->
           <template v-slot:[`item.actions`]="{ item }">
             <div class="d-flex gap-1">
-              <!-- Visualizar Imagem -->
-              <v-btn
-                icon="mdi-eye"
-                size="small"
-                color="info"
-                variant="text"
-                title="Visualizar Imagem"
-                @click="visualizarImagem(item)"
-              ></v-btn>
-              
               <!-- Editar -->
               <v-btn
                 icon="mdi-pencil"
@@ -596,107 +737,9 @@
       </v-card-text>
     </v-card>
 
-    <!-- Modal de Visualização de Imagem -->
-    <v-dialog 
-      v-model="modalImagem.aberto" 
-      max-width="800px"
-      :persistent="false"
-    >
-      <v-card>
-        <v-card-title class="d-flex align-center justify-space-between pa-4">
-          <div class="d-flex align-center">
-            <v-icon icon="mdi-image" class="mr-2" color="primary"></v-icon>
-            <span>Imagem - Documento {{ modalImagem.documento }}</span>
-          </div>
-          <v-btn
-            icon="mdi-close"
-            size="small"
-            variant="text"
-            @click="fecharModalImagem"
-          ></v-btn>
-        </v-card-title>
-        
-        <v-divider></v-divider>
-        
-        <v-card-text class="pa-4">
-          <div class="text-center">
-            <!-- Loading -->
-            <div v-if="modalImagem.carregando" class="pa-8">
-              <v-progress-circular
-                indeterminate
-                color="primary"
-                size="64"
-              ></v-progress-circular>
-              <p class="mt-4 text-grey">Carregando imagem...</p>
-            </div>
-            
-            <!-- Erro -->
-            <div v-else-if="modalImagem.erro" class="pa-8">
-              <v-icon 
-                icon="mdi-alert-circle-outline" 
-                size="64" 
-                color="error"
-              ></v-icon>
-              <p class="mt-4 text-error">{{ modalImagem.mensagemErro }}</p>
-            </div>
-            
-            <!-- Imagem -->
-            <div v-else-if="modalImagem.urlImagem" class="pa-2">
-              <v-img
-                :src="modalImagem.urlImagem"
-                :alt="`Imagem do documento ${modalImagem.documento}`"
-                max-height="500"
-                contain
-                class="mx-auto"
-              >
-                <template v-slot:error>
-                  <div class="d-flex align-center justify-center fill-height">
-                    <v-icon 
-                      icon="mdi-image-broken-variant" 
-                      size="64" 
-                      color="grey"
-                    ></v-icon>
-                  </div>
-                </template>
-              </v-img>
-            </div>
-            
-            <!-- Sem imagem -->
-            <div v-else class="pa-8">
-              <v-icon 
-                icon="mdi-image-off" 
-                size="64" 
-                color="grey"
-              ></v-icon>
-              <p class="mt-4 text-grey">Nenhuma imagem vinculada a este documento</p>
-            </div>
-          </div>
-        </v-card-text>
-        
-        <v-divider></v-divider>
-        
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn
-            v-if="modalImagem.urlImagem && !modalImagem.carregando"
-            color="primary"
-            variant="outlined"
-            :href="modalImagem.urlImagem"
-            target="_blank"
-            prepend-icon="mdi-download"
-          >
-            Baixar Imagem
-          </v-btn>
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="fecharModalImagem"
-          >
-            Fechar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+
+
+
 
     <!-- Dialog de Confirmação de Exclusão -->
     <v-dialog 
@@ -748,14 +791,21 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
+import BuscaAvancada from '@/components/base/padrao-paginas/BuscaAvancada.vue'
 import TipoDocumentoMenu from '@/components/base/menu/TipoDocumentoMenu.vue'
 import LocalCobrancaMenu from '@/components/base/menu/LocalCobrancaMenu.vue'
 import PlanoContaMenu from '@/components/base/menu/PlanoContaMenu.vue'
+import MediaSave from '@/components/base/media/MediaSave.vue'
+import MediaShow from '@/components/base/media/MediaShow.vue'
+import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
+import CadastrarModal from '@/components/base/modais/CadastrarModal.vue'
+// eslint-disable-next-line no-unused-vars
+import numeric from 'numeric'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -767,12 +817,18 @@ const formValido = ref(false)
 const formRef = ref(null)
 const search = ref('')
 const loading = ref(false)
+const filtrosAvancados = ref({})
 
 // Estado dos dados
 const contasReceber = ref([])
 const parcelas = ref([])
 const totalParcelas = ref(0)
 const valorEntrada = ref(0)
+// Flag para controlar quando as parcelas já foram calculadas (esconder configurações)
+const parcelasCalculadas = ref(false)
+
+// Flag para suprimir o watcher que limpa parcelas enquanto carregamos um documento existente
+const suppressParcelWatcher = ref(false)
 
 // Paginação das parcelas
 const currentPageParcelas = ref(1)
@@ -785,16 +841,7 @@ const snackbar = reactive({
   color: 'success'
 })
 
-// Modal de visualização de imagem
-const modalImagem = reactive({
-  aberto: false,
-  carregando: false,
-  erro: false,
-  mensagemErro: '',
-  urlImagem: '',
-  documento: '',
-  item: null
-})
+
 
 // Dialog de confirmação de exclusão
 const dialogExclusao = reactive({
@@ -804,6 +851,7 @@ const dialogExclusao = reactive({
 
 // Headers da tabela
 const headers = [
+  { title: '', key: 'imagem', sortable: false, width: '60px' },
   { title: 'Documento', key: 'nrdocumento', sortable: true },
   { title: 'Série', key: 'serie', sortable: true },
   { title: 'Espécie', key: 'especie', sortable: true },
@@ -811,7 +859,7 @@ const headers = [
   { title: 'Qtd Total', key: 'qtdparcelas', sortable: true },
   { title: 'Data Emissão', key: 'dtemissao', sortable: true },
   { title: 'Vencimento', key: 'dtvencimento', sortable: true },
-  { title: 'Cliente', key: 'cliente', sortable: true },
+  { title: 'Cliente', key: 'Cliente', sortable: true },
   { title: 'Vlr Documento', key: 'vlrdocumento', sortable: true },
   { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
   { title: 'Origem', key: 'origem', sortable: true },
@@ -839,6 +887,7 @@ const formData = reactive({
   id_tipodocumen: null,
   id_cliente: null,
   id_planoconta: null,
+  id_historicocontabil: null,
   observacao: '',
   vlroriginal: null,
   qtdparcelas: 1,
@@ -849,11 +898,15 @@ const formData = reactive({
   desconto: 0,
   valor_primeira_parcela: 0,
   venc_primeira_parcela: '',
-  intervalo_parcelas: 30
+  intervalo_parcelas: 30,
+  // ID da media anexada (key retornada da API)
+  id_media: '',
+  // Array de centros de custo para rateio
+  ccustos: [] // [{ id_ccusto, valor, desccentrocusto, porcentagem }]
 })
 
 // ID da empresa (temporário - deve vir do contexto/autenticação)
-// const idEmpresa = ref(1) // TODO: Obter do contexto de autenticação
+const idEmpresa = ref(1) // TODO: Obter do contexto de autenticação
 
 // Dados dos dropdowns
 const tiposDocumento = ref([])
@@ -863,6 +916,114 @@ const pessoas = ref([])
 // Campos de texto para os menus
 const tipoDocumentoSelecionado = ref('')
 const planoContaSelecionado = ref('')
+
+// Histórico Contábil (campo de busca + modal de cadastro)
+const menuHistContabil = ref(false)
+const termoHistContabil = ref('')
+const cadastrarHistoricoModal = ref(false)
+const historicoContabilResultados = ref([])
+const histContabilLabel = ref('')
+const descricaoHistorico = ref('')
+
+// Cliente autocomplete
+const clienteSearch = ref('')
+const clienteLoading = ref(false)
+let clienteSearchTimer = null
+
+// store label/name of selected Cliente to ensure we can include it in payload
+const clienteLabel = ref('')
+
+const onClienteSelect = (val) => {
+  // val is the selected id (item-value)
+  formData.id_cliente = val
+  // find the selected item to capture the display name
+  const sel = (pessoas.value || []).find(p => p.id === val)
+  clienteLabel.value = sel ? (sel.apelido_fantasia || sel.nome_razao || sel.nome || sel.apelido || '') : ''
+  // also persist into formData to guarantee payload has name even if pessoas is cleared later
+  formData.Cliente = clienteLabel.value
+}
+
+const onClienteInput = (ev) => {
+  try {
+    // If Vuetify emits InputEvent, extract value; otherwise coerce to string
+    if (ev && ev.target && typeof ev.target.value === 'string') {
+      clienteSearch.value = ev.target.value
+    } else if (typeof ev === 'string') {
+      clienteSearch.value = ev
+    } else {
+      clienteSearch.value = String(ev || '')
+    }
+  } catch (err) {
+    clienteSearch.value = String(ev || '')
+  }
+}
+
+// Buscar Cliente específico por ID (usado ao editar documento)
+const buscarClientePorId = async (idCliente) => {
+  try {
+    clienteLoading.value = true
+    
+    // Busca o Cliente pelo ID na API - isso faz GET /pessoafor/:idempresa?find=ID
+    const items = await financeiroStore.buscarPessoasClientees(String(idCliente), idEmpresa.value)
+    
+    if (items && items.length > 0) {
+      const Cliente = items[0]
+      
+      // Atualizar a lista de pessoas com o Cliente encontrado
+      pessoas.value = [Cliente]
+      
+      // Preencher o label do Cliente
+      clienteLabel.value = Cliente.apelido_fantasia || Cliente.nome_razao || Cliente.nome || ''
+      
+      // Atualizar o valor de busca para exibir no autocomplete
+      clienteSearch.value = clienteLabel.value
+      
+      return Cliente
+    } else {
+      console.warn('⚠️ Cliente não encontrado com ID:', idCliente)
+      return null
+    }
+  } catch (err) {
+    console.error('❌ Erro ao buscar Cliente por ID:', err)
+    return null
+  } finally {
+    clienteLoading.value = false
+  }
+}
+
+// Debounced remote search for Clientees
+watch(clienteSearch, (val) => {
+  if (clienteSearchTimer) clearTimeout(clienteSearchTimer)
+
+  const searchValue = String(val || '').trim()
+  
+  // Validação: se for numérico, aceita 1+ dígito; se for texto, precisa 3+ caracteres
+  const isNumeric = /^\d+$/.test(searchValue)
+  const minLength = isNumeric ? 1 : 3
+  
+  if (!searchValue || searchValue.length < minLength) {
+    pessoas.value = []
+    clienteLoading.value = false
+    return
+  }
+
+  clienteSearchTimer = setTimeout(async () => {
+    try {
+      console.debug('Buscando Clientees para:', searchValue, isNumeric ? '(numérico)' : '(texto)')
+      clienteLoading.value = true
+      const items = await financeiroStore.buscarPessoasClientees(searchValue, idEmpresa.value)
+      console.debug('Clientees retornados:', items?.length)
+      pessoas.value = items || []
+    } catch (err) {
+      console.error('Erro buscando Clientees:', err)
+      pessoas.value = []
+    } finally {
+      clienteLoading.value = false
+    }
+  }, 300)
+})
+
+
 
 // Função para formatação monetária brasileira
 const formatarMoeda = (valor) => {
@@ -891,23 +1052,39 @@ const rules = {
 // Computed
 const contasReceberFiltradas = computed(() => {
   const dados = contasReceber.value || []
-  return Array.isArray(dados) ? dados : []
+  if (!Array.isArray(dados)) return []
+  
+  // Toda filtragem é feita pela API
+  return dados
+})
+
+// Calcular o valor total das parcelas filtradas
+const totalParcelasFiltradas = computed(() => {
+  return contasReceberFiltradas.value.reduce((total, item) => {
+    const valor = parseFloat(item.vlrparcela || 0)
+    return total + valor
+  }, 0)
 })
 
 // Ciclo de vida
 onMounted(async () => {
-  await Promise.all([
-    carregarContasReceber(),
-    carregarDadosAuxiliares()
-  ])
+  // Carregar apenas dados auxiliares no mount
+  // As Contas a Receber só serão carregadas após aplicar filtros obrigatórios
+  await carregarDadosAuxiliares()
 })
 
 // Watchers - simplificados
 // Resetar parcelas quando campos principais mudarem
 watch([() => formData.qtdparcelas, () => formData.vlroriginal], () => {
   // Limpar parcelas existentes quando alterar campos principais
+  if (suppressParcelWatcher.value) {
+    // ao editar um documento, suprimimos o watcher temporariamente
+    return
+  }
+
   parcelas.value = []
   totalParcelas.value = 0
+  parcelasCalculadas.value = false
   
   // Se for parcela única e tiver valor, gerar automaticamente
   if (formData.qtdparcelas === 1 && formData.vlroriginal) {
@@ -927,11 +1104,15 @@ watch([() => formData.venc_primeira_parcela, () => formData.dtemissao, () => for
 })
 
 // Métodos
-const carregarContasReceber = async () => {
+const carregarContasReceber = async (filtrosApi = null) => {
   try {
     loading.value = true
-    // TODO: Implementar financeiroStore.buscarContasReceber quando a API estiver disponível
-    const dados = [] // await financeiroStore.buscarContasReceber(idEmpresa.value)
+    
+    // Se filtros foram passados, usa eles; senão busca todos
+    const dados = await financeiroStore.buscarContasReceber(
+      idEmpresa.value,
+      filtrosApi || {}
+    )
     
     // A API agora retorna dados expandidos de parcelas
     contasReceber.value = dados?.map(item => ({
@@ -943,19 +1124,19 @@ const carregarContasReceber = async () => {
       qtdparcelas: item.qtdparcelas || 1,
       dtemissao: item.dtemissao || '',
       dtvencimento: item.dtvencimento || '',
-      cliente: item.cliente || '',
+      Cliente: item.Cliente || '',
       vlrdocumento: parseFloat(item.vlrdocumento || 0),
       vlrparcela: parseFloat(item.vlrparcela || 0),
       origem: item.origem || '',
       user_inc: item.user_inc || '',
       abreviatura: item.abreviatura || '',
-      desclocalcobranca: item.desclocalcobranca || ''
+      desclocalcobranca: item.desclocalcobranca || '',
+      id_media: item.id_media || ''
     })) || []
     
-    console.log('Contas a receber carregadas:', contasReceber.value)
   } catch (error) {
-    console.error('Erro ao carregar contas a receber:', error)
-    mostrarMensagem('Erro ao carregar contas a receber', 'error')
+    console.error('Erro ao carregar Contas a Receber:', error)
+    mostrarMensagem('Erro ao carregar Contas a Receber', 'error')
     contasReceber.value = []
   } finally {
     loading.value = false
@@ -973,19 +1154,12 @@ const carregarDadosAuxiliares = async () => {
     const locaisCobrancaData = await financeiroStore.buscarLocaisCobranca()
     locaisCobranca.value = locaisCobrancaData
 
-    // Carregar pessoas/clientes
-    const pessoasData = await financeiroStore.buscarPessoas()
-    pessoas.value = pessoasData
+    // Não carregar Clientees por padrão — busca remota só ao digitar (>=3 chars)
+    pessoas.value = []
 
     // Carregar planos de conta
     await financeiroStore.buscarPlanosConta()
 
-    console.log('Dados auxiliares carregados:', {
-      tiposDocumento: tiposDocumento.value,
-      locaisCobranca: locaisCobranca.value,
-      pessoas: pessoas.value,
-      planosConta: financeiroStore.planosConta
-    })
   } catch (error) {
     console.error('Erro ao carregar dados auxiliares:', error)
     mostrarMensagem('Erro ao carregar dados auxiliares', 'error')
@@ -1013,47 +1187,217 @@ const abrirFormulario = () => {
   }, 200)
 }
 
-const editarContaReceber = (item) => {
+const editarContaReceber = async (item) => {
+  
   editando.value = true
-  
-  // Como agora cada linha é uma parcela, buscar todas as parcelas do mesmo documento
-  const parcelasDoDocumento = contasReceber.value.filter(cr => 
-    cr.nrdocumento === item.nrdocumento && 
-    cr.serie === item.serie && 
-    cr.especie === item.especie
-  )
-  
-  Object.assign(formData, {
-    id: item.id || null,
-    nrdocumento: item.nrdocumento || '',
-    serie: item.serie || '',
-    especie: item.especie || '',
-    id_tipodocumen: null, // Será preenchido pelos menus
-    id_cliente: null, // Será derivado do nome do cliente
-    id_planoconta: null, // Será preenchido pelos menus
-    observacao: '',
-    vlroriginal: item.vlrdocumento || null,
-    qtdparcelas: item.qtdparcelas || 1,
-    dtemissao: item.dtemissao || ''
-  })
-  
-  // Atualizar campos de texto dos menus com os valores já existentes
-  tipoDocumentoSelecionado.value = item.abreviatura || ''
-  planoContaSelecionado.value = '' // Não temos essa informação na nova API
-  
-  // Montar as parcelas a partir dos dados retornados
-  parcelas.value = parcelasDoDocumento.map(parcela => ({
-    nrparcela: parcela.id_parcela,
-    dtvencimento: parcela.dtvencimento || '',
-    vlrparcela: parseFloat(parcela.vlrparcela || 0).toFixed(2),
-    id_localcobranca: null, // Será derivado do nome
-    localCobrancaTexto: parcela.desclocalcobranca || '',
-    _localcobrancaEdited: false,
-    observacao: ''
-  }))
-  
-  calcularTotalParcelas()
+  // esconder imediatamente o card de configurações de parcelas antes do template renderizar
+  parcelasCalculadas.value = true
   formularioAberto.value = true
+  loading.value = true
+  try {
+    // Tentar obter o documento completo via API (deve retornar o payload criado)
+    // Suprimir o watcher que limpa parcelas enquanto fazemos o mapeamento
+    suppressParcelWatcher.value = true
+    
+    const documento = await financeiroStore.buscarContaReceberPorId(idEmpresa.value, item.id)
+
+    // documento pode ter a forma { data: [...], parcela: [...], ccusto: [...], media: [...] }
+    const dados = (documento && documento.data && documento.data[0]) ? documento.data[0] : documento
+
+    // Preencher formData com os campos retornados
+    if (dados) {
+      formData.id = dados.id || item.id || null
+      formData.nrdocumento = dados.nrdocumento || dados.nrdocumento || formData.nrdocumento
+      formData.serie = dados.serie || formData.serie
+      formData.especie = dados.especie || formData.especie
+      formData.id_tipodocumen = dados.id_tipodocumento || dados.id_tipodocumen || null
+      formData.observacao = dados.observacao || ''
+      formData.vlroriginal = dados.vlroriginal || parseFloat(dados.vlrdocumento || 0) || formData.vlroriginal
+      formData.qtdparcelas = parseInt(dados.qtdparcelas || formData.qtdparcelas || 1)
+      formData.dtemissao = dados.dtemissao || formData.dtemissao
+      formData.id_media = (dados.id_media || (documento && documento.media && documento.media[0] && documento.media[0].id_media)) || formData.id_media
+
+      // Cliente
+      if (dados.id_cliente) {
+        formData.id_cliente = dados.id_cliente
+        // garantir que o Cliente esteja na lista de pessoas para exibição
+        const exists = (pessoas.value || []).some(p => p.id === dados.id_cliente)
+        if (!exists) {
+          pessoas.value = [...(pessoas.value || []), {
+            id: dados.id_cliente,
+            apelido_fantasia: dados.Cliente || dados.apelido_fantasia || dados.nome_razao || '' ,
+            nome_razao: dados.nome_razao || dados.Cliente || ''
+          }]
+        }
+        // ensure formData.Cliente text is set
+        formData.Cliente = dados.Cliente || dados.apelido_fantasia || dados.nome_razao || clienteLabel.value || ''
+      }
+      // Histórico contábil: set id and label when available
+      const histId = dados.id_historico_ctb || dados.id_historicocontabil || dados.id_historico
+      if (histId) {
+        formData.id_historicocontabil = histId
+        // try to resolve label from previously loaded historicos, or fetch
+        let found = (historicoContabilResultados.value || []).find(h => h.id === histId)
+        if (!found) {
+          try {
+            const all = await financeiroStore.buscarHistoricosContabil()
+            found = (all || []).find(h => h.id === histId)
+          } catch (e) {
+            // ignore
+          }
+        }
+        histContabilLabel.value = found ? (found.deschistorico || found.descricao || `(${histId})`) : (dados.deschistorico || dados.descricao || `(${histId})`)
+      }
+
+        // Resolver labels de Tipo de Documento, Plano de Conta e Cliente quando API retornar apenas ids
+        try {
+          // Tipo de documento
+          const tipoId = dados.id_tipodocumento || dados.id_tipodocumen || dados.id_tipo || null
+          if (tipoId) {
+            const tipo = (tiposDocumento.value || []).find(t => String(t.id) === String(tipoId))
+            if (tipo) {
+              tipoDocumentoSelecionado.value = tipo.abreviatura || tipo.desctipodocumento || tipo.descricao || ''
+              formData.id_tipodocumen = tipo.id
+            } else if (dados.abreviatura) {
+              tipoDocumentoSelecionado.value = dados.abreviatura
+            }
+          }
+
+          // Plano de conta
+          const planoId = dados.id_planoconta || dados.id_planoconta || dados.id_plano || null
+          const planos = financeiroStore.planosConta || []
+          if (planoId) {
+            const plano = (planos || []).find(p => String(p.id) === String(planoId))
+            if (plano) {
+              planoContaSelecionado.value = plano.descconta || plano.descricao || plano.abreviatura || ''
+              formData.id_planoconta = plano.id
+            } else if (dados.abreviatura_planoconta || dados.descplanoconta) {
+              planoContaSelecionado.value = dados.abreviatura_planoconta || dados.descplanoconta
+            }
+          }
+
+          // Cliente: buscar por ID quando disponível
+          if (formData.id_cliente) {
+            // Primeiro tenta encontrar na lista já carregada
+            const foundPessoa = (pessoas.value || []).find(p => String(p.id) === String(formData.id_cliente))
+            
+            if (foundPessoa) {
+              clienteLabel.value = foundPessoa.apelido_fantasia || foundPessoa.nome_razao || foundPessoa.nome || ''
+            } else {
+              // Se não encontrar, busca na API pelo ID
+              await buscarClientePorId(formData.id_cliente)
+              
+              // Se ainda assim não encontrou mas tem o nome no dados, usar como fallback
+              if (!clienteLabel.value && dados.Cliente) {
+                const novo = {
+                  id: formData.id_cliente,
+                  apelido_fantasia: dados.Cliente || '',
+                  nome_razao: dados.nome_razao || dados.Cliente || ''
+                }
+                pessoas.value = [...(pessoas.value || []), novo]
+                clienteLabel.value = novo.apelido_fantasia || novo.nome_razao || ''
+              }
+            }
+          }
+        } catch (e) {
+          // não bloquear o fluxo por erro na resolução de labels
+          console.warn('Erro ao resolver labels a partir dos ids:', e)
+        }
+    }
+
+    // Parcelas: a API pode retornar `pagparcela` aninhado em `data[0]` (dados) ou no objeto raiz (documento).
+    // Priorizar os campos dentro de `dados` (documento.data[0]) quando presentes.
+    const parcelasRet = (dados && dados.pagparcela) ? dados.pagparcela
+      : (dados && dados.parcela) ? dados.parcela
+      : (dados && dados.parcelas) ? dados.parcelas
+      : (documento && documento.pagparcela) ? documento.pagparcela
+      : (documento && documento.parcela) ? documento.parcela
+      : (documento && documento.parcelas) ? documento.parcelas
+      : []
+    if (Array.isArray(parcelasRet) && parcelasRet.length > 0) {
+      parcelas.value = parcelasRet.map((p, idx) => {
+        const nr = p.id || p.id_parcela || p.id_pagconta || (idx + 1)
+        const rawValor = p.vlroriginalparcela ?? p.vlrparcela ?? p.valor ?? 0
+        const vlr = parseFloat(String(rawValor).toString().replace(',', '.')) || 0
+        return {
+          nrparcela: nr,
+          dtvencimento: p.dtvencimento || p.data_vencimento || p.dtvencimento_parcela || '',
+          vlrparcela: vlr.toFixed(2),
+          id_localcobranca: p.id_localcobranca || null,
+          localCobrancaTexto: '',
+          _localcobrancaEdited: false,
+          observacao: p.observacao || ''
+        }
+      })
+      calcularTotalParcelas()
+      parcelasCalculadas.value = true
+      // preencher os campos do card de cálculo com a primeira parcela (valor e vencimento)
+      try {
+        const primeira = parcelas.value[0]
+        if (primeira) {
+          formData.valor_primeira_parcela = parseFloat(primeira.vlrparcela) || 0
+          formData.venc_primeira_parcela = primeira.dtvencimento || ''
+        }
+      } catch (e) {
+        // ignore
+      }
+      // garantir que o watcher não venha a limpar as parcelas carregadas
+      await nextTick()
+      suppressParcelWatcher.value = false
+    } else {
+      // fallback: manter lógica anterior (buscar por documento na lista local)
+      const parcelasDoDocumento = contasReceber.value.filter(cp => 
+        cp.nrdocumento === item.nrdocumento && 
+        cp.serie === item.serie && 
+        cp.especie === item.especie
+      )
+      parcelas.value = parcelasDoDocumento.map(parcela => ({
+        nrparcela: parcela.id_parcela,
+        dtvencimento: parcela.dtvencimento || '',
+        vlrparcela: parseFloat(parcela.vlrparcela || 0).toFixed(2),
+        id_localcobranca: null,
+        localCobrancaTexto: parcela.desclocalcobranca || '',
+        _localcobrancaEdited: false,
+        observacao: ''
+      }))
+      // preencher os campos do card de cálculo com a primeira parcela encontrada
+      if (parcelas.value && parcelas.value.length > 0) {
+        const p0 = parcelas.value[0]
+        formData.valor_primeira_parcela = parseFloat(p0.vlrparcela) || 0
+        formData.venc_primeira_parcela = p0.dtvencimento || ''
+      }
+      calcularTotalParcelas()
+      parcelasCalculadas.value = formData.qtdparcelas > 1 && parcelas.value.length > 0
+    }
+
+    // resolve localCobranca text for each parcela using locaisCobranca list
+    if (Array.isArray(locaisCobranca.value) && locaisCobranca.value.length > 0) {
+      parcelas.value = parcelas.value.map(p => {
+        if (p.id_localcobranca) {
+          const l = locaisCobranca.value.find(lc => String(lc.id) === String(p.id_localcobranca))
+          p.localCobrancaTexto = l ? (l.desclocalcobranca || l.descricao || '') : p.localCobrancaTexto
+        }
+        return p
+      })
+    }
+
+    // Media: API returns `media` as array (e.g. ["key"]) — persist first element into formData.id_media
+    if (documento && Array.isArray(documento.media) && documento.media.length > 0) {
+      formData.id_media = documento.media[0] || formData.id_media
+    } else if (dados && Array.isArray(dados.media) && dados.media.length > 0) {
+      formData.id_media = dados.media[0] || formData.id_media
+    }
+
+    // caso não tenha entrado no ramo de parcelasRet acima, garantir que o watcher seja reativado
+    suppressParcelWatcher.value = false
+
+  } catch (err) {
+    console.error('❌ ERRO ao carregar documento completo:', err)
+    console.error('Stack:', err.stack)
+    mostrarMensagem('Erro ao carregar dados do documento', 'error')
+  } finally {
+    loading.value = false
+  }
 }
 
 const cancelarFormulario = () => {
@@ -1062,6 +1406,9 @@ const cancelarFormulario = () => {
 }
 
 const resetarForm = () => {
+  // Limpar key do Pinia
+  financeiroStore.clearMediaKeyTemporaria()
+  
   Object.assign(formData, {
     id: null,
     nrdocumento: '',
@@ -1079,7 +1426,8 @@ const resetarForm = () => {
     desconto: 0,
     valor_primeira_parcela: 0,
     venc_primeira_parcela: '',
-    intervalo_parcelas: 30
+    intervalo_parcelas: 30,
+    id_media: ''
   })
 
   // Limpar campos de texto dos menus
@@ -1090,6 +1438,7 @@ const resetarForm = () => {
   parcelas.value = []
   totalParcelas.value = 0
   valorEntrada.value = 0
+  parcelasCalculadas.value = false
 
   if (formRef.value) {
     formRef.value.resetValidation()
@@ -1113,13 +1462,24 @@ const salvarContaReceber = async () => {
       return
     }
     
-    // Dados principais da conta a receber
+    // Dados principais da Conta a Receber
+    // Determinar nome do Cliente a partir do id selecionado
+    const ClienteObj = (pessoas.value || []).find(p => p.id === formData.id_cliente) || {}
+    const ClienteNome = ClienteObj.apelido_fantasia || ClienteObj.nome_razao || ClienteObj.nome || ''
+
     const dadosPrincipais = {
+      // enviar o nome do Cliente em `Cliente` (backend espera nome),
+      // manter também `id_cliente` separado
+      Cliente: ClienteNome,
+      id_cliente: formData.id_cliente,
+      // Histórico contábil (id) com nome de campo pedido pelo backend
+      id_historico_ctb: formData.id_historicocontabil || null,
+      abreviatura: tipoDocumentoSelecionado.value,
+      id_empresa: idEmpresa.value,
       nrdocumento: formData.nrdocumento,
       serie: formData.serie,
       especie: formData.especie,
       id_tipodocumento: formData.id_tipodocumen,
-      id_cliente: formData.id_cliente,
       id_planoconta: formData.id_planoconta,
       observacao: formData.observacao,
       vlroriginal: parseFloat(formData.vlroriginal),
@@ -1139,44 +1499,48 @@ const salvarContaReceber = async () => {
       perc_multa: String(parseFloat(formData.multa) || 0)
     }))
     
-    // Payload completo no formato THorse
+    // Usar key do Pinia para o payload
+    const mediaValue = financeiroStore.getMediaKeyTemporaria() || null
+
+    // Montar payload no formato solicitado: data, parcela, media (sem ccusto)
     const payloadCompleto = {
       data: [dadosPrincipais],
-      parcela: parcelasFormatadas
+      parcela: parcelasFormatadas,
+      media: [{ id_media: mediaValue }]
     }
-    
-    console.log('Payload completo para envio:', payloadCompleto)
 
     if (editando.value) {
-      // TODO: Implementar financeiroStore.atualizarContaReceber quando a API estiver disponível
-      // await financeiroStore.atualizarContaReceber(idEmpresa.value, formData.id, payloadCompleto)
-      mostrarMensagem('Conta a receber atualizada com sucesso!', 'success')
+      // Atualização usa rota com id por enquanto
+      await financeiroStore.atualizarContaReceber(idEmpresa.value, formData.id, payloadCompleto)
+      mostrarMensagem('Conta a Receber atualizada com sucesso!', 'success')
     } else {
-      // TODO: Implementar financeiroStore.criarContaReceber quando a API estiver disponível
-      // await financeiroStore.criarContaReceber(idEmpresa.value, payloadCompleto)
-      mostrarMensagem('Conta a receber cadastrada com sucesso!', 'success')
+      // Enviar apenas o payload para criar (id_empresa já está dentro de data[0])
+      await financeiroStore.criarContaReceber(payloadCompleto)
+      mostrarMensagem('Conta a Receber cadastrada com sucesso!', 'success')
     }
+    
+    // Limpar key do Pinia após salvar com sucesso
+    financeiroStore.clearMediaKeyTemporaria()
     
     await carregarContasReceber()
     cancelarFormulario()
   } catch (error) {
-    console.error('Erro ao salvar conta a receber:', error)
-    mostrarMensagem('Erro ao salvar conta a receber', 'error')
+    console.error('Erro ao salvar Conta a Receber:', error)
+    mostrarMensagem('Erro ao salvar Conta a Receber', 'error')
   } finally {
     loading.value = false
   }
 }
 
-const excluirContaReceber = async () => {
+const excluirContaReceber = async (item) => {
   try {
     loading.value = true
-    // TODO: Implementar financeiroStore.deletarContaReceber quando a API estiver disponível
-    // await financeiroStore.deletarContaReceber(idEmpresa.value, item.id)
+    await financeiroStore.deletarContaReceber(idEmpresa.value, item.id)
     await carregarContasReceber()
-    mostrarMensagem('Conta a receber excluída com sucesso!', 'success')
+    mostrarMensagem('Conta a Receber excluída com sucesso!', 'success')
   } catch (error) {
-    console.error('Erro ao excluir conta a receber:', error)
-    mostrarMensagem('Erro ao excluir conta a receber', 'error')
+    console.error('Erro ao excluir Conta a Receber:', error)
+    mostrarMensagem('Erro ao excluir Conta a Receber', 'error')
   } finally {
     loading.value = false
   }
@@ -1188,41 +1552,77 @@ const mostrarMensagem = (mensagem, tipo) => {
   snackbar.show = true
 }
 
-// Função para visualizar imagem vinculada
-const visualizarImagem = async (item) => {
+// Função para aplicar filtros avançados
+const aplicarFiltrosAvancados = async (filtros) => {
   try {
-    modalImagem.aberto = true
-    modalImagem.carregando = true
-    modalImagem.erro = false
-    modalImagem.documento = item.nrdocumento
-    modalImagem.item = item
+    // Guardar filtros para aplicação local dos filtros de valor
+    filtrosAvancados.value = filtros
     
-    // TODO: Implementar financeiroStore.buscarImagemContaReceber quando a API estiver disponível
-    // const imagemData = await financeiroStore.buscarImagemContaReceber(idEmpresa.value, item.id)
+    // Montar objeto de filtros para API (remover valores vazios)
+    const filtrosApi = {}
     
-    // Por enquanto, simular que não há imagem
-    modalImagem.erro = true
-    modalImagem.mensagemErro = 'Função de busca de imagem ainda não implementada'
+    if (filtros.tpperiodo !== undefined) filtrosApi.tpperiodo = filtros.tpperiodo
+    if (filtros.dtini) filtrosApi.dtini = filtros.dtini
+    if (filtros.dtfim) filtrosApi.dtfim = filtros.dtfim
+    if (filtros.idCliente) filtrosApi.idCliente = filtros.idCliente
+    if (filtros.cnpj_cpf) filtrosApi.cnpj_cpf = filtros.cnpj_cpf
+    if (filtros.nrdocumento) filtrosApi.nrdocumento = filtros.nrdocumento
+    if (filtros.idtpdocumento) filtrosApi.idtpdocumento = filtros.idtpdocumento
+    if (filtros.idlocalcobranca) filtrosApi.idlocalcobranca = filtros.idlocalcobranca
+    if (filtros.baixado) filtrosApi.baixado = filtros.baixado
     
+    // Chamar API com filtros
+    await carregarContasReceber(filtrosApi)
   } catch (error) {
-    console.error('Erro ao carregar imagem:', error)
-    modalImagem.erro = true
-    modalImagem.mensagemErro = 'Erro ao carregar a imagem. Tente novamente.'
-  } finally {
-    modalImagem.carregando = false
+    console.error('Erro ao aplicar filtros:', error)
+    mostrarMensagem('Erro ao aplicar filtros', 'error')
   }
 }
 
-// Função para fechar modal de imagem
-const fecharModalImagem = () => {
-  modalImagem.aberto = false
-  modalImagem.carregando = false
-  modalImagem.erro = false
-  modalImagem.mensagemErro = ''
-  modalImagem.urlImagem = ''
-  modalImagem.documento = ''
-  modalImagem.item = null
+// Funções para lidar com upload de media
+const handleMediaUpload = async () => {
+  // Função legacy - não utilizada
 }
+
+const onMediaSuccess = (data) => {
+  try {
+    
+    // Tentar extrair a key de múltiplos caminhos possíveis
+    let key = null
+    
+    if (data.key) {
+      key = data.key
+    } else if (data.data?.key) {
+      key = data.data.key
+    } else if (data.file?.key) {
+      key = data.file.key
+    } else if (data.response?.key) {
+      key = data.response.key
+    }
+    
+    if (key) {
+      
+      // Armazenar a key no Pinia para usar no payload
+      financeiroStore.setMediaKeyTemporaria(key)
+      
+      // Também salvar no formData para mostrar o indicador visual
+      formData.id_media = key
+      
+      mostrarMensagem('Documento anexado e pronto para envio!', 'success')
+    } else {
+      console.error('❌ Key não encontrada em nenhum caminho. Estrutura recebida:', JSON.stringify(data, null, 2))
+      mostrarMensagem('Documento anexado, mas key não foi capturada', 'warning')
+    }
+  } catch (error) {
+    console.error('❌ Erro ao processar upload:', error)
+    mostrarMensagem('Erro ao processar documento anexado', 'error')
+  }
+}
+
+const onMediaError = () => {
+  mostrarMensagem('Erro ao anexar documento', 'error')
+}
+
 
 // Função para abrir dialog de confirmação de exclusão
 const confirmarExclusao = (item) => {
@@ -1250,18 +1650,66 @@ const selecionarPlanoConta = (planoConta) => {
   planoContaSelecionado.value = planoConta.descconta || planoConta.descricao
 }
 
+// Histórico Contábil: pesquisar, selecionar e cadastrar
+const pesquisarHistoricosContabil = async () => {
+  try {
+    // carregar lista do backend e aplicar filtro simples pelo termo
+    const dados = await financeiroStore.buscarHistoricosContabil()
+    if (!termoHistContabil.value || termoHistContabil.value.length < 2) {
+      historicoContabilResultados.value = dados || []
+      return
+    }
+    const termo = termoHistContabil.value.toLowerCase()
+    historicoContabilResultados.value = (dados || []).filter(d => {
+      return (d.deschistorico || d.descricao || '').toLowerCase().includes(termo) || String(d.id).includes(termo)
+    })
+  } catch (error) {
+    mostrarMensagem('Erro ao buscar históricos contábeis', 'error')
+  }
+}
+
+const selecionarHistoricoContabil = (item) => {
+  formData.id_historicocontabil = item.id
+  histContabilLabel.value = item.deschistorico || item.descricao || `(${item.id})`
+  menuHistContabil.value = false
+}
+
+const abrirModalCadastrarHistorico = () => {
+  cadastrarHistoricoModal.value = true
+}
+
+const clearHistoricoInputs = () => {
+  descricaoHistorico.value = ''
+  cadastrarHistoricoModal.value = false
+}
+
+const cadastrarHistorico = async () => {
+  if (!descricaoHistorico.value) {
+    mostrarMensagem('Descrição obrigatória para o histórico', 'error')
+    return
+  }
+
+  try {
+    await financeiroStore.criarHistoricoContabil({ deschistorico: descricaoHistorico.value })
+    cadastrarHistoricoModal.value = false
+    descricaoHistorico.value = ''
+    await pesquisarHistoricosContabil()
+    mostrarMensagem('Histórico cadastrado com sucesso', 'success')
+  } catch (error) {
+    mostrarMensagem('Erro ao cadastrar histórico', 'error')
+  }
+}
+
 const selecionarLocalCobranca = (localCobranca, item) => {
   item.id_localcobranca = localCobranca.id
   item.localCobrancaTexto = localCobranca.desclocalcobranca || localCobranca.descricao
   
   // Aplicar a lógica de propagação da primeira parcela
   if (item.nrparcela === 1) {
-    console.log('Propagando local cobrança da primeira parcela para todas as outras:', localCobranca.id)
     
     // Propagar para todas as outras parcelas que não foram editadas manualmente
     for (let i = 0; i < parcelas.value.length; i++) {
       if (parcelas.value[i].nrparcela !== 1 && !parcelas.value[i]._localcobrancaEdited) {
-        console.log(`Propagando para parcela ${parcelas.value[i].nrparcela}`)
         parcelas.value[i].id_localcobranca = localCobranca.id
         parcelas.value[i].localCobrancaTexto = localCobranca.desclocalcobranca || localCobranca.descricao
       }
@@ -1269,16 +1717,24 @@ const selecionarLocalCobranca = (localCobranca, item) => {
   } else {
     // Para parcelas que não são a primeira, marcar como editada manualmente
     item._localcobrancaEdited = true
-    console.log(`Parcela ${item.nrparcela} marcada como editada manualmente`)
   }
 }
 
+
+
 // Métodos para gerenciar parcelas
+
+
+
 const calcularTotalParcelas = () => {
   totalParcelas.value = parcelas.value.reduce((total, parcela) => {
     return total + (parseFloat(parcela.vlrparcela) || 0)
   }, 0)
 }
+
+
+
+
 
 // Função para calcular parcelas usando o backend
 const calcularParcelas = async () => {
@@ -1289,7 +1745,6 @@ const calcularParcelas = async () => {
     
     // Se for apenas 1 parcela, fazer cálculo local sem chamar API
     if (qtdParcelas === 1) {
-      console.log('Calculando parcela única localmente')
       gerarParcelaUnica()
       mostrarMensagem('Parcela calculada com sucesso!', 'success')
       loading.value = false
@@ -1305,15 +1760,41 @@ const calcularParcelas = async () => {
       intervalo: parseInt(formData.intervalo_parcelas) || 30
     }
     
-    console.log('Enviando dados para cálculo de múltiplas parcelas:', dadosCalculo)
+    // Chamar API do backend apenas para múltiplas parcelas
+    const parcelasCalculadas = await financeiroStore.calcularParcelasContaReceber(dadosCalculo)
     
-    // TODO: Implementar financeiroStore.calcularParcelasContaReceber quando a API estiver disponível
-    // const parcelasCalculadas = await financeiroStore.calcularParcelasContaReceber(dadosCalculo)
-    
-    // Por enquanto, usar fallback local
-    console.warn('API de cálculo não implementada, usando cálculo local')
-    gerarParcelasTemporario()
-    mostrarMensagem('Parcelas calculadas localmente!', 'warning')
+    // Processar resultado e atualizar a tabela de parcelas
+    if (parcelasCalculadas && Array.isArray(parcelasCalculadas)) {
+      parcelas.value = parcelasCalculadas.map((parcela, index) => {
+        // Converter valor brasileiro (com vírgula) para formato JavaScript (com ponto)
+        let valorParcela = parcela.vlrparcela || parcela.valor || '0'
+        if (typeof valorParcela === 'string') {
+          valorParcela = valorParcela.replace(',', '.')
+        }
+        
+        return {
+          nrparcela: parcela.id_parcela || (index + 1),
+          dtvencimento: parcela.dtvencimento || parcela.data_vencimento || '',
+          vlrparcela: parseFloat(valorParcela || 0).toFixed(2),
+          id_localcobranca: null,
+          localCobrancaTexto: '',
+          _localcobrancaEdited: false,
+          observacao: parcela.observacao || `Parcela ${parcela.id_parcela || (index + 1)} de ${dadosCalculo.qtdparcelas}`
+        }
+      })
+      
+      calcularTotalParcelas()
+      // Após cálculo, esconder o painel de configurações
+      parcelasCalculadas.value = true
+      mostrarMensagem('Parcelas calculadas com sucesso!', 'success')
+    } else {
+      // Fallback para geração local se backend não retornar dados válidos
+      console.warn('Backend não retornou parcelas válidas, usando cálculo local')
+      gerarParcelasTemporario()
+      // Também considerar como 'calculadas' para ocultar o painel
+      parcelasCalculadas.value = true
+      mostrarMensagem('Parcelas calculadas localmente!', 'warning')
+    }
     
   } catch (error) {
     console.error('Erro ao calcular parcelas:', error)
@@ -1403,8 +1884,11 @@ const gerarParcelasTemporario = () => {
     }
     
     calcularTotalParcelas()
+    // Marcar como calculadas para esconder o card de configurações
+    parcelasCalculadas.value = true
   }
 }
+
 
 </script>
 
@@ -1414,7 +1898,66 @@ const gerarParcelasTemporario = () => {
   color: var(--text-color);
 }
 
+/* Forçar elementos internos do Vuetify (v-data-table etc.) a herdar o tema
+   usando o combinador :deep para scoped styles */
+.background-secondary :deep(.v-data-table),
+.background-secondary :deep(.v-data-table__wrapper),
+.background-secondary :deep(.v-simple-table),
+.background-secondary :deep(.v-data-table__wrapper) > * {
+  background-color: transparent;
+  color: var(--text-color);
+}
+
+/* Aplicar fundo de 'card' ao conteúdo da tabela de parcelas especificamente */
+.parcelas-table :deep(.v-data-table__wrapper),
+.parcelas-table :deep(table),
+.parcelas-table :deep(thead),
+.parcelas-table :deep(tbody),
+.parcelas-table :deep(.v-data-table__divider) {
+  background-color: var(--bg-card);
+  color: var(--text-color);
+}
+
 .custom-text-field :deep(.v-field) {
   background-color: rgba(var(--v-theme-surface), 0.7);
 }
+
+.rateio-item {
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  padding: 10px 6px;
+  background-color: var(--bg-card);
+  color: var(--text-color);
+}
+
+.totals-row {
+  border-top: 1px dashed rgba(255,255,255,0.04);
+  background-color: var(--bg-card);
+  color: var(--text-color);
+  padding: 12px;
+}
+
+/* Forçar elementos internos da lista de rateio a usar o tema e ficar discretos */
+.rateio-item :deep(.v-list-item__content),
+.rateio-item :deep(.v-list-item-title),
+.rateio-item :deep(.v-list-item-subtitle) {
+  color: var(--text-color);
+}
+
+/* Tornar inputs mais discretos: transparência, sem sombra/linha clara */
+
+/* Deixar inputs com o estilo padrão usado por .custom-text-field */
+.rateio-item :deep(.v-field__details) {
+  display: none !important;
+}
+
+/* Garantir que a v-list mantenha fundo transparente para o card controlar o visual */
+.v-list--two-line {
+  background-color: transparent;
+}
 </style>
+
+
+
+
+
+

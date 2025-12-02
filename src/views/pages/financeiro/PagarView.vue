@@ -10,6 +10,26 @@
       </v-card-title>
     </v-card>
 
+    <!-- Card com Total das Parcelas -->
+    <v-card class="background-secondary mb-4" elevation="2">
+      <v-card-text class="pa-4">
+        <div class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center">
+            <v-icon icon="mdi-cash-multiple" size="32" color="var(--text-color-laranja)" class="mr-3"></v-icon>
+            <div>
+              <div class="text-caption text-grey">Total A Pagar</div>
+              <div class="text-h5 font-weight-bold" style="color: var(--text-color-laranja)">
+                {{ formatarMoeda(totalParcelasFiltradas) }}
+              </div>
+            </div>
+          </div>
+          <v-chip color="var(--text-color-laranja)" variant="tonal">
+            {{ contasPagarFiltradas.length }} {{ contasPagarFiltradas.length === 1 ? 'parcela' : 'parcelas' }}
+          </v-chip>
+        </div>
+      </v-card-text>
+    </v-card>
+
     <!-- Lista de Contas a Pagar -->
     <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
       <v-card-text class="pa-4">
@@ -1050,7 +1070,6 @@ const onFornecedorSelect = (val) => {
   // Capturar id_red_ctb_for quando fornecedor for selecionado
   if (sel && (sel.id_red_ctb_for || sel.id_red_ctb)) {
     formData.id_red_ctb_for = sel.id_red_ctb_for || sel.id_red_ctb
-    console.log('📋 id_red_ctb_for capturado na seleção:', formData.id_red_ctb_for)
   } else {
     formData.id_red_ctb_for = null
   }
@@ -1074,7 +1093,6 @@ const onFornecedorInput = (ev) => {
 // Buscar fornecedor específico por ID (usado ao editar documento)
 const buscarFornecedorPorId = async (idFornecedor) => {
   try {
-    console.log('🔍 Buscando fornecedor por ID:', idFornecedor)
     fornecedorLoading.value = true
     
     // Busca o fornecedor pelo ID na API - isso faz GET /pessoafor/:idempresa?find=ID
@@ -1082,7 +1100,6 @@ const buscarFornecedorPorId = async (idFornecedor) => {
     
     if (items && items.length > 0) {
       const fornecedor = items[0]
-      console.log('✅ Fornecedor encontrado:', fornecedor)
       
       // Atualizar a lista de pessoas com o fornecedor encontrado
       pessoas.value = [fornecedor]
@@ -1096,7 +1113,6 @@ const buscarFornecedorPorId = async (idFornecedor) => {
       // IMPORTANTE: Capturar id_red_ctb_for da resposta da API
       if (fornecedor.id_red_ctb_for || fornecedor.id_red_ctb) {
         formData.id_red_ctb_for = fornecedor.id_red_ctb_for || fornecedor.id_red_ctb
-        console.log('📋 id_red_ctb_for capturado:', formData.id_red_ctb_for)
       }
       
       return fornecedor
@@ -1177,6 +1193,14 @@ const contasPagarFiltradas = computed(() => {
   
   // Toda filtragem é feita pela API
   return dados
+})
+
+// Calcular o valor total das parcelas filtradas
+const totalParcelasFiltradas = computed(() => {
+  return contasPagarFiltradas.value.reduce((total, item) => {
+    const valor = parseFloat(item.vlrparcela || 0)
+    return total + valor
+  }, 0)
 })
 
 // Ciclo de vida
@@ -1265,7 +1289,6 @@ const carregarContasPagar = async (filtrosApi = null) => {
       id_media: item.id_media || ''
     })) || []
     
-    console.log('Contas a pagar carregadas:', contasPagar.value)
   } catch (error) {
     console.error('Erro ao carregar contas a pagar:', error)
     mostrarMensagem('Erro ao carregar contas a pagar', 'error')
@@ -1296,18 +1319,10 @@ const carregarDadosAuxiliares = async () => {
     try {
       await ccustoStore.listarCCusto()
       centrosCusto.value = ccustoStore.centrosCusto || []
-      console.log('📋 Centros de custo carregados:', centrosCusto.value)
     } catch (err) {
       console.warn('Não foi possível carregar centros de custo:', err)
     }
 
-    console.log('Dados auxiliares carregados:', {
-      tiposDocumento: tiposDocumento.value,
-      locaisCobranca: locaisCobranca.value,
-      pessoas: pessoas.value,
-      planosConta: financeiroStore.planosConta,
-      centrosCusto: centrosCusto.value
-    })
   } catch (error) {
     console.error('Erro ao carregar dados auxiliares:', error)
     mostrarMensagem('Erro ao carregar dados auxiliares', 'error')
@@ -1419,7 +1434,6 @@ const abrirFormulario = () => {
 }
 
 const editarContaPagar = async (item) => {
-  console.log('🚀 INICIANDO editarContaPagar com item:', item)
   
   editando.value = true
   // esconder imediatamente o card de configurações de parcelas antes do template renderizar
@@ -1431,9 +1445,7 @@ const editarContaPagar = async (item) => {
     // Suprimir o watcher que limpa parcelas enquanto fazemos o mapeamento
     suppressParcelWatcher.value = true
     
-    console.log('📡 Buscando documento por ID:', item.id)
     const documento = await financeiroStore.buscarContaPagarPorId(idEmpresa.value, item.id)
-    console.log('📦 Documento retornado da API:', documento)
 
     // documento pode ter a forma { data: [...], parcela: [...], ccusto: [...], media: [...] }
     const dados = (documento && documento.data && documento.data[0]) ? documento.data[0] : documento
@@ -1619,35 +1631,23 @@ const editarContaPagar = async (item) => {
     // Rateios (centros de custo) — API returns `ccusto` as array of { id_ccusto, valor, desccentrocusto }
     // A API retorna a estrutura: { data: [...], pagparcela: [...], media: [...], ccusto: [...] }
     // O ccusto está no nível raiz do documento, NÃO dentro de data[0]
-    console.log('🔍 Verificando existência de ccusto no documento...')
-    console.log('documento.ccusto:', documento?.ccusto)
-    console.log('dados.ccusto:', dados?.ccusto)
     
     // Buscar ccusto no nível raiz do documento (estrutura correta da API)
     const ccustos = documento?.ccusto || []
-    console.log('🔍 Centros de custo encontrados:', ccustos)
-    console.log('🔍 É array?', Array.isArray(ccustos))
-    console.log('🔍 Quantidade:', ccustos?.length)
     
     if (Array.isArray(ccustos) && ccustos.length > 0) {
-      console.log('✅ Entrando no bloco de processamento de ccusto')
       
       // Ensure centrosCusto list is loaded
       if ((centrosCusto.value || []).length === 0) {
-        console.log('📋 Lista de centros vazia, carregando...')
         try {
           await ccustoStore.listarCCusto()
           centrosCusto.value = ccustoStore.centrosCusto || []
-          console.log('📋 Lista de centros carregada:', centrosCusto.value)
         } catch (e) {
           console.warn('Não foi possível carregar centros de custo ao editar documento', e)
         }
-      } else {
-        console.log('📋 Lista de centros já carregada:', centrosCusto.value.length, 'itens')
-      }
+      } else 
       
       // Mapear ccustos diretamente para o array de rateio
-      console.log('🔄 Iniciando mapeamento de ccustos...')
       ccustosRateio.value = ccustos.map(c => {
         const linha = {
           id_ccusto: Number(c.id_ccusto || c.id_ccusto_prev_lote || c.id),
@@ -1655,25 +1655,16 @@ const editarContaPagar = async (item) => {
           desccentrocusto: c.desccentrocusto || '',
           porcentagem: 0
         }
-        console.log('✅ Linha de rateio criada:', linha)
         return linha
       })
-      
-      console.log('📊 ccustosRateio após preencher:', ccustosRateio.value)
-      console.log('📊 Total de linhas:', ccustosRateio.value.length)
       
       // Aguardar nextTick para garantir reatividade
       await nextTick()
       
       // Calcular as porcentagens baseadas no total das parcelas
-      console.log('🔢 Calculando porcentagens...')
       recalcularPorcentagens()
       
-      console.log('📊 ccustosRateio após calcular %:', ccustosRateio.value)
-      console.log('✅ Rateios preenchidos com sucesso!')
-    } else {
-      console.log('⚠️ NENHUM centro de custo encontrado ou array vazio!')
-    }
+    } else
 
     // Media: API returns `media` as array (e.g. ["key"]) — persist first element into formData.id_media
     if (documento && Array.isArray(documento.media) && documento.media.length > 0) {
@@ -1690,7 +1681,6 @@ const editarContaPagar = async (item) => {
     console.error('Stack:', err.stack)
     mostrarMensagem('Erro ao carregar dados do documento', 'error')
   } finally {
-    console.log('🏁 Finalizando editarContaPagar')
     loading.value = false
   }
 }
@@ -1829,9 +1819,6 @@ const salvarContaPagar = async () => {
       ccusto: ccustoArray
     }
 
-    // Log do payload para debug (ver no console do navegador antes do POST)
-    console.log('salvarContaPagar - payloadCompleto:', JSON.parse(JSON.stringify(payloadCompleto)))
-
     if (editando.value) {
       // Atualização usa rota com id por enquanto
       await financeiroStore.atualizarContaPagar(idEmpresa.value, formData.id, payloadCompleto)
@@ -1881,8 +1868,6 @@ const aplicarFiltrosAvancados = async (filtros) => {
     // Guardar filtros para aplicação local dos filtros de valor
     filtrosAvancados.value = filtros
     
-    console.log('🔍 Filtros recebidos da BuscaAvancada:', filtros)
-    
     // Montar objeto de filtros para API (remover valores vazios)
     const filtrosApi = {}
     
@@ -1895,8 +1880,6 @@ const aplicarFiltrosAvancados = async (filtros) => {
     if (filtros.idtpdocumento) filtrosApi.idtpdocumento = filtros.idtpdocumento
     if (filtros.idlocalcobranca) filtrosApi.idlocalcobranca = filtros.idlocalcobranca
     if (filtros.baixado) filtrosApi.baixado = filtros.baixado
-    
-    console.log('🚀 Filtros enviados para API:', filtrosApi)
     
     // Chamar API com filtros
     await carregarContasPagar(filtrosApi)
@@ -1913,35 +1896,27 @@ const handleMediaUpload = async () => {
 
 const onMediaSuccess = (data) => {
   try {
-    console.log('📤 Upload concluído - Dados recebidos:', data)
     
     // Tentar extrair a key de múltiplos caminhos possíveis
     let key = null
     
     if (data.key) {
       key = data.key
-      console.log('✅ Key encontrada em: data.key')
     } else if (data.data?.key) {
       key = data.data.key
-      console.log('✅ Key encontrada em: data.data.key')
     } else if (data.file?.key) {
       key = data.file.key
-      console.log('✅ Key encontrada em: data.file.key')
     } else if (data.response?.key) {
       key = data.response.key
-      console.log('✅ Key encontrada em: data.response.key')
     }
     
     if (key) {
-      console.log('🔑 Key capturada:', key)
       
       // Armazenar a key no Pinia para usar no payload
       financeiroStore.setMediaKeyTemporaria(key)
-      console.log('💾 Key armazenada no Pinia')
       
       // Também salvar no formData para mostrar o indicador visual
       formData.id_media = key
-      console.log('📋 Key salva no formData.id_media')
       
       mostrarMensagem('Documento anexado e pronto para envio!', 'success')
     } else {
@@ -2041,12 +2016,10 @@ const selecionarLocalCobranca = (localCobranca, item) => {
   
   // Aplicar a lógica de propagação da primeira parcela
   if (item.nrparcela === 1) {
-    console.log('Propagando local cobrança da primeira parcela para todas as outras:', localCobranca.id)
     
     // Propagar para todas as outras parcelas que não foram editadas manualmente
     for (let i = 0; i < parcelas.value.length; i++) {
       if (parcelas.value[i].nrparcela !== 1 && !parcelas.value[i]._localcobrancaEdited) {
-        console.log(`Propagando para parcela ${parcelas.value[i].nrparcela}`)
         parcelas.value[i].id_localcobranca = localCobranca.id
         parcelas.value[i].localCobrancaTexto = localCobranca.desclocalcobranca || localCobranca.descricao
       }
@@ -2054,7 +2027,6 @@ const selecionarLocalCobranca = (localCobranca, item) => {
   } else {
     // Para parcelas que não são a primeira, marcar como editada manualmente
     item._localcobrancaEdited = true
-    console.log(`Parcela ${item.nrparcela} marcada como editada manualmente`)
   }
 }
 
@@ -2083,7 +2055,6 @@ const calcularParcelas = async () => {
     
     // Se for apenas 1 parcela, fazer cálculo local sem chamar API
     if (qtdParcelas === 1) {
-      console.log('Calculando parcela única localmente')
       gerarParcelaUnica()
       mostrarMensagem('Parcela calculada com sucesso!', 'success')
       loading.value = false
@@ -2098,8 +2069,6 @@ const calcularParcelas = async () => {
       primeirovencimento: formData.venc_primeira_parcela || formData.dtemissao,
       intervalo: parseInt(formData.intervalo_parcelas) || 30
     }
-    
-    console.log('Enviando dados para cálculo de múltiplas parcelas:', dadosCalculo)
     
     // Chamar API do backend apenas para múltiplas parcelas
     const parcelasCalculadas = await financeiroStore.calcularParcelasContaPagar(dadosCalculo)

@@ -1,5 +1,5 @@
 <template>
-  <v-expansion-panels class="busca-avancada-expansion">
+  <v-expansion-panels v-model="expanded" class="busca-avancada-expansion">
     <v-expansion-panel 
       class="background-secondary"
       elevation="0"
@@ -258,7 +258,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'aplicar'])
 
-const expanded = ref(false)
+const expanded = ref(0) // 0 = primeiro painel aberto, null = todos fechados
 
 const filtrosLocal = reactive({
   tpperiodo: 2, // Padrão: Data de Vencimento
@@ -332,6 +332,8 @@ watch(() => props.modelValue, (newVal) => {
 const aplicarFiltros = () => {
   emit('update:modelValue', { ...filtrosLocal })
   emit('aplicar', { ...filtrosLocal })
+  // Fechar o painel após aplicar filtros
+  expanded.value = null
 }
 
 const limparFiltros = () => {
@@ -362,7 +364,9 @@ const pesquisarFornecedores = async () => {
       return
     }
     
-    const resultado = await financeiroStore.buscarPessoasFornecedores(termo, idEmpresa.value)
+    // Garantir que idEmpresa seja passado corretamente
+    const empresaId = idEmpresa.value || localStorage.getItem('empresa') || '1'
+    const resultado = await financeiroStore.buscarPessoasFornecedores(termo, empresaId)
     fornecedores.value = resultado || []
   } catch (error) {
     console.error('Erro ao buscar fornecedores:', error)
@@ -400,8 +404,30 @@ const carregarDadosAuxiliares = async () => {
   }
 }
 
-onMounted(() => {
-  carregarDadosAuxiliares()
+onMounted(async () => {
+  // Obter primeiro e último dia do mês atual
+  const hoje = new Date()
+  const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
+  const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)
+  
+  // Formatar para YYYY-MM-DD
+  const formatarData = (data) => {
+    const ano = data.getFullYear()
+    const mes = String(data.getMonth() + 1).padStart(2, '0')
+    const dia = String(data.getDate()).padStart(2, '0')
+    return `${ano}-${mes}-${dia}`
+  }
+  
+  // Inicializar filtros com o período do mês atual
+  filtrosLocal.dtini = formatarData(primeiroDia)
+  filtrosLocal.dtfim = formatarData(ultimoDia)
+  filtrosLocal.tpperiodo = 2 // Vencimento
+  
+  // Carregar dados auxiliares
+  await carregarDadosAuxiliares()
+  
+  // Aplicar filtros automaticamente para carregar dados
+  aplicarFiltros()
 })
 </script>
 
