@@ -917,11 +917,9 @@ export const useFinanceiroStore = defineStore('financeiro', {
           headers: this.getAuthHeaders()
         })
 
-        // Normalizar retorno
-        const resp = response.data
-        if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0]
-        if (Array.isArray(resp)) return resp[0]
-        return resp
+        // Retornar o objeto completo com data, pagparcela, ccusto, media
+        // A API retorna: { data: [...], pagparcela: [...], media: [...], ccusto: [...] }
+        return response.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Erro ao buscar conta a pagar'
         throw error

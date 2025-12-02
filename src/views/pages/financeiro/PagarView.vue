@@ -561,85 +561,101 @@
                           <v-icon icon="mdi-swap-horizontal" class="mr-2" color="orange"></v-icon>
                           Rateio por Centro de Custo
                           <v-spacer></v-spacer>
-                          <v-btn size="small" color="orange" variant="elevated" @click="distribuirIgualmente">
+                          <v-btn 
+                            size="small" 
+                            color="orange" 
+                            variant="text" 
+                            prepend-icon="mdi-plus"
+                            @click="adicionarCentro"
+                          >
+                            Adicionar Centro
+                          </v-btn>
+                          <v-btn 
+                            size="small" 
+                            color="orange" 
+                            variant="elevated" 
+                            class="ml-2"
+                            @click="distribuirIgualmente"
+                          >
                             Distribuir igualmente
                           </v-btn>
                         </v-card-title>
 
                         <v-card-text class="pa-4">
-                          <v-row>
-                            <v-col cols="12" md="6">
-                              <v-select
-                                v-model="selectedCentros"
-                                :items="centrosCusto"
-                                item-title="desccentrocusto"
-                                item-value="id"
-                                label="Selecionar Centros de Custo"
-                                multiple
-                                chips
-                                variant="outlined"
-                                density="compact"
-                                hint="Escolha os centros que participarão do rateio"
-                                hide-details
-                              />
-                            </v-col>
+                          <div v-if="ccustosRateio.length === 0" class="text-center text-grey pa-4">
+                            Nenhum centro de custo adicionado. Clique em "Adicionar Centro" para começar o rateio.
+                          </div>
 
-                            <v-col cols="12">
-                              <div v-if="(rateiosArray || []).length === 0" class="text-center text-grey">
-                                Nenhum centro selecionado.
-                              </div>
-
-                              <v-list two-line class="parcelas-table">
-                                <v-list-item v-for="r in rateiosArray" :key="r.id" class="rateio-item">
-                                  <v-list-item-content>
-                                    <v-list-item-title>{{ r.descricao }}</v-list-item-title>
-                                    <v-list-item-subtitle class="text-grey mb-3">ID: {{ r.id }}</v-list-item-subtitle>
-                                  </v-list-item-content>
-
-                                  <v-list-item-action class="d-flex align-center">
-                                    <v-text-field
-                                      v-model="r.valor"
-                                      label="Valor"
-                                      type="number"
-                                      step="0.01"
-                                      variant="outlined"
-                                      density="compact"
-                                      prefix="R$"
-                                      class=""
-                                      style="width:150px; margin-right:8px"
-                                      @input="onRateioValorChange(r.id)"
-                                    ></v-text-field>
-
-                                    <v-text-field
-                                      v-model="r.porcentagem"
-                                      label="%"
-                                      type="number"
-                                      step="0.01"
-                                      variant="outlined"
-                                      density="compact"
-                                      suffix="%"
-                                      class=""
-                                      style="width:110px; margin-right:8px"
-                                      @input="onRateioPercentChange(r.id)"
-                                    ></v-text-field>
-
-                                    <v-btn
-                                      icon="mdi-close"
-                                      size="small"
-                                      color="error"
-                                      variant="text"
-                                      @click="selectedCentros = selectedCentros.filter(i => i !== r.id)"
-                                    ></v-btn>
-                                  </v-list-item-action>
-                                </v-list-item>
-
-                                <div class="mt-4 d-flex justify-space-between align-center pa-2 totals-row">
-                                  <div>Total rateado: <strong>{{ formatarMoeda(totalRateadoValor) }}</strong></div>
-                                  <div>Percent: <strong>{{ Number(totalRateadoPercent).toFixed(2) }}%</strong></div>
-                                </div>
-                              </v-list>
-                            </v-col>
-                          </v-row>
+                          <v-table v-else density="compact">
+                            <thead>
+                              <tr>
+                                <th style="width: 40%">Centro de Custo</th>
+                                <th style="width: 25%">Valor (R$)</th>
+                                <th style="width: 20%">Porcentagem (%)</th>
+                                <th style="width: 15%; text-align: center">Ações</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr v-for="(linha, index) in ccustosRateio" :key="index">
+                                <td>
+                                  <v-select
+                                    v-model="linha.id_ccusto"
+                                    :items="centrosCusto"
+                                    item-title="desccentrocusto"
+                                    item-value="id"
+                                    label="Selecione"
+                                    variant="outlined"
+                                    density="compact"
+                                    hide-details
+                                  />
+                                  <div v-if="linha.desccentrocusto" class="text-caption text-grey mt-1">
+                                    API: {{ linha.desccentrocusto }}
+                                  </div>
+                                </td>
+                                <td>
+                                  <v-text-field
+                                    v-model.number="linha.valor"
+                                    type="number"
+                                    step="0.01"
+                                    variant="outlined"
+                                    density="compact"
+                                    prefix="R$"
+                                    hide-details
+                                    @input="onRateioValorChange(index)"
+                                  />
+                                </td>
+                                <td>
+                                  <v-text-field
+                                    v-model.number="linha.porcentagem"
+                                    type="number"
+                                    step="0.01"
+                                    variant="outlined"
+                                    density="compact"
+                                    suffix="%"
+                                    hide-details
+                                    @input="onRateioPercentChange(index)"
+                                  />
+                                </td>
+                                <td style="text-align: center">
+                                  <v-btn
+                                    icon="mdi-delete"
+                                    size="small"
+                                    color="error"
+                                    variant="text"
+                                    @click="removerCentro(index)"
+                                  />
+                                </td>
+                              </tr>
+                            </tbody>
+                            <tfoot>
+                              <tr class="font-weight-bold">
+                                <td>TOTAL</td>
+                                <td>{{ formatarMoeda(totalRateadoValor) }}</td>
+                                <td>{{ Number(totalRateadoPercent).toFixed(2) }}%</td>
+                                <td></td>
+                              </tr>
+                            </tfoot>
+                          </v-table>
                         </v-card-text>
                       </v-card>
                     </v-col>
@@ -905,37 +921,15 @@ const suppressParcelWatcher = ref(false)
 // Rateio por centro de custo
 const centrosCusto = ref([])
 
-// Mantemos um mapa de rateios por id para preservar valores quando o usuário selecionar/desselecionar centros
-const rateiosMap = ref({})
-// Lista de centros selecionados (ids)
-const selectedCentros = ref([])
-
-// Array derivado para iteração na tabela (ordem conforme seleção)
-const rateiosArray = computed(() => {
-  return (selectedCentros.value || []).map(id => rateiosMap.value[id]).filter(Boolean)
-})
+// Array direto de rateios (simplificado)
+const ccustosRateio = ref([])
 
 const totalRateadoValor = computed(() => {
-  return rateiosArray.value.reduce((s, r) => s + (parseFloat(r.valor) || 0), 0)
+  return ccustosRateio.value.reduce((s, r) => s + (parseFloat(r.valor) || 0), 0)
 })
 
 const totalRateadoPercent = computed(() => {
-  return rateiosArray.value.reduce((s, r) => s + (parseFloat(r.porcentagem) || 0), 0)
-})
-
-// Garantir que ao selecionar centros, o mapa de rateios tenha entradas correspondentes
-watch(selectedCentros, (newList) => {
-  (newList || []).forEach(id => {
-    if (!rateiosMap.value[id]) {
-      const centro = (centrosCusto.value || []).find(c => c.id === id)
-      rateiosMap.value[id] = {
-        id,
-        descricao: centro?.desccentrocusto || centro?.descricao || `Centro ${id}`,
-        valor: 0,
-        porcentagem: 0
-      }
-    }
-  })
+  return ccustosRateio.value.reduce((s, r) => s + (parseFloat(r.porcentagem) || 0), 0)
 })
 
 
@@ -1011,7 +1005,9 @@ const formData = reactive({
   venc_primeira_parcela: '',
   intervalo_parcelas: 30,
   // ID da media anexada (key retornada da API)
-  id_media: ''
+  id_media: '',
+  // Array de centros de custo para rateio
+  ccustos: [] // [{ id_ccusto, valor, desccentrocusto, porcentagem }]
 })
 
 // ID da empresa (temporário - deve vir do contexto/autenticação)
@@ -1222,12 +1218,12 @@ watch([() => formData.venc_primeira_parcela, () => formData.dtemissao, () => for
 
 // Inicializar rateios quando parcelas já foram calculadas
 watch(() => parcelasCalculadas.value, (val) => {
-  if (val && Object.keys(rateiosMap.value).length === 0) {
+  if (val && ccustosRateio.value.length === 0) {
     // garantir que centros já foram carregados
     if ((centrosCusto.value || []).length === 0) {
       // tentar carregar novamente
       ccustoStore.listarCCusto().then(() => {
-        centrosCusto.value = ccustoStore.centrosCusto || ccustoStore.centroscusto || []
+        centrosCusto.value = ccustoStore.centrosCusto || []
         inicializarRateio()
       }).catch(() => {
         inicializarRateio()
@@ -1299,7 +1295,8 @@ const carregarDadosAuxiliares = async () => {
     // Carregar centros de custo
     try {
       await ccustoStore.listarCCusto()
-      centrosCusto.value = ccustoStore.centrosCusto || ccustoStore.centroscusto || []
+      centrosCusto.value = ccustoStore.centrosCusto || []
+      console.log('📋 Centros de custo carregados:', centrosCusto.value)
     } catch (err) {
       console.warn('Não foi possível carregar centros de custo:', err)
     }
@@ -1308,7 +1305,8 @@ const carregarDadosAuxiliares = async () => {
       tiposDocumento: tiposDocumento.value,
       locaisCobranca: locaisCobranca.value,
       pessoas: pessoas.value,
-      planosConta: financeiroStore.planosConta
+      planosConta: financeiroStore.planosConta,
+      centrosCusto: centrosCusto.value
     })
   } catch (error) {
     console.error('Erro ao carregar dados auxiliares:', error)
@@ -1316,138 +1314,86 @@ const carregarDadosAuxiliares = async () => {
   }
 }
 
-// Inicializar rateios (map) com a lista de centros, mantendo chaves por id
+// Inicializar rateio com uma linha vazia
 const inicializarRateio = () => {
-  rateiosMap.value = {}
-  ;(centrosCusto.value || []).forEach(c => {
-    const id = c.id
-    rateiosMap.value[id] = {
-      id,
-      descricao: c.desccentrocusto || c.descricao || c.descconta || c.nome || c.apelido_fantasia || `Centro ${id}`,
-      valor: 0,
-      porcentagem: 0
-    }
-  })
-}
-
-// Atualiza porcentagem ao alterar valor (recebe id) e distribui o restante
-const onRateioValorChange = (id) => {
-  const total = parseFloat(totalParcelas.value) || 0
-  if (total === 0) return
-  
-  const r = rateiosMap.value[id]
-  if (!r) return
-  
-  // Usar numeric.js para garantir precisão no cálculo
-  const valorAtual = numeric.add(0, parseFloat(r.valor) || 0)
-  
-  // Calcular porcentagem do centro de custo atual com precisão
-  const porcAtual = numeric.div(numeric.mul(valorAtual, 100), total)
-  r.porcentagem = porcAtual.toFixed(2)
-  
-  // Distribuir o restante entre os outros centros de custo selecionados
-  distribuirRestante(id, valorAtual, total)
-}
-
-// Atualiza valor ao alterar porcentagem (recebe id) e distribui o restante
-const onRateioPercentChange = (id) => {
-  const total = parseFloat(totalParcelas.value) || 0
-  if (total === 0) return
-  
-  const r = rateiosMap.value[id]
-  if (!r) return
-  
-  // Usar numeric.js para garantir precisão no cálculo
-  const porcAtual = numeric.add(0, parseFloat(r.porcentagem) || 0)
-  
-  // Calcular valor do centro de custo atual com precisão
-  const valorAtual = numeric.div(numeric.mul(porcAtual, total), 100)
-  r.valor = valorAtual.toFixed(2)
-  
-  // Distribuir o restante entre os outros centros de custo selecionados
-  distribuirRestante(id, valorAtual, total)
-}
-
-// Distribui o valor restante proporcionalmente entre os outros centros de custo
-const distribuirRestante = (idExcluir, valorUtilizado, total) => {
-  const outrosIds = (selectedCentros.value || []).filter(id => id !== idExcluir)
-  
-  if (outrosIds.length === 0) return
-  
-  // Calcular valor restante com precisão usando numeric.js
-  const valorRestante = numeric.sub(total, valorUtilizado)
-  
-  // Se o valor restante for negativo ou zero, zerar os outros
-  if (valorRestante <= 0) {
-    outrosIds.forEach(id => {
-      const r = rateiosMap.value[id]
-      if (r) {
-        r.valor = '0.00'
-        r.porcentagem = '0.00'
-      }
-    })
-    return
+  if (ccustosRateio.value.length === 0) {
+    adicionarCentro()
   }
-  
-  // Distribuir o valor restante igualmente entre os outros centros
-  const valorPorCentro = numeric.div(valorRestante, outrosIds.length)
-  
-  // Array para acumular os valores já distribuídos (controle de precisão)
-  let valorAcumulado = 0
-  
-  outrosIds.forEach((id, index) => {
-    const r = rateiosMap.value[id]
-    if (!r) return
-    
-    // Para o último centro, calcular o valor exato que falta para completar o total
-    // Isso garante que não haja diferenças por arredondamento
-    if (index === outrosIds.length - 1) {
-      const valorFinal = numeric.sub(
-        numeric.sub(total, valorUtilizado),
-        valorAcumulado
-      )
-      r.valor = Math.max(0, valorFinal).toFixed(2)
-    } else {
-      r.valor = valorPorCentro.toFixed(2)
-      valorAcumulado = numeric.add(valorAcumulado, parseFloat(r.valor))
-    }
-    
-    // Recalcular porcentagem com precisão
-    const valorNum = parseFloat(r.valor)
-    r.porcentagem = numeric.div(numeric.mul(valorNum, 100), total).toFixed(2)
+}
+
+// Adicionar nova linha de rateio
+const adicionarCentro = () => {
+  ccustosRateio.value.push({
+    id_ccusto: null,
+    desccentrocusto: '',
+    valor: 0,
+    porcentagem: 0
   })
 }
 
-// Distribuir igualmente entre os centros selecionados
+// Remover linha de rateio
+// eslint-disable-next-line no-unused-vars
+const removerCentro = (index) => {
+  ccustosRateio.value.splice(index, 1)
+  recalcularPorcentagens()
+}
+
+// Atualiza porcentagem ao alterar valor
+const onRateioValorChange = (index) => {
+  const total = parseFloat(totalParcelas.value) || 0
+  if (total === 0) return
+  
+  const r = ccustosRateio.value[index]
+  if (!r) return
+  
+  const valorAtual = parseFloat(r.valor) || 0
+  r.porcentagem = ((valorAtual / total) * 100).toFixed(2)
+}
+
+// Atualiza valor ao alterar porcentagem
+const onRateioPercentChange = (index) => {
+  const total = parseFloat(totalParcelas.value) || 0
+  if (total === 0) return
+  
+  const r = ccustosRateio.value[index]
+  if (!r) return
+  
+  const porcAtual = parseFloat(r.porcentagem) || 0
+  r.valor = ((porcAtual * total) / 100).toFixed(2)
+}
+
+// Recalcular todas as porcentagens baseado nos valores
+const recalcularPorcentagens = () => {
+  const total = parseFloat(totalParcelas.value) || 0
+  if (total === 0) return
+  
+  ccustosRateio.value.forEach(r => {
+    const valorNum = parseFloat(r.valor) || 0
+    r.porcentagem = ((valorNum / total) * 100).toFixed(2)
+  })
+}
+
+// Distribuir igualmente entre os centros
 const distribuirIgualmente = () => {
   const total = parseFloat(totalParcelas.value) || 0
-  const ids = selectedCentros.value || []
-  const count = ids.length || 1
+  const count = ccustosRateio.value.length || 1
   
   if (count === 0 || total === 0) return
   
-  // Usar numeric.js para cálculo preciso da divisão
-  const valorPorCentro = numeric.div(total, count)
-  
-  // Acumulador para controlar arredondamento
+  const valorPorCentro = total / count
   let valorAcumulado = 0
   
-  ids.forEach((id, index) => {
-    const r = rateiosMap.value[id]
-    if (!r) return
-    
+  ccustosRateio.value.forEach((r, index) => {
     // Para o último centro, ajustar para garantir que a soma seja exatamente o total
     if (index === count - 1) {
-      const valorFinal = numeric.sub(total, valorAcumulado)
-      r.valor = valorFinal.toFixed(2)
+      r.valor = (total - valorAcumulado).toFixed(2)
     } else {
       r.valor = valorPorCentro.toFixed(2)
-      valorAcumulado = numeric.add(valorAcumulado, parseFloat(r.valor))
+      valorAcumulado += parseFloat(r.valor)
     }
     
-    // Calcular porcentagem com precisão
-    const valorNum = parseFloat(r.valor)
-    r.porcentagem = numeric.div(numeric.mul(valorNum, 100), total).toFixed(2)
+    // Calcular porcentagem
+    r.porcentagem = ((parseFloat(r.valor) / total) * 100).toFixed(2)
   })
 }
 
@@ -1473,6 +1419,8 @@ const abrirFormulario = () => {
 }
 
 const editarContaPagar = async (item) => {
+  console.log('🚀 INICIANDO editarContaPagar com item:', item)
+  
   editando.value = true
   // esconder imediatamente o card de configurações de parcelas antes do template renderizar
   parcelasCalculadas.value = true
@@ -1482,7 +1430,10 @@ const editarContaPagar = async (item) => {
     // Tentar obter o documento completo via API (deve retornar o payload criado)
     // Suprimir o watcher que limpa parcelas enquanto fazemos o mapeamento
     suppressParcelWatcher.value = true
+    
+    console.log('📡 Buscando documento por ID:', item.id)
     const documento = await financeiroStore.buscarContaPagarPorId(idEmpresa.value, item.id)
+    console.log('📦 Documento retornado da API:', documento)
 
     // documento pode ter a forma { data: [...], parcela: [...], ccusto: [...], media: [...] }
     const dados = (documento && documento.data && documento.data[0]) ? documento.data[0] : documento
@@ -1665,34 +1616,63 @@ const editarContaPagar = async (item) => {
       })
     }
 
-    // Rateios (centros de custo) — API returns `ccusto` as array of { id_ccusto, valor }
-    const ccustos = (documento && documento.ccusto) ? documento.ccusto : (dados && dados.ccusto) ? dados.ccusto : []
+    // Rateios (centros de custo) — API returns `ccusto` as array of { id_ccusto, valor, desccentrocusto }
+    // A API retorna a estrutura: { data: [...], pagparcela: [...], media: [...], ccusto: [...] }
+    // O ccusto está no nível raiz do documento, NÃO dentro de data[0]
+    console.log('🔍 Verificando existência de ccusto no documento...')
+    console.log('documento.ccusto:', documento?.ccusto)
+    console.log('dados.ccusto:', dados?.ccusto)
+    
+    // Buscar ccusto no nível raiz do documento (estrutura correta da API)
+    const ccustos = documento?.ccusto || []
+    console.log('🔍 Centros de custo encontrados:', ccustos)
+    console.log('🔍 É array?', Array.isArray(ccustos))
+    console.log('🔍 Quantidade:', ccustos?.length)
+    
     if (Array.isArray(ccustos) && ccustos.length > 0) {
+      console.log('✅ Entrando no bloco de processamento de ccusto')
+      
       // Ensure centrosCusto list is loaded
       if ((centrosCusto.value || []).length === 0) {
+        console.log('📋 Lista de centros vazia, carregando...')
         try {
           await ccustoStore.listarCCusto()
-          centrosCusto.value = ccustoStore.centrosCusto || ccustoStore.centroscusto || []
+          centrosCusto.value = ccustoStore.centrosCusto || []
+          console.log('📋 Lista de centros carregada:', centrosCusto.value)
         } catch (e) {
           console.warn('Não foi possível carregar centros de custo ao editar documento', e)
         }
+      } else {
+        console.log('📋 Lista de centros já carregada:', centrosCusto.value.length, 'itens')
       }
-        // suportar diferentes chaves que o backend pode retornar (id_ccusto, id_ccusto_prev_lote, id)
-        selectedCentros.value = ccustos.map(c => c.id_ccusto || c.id_ccusto_prev_lote || c.id)
-        // populate rateiosMap values
-        selectedCentros.value.forEach(id => {
-          const entry = ccustos.find(c => (c.id_ccusto || c.id_ccusto_prev_lote || c.id) === id) || {}
-          const centro = (centrosCusto.value || []).find(c => c.id === id) || {}
-          // extrair o valor do entry em várias chaves possíveis
-          const rawValor = entry.valor ?? entry.vlr ?? entry.valor_ccusto ?? entry.vlroriginalparcela ?? 0
-          const valorNum = parseFloat(String(rawValor).toString().replace(',', '.')) || 0
-          rateiosMap.value[id] = {
-            id,
-            descricao: centro.desccentrocusto || centro.descricao || entry.descricao || `Centro ${id}`,
-            valor: valorNum.toFixed(2),
-            porcentagem: parseFloat(entry.porcentagem) || 0
-          }
-        })
+      
+      // Mapear ccustos diretamente para o array de rateio
+      console.log('🔄 Iniciando mapeamento de ccustos...')
+      ccustosRateio.value = ccustos.map(c => {
+        const linha = {
+          id_ccusto: Number(c.id_ccusto || c.id_ccusto_prev_lote || c.id),
+          valor: parseFloat(c.valor) || 0,
+          desccentrocusto: c.desccentrocusto || '',
+          porcentagem: 0
+        }
+        console.log('✅ Linha de rateio criada:', linha)
+        return linha
+      })
+      
+      console.log('📊 ccustosRateio após preencher:', ccustosRateio.value)
+      console.log('📊 Total de linhas:', ccustosRateio.value.length)
+      
+      // Aguardar nextTick para garantir reatividade
+      await nextTick()
+      
+      // Calcular as porcentagens baseadas no total das parcelas
+      console.log('🔢 Calculando porcentagens...')
+      recalcularPorcentagens()
+      
+      console.log('📊 ccustosRateio após calcular %:', ccustosRateio.value)
+      console.log('✅ Rateios preenchidos com sucesso!')
+    } else {
+      console.log('⚠️ NENHUM centro de custo encontrado ou array vazio!')
     }
 
     // Media: API returns `media` as array (e.g. ["key"]) — persist first element into formData.id_media
@@ -1706,9 +1686,11 @@ const editarContaPagar = async (item) => {
     suppressParcelWatcher.value = false
 
   } catch (err) {
-    console.error('Erro ao carregar documento completo:', err)
+    console.error('❌ ERRO ao carregar documento completo:', err)
+    console.error('Stack:', err.stack)
     mostrarMensagem('Erro ao carregar dados do documento', 'error')
   } finally {
+    console.log('🏁 Finalizando editarContaPagar')
     loading.value = false
   }
 }
@@ -1752,6 +1734,9 @@ const resetarForm = () => {
   totalParcelas.value = 0
   valorEntrada.value = 0
   parcelasCalculadas.value = false
+  
+  // Limpar rateios
+  ccustosRateio.value = []
 
   if (formRef.value) {
     formRef.value.resetValidation()
@@ -1815,12 +1800,15 @@ const salvarContaPagar = async () => {
     
     // Usar key do Pinia para o payload
     const mediaValue = financeiroStore.getMediaKeyTemporaria() || null
-    // Montar array ccusto no formato solicitado: [{ id_ccusto, valor }]
-    const ccustoArray = (rateiosArray.value || []).map(r => ({
-      id_ccusto: r.id,
-      valor: (parseFloat(r.valor) || 0).toFixed(2),
-      perc_ccusto: (parseFloat(r.porcentagem) || 0).toFixed(2)
-    }))
+    
+    // Montar array ccusto no formato solicitado: [{ id_ccusto, valor, perc_ccusto }]
+    const ccustoArray = ccustosRateio.value
+      .filter(r => r.id_ccusto) // Só incluir linhas com centro selecionado
+      .map(r => ({
+        id_ccusto: r.id_ccusto,
+        valor: (parseFloat(r.valor) || 0).toFixed(2),
+        perc_ccusto: (parseFloat(r.porcentagem) || 0).toFixed(2)
+      }))
 
     // Validar soma do rateio (se houver rateios) contra o total das parcelas
     if (ccustoArray.length > 0) {
