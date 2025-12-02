@@ -76,6 +76,10 @@ export const useEmpresaStore = defineStore('empresa', {
         },
 
         selecionarEmpresa(empresa) {
+            if (!empresa || !empresa.id) {
+                console.error('Tentativa de selecionar empresa sem id válido:', empresa);
+                return;
+            }
             this.empresaSelecionada = empresa;
             localStorage.setItem('empresaSelecionada', JSON.stringify(empresa));
             console.log('Empresa selecionada:', this.empresaSelecionada);

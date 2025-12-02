@@ -125,22 +125,59 @@
         </template>
 
         <!-- RENDERIZAR TODOS OS SUBMENUS DO MÓDULO -->
-        <v-list-item
-            v-for="(submenu, i) in modulo.submenus"
-            :key="i"
-            class="submenu-item"
+        <template v-for="(submenu, i) in modulo.submenus" :key="i">
+          <!-- Se o submenu tem submenus próprios, renderiza como grupo -->
+          <v-list-group v-if="submenu.submenus" :value="`${modulo.id}-${i}`">
+            <template v-slot:activator="{ props }">
+              <v-list-item
+                  v-bind="props"
+                  :prepend-icon="submenu.icon"
+                  class="submenu-item"
+                  density="comfortable"
+              >
+                <template #prepend>
+                  <v-icon :icon="submenu.icon" size="21px" />
+                </template>
+                <template #title>
+                  <span class="span">{{ submenu.text }}</span>
+                </template>
+              </v-list-item>
+            </template>
 
-            :to="submenu.route"
-            :prepend-icon="submenu.icon"
-            density="comfortable"
-        >
-          <template #prepend>
-            <v-icon :icon="submenu.icon" size="21px" />
-          </template>
-          <template #title>
-            <span class="span">{{submenu.text}}</span>
-          </template>
-        </v-list-item>
+            <!-- Renderizar sub-submenus -->
+            <v-list-item
+                v-for="(subSubmenu, j) in submenu.submenus"
+                :key="j"
+                class="sub-submenu-item"
+                :to="subSubmenu.route"
+                :prepend-icon="subSubmenu.icon"
+                density="comfortable"
+            >
+              <template #prepend>
+                <v-icon :icon="subSubmenu.icon" size="18px" />
+              </template>
+              <template #title>
+                <span class="span-small">{{ subSubmenu.text }}</span>
+              </template>
+            </v-list-item>
+          </v-list-group>
+
+          <!-- Se não tem submenus, renderiza como item normal -->
+          <v-list-item
+              v-else
+              class="submenu-item"
+              :to="submenu.route"
+              :prepend-icon="submenu.icon"
+              density="comfortable"
+          >
+            <template #prepend>
+              <v-icon :icon="submenu.icon" size="21px" />
+            </template>
+            <template #title>
+              <span class="span">{{ submenu.text }}</span>
+            </template>
+          </v-list-item>
+        </template>
       </v-list-group>
 
 <!--      <v-list-group value="cep">-->
@@ -288,8 +325,21 @@ onBeforeUnmount(() => {
 .submenu-item .v-list-item__prepend {
   margin-right: 8px !important; /* ajusta o espaço entre ícone e texto */
 }
+
+.sub-submenu-item {
+  padding-left: 50px !important; /* mais indentação para sub-submenus */
+}
+.sub-submenu-item .v-list-item__prepend {
+  margin-right: 8px !important;
+}
+
 .span {
   font-size: 12px !important;
   opacity: .9;
+}
+
+.span-small {
+  font-size: 11px !important;
+  opacity: .85;
 }
 </style>

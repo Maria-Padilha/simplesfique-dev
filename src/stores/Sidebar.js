@@ -25,9 +25,16 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     route: '/paginas/financeiro/contacorrente'
                 },
                 {
+                    
                     text: 'Centro de Custo',
+                    
                     icon: 'mdi-warehouse',
-                    route: '/paginas/financeiro/centrodecusto'
+                    
+                    submenus: [
+                        { text: 'Cadastro', icon: 'mdi-file-tree', route: '/paginas/financeiro/centrodecusto/cadastro'
+                },
+                        { text: 'Previsão de Débitos', icon: 'mdi-chart-timeline-variant', route: '/paginas/financeiro/centrodecusto/previsao' }
+                    ]
                 },
                 {
                     text: 'Pagar',

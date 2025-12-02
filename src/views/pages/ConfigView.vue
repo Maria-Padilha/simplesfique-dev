@@ -31,7 +31,7 @@
 
         <!-- PAINEL DIREITO - CONTEÚDO DINÂMICO -->
         <div class="flex-1">
-          <v-card elevation="0" class="background-card rounded-lg overflow-y-auto" style="max-height: calc(100vh - 150px); padding: 32px;">
+          <v-card elevation="0" class="background-card rounded-lg overflow-y-auto" style="max-height: calc(100vh - 150px); padding: 64px;">
             <!-- RENDERIZAR COMPONENTE DINAMICAMENTE -->
             <component
                 :is="obterComponente(configStore.getSecaoAtivaObj()?.componente)"

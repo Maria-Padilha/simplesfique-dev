@@ -646,6 +646,17 @@ const onBancoChange = async (val) => {
   formData.id_banco = id || ''
   formData.id_agencia = ''
   agenciaForm.id_banco = id || ''
+  
+  // Buscar agências do banco selecionado
+  if (id) {
+    try {
+      await financeiroStore.buscarAgencias()
+    } catch (error) {
+      console.error('Erro ao buscar agências:', error)
+      mostrarSnackbar('Erro ao carregar agências', 'error')
+    }
+  }
+  
   // abrir/ativar o select de agencias e focar
   await nextTick()
   if (id) {
@@ -977,6 +988,7 @@ onMounted(async () => {
     await Promise.all([
       financeiroStore.buscarContas(),
       financeiroStore.buscarBancos(),
+      financeiroStore.buscarAgencias(),
       financeiroStore.buscarUFs()
     ])
   } catch (error) {

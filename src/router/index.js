@@ -12,6 +12,7 @@ import PagarView from "@/views/pages/financeiro/PagarView.vue";
 import ReceberView from "@/views/pages/financeiro/ReceberView.vue";
 import ContaCorrenteView from "@/views/pages/financeiro/ContaCorrenteView.vue";
 import CentroDeCustoView from "@/views/pages/financeiro/CentroDeCustoView.vue";
+import PrevisaoDebitosView from "@/views/pages/financeiro/PrevisaoDebitosView.vue";
 import PessoasView from '@/views/pages/PessoasView.vue';
 import CaixaView from '@/views/pages/financeiro/CaixaView.vue';
 import PlanoContaView from '@/views/pages/financeiro/PlanoContaView.vue';
@@ -100,7 +101,17 @@ const routes = [
     {
         path: '/paginas/financeiro/centrodecusto',
         name: 'financeiro_centrodecusto',
+        redirect: '/paginas/financeiro/centrodecusto/cadastro'
+    },
+    {
+        path: '/paginas/financeiro/centrodecusto/cadastro',
+        name: 'financeiro_centrodecusto_cadastro',
         component: CentroDeCustoView
+    },
+    {
+        path: '/paginas/financeiro/centrodecusto/previsao',
+        name: 'financeiro_centrodecusto_previsao',
+        component: PrevisaoDebitosView
     },
     {
         path: '/paginas/financeiro/caixa',
