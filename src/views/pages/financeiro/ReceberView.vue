@@ -859,7 +859,7 @@ const headers = [
   { title: 'Qtd Total', key: 'qtdparcelas', sortable: true },
   { title: 'Data Emissão', key: 'dtemissao', sortable: true },
   { title: 'Vencimento', key: 'dtvencimento', sortable: true },
-  { title: 'Cliente', key: 'Cliente', sortable: true },
+  { title: 'Cliente', key: 'cliente', sortable: true },
   { title: 'Vlr Documento', key: 'vlrdocumento', sortable: true },
   { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
   { title: 'Origem', key: 'origem', sortable: true },
@@ -886,6 +886,7 @@ const formData = reactive({
   especie: '',
   id_tipodocumen: null,
   id_cliente: null,
+  id_red_ctb_cli: null,
   id_planoconta: null,
   id_historicocontabil: null,
   observacao: '',
@@ -940,7 +941,12 @@ const onClienteSelect = (val) => {
   const sel = (pessoas.value || []).find(p => p.id === val)
   clienteLabel.value = sel ? (sel.apelido_fantasia || sel.nome_razao || sel.nome || sel.apelido || '') : ''
   // also persist into formData to guarantee payload has name even if pessoas is cleared later
-  formData.Cliente = clienteLabel.value
+  formData.cliente = clienteLabel.value
+  
+  // Capturar id_red_ctb_cli (redução da base de cálculo para cliente)
+  if (sel && (sel.id_red_ctb_cli || sel.id_red_ctb)) {
+    formData.id_red_ctb_cli = sel.id_red_ctb_cli || sel.id_red_ctb
+  }
 }
 
 const onClienteInput = (ev) => {
@@ -964,7 +970,7 @@ const buscarClientePorId = async (idCliente) => {
     clienteLoading.value = true
     
     // Busca o Cliente pelo ID na API - isso faz GET /pessoafor/:idempresa?find=ID
-    const items = await financeiroStore.buscarPessoasClientees(String(idCliente), idEmpresa.value)
+    const items = await financeiroStore.buscarPessoasClientes(String(idCliente), idEmpresa.value)
     
     if (items && items.length > 0) {
       const Cliente = items[0]
@@ -977,6 +983,11 @@ const buscarClientePorId = async (idCliente) => {
       
       // Atualizar o valor de busca para exibir no autocomplete
       clienteSearch.value = clienteLabel.value
+      
+      // Capturar id_red_ctb_cli da resposta da API
+      if (Cliente.id_red_ctb_cli || Cliente.id_red_ctb) {
+        formData.id_red_ctb_cli = Cliente.id_red_ctb_cli || Cliente.id_red_ctb
+      }
       
       return Cliente
     } else {
@@ -1009,13 +1020,13 @@ watch(clienteSearch, (val) => {
 
   clienteSearchTimer = setTimeout(async () => {
     try {
-      console.debug('Buscando Clientees para:', searchValue, isNumeric ? '(numérico)' : '(texto)')
+      console.debug('Buscando Clientes para:', searchValue, isNumeric ? '(numérico)' : '(texto)')
       clienteLoading.value = true
-      const items = await financeiroStore.buscarPessoasClientees(searchValue, idEmpresa.value)
-      console.debug('Clientees retornados:', items?.length)
+      const items = await financeiroStore.buscarPessoasClientes(searchValue, idEmpresa.value)
+      console.debug('Clientes retornados:', items?.length)
       pessoas.value = items || []
     } catch (err) {
-      console.error('Erro buscando Clientees:', err)
+      console.error('Erro buscando Clientes:', err)
       pessoas.value = []
     } finally {
       clienteLoading.value = false
@@ -1124,7 +1135,7 @@ const carregarContasReceber = async (filtrosApi = null) => {
       qtdparcelas: item.qtdparcelas || 1,
       dtemissao: item.dtemissao || '',
       dtvencimento: item.dtvencimento || '',
-      Cliente: item.Cliente || '',
+      cliente: item.cliente || '',
       vlrdocumento: parseFloat(item.vlrdocumento || 0),
       vlrparcela: parseFloat(item.vlrparcela || 0),
       origem: item.origem || '',
@@ -1216,26 +1227,45 @@ const editarContaReceber = async (item) => {
       formData.qtdparcelas = parseInt(dados.qtdparcelas || formData.qtdparcelas || 1)
       formData.dtemissao = dados.dtemissao || formData.dtemissao
       formData.id_media = (dados.id_media || (documento && documento.media && documento.media[0] && documento.media[0].id_media)) || formData.id_media
+      
+      // Buscar campos contábeis no array contabil (documento.contabil ou dados.contabil)
+      const contabil = documento?.contabil || dados?.contabil || []
+      if (Array.isArray(contabil) && contabil.length > 0) {
+        // Procurar id_red_ctb_cli no array (priorizar o primeiro não-nulo)
+        const contabilComRedCtb = contabil.find(c => c.id_red_ctb_cli != null)
+        formData.id_red_ctb_cli = contabilComRedCtb?.id_red_ctb_cli || null
+        
+        // Procurar id_planoconta no array (priorizar o primeiro não-nulo)
+        const contabilComPlano = contabil.find(c => c.id_planoconta != null)
+        formData.id_planoconta = contabilComPlano?.id_planoconta || null
+        
+        // id_historico_ctb geralmente é o mesmo em todos, pegar do primeiro
+        formData.id_historicocontabil = contabil[0]?.id_historico_ctb || null
+      } else {
+        // Fallback para buscar diretamente em dados (caso API antiga)
+        formData.id_red_ctb_cli = dados.id_red_ctb_cli || dados.id_red_ctb || null
+        formData.id_planoconta = dados.id_planoconta || null
+        formData.id_historicocontabil = dados.id_historico_ctb || dados.id_historicocontabil || dados.id_historico || null
+      }
 
       // Cliente
       if (dados.id_cliente) {
         formData.id_cliente = dados.id_cliente
-        // garantir que o Cliente esteja na lista de pessoas para exibição
+        // garantir que o cliente esteja na lista de pessoas para exibição
         const exists = (pessoas.value || []).some(p => p.id === dados.id_cliente)
         if (!exists) {
           pessoas.value = [...(pessoas.value || []), {
             id: dados.id_cliente,
-            apelido_fantasia: dados.Cliente || dados.apelido_fantasia || dados.nome_razao || '' ,
-            nome_razao: dados.nome_razao || dados.Cliente || ''
+            apelido_fantasia: dados.cliente || dados.apelido_fantasia || dados.nome_razao || '' ,
+            nome_razao: dados.nome_razao || dados.cliente || ''
           }]
         }
-        // ensure formData.Cliente text is set
-        formData.Cliente = dados.Cliente || dados.apelido_fantasia || dados.nome_razao || clienteLabel.value || ''
+        // ensure formData.cliente text is set
+        formData.cliente = dados.cliente || dados.apelido_fantasia || dados.nome_razao || clienteLabel.value || ''
       }
-      // Histórico contábil: set id and label when available
-      const histId = dados.id_historico_ctb || dados.id_historicocontabil || dados.id_historico
+      // Histórico contábil: set id and label when available (já foi carregado do array contabil acima)
+      const histId = formData.id_historicocontabil
       if (histId) {
-        formData.id_historicocontabil = histId
         // try to resolve label from previously loaded historicos, or fetch
         let found = (historicoContabilResultados.value || []).find(h => h.id === histId)
         if (!found) {
@@ -1263,14 +1293,13 @@ const editarContaReceber = async (item) => {
             }
           }
 
-          // Plano de conta
-          const planoId = dados.id_planoconta || dados.id_planoconta || dados.id_plano || null
+          // Plano de conta (já foi carregado do array contabil acima)
+          const planoId = formData.id_planoconta
           const planos = financeiroStore.planosConta || []
           if (planoId) {
             const plano = (planos || []).find(p => String(p.id) === String(planoId))
             if (plano) {
               planoContaSelecionado.value = plano.descconta || plano.descricao || plano.abreviatura || ''
-              formData.id_planoconta = plano.id
             } else if (dados.abreviatura_planoconta || dados.descplanoconta) {
               planoContaSelecionado.value = dados.abreviatura_planoconta || dados.descplanoconta
             }
@@ -1288,11 +1317,11 @@ const editarContaReceber = async (item) => {
               await buscarClientePorId(formData.id_cliente)
               
               // Se ainda assim não encontrou mas tem o nome no dados, usar como fallback
-              if (!clienteLabel.value && dados.Cliente) {
+              if (!clienteLabel.value && dados.cliente) {
                 const novo = {
                   id: formData.id_cliente,
-                  apelido_fantasia: dados.Cliente || '',
-                  nome_razao: dados.nome_razao || dados.Cliente || ''
+                  apelido_fantasia: dados.cliente || '',
+                  nome_razao: dados.nome_razao || dados.cliente || ''
                 }
                 pessoas.value = [...(pessoas.value || []), novo]
                 clienteLabel.value = novo.apelido_fantasia || novo.nome_razao || ''
@@ -1416,6 +1445,7 @@ const resetarForm = () => {
     especie: '',
     id_tipodocumen: null,
     id_cliente: null,
+    id_red_ctb_cli: null,
     id_planoconta: null,
     observacao: '',
     vlroriginal: null,
@@ -1463,15 +1493,17 @@ const salvarContaReceber = async () => {
     }
     
     // Dados principais da Conta a Receber
-    // Determinar nome do Cliente a partir do id selecionado
-    const ClienteObj = (pessoas.value || []).find(p => p.id === formData.id_cliente) || {}
-    const ClienteNome = ClienteObj.apelido_fantasia || ClienteObj.nome_razao || ClienteObj.nome || ''
+    // Determinar nome do cliente a partir do id selecionado
+    const clienteObj = (pessoas.value || []).find(p => p.id === formData.id_cliente) || {}
+    const clienteNome = clienteObj.apelido_fantasia || clienteObj.nome_razao || clienteObj.nome || ''
 
     const dadosPrincipais = {
-      // enviar o nome do Cliente em `Cliente` (backend espera nome),
+      // enviar o nome do cliente em `cliente` (backend espera nome),
       // manter também `id_cliente` separado
-      Cliente: ClienteNome,
+      cliente: clienteNome,
       id_cliente: formData.id_cliente,
+      // Redução da base de cálculo para cliente
+      id_red_ctb_cli: formData.id_red_ctb_cli || null,
       // Histórico contábil (id) com nome de campo pedido pelo backend
       id_historico_ctb: formData.id_historicocontabil || null,
       abreviatura: tipoDocumentoSelecionado.value,
@@ -1483,7 +1515,7 @@ const salvarContaReceber = async () => {
       id_planoconta: formData.id_planoconta,
       observacao: formData.observacao,
       vlroriginal: parseFloat(formData.vlroriginal),
-      origem: "FIN",
+      origem: "REC",
       qtdparcelas: parseInt(formData.qtdparcelas),
       dtemissao: formData.dtemissao
     }
@@ -1522,7 +1554,7 @@ const salvarContaReceber = async () => {
     // Limpar key do Pinia após salvar com sucesso
     financeiroStore.clearMediaKeyTemporaria()
     
-    await carregarContasReceber()
+    await carregarContasReceber(filtrosAvancados.value)
     cancelarFormulario()
   } catch (error) {
     console.error('Erro ao salvar Conta a Receber:', error)
@@ -1536,7 +1568,7 @@ const excluirContaReceber = async (item) => {
   try {
     loading.value = true
     await financeiroStore.deletarContaReceber(idEmpresa.value, item.id)
-    await carregarContasReceber()
+    await carregarContasReceber(filtrosAvancados.value)
     mostrarMensagem('Conta a Receber excluída com sucesso!', 'success')
   } catch (error) {
     console.error('Erro ao excluir Conta a Receber:', error)

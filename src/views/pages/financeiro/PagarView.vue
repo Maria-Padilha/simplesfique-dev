@@ -1462,6 +1462,26 @@ const editarContaPagar = async (item) => {
       formData.qtdparcelas = parseInt(dados.qtdparcelas || formData.qtdparcelas || 1)
       formData.dtemissao = dados.dtemissao || formData.dtemissao
       formData.id_media = (dados.id_media || (documento && documento.media && documento.media[0] && documento.media[0].id_media)) || formData.id_media
+      
+      // Buscar campos contábeis no array contabil (documento.contabil ou dados.contabil)
+      const contabil = documento?.contabil || dados?.contabil || []
+      if (Array.isArray(contabil) && contabil.length > 0) {
+        // Procurar id_red_ctb_for no array (priorizar o primeiro não-nulo)
+        const contabilComRedCtb = contabil.find(c => c.id_red_ctb_for != null || c.id_red_ctb_cli != null)
+        formData.id_red_ctb_for = contabilComRedCtb?.id_red_ctb_for || contabilComRedCtb?.id_red_ctb_cli || null
+        
+        // Procurar id_planoconta no array (priorizar o primeiro não-nulo)
+        const contabilComPlano = contabil.find(c => c.id_planoconta != null)
+        formData.id_planoconta = contabilComPlano?.id_planoconta || null
+        
+        // id_historico_ctb geralmente é o mesmo em todos, pegar do primeiro
+        formData.id_historicocontabil = contabil[0]?.id_historico_ctb || null
+      } else {
+        // Fallback para buscar diretamente em dados (caso API antiga)
+        formData.id_red_ctb_for = dados.id_red_ctb_for || dados.id_red_ctb || null
+        formData.id_planoconta = dados.id_planoconta || null
+        formData.id_historicocontabil = dados.id_historico_ctb || dados.id_historicocontabil || dados.id_historico || null
+      }
 
       // Fornecedor
       if (dados.id_fornecedor) {
@@ -1479,10 +1499,8 @@ const editarContaPagar = async (item) => {
         // ensure formData.fornecedor text is set
         formData.fornecedor = dados.fornecedor || dados.apelido_fantasia || dados.nome_razao || fornecedorLabel.value || ''
       }
-      // Histórico contábil: set id and label when available
-      const histId = dados.id_historico_ctb || dados.id_historicocontabil || dados.id_historico
+      const histId = formData.id_historicocontabil
       if (histId) {
-        formData.id_historicocontabil = histId
         // try to resolve label from previously loaded historicos, or fetch
         let found = (historicoContabilResultados.value || []).find(h => h.id === histId)
         if (!found) {
@@ -1510,14 +1528,13 @@ const editarContaPagar = async (item) => {
             }
           }
 
-          // Plano de conta
-          const planoId = dados.id_planoconta || dados.id_planoconta || dados.id_plano || null
+          // Plano de conta (já foi carregado do array contabil acima)
+          const planoId = formData.id_planoconta
           const planos = financeiroStore.planosConta || []
           if (planoId) {
             const plano = (planos || []).find(p => String(p.id) === String(planoId))
             if (plano) {
               planoContaSelecionado.value = plano.descconta || plano.descricao || plano.abreviatura || ''
-              formData.id_planoconta = plano.id
             } else if (dados.abreviatura_planoconta || dados.descplanoconta) {
               planoContaSelecionado.value = dados.abreviatura_planoconta || dados.descplanoconta
             }
@@ -1772,7 +1789,7 @@ const salvarContaPagar = async () => {
       id_planoconta: formData.id_planoconta,
       observacao: formData.observacao,
       vlroriginal: parseFloat(formData.vlroriginal),
-      origem: "FIN",
+      origem: "PAG",
       qtdparcelas: parseInt(formData.qtdparcelas),
       dtemissao: formData.dtemissao
     }
@@ -1832,7 +1849,7 @@ const salvarContaPagar = async () => {
     // Limpar key do Pinia após salvar com sucesso
     financeiroStore.clearMediaKeyTemporaria()
     
-    await carregarContasPagar()
+    await carregarContasPagar(filtrosAvancados.value)
     cancelarFormulario()
   } catch (error) {
     console.error('Erro ao salvar conta a pagar:', error)
@@ -1846,7 +1863,7 @@ const excluirContaPagar = async (item) => {
   try {
     loading.value = true
     await financeiroStore.deletarContaPagar(idEmpresa.value, item.id)
-    await carregarContasPagar()
+    await carregarContasPagar(filtrosAvancados.value)
     mostrarMensagem('Conta a pagar excluída com sucesso!', 'success')
   } catch (error) {
     console.error('Erro ao excluir conta a pagar:', error)

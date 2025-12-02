@@ -1319,6 +1319,229 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
+    // ========== CONTAS A RECEBER ==========
+
+    // Calcular parcelas para conta a receber (POST /contasrecebercalcparc)
+    async calcularParcelasContaReceber(dadosCalculo) {
+      this.loading = true
+      this.error = null
+      try {
+        // Payload esperado pelo backend no formato THorse
+        const dadosParcela = {
+          vlrdocumento: dadosCalculo.vlrdocumento,
+          vlrprimeiraparcela: dadosCalculo.vlrprimeiraparcela || 0,
+          qtdparcelas: dadosCalculo.qtdparcelas,
+          primeirovencimento: dadosCalculo.primeirovencimento,
+          intervalo: dadosCalculo.intervalo || 30 // Default 30 dias se não informado
+        }
+
+        // THorse expects payload wrapped in { data: [ ... ] }
+        const payload = { data: [dadosParcela] }
+
+        const response = await api.post('/contasrecebercalcparc', payload, {
+          headers: this.getAuthHeaders()
+        })
+
+        // Normalizar retorno: pode retornar { data: [...] } ou array direto
+        const resp = response.data
+        let parcelas = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          parcelas = resp.data
+        } else if (Array.isArray(resp)) {
+          parcelas = resp
+        } else if (resp && typeof resp === 'object') {
+          parcelas = [resp]
+        }
+
+        return parcelas
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao calcular parcelas'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar contas a receber (GET /contasreceber/:idempresa)
+    async buscarContasReceber(idEmpresa, filtros = {}) {
+      this.loading = true
+      this.error = null
+      try {
+        // Construir query params
+        const params = new URLSearchParams()
+        
+        if (filtros.tpperiodo !== undefined) params.append('tpperiodo', filtros.tpperiodo)
+        if (filtros.dtini) params.append('dtini', filtros.dtini)
+        if (filtros.dtfim) params.append('dtfim', filtros.dtfim)
+        if (filtros.idCliente) params.append('idCliente', filtros.idCliente)
+        if (filtros.cnpj_cpf) params.append('cnpj_cpf', filtros.cnpj_cpf)
+        if (filtros.nrdocumento) params.append('nrdocumento', filtros.nrdocumento)
+        if (filtros.idtpdocumento) params.append('idtpdocumento', filtros.idtpdocumento)
+        if (filtros.idlocalcobranca) params.append('idlocalcobranca', filtros.idlocalcobranca)
+        if (filtros.baixado) params.append('baixado', filtros.baixado)
+        
+        const queryString = params.toString()
+        const url = queryString ? `/contasreceber/${idEmpresa}?${queryString}` : `/contasreceber/${idEmpresa}`
+        
+        console.log('🔍 Buscando contas a receber:', url)
+        
+        const response = await api.get(url, {
+          headers: this.getAuthHeaders()
+        })
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+        } else if (Array.isArray(resp)) {
+          dados = resp
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar contas a receber'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar conta a receber por ID (GET /contasreceber/:idempresa/id/:id)
+    async buscarContaReceberPorId(idEmpresa, id) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get(`/contasreceber/${idEmpresa}/id/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        // Retornar o objeto completo com data, parcela, media
+        // A API retorna: { data: [...], parcela: [...], media: [...] }
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar conta a receber'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Criar conta a receber (POST /contasreceber)
+    async criarContaReceber(payload) {
+      this.loading = true
+      this.error = null
+      try {
+        console.log('criarContaReceber - payload recebido:', payload)
+
+        // Enviar para a rota sem id_empresa no path; id_empresa deve estar dentro de data[0]
+        const response = await api.post('/contasreceber', payload, {
+          headers: this.getAuthHeaders()
+        })
+
+        console.log('criarContaReceber - resposta da API:', response.data)
+
+        // Normalizar retorno
+        const resp = response.data
+        let created
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          created = resp.data[0]
+        } else if (resp && typeof resp === 'object') {
+          created = resp
+        }
+
+        return created || response.data
+      } catch (error) {
+        console.error('criarContaReceber - erro:', error.response?.data)
+        this.error = error.response?.data?.message || 'Erro ao criar conta a receber'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Atualizar conta a receber (PUT /contasreceber/:idempresa/id/:id)
+    async atualizarContaReceber(idEmpresa, id, payload) {
+      this.loading = true
+      this.error = null
+      try {
+        console.log('atualizarContaReceber - payload recebido:', payload)
+        console.log('atualizarContaReceber - id:', id)
+        
+        // O payload já vem no formato correto: { data: [{}], parcela: [...], media: [...] }
+        const response = await api.put(`/contasreceber/${idEmpresa}/id/${id}`, payload, {
+          headers: this.getAuthHeaders()
+        })
+
+        console.log('atualizarContaReceber - resposta da API:', response.data)
+
+        // Normalizar retorno
+        const resp = response.data
+        let updated
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          updated = resp.data[0]
+        } else if (resp && typeof resp === 'object') {
+          updated = resp
+        }
+
+        return updated || response.data
+      } catch (error) {
+        console.error('atualizarContaReceber - erro:', error.response?.data)
+        this.error = error.response?.data?.message || 'Erro ao atualizar conta a receber'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Deletar conta a receber (DELETE /contasreceber/:idempresa/id/:id)
+    async deletarContaReceber(idEmpresa, id) {
+      this.loading = true
+      this.error = null
+      try {
+        await api.delete(`/contasreceber/${idEmpresa}/id/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        return true
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao deletar conta a receber'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar pessoas/clientes (GET /pessoafor/:idempresa?find=term)
+    // Reutiliza o mesmo endpoint que fornecedores, pois a API usa /pessoafor para ambos
+    async buscarPessoasClientes(findTerm = '', idEmpresa) {
+      this.loading = true
+      this.error = null
+      try {
+        const empresaId = idEmpresa || ''
+        const url = empresaId ? `/pessoacli/${empresaId}?find=${encodeURIComponent(findTerm)}` : `/pessoacli?find=${encodeURIComponent(findTerm)}`
+        const response = await api.get(url, {
+          headers: this.getAuthHeaders()
+        })
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+        } else if (Array.isArray(resp)) {
+          dados = resp
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar pessoas/clientes'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     // ========== UTILITÁRIOS ==========
     
     // Limpar erros
