@@ -58,19 +58,6 @@
                   hide-details="auto"
                 ></v-text-field>
               </v-col>
-
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="config.nivel4"
-                  label="Nível 4"
-                  type="number"
-                  variant="outlined"
-                  density="compact"
-                  min="1"
-                  max="9"
-                  hide-details="auto"
-                ></v-text-field>
-              </v-col>
             </v-row>
 
             <!-- Exemplo de Estrutura -->
@@ -92,6 +79,7 @@
         variant="flat"
         @click="salvarConfiguracoes"
         :loading="loading"
+        :disabled="loading"
         class="text-white"
       >
         <v-icon class="mr-2">mdi-content-save</v-icon>
@@ -111,19 +99,23 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { useConfigParfinStore } from '@/stores/APIs/config'
+import { useEmpresaStore } from '@/stores/APIs/empresa'
 
+const useConfig = useConfigParfinStore()
+const empresaStore = useEmpresaStore()
 const formRef = ref(null)
 const formValid = ref(false)
-const loading = ref(false)
+const loading = computed(() => useConfig.loading)
+const dadosExistem = ref(false)
 
 // Dados de configuração
 const config = reactive({
   possui_centro_custo: false,
   nivel1: 1,
-  nivel2: 2,
-  nivel3: 2,
-  nivel4: 2,
+  nivel2: 1,
+  nivel3: 1,
   separador: '.'
 })
 
@@ -133,38 +125,114 @@ const gerarExemploEstrutura = () => {
   const n1 = '0'.repeat(config.nivel1)
   const n2 = '0'.repeat(config.nivel2)
   const n3 = '0'.repeat(config.nivel3)
-  const n4 = '0'.repeat(config.nivel4)
   
-  return `${n1}${sep}${n2}${sep}${n3}${sep}${n4} (Ex: 1${sep}01${sep}01${sep}01)`
+  return `${n1}${sep}${n2}${sep}${n3} (Ex: 1${sep}01${sep}01)`
+}
+
+// Carregar parâmetros de centro de custo
+const carregarParametrosCentroCusto = async () => {
+  try {
+    const response = await useConfig.buscarparfin()
+    
+    console.log('Resposta completa da API:', response)
+    
+    if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
+      const dados = response.data[0]
+      
+      console.log('Dados extraídos:', dados)
+      
+      // Verifica se tem dados válidos
+      if (dados && Object.keys(dados).length > 0) {
+        console.log('utiliza_ccusto recebido:', dados.utiliza_ccusto, 'Tipo:', typeof dados.utiliza_ccusto)
+        
+        config.possui_centro_custo = dados.utiliza_ccusto === 'S' || dados.utiliza_ccusto === 1 || dados.utiliza_ccusto === true
+        config.nivel1 = dados.ccusto_nivel1 || 1
+        config.nivel2 = dados.ccusto_nivel2 || 1
+        config.nivel3 = dados.ccusto_nivel3 || 1
+        config.separador = dados.separador || '.'
+        
+        console.log('Switch marcado como:', config.possui_centro_custo)
+        
+        dadosExistem.value = true
+      } else {
+        dadosExistem.value = false
+      }
+    } else {
+      console.log('Resposta não tem dados válidos')
+      dadosExistem.value = false
+    }
+  } catch (error) {
+    console.error('Erro ao carregar parâmetros de centro de custo:', error)
+    dadosExistem.value = false
+  }
 }
 
 // Métodos
 const salvarConfiguracoes = async () => {
   try {
-    loading.value = true
-    // Aqui você implementaria a lógica para salvar as configurações
-    await new Promise(resolve => setTimeout(resolve, 1000)) // Simular delay
-    console.log('Configurações de Centro de Custo salvas:', config)
+    const dadosParaEnvio = {
+      data: [{
+        utiliza_ccusto: config.possui_centro_custo ? 'S' : 'N',
+        ccusto_nivel1: config.nivel1,
+        ccusto_nivel2: config.nivel2,
+        ccusto_nivel3: config.nivel3,
+        separador: config.separador
+      }]
+    }
+    
+    // PUT se dados existem, POST se não existem
+    if (dadosExistem.value) {
+      await useConfig.alterarParfin(dadosParaEnvio)
+    } else {
+      await useConfig.cadastrarParfin(dadosParaEnvio)
+    }
+    
+    console.log('Configurações de Centro de Custo salvas com sucesso!')
   } catch (error) {
     console.error('Erro ao salvar configurações:', error)
-  } finally {
-    loading.value = false
   }
 }
 
 const resetarConfiguracoes = () => {
   config.possui_centro_custo = false
   config.nivel1 = 1
-  config.nivel2 = 2
-  config.nivel3 = 2
-  config.nivel4 = 2
+  config.nivel2 = 1
+  config.nivel3 = 1
   config.separador = '.'
 }
 
 // Carregar configurações ao montar o componente
-onMounted(() => {
-  // Aqui você implementaria a lógica para carregar as configurações existentes
+onMounted(async () => {
+  try {
+    // Carregar empresa selecionada do localStorage se não houver id
+    if (!empresaStore.empresa?.id && !empresaStore.empresaSelecionada?.id) {
+      empresaStore.carregarEmpresaSelecionada()
+    }
+    
+    // Sincroniza empresaStore.empresa com empresaSelecionada se necessário
+    if (!empresaStore.empresa?.id && empresaStore.empresaSelecionada?.id) {
+      empresaStore.empresa = empresaStore.empresaSelecionada
+    }
+    
+    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
+    if (idEmpresa) {
+      await carregarParametrosCentroCusto()
+    }
+  } catch (error) {
+    console.error('Erro ao carregar dados:', error)
+  }
 })
+
+// Watch para garantir que busca os parâmetros quando o id da empresa estiver disponível
+watch(
+  () => empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id,
+  async (id) => {
+    if (id) {
+      await carregarParametrosCentroCusto()
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>

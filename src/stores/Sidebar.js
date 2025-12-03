@@ -20,7 +20,6 @@ export const useSidebarStore = defineStore('sidebar', () => {
                 },
                 { text: 'Pagar', icon: 'mdi-credit-card-outline', route: '/paginas/financeiro/pagar' },
                 { text: 'Receber', icon: 'mdi-cash-plus', route: '/paginas/financeiro/receber' },
-                { text: 'Caixa', icon: 'mdi-cash-register', route: '/paginas/financeiro/caixa' },
                 { text: 'Plano de Conta', icon: 'mdi-format-list-bulleted-type', route: '/paginas/financeiro/planoconta' }
             ]
         },
@@ -29,6 +28,10 @@ export const useSidebarStore = defineStore('sidebar', () => {
             titulo: 'Caixa',
             icon: 'mdi-cash-register',
             submenus: [
+                {   text: 'Cadastro de Caixa',
+                    icon: 'mdi-cash-register',
+                    route: '/paginas/financeiro/caixa'
+                },
                 {   text: 'Abertura de Caixa',
                     icon: 'mdi-cash-multiple',
                     route: '/paginas/financeiro/caixa/abertura'

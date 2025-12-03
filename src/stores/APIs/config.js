@@ -29,21 +29,21 @@ export const useConfigParfinStore = defineStore('config-parfin', {
             this.loading = true;
 
             try {
-                const response = await api.get(`ccustoparametro`,
-
-                    {
-                        headers: {Authorization: `Bearer ${this.token}`}
-                    });
-
+                const response = await api.get(`ccustoparametro`, {
+                    headers: {Authorization: `Bearer ${this.token}`}
+                });
 
                 this.config = response.data;
                 this.errorMessage = '';
 
                 console.log('config encontrado:', this.config);
+                
+                return response.data;
 
             } catch (error) {
                 this.errorMessage = error.response;
                 console.error('Erro ao buscar config:', error);
+                return null;
             } finally {
                 this.loading = false;
             }
@@ -72,94 +72,192 @@ export const useConfigParfinStore = defineStore('config-parfin', {
         },
 
         /**
-         * BUSCAR PARÂMETROS FINANCEIROS
+         * BUSCAR PARÂMETROS FINANCEIROS - CONTAS A PAGAR
          */
-        async buscarParametrosFinanceiros() {
-            return async (idEmpresa) => {
-                this.loading = true;
-                console.log('Token usado:', this.token);
-                console.log('ID da empresa usado:', idEmpresa);
-                if (!this.token) {
-                    console.error('Token não encontrado!');
-                    this.errorMessage = 'Token não encontrado!';
-                    this.loading = false;
-                    return;
-                }
-                if (!idEmpresa) {
-                    console.error('ID da empresa não encontrado!');
-                    this.errorMessage = 'ID da empresa não encontrado!';
-                    this.loading = false;
-                    return;
-                }
-                try {
-                    const response = await api.get(`parfin/${idEmpresa}`, {
-                        headers: {Authorization: `Bearer ${this.token}`}
-                    });
-                    this.config = response.data;
-                    this.errorMessage = '';
-                    console.log('Parâmetros financeiros encontrados:', this.config);
-                } catch (error) {
-                    this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-                    console.error('Erro ao buscar parâmetros financeiros:', error);
-                } finally {
-                    this.loading = false;
-                }
+        async buscarParametrosFinanceirosPagar(idEmpresa) {
+            this.loading = true;
+            
+            if (!this.token) {
+                console.error('Token não encontrado!');
+                this.errorMessage = 'Token não encontrado!';
+                this.loading = false;
+                return null;
+            }
+            
+            if (!idEmpresa) {
+                console.error('ID da empresa não encontrado!');
+                this.errorMessage = 'ID da empresa não encontrado!';
+                this.loading = false;
+                return null;
+            }
+            
+            try {
+                const response = await api.get(`parfinpag/${idEmpresa}`, {
+                    headers: {Authorization: `Bearer ${this.token}`}
+                });
+                
+                this.errorMessage = '';
+                return response.data;
+                
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
+                console.error('Erro ao buscar parâmetros financeiros (pagar):', error);
+                return null;
+            } finally {
+                this.loading = false;
             }
         },
 
         /**
-         * CADASTRAR PARÂMETROS FINANCEIROS
+         * CADASTRAR PARÂMETROS FINANCEIROS - CONTAS A PAGAR
          */
-        async cadastrarParametrosFinanceiros() {
-            return async (idEmpresa, dados) => {
-                this.loading = apiStore.loading;
-                console.log('Token usado:', this.token);
-                console.log('ID da empresa usado:', idEmpresa);
-                if (!this.token) {
-                    console.error('Token não encontrado!');
-                    this.errorMessage = 'Token não encontrado!';
-                    this.loading = false;
-                    return;
-                }
-                if (!idEmpresa) {
-                    console.error('ID da empresa não encontrado!');
-                    this.errorMessage = 'ID da empresa não encontrado!';
-                    this.loading = false;
-                    return;
-                }
-                const result = await apiStore.executarAcao(`parfin/${idEmpresa}`, 'post', dados);
-                if (result) {
-                    await this.buscarParametrosFinanceiros(idEmpresa);
-                }
-                return result;
+        async cadastrarParametrosFinanceirosPagar(idEmpresa, dados) {
+            this.loading = true;
+            
+            if (!this.token || !idEmpresa) {
+                console.error('Token ou ID da empresa não encontrado!');
+                this.loading = false;
+                return false;
+            }
+            
+            try {
+                const response = await api.post(`parfinpag/${idEmpresa}`, dados, {
+                    headers: {Authorization: `Bearer ${this.token}`}
+                });
+                
+                this.successMessage = 'Configurações salvas com sucesso!';
+                return response.data;
+                
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || 'Erro ao salvar configurações';
+                console.error('Erro ao cadastrar parâmetros financeiros (pagar):', error);
+                return null;
+            } finally {
+                this.loading = false;
             }
         },
 
         /**
-         * ALTERAR PARÂMETROS FINANCEIROS
+         * ALTERAR PARÂMETROS FINANCEIROS - CONTAS A PAGAR
          */
-        async alterarParametrosFinanceiros() {
-            return async (idEmpresa, dados) => {
-                this.loading = apiStore.loading;
-                console.log('Token usado:', this.token);
-                console.log('ID da empresa usado:', idEmpresa);
-                if (!this.token) {
-                    console.error('Token não encontrado!');
-                    this.errorMessage = 'Token não encontrado!';
-                    this.loading = false;
-                    return;
-                }
-                if (!idEmpresa) {
-                    console.error('ID da empresa não encontrado!');
-                    this.errorMessage = 'ID da empresa não encontrado!';
-                    this.loading = false;
-                    return;
-                }
-                const result = await apiStore.executarAcao(`parfin/${idEmpresa}`, 'put', dados);
-                if (result) {
-                    await this.buscarParametrosFinanceiros(idEmpresa);
-                }
-                return result;
+        async alterarParametrosFinanceirosPagar(idEmpresa, dados) {
+            this.loading = true;
+            
+            if (!this.token || !idEmpresa) {
+                console.error('Token ou ID da empresa não encontrado!');
+                this.loading = false;
+                return false;
+            }
+            
+            try {
+                const response = await api.put(`parfinpag/${idEmpresa}`, dados, {
+                    headers: {Authorization: `Bearer ${this.token}`}
+                });
+                
+                this.successMessage = 'Configurações atualizadas com sucesso!';
+                return response.data;
+                
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || 'Erro ao atualizar configurações';
+                console.error('Erro ao alterar parâmetros financeiros (pagar):', error);
+                return null;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * BUSCAR PARÂMETROS FINANCEIROS - CONTAS A RECEBER
+         */
+        async buscarParametrosFinanceirosReceber(idEmpresa) {
+            this.loading = true;
+            
+            if (!this.token) {
+                console.error('Token não encontrado!');
+                this.errorMessage = 'Token não encontrado!';
+                this.loading = false;
+                return null;
+            }
+            
+            if (!idEmpresa) {
+                console.error('ID da empresa não encontrado!');
+                this.errorMessage = 'ID da empresa não encontrado!';
+                this.loading = false;
+                return null;
+            }
+            
+            try {
+                const response = await api.get(`parfinrec/${idEmpresa}`, {
+                    headers: {Authorization: `Bearer ${this.token}`}
+                });
+                
+                this.errorMessage = '';
+                return response.data;
+                
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
+                console.error('Erro ao buscar parâmetros financeiros (receber):', error);
+                return null;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * CADASTRAR PARÂMETROS FINANCEIROS - CONTAS A RECEBER
+         */
+        async cadastrarParametrosFinanceirosReceber(idEmpresa, dados) {
+            this.loading = true;
+            
+            if (!this.token || !idEmpresa) {
+                console.error('Token ou ID da empresa não encontrado!');
+                this.loading = false;
+                return false;
+            }
+            
+            try {
+                const response = await api.post(`parfinrec/${idEmpresa}`, dados, {
+                    headers: {Authorization: `Bearer ${this.token}`}
+                });
+                
+                this.successMessage = 'Configurações salvas com sucesso!';
+                return response.data;
+                
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || 'Erro ao salvar configurações';
+                console.error('Erro ao cadastrar parâmetros financeiros (receber):', error);
+                return null;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * ALTERAR PARÂMETROS FINANCEIROS - CONTAS A RECEBER
+         */
+        async alterarParametrosFinanceirosReceber(idEmpresa, dados) {
+            this.loading = true;
+            
+            if (!this.token || !idEmpresa) {
+                console.error('Token ou ID da empresa não encontrado!');
+                this.loading = false;
+                return false;
+            }
+            
+            try {
+                const response = await api.put(`parfinrec/${idEmpresa}`, dados, {
+                    headers: {Authorization: `Bearer ${this.token}`}
+                });
+                
+                this.successMessage = 'Configurações atualizadas com sucesso!';
+                return response.data;
+                
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || 'Erro ao atualizar configurações';
+                console.error('Erro ao alterar parâmetros financeiros (receber):', error);
+                return null;
+            } finally {
+                this.loading = false;
             }
         },
 
@@ -200,6 +298,72 @@ export const useConfigParfinStore = defineStore('config-parfin', {
             } catch (error) {
                 console.error('Erro ao buscar histórico bancário:', error);
                 return [];
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * BUSCAR PARÂMETROS CAIXA
+         */
+        async buscarParametrosCaixa(idEmpresa) {
+            this.loading = true;
+            
+            if (!this.token) {
+                console.error('Token não encontrado!');
+                this.errorMessage = 'Token não encontrado!';
+                this.loading = false;
+                return null;
+            }
+            
+            if (!idEmpresa) {
+                console.error('ID da empresa não encontrado!');
+                this.errorMessage = 'ID da empresa não encontrado!';
+                this.loading = false;
+                return null;
+            }
+            
+            try {
+                const response = await api.get(`parfincxa/${idEmpresa}`, {
+                    headers: {Authorization: `Bearer ${this.token}`}
+                });
+                
+                this.errorMessage = '';
+                return response.data;
+                
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
+                console.error('Erro ao buscar parâmetros do caixa:', error);
+                return null;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * ALTERAR PARÂMETROS CAIXA
+         */
+        async alterarParametrosCaixa(idEmpresa, dados) {
+            this.loading = true;
+            
+            if (!this.token || !idEmpresa) {
+                console.error('Token ou ID da empresa não encontrado!');
+                this.loading = false;
+                return false;
+            }
+            
+            try {
+                const response = await api.put(`parfincxa/${idEmpresa}`, dados, {
+                    headers: {Authorization: `Bearer ${this.token}`}
+                });
+                
+                this.successMessage = 'Configurações do caixa atualizadas com sucesso!';
+                return response.data;
+                
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || 'Erro ao atualizar configurações do caixa';
+                console.error('Erro ao alterar parâmetros do caixa:', error);
+                return null;
             } finally {
                 this.loading = false;
             }

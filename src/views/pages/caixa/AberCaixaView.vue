@@ -59,12 +59,12 @@
                 <v-form ref="formRef" v-model="formValido">
                   <v-row>
                     <!-- Caixa -->
-                    <v-col cols="12" md="6">
+                    <v-col cols="12" md="3">
                       <v-autocomplete
                         v-model="formData.id_caixa"
                         :items="caixasDisponiveis"
                         :loading="loadingCaixas"
-                        item-title="descricao"
+                        item-title="desccaixa"
                         item-value="id"
                         label="Caixa *"
                         :rules="[rules.required]"
@@ -81,10 +81,10 @@
                                 :color="item.raw.status === 'A' ? 'success' : 'grey'"
                               ></v-icon>
                             </template>
-                            <v-list-item-title>{{ item.raw.descricao }}</v-list-item-title>
+                            <v-list-item-title>{{ item.raw.desccaixa }}</v-list-item-title>
                             <v-list-item-subtitle>
                               {{ item.raw.status === 'A' ? 'Ativo' : 'Inativo' }} | 
-                              Usuário: {{ item.raw.usuario || 'Não atribuído' }}
+                              Participa Fluxo: {{ item.raw.participa_fluxo === 'S' ? 'Sim' : 'Não' }}
                             </v-list-item-subtitle>
                           </v-list-item>
                         </template>
@@ -118,10 +118,10 @@
                     </v-col>
 
                     <!-- Suprimento -->
-                    <v-col cols="12" md="4">
+                    <v-col cols="12" md="3">
                       <v-text-field
                         v-model="formData.vlrabertura"
-                        label="Suprimento *"
+                        label="Valor Inicial *"
                         :rules="[rules.required, rules.valorPositivo]"
                         variant="outlined"
                         density="compact"
@@ -130,48 +130,6 @@
                         type="number"
                         step="0.01"
                       ></v-text-field>
-                    </v-col>
-
-                    <!-- Conta Corrente -->
-                    <v-col cols="12" md="8">
-                      <v-autocomplete
-                        v-model="formData.id_ccorrente"
-                        :items="contasCorrentes"
-                        :loading="loadingContas"
-                        item-title="descricao_completa"
-                        item-value="id_ccorrente"
-                        label="Conta Corrente"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-bank"
-                        clearable
-                        no-data-text="Nenhuma conta disponível"
-                      >
-                        <template v-slot:item="{ props, item }">
-                          <v-list-item v-bind="props">
-                            <v-list-item-title>{{ item.raw.titular }}</v-list-item-title>
-                            <v-list-item-subtitle>
-                              Banco: {{ item.raw.nome_banco || 'N/A' }} | 
-                              Ag: {{ item.raw.agencia }} | 
-                              CC: {{ item.raw.numero_conta }}-{{ item.raw.digito_cc }}
-                            </v-list-item-subtitle>
-                          </v-list-item>
-                        </template>
-                      </v-autocomplete>
-                    </v-col>
-
-                    <!-- Observações -->
-                    <v-col cols="12">
-                      <v-textarea
-                        v-model="formData.observacao"
-                        label="Observações"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-note-text"
-                        rows="3"
-                        maxlength="500"
-                        counter
-                      ></v-textarea>
                     </v-col>
                   </v-row>
                 </v-form>
@@ -271,12 +229,14 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
-import { useFinanceiroStore } from '@/stores/APIs/financeiro'
+import { useCaixaStore } from '@/stores/APIs/caixa'
+import { useEmpresaStore } from '@/stores/APIs/empresa'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 
 const themeStore = useThemeStore()
-const financeiroStore = useFinanceiroStore()
+const caixaStore = useCaixaStore()
+const empresaStore = useEmpresaStore()
 
 // Estado
 const formularioAberto = ref(false)
@@ -285,13 +245,12 @@ const formRef = ref(null)
 const search = ref('')
 const loading = ref(false)
 const loadingCaixas = ref(false)
-const loadingContas = ref(false)
 
 // Dados
 const caixasDisponiveis = ref([])
-const contasCorrentes = ref([])
 const aberturas = ref([])
 const caixaAberto = ref(null)
+const historicoMovimentacao = ref([])
 
 // Formulário
 const formData = reactive({
@@ -299,8 +258,6 @@ const formData = reactive({
   dtabertura: new Date().toISOString().split('T')[0],
   hrabertura: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
   vlrabertura: 0,
-  id_ccorrente: null,
-  observacao: ''
 })
 
 // Regras de validação
@@ -381,8 +338,6 @@ const limparFormulario = () => {
     dtabertura: new Date().toISOString().split('T')[0],
     hrabertura: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
     vlrabertura: 0,
-    id_ccorrente: null,
-    observacao: ''
   })
   if (formRef.value) {
     formRef.value.resetValidation()
@@ -390,101 +345,55 @@ const limparFormulario = () => {
 }
 
 // Carregar dados
-const carregarCaixas = async () => {
-  loadingCaixas.value = true
+const carregarDadosAuxiliares = async () => {
   try {
-    const idEmpresa = localStorage.getItem('idEmpresa')
+    // Garantir que a empresa está carregada
+    if (!empresaStore.empresa?.id && !empresaStore.empresaSelecionada?.id) {
+      empresaStore.carregarEmpresaSelecionada()
+    }
+    
+    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
+    
     if (!idEmpresa) {
+      console.warn('ID da empresa não encontrado')
       return
     }
-    
-    const dados = await financeiroStore.buscarCaixas(idEmpresa)
-    caixasDisponiveis.value = Array.isArray(dados) ? dados : []
-  } catch (error) {
-    console.error('Erro ao carregar caixas:', error)
-    caixasDisponiveis.value = []
-  } finally {
-    loadingCaixas.value = false
-  }
-}
 
-const carregarContasCorrentes = async () => {
-  loadingContas.value = true
-  try {
-    const dados = await financeiroStore.buscarContas()
+    // Carregar histórico de movimentação (aberturas de caixa)
+    const response = await caixaStore.buscarHistoricoMovimentacao(idEmpresa)
+    const dadosHistorico = response?.data || []
+    historicoMovimentacao.value = Array.isArray(dadosHistorico) ? dadosHistorico : []
     
-    // Formatar descrição completa para melhor visualização
-    contasCorrentes.value = Array.isArray(dados) ? dados.map(conta => ({
-      ...conta,
-      descricao_completa: `${conta.titular || 'Sem titular'} - ${conta.numero_conta || 'N/A'}-${conta.digito_cc || ''}`
-    })) : []
-  } catch (error) {
-    console.error('Erro ao carregar contas correntes:', error)
-    contasCorrentes.value = []
-  } finally {
-    loadingContas.value = false
-  }
-}
+    console.log('Histórico de movimentação carregado:', historicoMovimentacao.value)
 
-const carregarAberturas = async () => {
-  loading.value = true
-  try {
-    const idEmpresa = localStorage.getItem('idEmpresa')
-    if (!idEmpresa) {
-      return
-    }
-    
-    // Buscar usuários vinculados aos caixas (GET /caixausu/:idempresa/id/:id)
-    const aberturasTemp = []
-    
-    for (const caixa of caixasDisponiveis.value) {
-      if (caixa.id) {
-        try {
-          const usuarios = await financeiroStore.buscarUsuariosPorCaixa(idEmpresa, caixa.id)
-          
-          // Normalizar resposta
-          let dadosUsuario = null
-          if (usuarios && usuarios.data) {
-            dadosUsuario = usuarios.data
-          } else if (Array.isArray(usuarios) && usuarios.length > 0) {
-            dadosUsuario = usuarios[0]
-          } else if (usuarios && typeof usuarios === 'object') {
-            dadosUsuario = usuarios
-          }
-          
-          // Criar registro de abertura com dados do caixa e usuário
-          if (dadosUsuario) {
-            aberturasTemp.push({
-              id: caixa.id,
-              descricao_caixa: caixa.descricao || caixa.nome || '',
-              status: caixa.status || 'I',
-              dtabertura: caixa.dtabertura || null,
-              hrabertura: caixa.hrabertura || null,
-              dtfechamento: caixa.dtfechamento || null,
-              hrfechamento: caixa.hrfechamento || null,
-              vlrabertura: caixa.vlrabertura || 0,
-              vlrfechamento: caixa.vlrfechamento || null,
-              usuario: dadosUsuario.nome || dadosUsuario.email || 'N/A',
-              id_usuario: dadosUsuario.id || null,
-              ativo_usuario: dadosUsuario.ativo || 'N'
-            })
-          }
-        } catch (err) {
-          console.error(`Erro ao buscar usuário do caixa ${caixa.id}:`, err)
-        }
-      }
-    }
-    
-    aberturas.value = aberturasTemp
+    // Carregar caixas ativos do usuário
+    const dadosCaixas = await caixaStore.buscarCaixasUsuarioAtivo(idEmpresa)
+    caixasDisponiveis.value = Array.isArray(dadosCaixas) ? dadosCaixas : []
+
+
+    // Processar histórico como aberturas de caixa
+    aberturas.value = historicoMovimentacao.value.map(abertura => ({
+      id: abertura.id,
+      descricao_caixa: abertura.descricao_caixa || abertura.descricao || '',
+      status: abertura.status || 'I',
+      dtabertura: abertura.dtabertura || null,
+      hrabertura: abertura.hrabertura || null,
+      dtfechamento: abertura.dtfechamento || null,
+      hrfechamento: abertura.hrfechamento || null,
+      vlrabertura: abertura.vlrabertura || 0,
+      vlrfechamento: abertura.vlrfechamento || null,
+      usuario: abertura.usuario || abertura.nome_usuario || 'N/A',
+      id_usuario: abertura.id_usuario || null,
+      id_caixa: abertura.id_caixa || null
+    }))
     
     // Verificar se há caixa aberto
     const caixasAbertas = aberturas.value.filter(a => a.status === 'A')
     caixaAberto.value = caixasAbertas.length > 0 ? caixasAbertas[0] : null
+    
+    console.log('Aberturas carregadas:', aberturas.value)
   } catch (error) {
-    console.error('Erro ao carregar aberturas:', error)
-    aberturas.value = []
-  } finally {
-    loading.value = false
+    console.error('Erro ao carregar dados auxiliares:', error)
   }
 }
 
@@ -496,29 +405,32 @@ const abrirCaixa = async () => {
 
   loading.value = true
   try {
-    const idEmpresa = localStorage.getItem('idEmpresa')
+    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
     if (!idEmpresa) {
+      console.error('ID da empresa não encontrado!')
       return
     }
 
-    // TODO: Implementar endpoint POST /caixaabertura
+    if (!formData.id_caixa) {
+      console.error('ID do caixa não selecionado!')
+      return
+    }
+
     // Montar payload
-    // const payload = {
-    //   data: [{
-    //     id_empresa: parseInt(idEmpresa),
-    //     id_caixa: formData.id_caixa,
-    //     dtabertura: formData.dtabertura,
-    //     hrabertura: formData.hrabertura,
-    //     vlrabertura: parseFloat(formData.vlrabertura),
-    //     id_ccorrente: formData.id_ccorrente || null,
-    //     observacao: formData.observacao || null,
-    //     status: 'A' // A = Aberto
-    //   }]
-    // }
-    // await financeiroStore.criarAberturaCaixa(payload)
+    const payload = {
+      data: [{
+        dtabertura: formData.dtabertura,
+        horaabertura: formData.hrabertura,
+        saldoinicial: parseFloat(formData.vlrabertura)
+      }]
+    }
+
+    const resultado = await caixaStore.abrirCaixa(idEmpresa, formData.id_caixa, payload)
     
-    cancelarFormulario()
-    await carregarAberturas()
+    if (resultado) {
+      cancelarFormulario()
+      await carregarDadosAuxiliares()
+    }
   } catch (error) {
     console.error('Erro ao abrir caixa:', error)
   } finally {
@@ -530,8 +442,9 @@ const abrirCaixa = async () => {
 const fecharCaixa = async () => {
   loading.value = true
   try {
-    const idEmpresa = localStorage.getItem('idEmpresa')
+    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
     if (!idEmpresa) {
+      console.error('ID da empresa não encontrado!')
       return
     }
 
@@ -545,7 +458,7 @@ const fecharCaixa = async () => {
     // }
     // await financeiroStore.fecharCaixa(idEmpresa, item.id, payload)
     
-    await carregarAberturas()
+    await carregarDadosAuxiliares()
   } catch (error) {
     console.error('Erro ao fechar caixa:', error)
   } finally {
@@ -555,11 +468,7 @@ const fecharCaixa = async () => {
 
 // Lifecycle
 onMounted(async () => {
-  await Promise.all([
-    carregarCaixas(),
-    carregarContasCorrentes(),
-    carregarAberturas()
-  ])
+  await carregarDadosAuxiliares()
 })
 </script>
 

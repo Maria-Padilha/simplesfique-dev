@@ -306,8 +306,6 @@ import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useConfigParfinStore } from '@/stores/APIs/config'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
-import { toast } from 'vue3-toastify'
-import 'vue3-toastify/dist/index.css'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -484,7 +482,6 @@ const buscarContaPorCodigo = async () => {
       formData.descricao_conta = conta.descricao || conta.nome || ''
     } else {
       formData.descricao_conta = ''
-      toast.warning('Conta não encontrada')
     }
   } catch (error) {
     console.error('Erro ao buscar conta:', error)
@@ -498,7 +495,6 @@ const carregarCaixas = async () => {
   try {
     const idEmpresa = localStorage.getItem('idEmpresa')
     if (!idEmpresa) {
-      toast.error('ID da empresa não encontrado')
       return
     }
     
@@ -506,7 +502,6 @@ const carregarCaixas = async () => {
     caixasDisponiveis.value = Array.isArray(dados) ? dados : []
   } catch (error) {
     console.error('Erro ao carregar caixas:', error)
-    toast.error('Erro ao carregar caixas')
     caixasDisponiveis.value = []
   } finally {
     loadingCaixas.value = false
@@ -520,7 +515,6 @@ const carregarTiposDocumento = async () => {
     tiposDocumento.value = Array.isArray(dados) ? dados : []
   } catch (error) {
     console.error('Erro ao carregar tipos de documento:', error)
-    toast.error('Erro ao carregar tipos de documento')
     tiposDocumento.value = []
   } finally {
     loadingTiposDoc.value = false
@@ -545,7 +539,6 @@ const carregarHistoricosCaixa = async () => {
     historicosCaixa.value = historicos
   } catch (error) {
     console.error('Erro ao carregar históricos de caixa:', error)
-    toast.error('Erro ao carregar históricos de caixa')
     historicosCaixa.value = []
   } finally {
     loadingHistCaixa.value = false
@@ -567,7 +560,6 @@ const carregarLancamentos = async () => {
   try {
     const idEmpresa = localStorage.getItem('idEmpresa')
     if (!idEmpresa) {
-      toast.error('ID da empresa não encontrado')
       return
     }
     
@@ -575,7 +567,6 @@ const carregarLancamentos = async () => {
     lancamentos.value = []
   } catch (error) {
     console.error('Erro ao carregar lançamentos:', error)
-    toast.error('Erro ao carregar lançamentos de caixa')
     lancamentos.value = []
   } finally {
     loading.value = false
@@ -585,7 +576,6 @@ const carregarLancamentos = async () => {
 // Salvar lançamento
 const salvarLancamento = async () => {
   if (!formValido.value) {
-    toast.warning('Preencha todos os campos obrigatórios')
     return
   }
 
@@ -593,7 +583,6 @@ const salvarLancamento = async () => {
   try {
     const idEmpresa = localStorage.getItem('idEmpresa')
     if (!idEmpresa) {
-      toast.error('ID da empresa não encontrado')
       return
     }
 
@@ -619,12 +608,10 @@ const salvarLancamento = async () => {
     //   await financeiroStore.criarLancamentoCaixa(payload)
     // }
     
-    toast.success(`Lançamento ${editando.value ? 'atualizado' : 'criado'} com sucesso!`)
     cancelarFormulario()
     await carregarLancamentos()
   } catch (error) {
     console.error('Erro ao salvar lançamento:', error)
-    toast.error(error.response?.data?.message || 'Erro ao salvar lançamento')
   } finally {
     loading.value = false
   }
@@ -657,25 +644,21 @@ const excluirLancamento = async (item) => {
   try {
     const idEmpresa = localStorage.getItem('idEmpresa')
     if (!idEmpresa) {
-      toast.error('ID da empresa não encontrado')
       return
     }
 
     const idParaExcluir = item?.id || formData.id
     if (!idParaExcluir) {
-      toast.error('ID do lançamento não encontrado')
       return
     }
 
     // TODO: Implementar endpoint DELETE /caixalancamento/:idempresa/id/:id
     // await financeiroStore.deletarLancamentoCaixa(idEmpresa, idParaExcluir)
     
-    toast.success('Lançamento excluído com sucesso!')
     cancelarFormulario()
     await carregarLancamentos()
   } catch (error) {
     console.error('Erro ao excluir lançamento:', error)
-    toast.error(error.response?.data?.message || 'Erro ao excluir lançamento')
   } finally {
     loading.value = false
   }

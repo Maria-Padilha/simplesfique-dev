@@ -551,7 +551,6 @@ import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
 import { useConfigParfinStore } from '@/stores/APIs/config'
 import { useEmpresaStore } from '@/stores/APIs/empresa'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
-import axios from 'axios'
 
 const useConfig = useConfigParfinStore()
 const empresaStore = useEmpresaStore()
@@ -564,10 +563,10 @@ const dadosExistem = ref(false)
 // Dados de configuração com os nomes corretos da API
 const config = reactive({
   // Parâmetros da API
-  rec_id_red_ctb_cli: null,        // Conta clientes
-  rec_id_red_ctb_juros_pago: null, // Conta juros
-  rec_id_red_ctb_multa_paga: null, // Conta multa
-  rec_id_red_ctb_desc_obtido: null, // Conta descontos concedidos
+  rec_id_red_ctb_cli: null,             // Conta clientes
+  rec_id_red_ctb_juros_recebido: null,  // Conta juros
+  rec_id_red_ctb_multa_recebida: null,  // Conta multa
+  rec_id_red_ctb_desc_concedido: null,  // Conta descontos concedidos
   rec_id_hist_bxa_caixa: null,     // Histórico baixa caixa
   rec_id_hist_bxa_banco: null,
   rec_id_hist_est_bxa_caixa: null,
@@ -576,9 +575,9 @@ const config = reactive({
   rec_id_hist_adt_cli_banco: null, // Histórico adiantamento cliente banco
   tipo_documento_padrao: null,     // Tipo de documento padrão
   // Campos de descrição
-  desc_ctb_juros_pago: '',
-  desc_ctb_multa_paga: '',
-  desc_ctb_desc_obtido: '',
+  desc_ctb_juros_recebido: '',
+  desc_ctb_multa_recebida: '',
+  desc_ctb_desc_concedido: '',
   desc_ctb_cli: '',
   hist_bxa_caixa_desc: '',
   hist_est_bxa_caixa_desc: '',
@@ -600,9 +599,9 @@ const histCaixaLabel = computed(() => config.rec_id_hist_bxa_caixa ? `( ${config
 const histEstBxaCaixaLabel = computed(() => config.rec_id_hist_est_bxa_caixa ? `( ${config.rec_id_hist_est_bxa_caixa} ) - ${config.hist_est_bxa_caixa_desc}` : '')
 const histEstBxaBancoLabel = computed(() => config.rec_id_hist_est_bxa_banco ? `( ${config.rec_id_hist_est_bxa_banco} ) - ${config.hist_est_bxa_banco_desc}` : '')
 const histBancoLabel = computed(() => config.rec_id_hist_bxa_banco ? `( ${config.rec_id_hist_bxa_banco} ) - ${config.hist_bxa_banco_desc}` : '')
-const planoContaJurosLabel = computed(() => config.rec_id_red_ctb_juros_pago ? `( ${config.rec_id_red_ctb_juros_pago} ) - ${config.desc_ctb_juros_pago}` : '')
-const planoContaMultaLabel = computed(() => config.rec_id_red_ctb_multa_paga ? `( ${config.rec_id_red_ctb_multa_paga} ) - ${config.desc_ctb_multa_paga}` : '')
-const planoContaDescLabel = computed(() => config.rec_id_red_ctb_desc_obtido ? `( ${config.rec_id_red_ctb_desc_obtido} ) - ${config.desc_ctb_desc_obtido}` : '')
+const planoContaJurosLabel = computed(() => config.rec_id_red_ctb_juros_recebido ? `( ${config.rec_id_red_ctb_juros_recebido} ) - ${config.desc_ctb_juros_recebido}` : '')
+const planoContaMultaLabel = computed(() => config.rec_id_red_ctb_multa_recebida ? `( ${config.rec_id_red_ctb_multa_recebida} ) - ${config.desc_ctb_multa_recebida}` : '')
+const planoContaDescLabel = computed(() => config.rec_id_red_ctb_desc_concedido ? `( ${config.rec_id_red_ctb_desc_concedido} ) - ${config.desc_ctb_desc_concedido}` : '')
 const planoContaCliLabel = computed(() => config.rec_id_red_ctb_cli ? `( ${config.rec_id_red_ctb_cli} ) - ${config.desc_ctb_cli}` : '')
 const histAdtCaixaLabel = computed(() => config.rec_id_hist_adt_cli_caixa ? `( ${config.rec_id_hist_adt_cli_caixa} ) - ${config.hist_adt_caixa_desc}` : '')
 const histAdtBancoLabel = computed(() => config.rec_id_hist_adt_cli_banco ? `( ${config.rec_id_hist_adt_cli_banco} ) - ${config.hist_adt_banco_desc}` : '')
@@ -764,20 +763,20 @@ const selecionarTipoDocumento = (item) => {
 }
 
 const selecionarPlanoContaJuros = (item) => {
-  config.rec_id_red_ctb_juros_pago = item?.id ?? null
-  config.desc_ctb_juros_pago = item?.descconta || item?.descricao || ''
+  config.rec_id_red_ctb_juros_recebido = item?.id ?? null
+  config.desc_ctb_juros_recebido = item?.descconta || item?.descricao || ''
   menuPlanoContaJuros.value = false
 }
 
 const selecionarPlanoContaMulta = (item) => {
-  config.rec_id_red_ctb_multa_paga = item?.id ?? null
-  config.desc_ctb_multa_paga = item?.descconta || item?.descricao || ''
+  config.rec_id_red_ctb_multa_recebida = item?.id ?? null
+  config.desc_ctb_multa_recebida = item?.descconta || item?.descricao || ''
   menuPlanoContaMulta.value = false
 }
 
 const selecionarPlanoContaDesc = (item) => {
-  config.rec_id_red_ctb_desc_obtido = item?.id ?? null
-  config.desc_ctb_desc_obtido = item?.descconta || item?.descricao || ''
+  config.rec_id_red_ctb_desc_concedido = item?.id ?? null
+  config.desc_ctb_desc_concedido = item?.descconta || item?.descricao || ''
   menuPlanoContaDesc.value = false
 }
 
@@ -816,16 +815,15 @@ const buscarHistoricoBanco = async (id, campoDesc) => {
 // Função para carregar parâmetros financeiros e preencher o formulário
 const carregarParametrosFinanceiros = async () => {
   const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-  const token = localStorage.getItem('token')
-  if (!idEmpresa || !token) {
-    console.error('ID da empresa ou token não encontrado!')
+  
+  if (!idEmpresa) {
+    console.error('ID da empresa não encontrado!')
     return
   }
+  
   try {
-    const response = await axios.get(`http://192.168.10.100:9005/parfin/${idEmpresa}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const dadosArray = response.data?.data
+    const response = await useConfig.buscarParametrosFinanceirosReceber(idEmpresa)
+    const dadosArray = response?.data
     // Se o array tem pelo menos um objeto com algum campo preenchido, é PUT
     let dados = null
     if (Array.isArray(dadosArray) && dadosArray.length > 0) {
@@ -868,22 +866,22 @@ const carregarParametrosFinanceiros = async () => {
       }
 
       // Preencher descrições dos planos de conta
-      config.desc_ctb_juros_pago = ''
-      config.desc_ctb_multa_paga = ''
-      config.desc_ctb_desc_obtido = ''
+      config.desc_ctb_juros_recebido = ''
+      config.desc_ctb_multa_recebida = ''
+      config.desc_ctb_desc_concedido = ''
       config.desc_ctb_cli = ''
       if (Array.isArray(planosConta.value)) {
-        if (config.rec_id_red_ctb_juros_pago) {
-          const planoJuros = planosConta.value.find(p => Number(p.id) === Number(config.rec_id_red_ctb_juros_pago))
-          config.desc_ctb_juros_pago = planoJuros ? (planoJuros.descconta || planoJuros.descricao) : ''
+        if (config.rec_id_red_ctb_juros_recebido) {
+          const planoJuros = planosConta.value.find(p => Number(p.id) === Number(config.rec_id_red_ctb_juros_recebido))
+          config.desc_ctb_juros_recebido = planoJuros ? (planoJuros.descconta || planoJuros.descricao) : ''
         }
-        if (config.rec_id_red_ctb_multa_paga) {
-          const planoMulta = planosConta.value.find(p => Number(p.id) === Number(config.rec_id_red_ctb_multa_paga))
-          config.desc_ctb_multa_paga = planoMulta ? (planoMulta.descconta || planoMulta.descricao) : ''
+        if (config.rec_id_red_ctb_multa_recebida) {
+          const planoMulta = planosConta.value.find(p => Number(p.id) === Number(config.rec_id_red_ctb_multa_recebida))
+          config.desc_ctb_multa_recebida = planoMulta ? (planoMulta.descconta || planoMulta.descricao) : ''
         }
-        if (config.rec_id_red_ctb_desc_obtido) {
-          const planoDesc = planosConta.value.find(p => Number(p.id) === Number(config.rec_id_red_ctb_desc_obtido))
-          config.desc_ctb_desc_obtido = planoDesc ? (planoDesc.descconta || planoDesc.descricao) : ''
+        if (config.rec_id_red_ctb_desc_concedido) {
+          const planoDesc = planosConta.value.find(p => Number(p.id) === Number(config.rec_id_red_ctb_desc_concedido))
+          config.desc_ctb_desc_concedido = planoDesc ? (planoDesc.descconta || planoDesc.descricao) : ''
         }
         if (config.rec_id_red_ctb_cli) {
           const planoCli = planosConta.value.find(p => Number(p.id) === Number(config.rec_id_red_ctb_cli))
@@ -906,9 +904,9 @@ const salvarConfiguracoes = async () => {
     const dadosParaEnvio = {
       data: [{
         rec_id_red_ctb_cli: config.rec_id_red_ctb_cli,
-        rec_id_red_ctb_juros_pago: config.rec_id_red_ctb_juros_pago,
-        rec_id_red_ctb_multa_paga: config.rec_id_red_ctb_multa_paga,
-        rec_id_red_ctb_desc_obtido: config.rec_id_red_ctb_desc_obtido,
+        rec_id_red_ctb_juros_recebido: config.rec_id_red_ctb_juros_recebido,
+        rec_id_red_ctb_multa_recebida: config.rec_id_red_ctb_multa_recebida,
+        rec_id_red_ctb_desc_concedido: config.rec_id_red_ctb_desc_concedido,
         rec_id_hist_bxa_caixa: config.rec_id_hist_bxa_caixa,
         rec_id_hist_bxa_banco: config.rec_id_hist_bxa_banco,
         rec_id_hist_est_bxa_caixa: config.rec_id_hist_est_bxa_caixa,
@@ -917,24 +915,23 @@ const salvarConfiguracoes = async () => {
         rec_id_hist_adt_cli_banco: config.rec_id_hist_adt_cli_banco
       }]
     }
+    
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-    const token = localStorage.getItem('token')
-    if (!idEmpresa || !token) {
-      console.error('ID da empresa ou token não encontrado!')
+    
+    if (!idEmpresa) {
+      console.error('ID da empresa não encontrado!')
       return
     }
+    
     let response
     // PUT só se dadosExistem for verdadeiro (edição), POST se for falso (cadastro)
     if (dadosExistem.value === true) {
-      response = await axios.put(`http://192.168.10.100:9005/parfin/${idEmpresa}`, dadosParaEnvio, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      response = await useConfig.alterarParametrosFinanceirosReceber(idEmpresa, dadosParaEnvio)
     } else {
-      response = await axios.post(`http://192.168.10.100:9005/parfin/${idEmpresa}`, dadosParaEnvio, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      response = await useConfig.cadastrarParametrosFinanceirosReceber(idEmpresa, dadosParaEnvio)
     }
-    if (response && response.status === 200) {
+    
+    if (response) {
       await carregarParametrosFinanceiros()
       console.log('Configurações de Contas a Receber salvas com sucesso!')
     }
@@ -948,9 +945,9 @@ const salvarConfiguracoes = async () => {
 const resetarConfiguracoes = () => {
   // Parâmetros da API
   config.rec_id_red_ctb_cli = null
-  config.rec_id_red_ctb_juros_pago = null
-  config.rec_id_red_ctb_multa_paga = null
-  config.rec_id_red_ctb_desc_obtido = null
+  config.rec_id_red_ctb_juros_recebido = null
+  config.rec_id_red_ctb_multa_recebida = null
+  config.rec_id_red_ctb_desc_concedido = null
   config.rec_id_hist_est_bxa_banco = null
   config.rec_id_hist_est_bxa_caixa = null
   config.rec_id_hist_bxa_caixa = null

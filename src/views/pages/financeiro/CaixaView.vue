@@ -30,12 +30,29 @@
               <v-card-text class="pa-4">
                 <v-form ref="novoCaixaRef" v-model="formValido">
                   <v-row>
-                    <v-col cols="12" md="8">
+                    <v-col cols="12" md="4">
                       <v-text-field v-model="novoCaixa.desccaixa" label="Descrição *" :rules="[rules.required]" maxlength="120" variant="outlined" density="compact" class="custom-text-field" prepend-inner-icon="mdi-text" />
                     </v-col>
 
                     <v-col cols="12" md="4">
                       <v-select v-model="novoCaixa.participa_fluxo" :items="['S','N']" label="Participa Fluxo" variant="outlined" density="compact" />
+                    </v-col>
+
+                    <!-- Plano de Conta -->
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        label="Plano de Conta *"
+                        v-model="planoContaSelecionado"
+                        variant="outlined"
+                        density="compact"
+                        hide-details="auto"
+                        :rules="[rules.required]"
+                        prepend-inner-icon="mdi-chart-tree"
+                      >
+                        <template #append-inner>
+                          <PlanoContaMenu @selecionar="selecionarPlanoConta"/>
+                        </template>
+                      </v-text-field>
                     </v-col>
                   </v-row>
                 </v-form>
@@ -262,6 +279,7 @@ import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
+import PlanoContaMenu from '@/components/base/menu/PlanoContaMenu.vue'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -332,7 +350,8 @@ const toggleFormulario = () => {
     editando.value = false
     caixaEdicao.value = null
   } else {
-    novoCaixa.value = { id_saas: '', id: '', id_empresa: '', desccaixa: '', participa_fluxo: 'S', ativo: 'S' }
+    novoCaixa.value = { id: '', id_empresa: '', desccaixa: '', participa_fluxo: 'S', ativo: 'S' }
+    planoContaSelecionado.value = ''
     editando.value = false
     caixaEdicao.value = null
     formularioAberto.value = true
@@ -346,12 +365,15 @@ const rules = {
   decimal: (value) => /^\d+(\.\d{1,2})?$/.test(value) || 'Deve ser um valor decimal válido',
 }
 
+const planoContaSelecionado = ref('')
+
 const cancelarFormulario = () => {
   formularioAberto.value = false
   editando.value = false
   caixaEdicao.value = null
   // reset form data
-  novoCaixa.value = { id_saas: '', id: '', id_empresa: '', desccaixa: '', participa_fluxo: 'S', ativo: 'S' }
+  novoCaixa.value = { id: '', id_empresa: '', desccaixa: '', participa_fluxo: 'S', ativo: 'S' }
+  planoContaSelecionado.value = ''
   formValido.value = false
   if (novoCaixaRef.value && typeof novoCaixaRef.value.resetValidation === 'function') {
     novoCaixaRef.value.resetValidation()
@@ -366,7 +388,6 @@ onMounted(() => {
 const savingNovo = ref(false)
 const novoCaixaRef = ref(null)
 const novoCaixa = ref({
-  id_saas: '',
   id: '',
   id_empresa: '',
   desccaixa: '',
@@ -387,6 +408,11 @@ const usuariosList = ref([])
 const userAccessMap = reactive({})
 const loadingUsuarios = ref(false) // Loading state para o modal
 
+const selecionarPlanoConta = (planoConta) => {
+  novoCaixa.value.id_planoconta = planoConta.id
+  planoContaSelecionado.value = planoConta.descconta || planoConta.descricao
+}
+
 const salvarNovoCaixa = async () => {
   savingNovo.value = true
   try {
@@ -399,6 +425,10 @@ const salvarNovoCaixa = async () => {
       caixaData.id_empresa = idEmpresa
     }
     
+    // Mapear id_planoconta para id_reduzido_ctb no payload
+    if (caixaData.id_planoconta) {
+      caixaData.id_reduzido_ctb = caixaData.id_planoconta
+    }
 
     
     let mensagem
@@ -433,6 +463,12 @@ const editarCaixa = (caixa) => {
   editando.value = true
   caixaEdicao.value = { ...caixa }
   novoCaixa.value = { ...caixa }
+  // Carregar plano de conta se existir
+  if (caixa.abreviatura_planoconta || caixa.descplanoconta) {
+    planoContaSelecionado.value = caixa.abreviatura_planoconta || caixa.descplanoconta
+  } else {
+    planoContaSelecionado.value = ''
+  }
   formularioAberto.value = true
 }
 
