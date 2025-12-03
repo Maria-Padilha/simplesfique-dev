@@ -25,6 +25,23 @@ export const useSidebarStore = defineStore('sidebar', () => {
             ]
         },
         {
+            id: 'caixa',
+            titulo: 'Caixa',
+            icon: 'mdi-cash-register',
+            submenus: [
+                {   text: 'Abertura de Caixa',
+                    icon: 'mdi-cash-multiple',
+                    route: '/paginas/financeiro/caixa/abertura'
+                },
+                {
+                    text: 'Lançamento de Caixa',
+                    icon: 'mdi-cash-plus',
+                    route: '/paginas/financeiro/caixa/lancamento'
+                }
+                
+            ]
+        },
+        {
             id: 'manutencao',
             titulo: 'Manutenção',
             icon: 'mdi-tools',

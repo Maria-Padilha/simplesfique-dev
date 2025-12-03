@@ -14,7 +14,6 @@ import ContaCorrenteView from "@/views/pages/financeiro/ContaCorrenteView.vue";
 import CentroDeCustoView from "@/views/pages/financeiro/CentroDeCustoView.vue";
 import PrevisaoDebitosView from "@/views/pages/financeiro/PrevisaoDebitosView.vue";
 import PessoasView from '@/views/pages/PessoasView.vue';
-import CaixaView from '@/views/pages/financeiro/CaixaView.vue';
 import PlanoContaView from '@/views/pages/financeiro/PlanoContaView.vue';
 import UsuariosView from '@/views/pages/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
@@ -112,7 +111,17 @@ const routes = [
     {
         path: '/paginas/financeiro/caixa',
         name: 'financeiro_caixa',
-        component: CaixaView
+        component: () => import('@/views/pages/financeiro/CaixaView.vue')
+    },
+    {
+        path: '/paginas/financeiro/caixa/abertura',
+        name: 'financeiro_caixa_abertura',
+        component: () => import('@/views/pages/caixa/AberCaixaView.vue')
+    },
+    {
+        path: '/paginas/financeiro/caixa/lancamento',
+        name: 'financeiro_caixa_lancamento',
+        component: () => import('@/views/pages/caixa/LancCaixaView.vue')
     },
     {
         path: '/paginas/financeiro/planoconta',
