@@ -134,6 +134,53 @@
         </div>
       </div>
 
+      <!-- Tipo Recebimento -->
+      
+        
+        <div class="d-flex flex-column" style="gap: 16px;">
+          <!-- Tipo Recebimento -->
+          <v-text-field
+            v-model="tipoRecebimentoLabel"
+            label="Tipo de recebimento"
+            variant="outlined"
+            density="compact"
+            hide-details="auto"
+            class="custom-text-field"
+            prepend-inner-icon="mdi-cash-check"
+            readonly
+            placeholder="Selecione um tipo"
+            style="max-width: 420px;"
+          >
+            <template #append-inner>
+              <div class="d-flex align-center">
+                <busca-padrao-menu
+                  v-model="menuTipoRecebimento"
+                  :pesquisar="pesquisarTipoRecebimento"
+                  :modelInput="termoTipoRecebimento"
+                  :resultados="tipoRecebimentoResultados"
+                  @update:modelInput="termoTipoRecebimento = $event"
+                  @selecionar="selecionarTipoRecebimento"
+                >
+                  <template #resultados="{ selecionar }">
+                    <v-virtual-scroll
+                      :items="tipoRecebimentoResultados"
+                      :height="120"
+                      item-height="42"
+                      class="mt-3"
+                    >
+                      <template #default="{ item }">
+                        <div class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer" @click="selecionar(item)">
+                          <p class="text-body-1">({{ item.id }}) - {{ item.desctipopagrec || item.descricao }}</p>
+                        </div>
+                      </template>
+                    </v-virtual-scroll>
+                  </template>
+                </busca-padrao-menu>
+              </div>
+            </template>
+          </v-text-field>
+        </div>
+
       <!-- Sangria de Caixa -->
       <div class="config-section mb-6">
         <h4 class="text-lg font-medium mb-4 texto-color-primary">Sangria de Caixa</h4>
@@ -230,17 +277,20 @@ const config = reactive({
   id_red_ctb_suprimento: null,
   id_hist_caixa_suprimento: null,
   id_hist_contabil_suprimento: null,
+  id_tipo_pagrec_suprimento: null,
   id_red_ctb_sangria: null,
   // Campos de descrição
   desc_ctb_suprimento: '',
   desc_hist_caixa_suprimento: '',
   desc_hist_contabil_suprimento: '',
+  desc_tipo_recebimento: '',
   desc_ctb_sangria: ''
 })
 
 // Dados dos selects
 const historicoCaixa = ref([])
 const historicoContabil = ref([])
+const tiposPagRec = ref([])
 const planosConta = computed(() => useFinanceiro.planosConta || [])
 
 // Computed para labels
@@ -252,6 +302,9 @@ const histCaixaSuprimentoLabel = computed(() =>
 )
 const histContabilSuprimentoLabel = computed(() => 
   config.id_hist_contabil_suprimento ? `( ${config.id_hist_contabil_suprimento} ) - ${config.desc_hist_contabil_suprimento}` : ''
+)
+const tipoRecebimentoLabel = computed(() => 
+  config.id_tipo_pagrec_suprimento ? `( ${config.id_tipo_pagrec_suprimento} ) - ${config.desc_tipo_recebimento}` : ''
 )
 const planoContaSangriaLabel = computed(() => 
   config.id_red_ctb_sangria ? `( ${config.id_red_ctb_sangria} ) - ${config.desc_ctb_sangria}` : ''
@@ -275,6 +328,11 @@ const historicoCaixaResultadosSuprimento = ref([])
 const menuHistContabilSuprimento = ref(false)
 const termoHistContabilSuprimento = ref('')
 const historicoContabilResultadosSuprimento = ref([])
+
+// Estados dos modais de busca - Tipo Recebimento
+const menuTipoRecebimento = ref(false)
+const termoTipoRecebimento = ref('')
+const tipoRecebimentoResultados = ref([])
 
 // Funções de filtro - Plano de Conta
 const filtrarPlanosConta = (termo) => {
@@ -319,6 +377,13 @@ const pesquisarHistoricoContabilSuprimento = () => {
 watch([historicoCaixa, termoHistCaixaSuprimento], pesquisarHistoricoCaixaSuprimento, { immediate: true })
 watch([historicoContabil, termoHistContabilSuprimento], pesquisarHistoricoContabilSuprimento, { immediate: true })
 
+// Funções de filtro - Tipo Recebimento
+const pesquisarTipoRecebimento = () => {
+  tipoRecebimentoResultados.value = filtrarLista(tiposPagRec.value, termoTipoRecebimento.value, ['desctipopagrec', 'descricao', 'id'])
+}
+
+watch([tiposPagRec, termoTipoRecebimento], pesquisarTipoRecebimento, { immediate: true })
+
 // Funções de seleção - Plano de Conta
 const selecionarPlanoContaSuprimento = (item) => {
   config.id_red_ctb_suprimento = item?.id ?? null
@@ -343,6 +408,12 @@ const selecionarHistoricoContabilSuprimento = (item) => {
   config.id_hist_contabil_suprimento = item?.id ?? null
   config.desc_hist_contabil_suprimento = item?.deschistorico ?? ''
   menuHistContabilSuprimento.value = false
+}
+
+const selecionarTipoRecebimento = (item) => {
+  config.id_tipo_pagrec_suprimento = item?.id ? Number(item.id) : null
+  config.desc_tipo_recebimento = item?.desctipopagrec || item?.descricao || ''
+  menuTipoRecebimento.value = false
 }
 
 // Carregar parâmetros do caixa
@@ -398,6 +469,12 @@ const carregarParametrosCaixa = async () => {
         config.desc_hist_contabil_suprimento = histContabil ? histContabil.deschistorico : ''
       }
       
+      // Preencher descrição do tipo recebimento
+      if (Array.isArray(tiposPagRec.value) && config.id_tipo_pagrec_suprimento) {
+        const tipoRec = tiposPagRec.value.find(t => Number(t.id) === Number(config.id_tipo_pagrec_suprimento))
+        config.desc_tipo_recebimento = tipoRec ? (tipoRec.desctipopagrec || tipoRec.descricao) : ''
+      }
+      
       dadosExistem.value = true
     } else {
       dadosExistem.value = false
@@ -415,9 +492,13 @@ const salvarConfiguracoes = async () => {
         id_red_ctb_suprimento: config.id_red_ctb_suprimento,
         id_hist_caixa_suprimento: config.id_hist_caixa_suprimento,
         id_hist_contabil_suprimento: config.id_hist_contabil_suprimento,
+        id_tipo_pagrec_suprimento: config.id_tipo_pagrec_suprimento || null,
         id_red_ctb_sangria: config.id_red_ctb_sangria
       }]
     }
+    
+    console.log('Valor de id_tipo_pagrec_suprimento no config:', config.id_tipo_pagrec_suprimento)
+    console.log('Payload completo:', JSON.stringify(dadosParaEnvio, null, 2))
     
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
     
@@ -441,10 +522,12 @@ const resetarConfiguracoes = () => {
   config.id_red_ctb_suprimento = null
   config.id_hist_caixa_suprimento = null
   config.id_hist_contabil_suprimento = null
+  config.id_tipo_pagrec_suprimento = null
   config.id_red_ctb_sangria = null
   config.desc_ctb_suprimento = ''
   config.desc_hist_caixa_suprimento = ''
   config.desc_hist_contabil_suprimento = ''
+  config.desc_tipo_recebimento = ''
   config.desc_ctb_sangria = ''
 }
 
@@ -461,15 +544,17 @@ onMounted(async () => {
       empresaStore.empresa = empresaStore.empresaSelecionada
     }
 
-    // Carregar históricos e planos de conta
-    const [histCaixa, histContabil] = await Promise.all([
+    // Carregar históricos, tipos e planos de conta
+    const [histCaixa, histContabil, tipos] = await Promise.all([
       useConfig.buscarHistoricoCaixa(),
       useConfig.buscarHistoricoBancario(), // Usando como histórico contábil temporariamente
+      useFinanceiro.buscarTiposPagRec(),
       useFinanceiro.buscarPlanosConta()
     ])
 
     historicoCaixa.value = Array.isArray(histCaixa?.data) ? histCaixa.data : (Array.isArray(histCaixa) ? histCaixa : [])
     historicoContabil.value = Array.isArray(histContabil?.data) ? histContabil.data : (Array.isArray(histContabil) ? histContabil : [])
+    tiposPagRec.value = Array.isArray(tipos?.data) ? tipos.data : (Array.isArray(tipos) ? tipos : [])
 
     // Carregar parâmetros do caixa
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id

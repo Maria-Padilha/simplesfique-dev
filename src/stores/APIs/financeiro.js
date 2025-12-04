@@ -8,6 +8,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
     ufs: [],
     usuarios: [],
     tiposDocumento: [],
+    tiposPagRec: [],
     locaisCobranca: [],
     planosConta: [],
     loading: false,
@@ -1181,6 +1182,34 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return dados
       } catch (error) {
         this.error = error.response?.data?.message || 'Erro ao buscar tipos de documento'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar tipos de pagamento/recebimento (GET /tipopagrec)
+    async buscarTiposPagRec() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get('/tipopagrec', {
+          headers: this.getAuthHeaders()
+        })
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+        } else if (Array.isArray(resp)) {
+          dados = resp
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+        }
+
+        this.tiposPagRec = dados
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar tipos de pagamento/recebimento'
         throw error
       } finally {
         this.loading = false

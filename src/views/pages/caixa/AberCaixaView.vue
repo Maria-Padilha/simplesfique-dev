@@ -175,50 +175,65 @@
           delete-icon="mdi-cash-lock"
           delete-tooltip="Fechar Caixa"
         >
-          <!-- Coluna de Status -->
+          <!-- Coluna de Data -->
+          <template v-slot:[`item.dtabertura`]="{ item }">
+            <div class="text-body-2">{{ formatarData(item.dtabertura) }}</div>
+          </template>
+
+          <!-- Coluna Aberto em -->
+          <template v-slot:[`item.aberto_em`]="{ item }">
+            <div>
+              <div class="text-body-2">{{ formatarHora(item.hrabertura) }}</div>
+              <div class="text-caption text-grey">{{ item.usuario }}</div>
+            </div>
+          </template>
+
+          <!-- Coluna Fechado em -->
+          <template v-slot:[`item.fechado_em`]="{ item }">
+            <div v-if="item.hrfechamento">
+              <div class="text-body-2">{{ formatarHora(item.hrfechamento) }}</div>
+              <div class="text-caption text-grey">{{ item.usuario }}</div>
+            </div>
+            <div v-else class="text-grey text-center">-</div>
+          </template>
+
+          <!-- Coluna Conferido -->
+          <template v-slot:[`item.vlrfechamento`]="{ item }">
+            <div class="text-body-2 text-right">
+              <span v-if="item.vlrfechamento !== null && item.vlrfechamento !== undefined">
+                {{ formatarMoeda(item.vlrfechamento) }}
+              </span>
+              <span v-else class="text-grey">-</span>
+            </div>
+          </template>
+
+          <!-- Coluna Sistema -->
+          <template v-slot:[`item.vlrabertura`]="{ item }">
+            <div class="text-body-2 font-weight-medium text-right">
+              {{ formatarMoeda(item.vlrabertura) }}
+            </div>
+          </template>
+
+          <!-- Coluna Diferença -->
+          <template v-slot:[`item.diferenca`]="{ item }">
+            <div class="text-body-2 text-right" :class="{
+              'text-success': item.diferenca === 0,
+              'text-error': item.diferenca !== 0
+            }">
+              {{ formatarMoeda(item.diferenca) }}
+            </div>
+          </template>
+
+          <!-- Coluna de Situação -->
           <template v-slot:[`item.status`]="{ item }">
             <v-chip
-              :color="item.status === 'A' ? 'success' : 'grey'"
-              variant="tonal"
+              :color="item.status === 'A' ? 'success' : 'error'"
+              variant="flat"
               size="small"
+              class="font-weight-medium"
             >
-              <v-icon start size="small">
-                {{ item.status === 'A' ? 'mdi-lock-open' : 'mdi-lock' }}
-              </v-icon>
               {{ item.status === 'A' ? 'Aberto' : 'Fechado' }}
             </v-chip>
-          </template>
-
-          <!-- Coluna de Data/Hora Abertura -->
-          <template v-slot:[`item.dtabertura`]="{ item }">
-            <div>
-              <div>{{ formatarData(item.dtabertura) }}</div>
-              <div class="text-caption text-grey">{{ item.hrabertura || '--:--' }}</div>
-            </div>
-          </template>
-
-          <!-- Coluna de Data/Hora Fechamento -->
-          <template v-slot:[`item.dtfechamento`]="{ item }">
-            <div v-if="item.dtfechamento">
-              <div>{{ formatarData(item.dtfechamento) }}</div>
-              <div class="text-caption text-grey">{{ item.hrfechamento || '--:--' }}</div>
-            </div>
-            <div v-else class="text-grey">--</div>
-          </template>
-
-          <!-- Coluna de Valor Abertura -->
-          <template v-slot:[`item.vlrabertura`]="{ item }">
-            <span class="font-weight-bold" style="color: var(--text-color-laranja)">
-              {{ formatarMoeda(item.vlrabertura) }}
-            </span>
-          </template>
-
-          <!-- Coluna de Valor Fechamento -->
-          <template v-slot:[`item.vlrfechamento`]="{ item }">
-            <span v-if="item.vlrfechamento !== null && item.vlrfechamento !== undefined" class="font-weight-bold">
-              {{ formatarMoeda(item.vlrfechamento) }}
-            </span>
-            <span v-else class="text-grey">--</span>
           </template>
         </TabelaPadrao>
       </v-card-text>
@@ -275,15 +290,14 @@ const rules = {
 
 // Headers da tabela
 const headers = [
-  { title: 'ID', key: 'id', sortable: true },
-  { title: 'Caixa', key: 'descricao_caixa', sortable: true },
-  { title: 'Status', key: 'status', sortable: true },
-  { title: 'Abertura', key: 'dtabertura', sortable: true },
-  { title: 'Fechamento', key: 'dtfechamento', sortable: true },
-  { title: 'Vlr. Abertura', key: 'vlrabertura', sortable: true },
-  { title: 'Vlr. Fechamento', key: 'vlrfechamento', sortable: true },
-  { title: 'Usuário', key: 'usuario', sortable: true },
-  { title: 'Ações', key: 'actions', sortable: false }
+  { title: 'Data', key: 'dtabertura', sortable: true, width: '120px' },
+  { title: 'Aberto em', key: 'aberto_em', sortable: false, width: '140px' },
+  { title: 'Fechado em', key: 'fechado_em', sortable: false, width: '140px' },
+  { title: 'Conferido', key: 'vlrfechamento', sortable: true, align: 'end', width: '130px' },
+  { title: 'Sistema', key: 'vlrabertura', sortable: true, align: 'end', width: '130px' },
+  { title: 'Diferença', key: 'diferenca', sortable: true, align: 'end', width: '130px' },
+  { title: 'Situação', key: 'status', sortable: true, align: 'center', width: '120px' },
+  { title: 'Ações', key: 'actions', sortable: false, align: 'center', width: '80px' }
 ]
 
 // Computed
@@ -305,6 +319,20 @@ const formatarData = (data) => {
   if (!data) return '--'
   try {
     return new Date(data).toLocaleDateString('pt-BR')
+  } catch {
+    return '--'
+  }
+}
+
+const formatarHora = (hora) => {
+  if (!hora) return '--'
+  try {
+    // Se vier no formato HH:MM:SS.mmm, extrair apenas HH:MM
+    if (typeof hora === 'string' && hora.includes(':')) {
+      const partes = hora.split(':')
+      return `${partes[0]}:${partes[1]}`
+    }
+    return hora
   } catch {
     return '--'
   }
@@ -373,16 +401,17 @@ const carregarDadosAuxiliares = async () => {
 
     // Processar histórico como aberturas de caixa
     aberturas.value = historicoMovimentacao.value.map(abertura => ({
-      id: abertura.id,
-      descricao_caixa: abertura.descricao_caixa || abertura.descricao || '',
-      status: abertura.status || 'I',
-      dtabertura: abertura.dtabertura || null,
-      hrabertura: abertura.hrabertura || null,
-      dtfechamento: abertura.dtfechamento || null,
-      hrfechamento: abertura.hrfechamento || null,
-      vlrabertura: abertura.vlrabertura || 0,
-      vlrfechamento: abertura.vlrfechamento || null,
-      usuario: abertura.usuario || abertura.nome_usuario || 'N/A',
+      id: abertura.id_caixa,
+      descricao_caixa: abertura.desccaixa || '',
+      status: abertura.situacao === 'Aberto' ? 'A' : 'F',
+      dtabertura: abertura.dt_abertura || null,
+      hrabertura: abertura.h_abertura || null,
+      dtfechamento: abertura.dt_encerramento || null,
+      hrfechamento: abertura.h_encerramento || null,
+      vlrabertura: abertura.valor_sistema || 0,
+      vlrfechamento: abertura.valor_conferido || null,
+      diferenca: abertura.valor_diferenca || 0,
+      usuario: abertura.nome || 'N/A',
       id_usuario: abertura.id_usuario || null,
       id_caixa: abertura.id_caixa || null
     }))

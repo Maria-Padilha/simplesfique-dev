@@ -115,6 +115,40 @@ export const useCaixaStore = defineStore('caixa', {
         },
 
         /**
+         * BUSCAR CAIXAS ABERTOS DO USUÁRIO (para lançamentos)
+         * 
+         * @param {number} idEmpresa - ID da empresa
+         * @return {Promise<Array>}
+         */
+        async buscarCaixasUsuarioAberto(idEmpresa) {
+            this.loading = true;
+            
+            try {
+                console.log('Store: Chamando API caixausuaberto/', idEmpresa);
+                const response = await api.get(`caixausuaberto/${idEmpresa}`, {
+                    headers: { Authorization: `Bearer ${this.token}` }
+                });
+                
+                console.log('Store: Resposta completa da API:', response.data);
+                
+                const dados = response.data?.data || response.data || [];
+                console.log('Store: Dados processados:', dados);
+                
+                const resultado = Array.isArray(dados) ? dados : [];
+                console.log('Store: Retornando:', resultado);
+                
+                return resultado;
+                
+            } catch (error) {
+                console.error('Store: Erro ao buscar caixas abertos do usuário:', error);
+                console.error('Store: Detalhes do erro:', error.response?.data);
+                return [];
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
          * BUSCAR USUÁRIOS POR CAIXA
          * 
          * @param {number} idEmpresa - ID da empresa

@@ -32,69 +32,66 @@
               <v-card-text class="pa-4">
                 <v-form ref="formRef" v-model="formValido">
                   <v-row>
-                    <!-- Nr Lançamento -->
-                    <v-col cols="12" md="3">
-                      <v-text-field
-                        v-model="formData.nrlancamento"
-                        label="Nr Lançamento"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-pound"
-                        readonly
-                        disabled
-                      ></v-text-field>
-                    </v-col>
-
                     <!-- Caixa -->
-                    <v-col cols="12" md="9">
+                    <v-col cols="12" md="4">
                       <v-autocomplete
                         v-model="formData.id_caixa"
                         :items="caixasDisponiveis"
                         :loading="loadingCaixas"
-                        item-title="descricao"
-                        item-value="id"
+                        item-title="desccaixa"
+                        item-value="id_caixa"
                         label="Caixa *"
                         :rules="[rules.required]"
                         variant="outlined"
                         density="compact"
                         prepend-inner-icon="mdi-cash-register"
                         no-data-text="Nenhum caixa disponível"
-                      >
-                        <template v-slot:prepend-inner>
-                          <v-icon>mdi-cash-register</v-icon>
-                        </template>
-                        <template v-slot:append-inner>
-                          <v-icon>mdi-chevron-down</v-icon>
-                        </template>
-                      </v-autocomplete>
+                      ></v-autocomplete>
+                    </v-col>
+
+                    <!-- Data de Lançamento -->
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        v-model="formData.dtlancamento"
+                        label="Data de Lançamento *"
+                        type="date"
+                        :rules="[rules.required]"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-calendar"
+                      ></v-text-field>
+                    </v-col>
+
+                    <!-- Valor -->
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        v-model="formData.valor"
+                        label="Valor *"
+                        :rules="[rules.required, rules.valorPositivo]"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-currency-usd"
+                        prefix="R$"
+                        type="number"
+                        step="0.01"
+                      ></v-text-field>
                     </v-col>
 
                     <!-- Código da Conta (Despesa ou Receita) -->
-                    <v-col cols="12" md="3">
+                    <v-col cols="12" md="4">
                       <v-text-field
                         v-model="formData.codigo_conta"
                         label="Código da Conta *"
                         :rules="[rules.required]"
                         variant="outlined"
                         density="compact"
+                        prepend-inner-icon="mdi-file-document"
                         @blur="buscarContaPorCodigo"
                       ></v-text-field>
                     </v-col>
 
-                    <!-- Descrição da Conta -->
-                    <v-col cols="12" md="9">
-                      <v-text-field
-                        v-model="formData.descricao_conta"
-                        label="Informe o Código da Conta de Despesa ou Receita *"
-                        variant="outlined"
-                        density="compact"
-                        readonly
-                        :rules="[rules.required]"
-                      ></v-text-field>
-                    </v-col>
-
                     <!-- Tipo Documento -->
-                    <v-col cols="12" md="3">
+                    <v-col cols="12" md="4">
                       <v-autocomplete
                         v-model="formData.id_tipodocumento"
                         :items="tiposDocumento"
@@ -105,110 +102,69 @@
                         :rules="[rules.required]"
                         variant="outlined"
                         density="compact"
+                        prepend-inner-icon="mdi-file-document-outline"
                         no-data-text="Nenhum tipo disponível"
                       ></v-autocomplete>
                     </v-col>
 
-                    <!-- Descrição do Tipo Documento -->
-                    <v-col cols="12" md="9">
-                      <v-text-field
-                        v-model="descricaoTipoDocumento"
-                        variant="outlined"
-                        density="compact"
-                        readonly
-                      ></v-text-field>
-                    </v-col>
-
                     <!-- Histórico do Caixa -->
-                    <v-col cols="12" md="3">
+                    <v-col cols="12" md="4">
                       <v-autocomplete
                         v-model="formData.id_historicocaixa"
                         :items="historicosCaixa"
                         :loading="loadingHistCaixa"
-                        item-title="codigo"
+                        item-title="deschistorico"
                         item-value="id"
                         label="Histórico do Caixa *"
                         :rules="[rules.required]"
                         variant="outlined"
                         density="compact"
+                        prepend-inner-icon="mdi-history"
                         no-data-text="Nenhum histórico disponível"
                       ></v-autocomplete>
                     </v-col>
 
-                    <!-- Data de Lançamento -->
-                    <v-col cols="12" md="3">
-                      <v-text-field
-                        v-model="formData.dtlancamento"
-                        label="Dt Lançamento *"
-                        type="date"
+                    <!-- Sinal (Entrada/Saída) -->
+                    <v-col cols="12" md="4">
+                      <v-select
+                        v-model="formData.sinal"
+                        :items="[
+                          { title: 'Entrada', value: 'E' },
+                          { title: 'Saída', value: 'S' }
+                        ]"
+                        label="Sinal *"
                         :rules="[rules.required]"
                         variant="outlined"
                         density="compact"
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Valor -->
-                    <v-col cols="12" md="3">
-                      <v-text-field
-                        v-model="formData.valor"
-                        label="Valor *"
-                        :rules="[rules.required, rules.valorPositivo]"
-                        variant="outlined"
-                        density="compact"
-                        prefix="R$"
-                        type="number"
-                        step="0.01"
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Sinal (Entrada/Saída) -->
-                    <v-col cols="12" md="3">
-                      <div class="d-flex align-center" style="height: 40px;">
-                        <span class="mr-4 text-body-2">Sinal *</span>
-                        <v-radio-group
-                          v-model="formData.sinal"
-                          :rules="[rules.required]"
-                          inline
-                          density="compact"
-                          hide-details
-                          class="mt-0"
-                        >
-                          <v-radio label="Entrada" value="E" color="success"></v-radio>
-                          <v-radio label="Saída" value="S" color="error"></v-radio>
-                        </v-radio-group>
-                      </div>
+                        prepend-inner-icon="mdi-swap-vertical"
+                      ></v-select>
                     </v-col>
 
                     <!-- Tipo Pagamento/Recebimento -->
-                    <v-col cols="12">
-                      <div class="mb-2 text-body-2 font-weight-medium">Tipo Pagamento / Recebimento *</div>
-                      <v-radio-group
+                    <v-col cols="12" md="4">
+                      <v-select
                         v-model="formData.tipo_pagamento"
+                        :items="tiposPagamento"
+                        item-title="label"
+                        item-value="value"
+                        label="Tipo Pagamento/Recebimento *"
                         :rules="[rules.required]"
-                        inline
+                        variant="outlined"
                         density="compact"
-                        row
-                        class="mt-0"
-                      >
-                        <v-radio
-                          v-for="tipo in tiposPagamento"
-                          :key="tipo.value"
-                          :label="tipo.label"
-                          :value="tipo.value"
-                        ></v-radio>
-                      </v-radio-group>
+                        prepend-inner-icon="mdi-credit-card"
+                      ></v-select>
                     </v-col>
 
                     <!-- Observação -->
-                    <v-col cols="12">
-                      <v-textarea
+                    <v-col cols="12" md="4">
+                      <v-text-field
                         v-model="formData.observacao"
                         label="Observação"
                         variant="outlined"
                         density="compact"
-                        rows="2"
+                        prepend-inner-icon="mdi-note-text"
                         maxlength="500"
-                      ></v-textarea>
+                      ></v-text-field>
                     </v-col>
                   </v-row>
                 </v-form>
@@ -300,14 +256,18 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
+import { useCaixaStore } from '@/stores/APIs/caixa'
+import { useEmpresaStore } from '@/stores/APIs/empresa'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useConfigParfinStore } from '@/stores/APIs/config'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 
 const themeStore = useThemeStore()
+const caixaStore = useCaixaStore()
+const empresaStore = useEmpresaStore()
 const financeiroStore = useFinanceiroStore()
 const configStore = useConfigParfinStore()
 
@@ -332,10 +292,8 @@ const planosConta = ref([])
 // Formulário
 const formData = reactive({
   id: null,
-  nrlancamento: null,
   id_caixa: null,
   codigo_conta: '',
-  descricao_conta: '',
   id_tipodocumento: null,
   id_historicocaixa: null,
   dtlancamento: new Date().toISOString().split('T')[0],
@@ -397,17 +355,6 @@ const lancamentosFiltradasComputadas = computed(() => {
   return Array.isArray(dados) ? dados : []
 })
 
-const descricaoTipoDocumento = computed(() => {
-  if (!formData.id_tipodocumento) return ''
-  const tipo = tiposDocumento.value.find(t => t.id === formData.id_tipodocumento)
-  return tipo ? tipo.desctipodocumento : ''
-})
-
-// Watchers
-watch(() => formData.id_tipodocumento, () => {
-  // Atualizar descrição do tipo de documento automaticamente
-})
-
 // Métodos de formatação
 const formatarMoeda = (valor) => {
   if (valor === null || valor === undefined) return 'R$ 0,00'
@@ -448,10 +395,8 @@ const cancelarFormulario = () => {
 const limparFormulario = () => {
   Object.assign(formData, {
     id: null,
-    nrlancamento: null,
     id_caixa: null,
     codigo_conta: '',
-    descricao_conta: '',
     id_tipodocumento: null,
     id_historicocaixa: null,
     dtlancamento: new Date().toISOString().split('T')[0],
@@ -467,10 +412,7 @@ const limparFormulario = () => {
 
 // Buscar conta por código
 const buscarContaPorCodigo = async () => {
-  if (!formData.codigo_conta) {
-    formData.descricao_conta = ''
-    return
-  }
+  if (!formData.codigo_conta) return
 
   try {
     const conta = planosConta.value.find(p => 
@@ -478,14 +420,12 @@ const buscarContaPorCodigo = async () => {
       p.id === parseInt(formData.codigo_conta)
     )
     
-    if (conta) {
-      formData.descricao_conta = conta.descricao || conta.nome || ''
-    } else {
-      formData.descricao_conta = ''
+    if (!conta) {
+      formData.codigo_conta = ''
     }
   } catch (error) {
     console.error('Erro ao buscar conta:', error)
-    formData.descricao_conta = ''
+    formData.codigo_conta = ''
   }
 }
 
@@ -493,13 +433,24 @@ const buscarContaPorCodigo = async () => {
 const carregarCaixas = async () => {
   loadingCaixas.value = true
   try {
-    const idEmpresa = localStorage.getItem('idEmpresa')
+    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
+    
     if (!idEmpresa) {
+      console.warn('ID da empresa não encontrado')
       return
     }
     
-    const dados = await financeiroStore.buscarCaixas(idEmpresa)
-    caixasDisponiveis.value = Array.isArray(dados) ? dados : []
+    console.log('Buscando caixas abertos para empresa:', idEmpresa)
+    const dados = await caixaStore.buscarCaixasUsuarioAberto(idEmpresa)
+    console.log('Caixas recebidos:', dados)
+    
+    if (Array.isArray(dados) && dados.length > 0) {
+      caixasDisponiveis.value = dados
+      console.log('Caixas disponíveis atualizados:', caixasDisponiveis.value)
+    } else {
+      caixasDisponiveis.value = []
+      console.warn('Nenhum caixa aberto encontrado')
+    }
   } catch (error) {
     console.error('Erro ao carregar caixas:', error)
     caixasDisponiveis.value = []
@@ -558,7 +509,8 @@ const carregarPlanosConta = async () => {
 const carregarLancamentos = async () => {
   loading.value = true
   try {
-    const idEmpresa = localStorage.getItem('idEmpresa')
+    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
+    
     if (!idEmpresa) {
       return
     }
@@ -581,7 +533,8 @@ const salvarLancamento = async () => {
 
   loading.value = true
   try {
-    const idEmpresa = localStorage.getItem('idEmpresa')
+    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
+    
     if (!idEmpresa) {
       return
     }
@@ -624,10 +577,8 @@ const editarLancamento = (item) => {
   
   Object.assign(formData, {
     id: item.id,
-    nrlancamento: item.nrlancamento,
     id_caixa: item.id_caixa,
     codigo_conta: item.codigo_conta || '',
-    descricao_conta: item.descricao_conta || '',
     id_tipodocumento: item.id_tipodocumento,
     id_historicocaixa: item.id_historicocaixa,
     dtlancamento: item.dtlancamento,
@@ -642,7 +593,8 @@ const editarLancamento = (item) => {
 const excluirLancamento = async (item) => {
   loading.value = true
   try {
-    const idEmpresa = localStorage.getItem('idEmpresa')
+    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
+    
     if (!idEmpresa) {
       return
     }
