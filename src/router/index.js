@@ -15,6 +15,7 @@ import CentroDeCustoView from "@/views/pages/financeiro/CentroDeCustoView.vue";
 import PrevisaoDebitosView from "@/views/pages/financeiro/PrevisaoDebitosView.vue";
 import PessoasView from '@/views/pages/PessoasView.vue';
 import PlanoContaView from '@/views/pages/financeiro/PlanoContaView.vue';
+import DebitoRealView from '@/views/pages/financeiro/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
 import {useSiteStore} from "@/stores/site";
@@ -107,6 +108,11 @@ const routes = [
         path: '/paginas/financeiro/centrodecusto/previsao',
         name: 'financeiro_centrodecusto_previsao',
         component: PrevisaoDebitosView
+    },
+    {
+        path: '/paginas/financeiro/centrodecusto/debitoreal',
+        name: 'financeiro_debitoreal',
+        component: DebitoRealView
     },
     {
         path: '/paginas/financeiro/caixa',

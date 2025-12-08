@@ -15,17 +15,12 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     icon: 'mdi-warehouse', 
                     submenus: [
                         { text: 'Cadastro', icon: 'mdi-file-tree', route: '/paginas/financeiro/centrodecusto/cadastro' },
-                        { text: 'Previsão de Débitos', icon: 'mdi-chart-timeline-variant', route: '/paginas/financeiro/centrodecusto/previsao' }
+                        { text: 'Previsão de Débitos', icon: 'mdi-chart-timeline-variant', route: '/paginas/financeiro/centrodecusto/previsao' },
+                        { text: 'Débito Real', icon: 'mdi-chart-bar', route: '/paginas/financeiro/centrodecusto/debitoreal' }
                     ]
                 },
-                { text: 'Pagar', icon: 'mdi-credit-card-outline', route: '/paginas/financeiro/pagar' },
-                { text: 'Receber', icon: 'mdi-cash-plus', route: '/paginas/financeiro/receber' },
-                { text: 'Plano de Conta', icon: 'mdi-format-list-bulleted-type', route: '/paginas/financeiro/planoconta' }
-            ]
-        },
-        {
-            id: 'caixa',
-            titulo: 'Caixa',
+                {
+            text: 'Caixa',
             icon: 'mdi-cash-register',
             submenus: [
                 {   text: 'Cadastro de Caixa',
@@ -44,6 +39,12 @@ export const useSidebarStore = defineStore('sidebar', () => {
                 
             ]
         },
+                { text: 'Pagar', icon: 'mdi-credit-card-outline', route: '/paginas/financeiro/pagar' },
+                { text: 'Receber', icon: 'mdi-cash-plus', route: '/paginas/financeiro/receber' },
+                { text: 'Plano de Conta', icon: 'mdi-format-list-bulleted-type', route: '/paginas/financeiro/planoconta' }
+            ]
+        },
+        
         {
             id: 'manutencao',
             titulo: 'Manutenção',

@@ -169,11 +169,13 @@
           no-data-icon="mdi-cash-register"
           no-data-text="Nenhuma abertura de caixa registrada"
           delete-item-display-field="descricao_caixa"
-          @confirm-delete="fecharCaixa"
+          @confirm-delete="encerrarCaixa"
           :show-edit="false"
           :show-delete="true"
           delete-icon="mdi-cash-lock"
-          delete-tooltip="Fechar Caixa"
+          delete-tooltip="Encerrar Caixa"
+          delete-dialog-title="Encerrar Caixa"
+          delete-dialog-text="Deseja realmente encerrar este caixa?"
         >
           <!-- Coluna de Data -->
           <template v-slot:[`item.dtabertura`]="{ item }">
@@ -468,7 +470,7 @@ const abrirCaixa = async () => {
 }
 
 // Fechar caixa
-const fecharCaixa = async () => {
+const encerrarCaixa = async (item) => {
   loading.value = true
   try {
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
@@ -477,19 +479,18 @@ const fecharCaixa = async () => {
       return
     }
 
-    // TODO: Implementar endpoint PUT /caixaabertura/:idempresa/id/:id para fechamento
-    // const payload = {
-    //   data: [{
-    //     dtfechamento: new Date().toISOString().split('T')[0],
-    //     hrfechamento: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-    //     status: 'F' // F = Fechado
-    //   }]
-    // }
-    // await financeiroStore.fecharCaixa(idEmpresa, item.id, payload)
+    if (!item.id || !item.id_caixa) {
+      console.error('ID do registro ou do caixa não encontrado!')
+      return
+    }
+
+    const resultado = await caixaStore.encerrarCaixa(item.id, idEmpresa, item.id_caixa)
     
-    await carregarDadosAuxiliares()
+    if (resultado) {
+      await carregarDadosAuxiliares()
+    }
   } catch (error) {
-    console.error('Erro ao fechar caixa:', error)
+    console.error('Erro ao encerrar caixa:', error)
   } finally {
     loading.value = false
   }

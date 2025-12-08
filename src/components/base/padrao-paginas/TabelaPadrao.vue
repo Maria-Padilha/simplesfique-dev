@@ -58,11 +58,11 @@
               
               <v-btn
                 v-if="showDeleteAction"
-                icon="mdi-delete"
+                :icon="deleteIcon"
                 size="small"
                 color="error"
                 variant="text"
-                :title="deleteTitle"
+                :title="deleteTooltip"
                 @click="handleDeleteItem(item)"
               ></v-btn>
             </div>
@@ -92,12 +92,12 @@
         </v-card-title>
         <v-card-text>
           <span v-if="itemToDelete && deleteItemDisplayField">
-            Tem certeza que deseja excluir "{{ getItemDisplayValue(itemToDelete) }}"?
+            {{ deleteDialogText || `Tem certeza que deseja excluir "${getItemDisplayValue(itemToDelete)}"?` }}
             <br><br>
             {{ deleteDialogMessage }}
           </span>
           <span v-else>
-            {{ deleteDialogMessage }}
+            {{ deleteDialogText || deleteDialogMessage }}
           </span>
         </v-card-text>
         <v-card-actions>
@@ -203,6 +203,14 @@ const props = defineProps({
     type: Boolean,
     default: true
   },
+  deleteIcon: {
+    type: String,
+    default: 'mdi-delete'
+  },
+  deleteTooltip: {
+    type: String,
+    default: 'Excluir'
+  },
   deleteTitle: {
     type: String,
     default: 'Excluir'
@@ -222,6 +230,10 @@ const props = defineProps({
   deleteDialogTitle: {
     type: String,
     default: 'Confirmar Exclusão'
+  },
+  deleteDialogText: {
+    type: String,
+    default: null
   },
   deleteDialogMessage: {
     type: String,
