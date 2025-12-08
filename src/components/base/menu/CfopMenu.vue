@@ -16,10 +16,12 @@
           <div
               v-for="item in cfops"
               :key="item.id"
-              class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer transition-colors"
+              class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer transition-colors w-[400px]"
               @click="selecionar(item)"
           >
-            <p class="text-body-1">{{ item.id_cfop || 'Sem código' }} - {{ item.descricao || 'Sem descrição' }}</p>
+            <p class="text-body-1 overflow-hidden text-ellipsis whitespace-nowrap">
+              {{ item.id_cfop || 'Sem código' }} - {{ item.descricao || 'Sem descrição' }}
+            </p>
           </div>
         </template>
         <template v-else>
