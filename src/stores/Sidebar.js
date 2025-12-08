@@ -59,6 +59,21 @@ export const useSidebarStore = defineStore('sidebar', () => {
             ]
         },
         {
+            id: 'contabil',
+            titulo: 'Contabil',
+            icon: 'mdi-cash-register',
+            submenus: [
+                {
+                    text: 'Nota de Serviço',
+                    icon: 'mdi-format-list-bulleted-type',
+                    route: '/paginas/contabil/notadeservico'
+                },
+            ]
+
+
+        },
+
+        {
             id: 'manutencao',
             titulo: 'Manutenção',
             icon: 'mdi-tools',

@@ -182,6 +182,13 @@ const routes = [
         name: 'pdv_caixa',
         component: PdvCaixaView
     },
+    // páginas do pdv
+    {
+        path: '/paginas/contabil/notadeservico',
+        name: 'notadeservico',
+        component: () => import('@/views/pages/contabil/NotaDeServicoView.vue')
+    },
+
 
     //    Páginas do site
     {
