@@ -18,6 +18,9 @@ import PlanoContaView from '@/views/pages/financeiro/PlanoContaView.vue';
 import DebitoRealView from '@/views/pages/financeiro/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
+import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
+import PdvView from '@/views/pages/pdv/PdvView.vue';
+import PagamentoView from '@/views/pages/pdv/PagamentoView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
@@ -30,6 +33,7 @@ const routes = [
         name: 'notFound',
         component: NotFoundView
     },
+
 
     //   pagina de manutenção
     {
@@ -135,7 +139,9 @@ const routes = [
         component: PlanoContaView
     },
 
-    // páginas do estoque
+
+
+    // páginas do estoque (substituídas por placeholder até criar os arquivos reais)
     {
         path: '/paginas/estoque/grupo',
         name: 'grupo',
@@ -152,37 +158,52 @@ const routes = [
         component: () => import('@/views/pages/estoque/CestView.vue')
     },
 
+    // páginas de produtos
 
+    {
+        path: '/paginas/produtos',
+        name: 'produtos',
+        component: () => import('@/views/pages/produtos/ProdutosView.vue')
+    },
+    {
+        path: '/paginas/produtos/:id',
+        name: 'produtos-detalhes',
+        component: () => import('@/views/pages/produtos/ProdutosDetalhesView.vue')
+    },
+    {
+        path: '/paginas/entradadfe',
+        name: 'entradadfe',
+        component: () => import('@/views/pages/produtos/EntradaDfeView.vue')
+    },
 
-    // páginas do estoque (substituídas por placeholder até criar os arquivos reais)
-    {
-        path: '/paginas/estoque/grupo',
-        name: 'grupo',
-        component: NotFoundView
-    },
-    {
-        path: '/paginas/estoque/classe',
-        name: 'classe',
-        component: NotFoundView
-    },
-    {
-        path: '/paginas/estoque/ncm',
-        name: 'ncm'
-    },
-    {
-        path: '/paginas/estoque/cest',
-        name: 'cest'
-    },
-    {
-        path: '/paginas/estoque/nbs',
-        name: 'nbs'
-    },
     // páginas do pdv
+    {
+        path: '/paginas/pdv',
+        name: 'pdv',
+        component: PdvView
+    },
+    {
+        path: '/paginas/pdv/pagamento',
+        name: 'pdv_pagamento',
+        component: PagamentoView
+    },
     {
         path: '/paginas/pdv/operacao',
         name: 'pdv_operacao',
         component: OperacaoView
     },
+    {
+        path: '/paginas/pdv/caixa',
+        name: 'pdv_caixa',
+        component: PdvCaixaView
+    },
+    // páginas do pdv
+    {
+        path: '/paginas/contabil/notadeservico',
+        name: 'notadeservico',
+        component: () => import('@/views/pages/contabil/NotaDeServicoView.vue')
+    },
+
 
     //    Páginas do site
     {
@@ -211,6 +232,8 @@ const router = createRouter({
     history: createWebHistory(process.env.BASE_URL),
     routes
 })
+
+// Middleware de navegação
 
 router.beforeEach(async (to, from, next) => {
     const siteStore = useSiteStore();

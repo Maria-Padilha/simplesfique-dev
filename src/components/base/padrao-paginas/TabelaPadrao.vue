@@ -13,8 +13,9 @@
           density="compact"
           class="mb-2 ml-3 custom-text-field"
         ></v-text-field>
-        
+
         <v-data-table
+          :items-per-page="itemPorPag"
           :headers="headers"
           :items="items"
           :loading="loading"
@@ -23,9 +24,9 @@
           class="elevation-1 background-secondary"
         >
           <!-- Slots dinâmicos para formatação customizada -->
-          <template 
-            v-for="(_, name) in $slots" 
-            :key="name" 
+          <template
+            v-for="(_, name) in $slots"
+            :key="name"
             v-slot:[name]="slotData"
           >
             <slot :name="name" v-bind="slotData" />
@@ -43,7 +44,7 @@
                 :title="editTitle"
                 @click="$emit('edit-item', item)"
               ></v-btn>
-              
+
               <v-btn
                 v-if="showCustomAction"
                 :icon="customActionIcon"
@@ -55,7 +56,7 @@
                 :disabled="customActionLoading"
                 @click="$emit('custom-action', item)"
               ></v-btn>
-              
+
               <v-btn
                 v-if="showDeleteAction"
                 :icon="deleteIcon"
@@ -71,10 +72,10 @@
           <!-- No data personalizado -->
           <template v-slot:no-data>
             <div class="text-center pa-4">
-              <v-icon 
-                :icon="noDataIcon" 
-                size="64" 
-                class="mb-2 opacity-60" 
+              <v-icon
+                :icon="noDataIcon"
+                size="64"
+                class="mb-2 opacity-60"
                 :color="themeStore.darkMode ? '#ffff' : ''"
               ></v-icon>
               <p class="text-body-1">{{ noDataText }}</p>
@@ -147,13 +148,18 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  
+
+  itemPorPag: {
+    type: Number,
+    default: 10
+  },
+
   // Controle de formulário
   formularioAberto: {
     type: Boolean,
     default: false
   },
-  
+
   // Configuração da pesquisa
   showSearch: {
     type: Boolean,
@@ -167,7 +173,7 @@ const props = defineProps({
     type: String,
     default: ''
   },
-  
+
   // Configuração de ações
   showEditAction: {
     type: Boolean,
@@ -177,7 +183,7 @@ const props = defineProps({
     type: String,
     default: 'Editar'
   },
-  
+
   showCustomAction: {
     type: Boolean,
     default: false
@@ -198,7 +204,7 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  
+
   showDeleteAction: {
     type: Boolean,
     default: true
@@ -215,7 +221,7 @@ const props = defineProps({
     type: String,
     default: 'Excluir'
   },
-  
+
   // Configuração do no-data
   noDataIcon: {
     type: String,
@@ -225,7 +231,7 @@ const props = defineProps({
     type: String,
     default: 'Nenhum registro encontrado'
   },
-  
+
   // Configuração do dialog de exclusão
   deleteDialogTitle: {
     type: String,
@@ -248,7 +254,7 @@ const props = defineProps({
 // Emits
 const emit = defineEmits([
   'edit-item',
-  'delete-item', 
+  'delete-item',
   'custom-action',
   'confirm-delete',
   'update:search'

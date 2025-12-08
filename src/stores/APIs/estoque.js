@@ -20,6 +20,7 @@ export const useEstoqueStore = defineStore('estoque', {
 
         classes: [],
         classe: null,
+        recordsClasse: 0,
 
         ncms: [],
         ncm: null,
@@ -38,11 +39,11 @@ export const useEstoqueStore = defineStore('estoque', {
          * @return {Promise<void>}
          */
 
-        async buscarTodos() {
+        async buscarTodos(find, limit = 100) {
             this.loading = true;
 
             try {
-                const response = await api.get(`/grupo`, {
+                const response = await api.get(`/grupo?find=${find}&limit=${limit}`, {
                     headers: {
                         Authorization: `Bearer ${this.token}`
                     }
@@ -205,17 +206,18 @@ export const useEstoqueStore = defineStore('estoque', {
          * @return {Promise<void>}
          */
 
-        async buscarTodasClasses() {
+        async buscarTodasClasses(find, limit = 100) {
             this.loading = true;
 
             try {
-                const response = await api.get(`/classe`, {
+                const response = await api.get(`/classe?find=${find}&limit=${limit}`, {
                     headers: {
                         Authorization: `Bearer ${this.token}`
                     }
                 });
 
                 this.classes = response.data.data;
+                this.recordsClasse = response.data.records;
                 this.errorMessage = '';
 
                 console.log('Classes encontradas:', this.classes);

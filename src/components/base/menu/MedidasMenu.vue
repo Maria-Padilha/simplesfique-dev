@@ -3,15 +3,14 @@
       v-model="menu"
       :pesquisar="pesquisar"
       :modelInput="termoPesquisa"
-      :resultados="ncms"
+      :resultados="medidas"
       @update:modelInput="termoPesquisa = $event"
-      @selecionar="selecionarNcm"
+      @selecionar="selecionarmedida"
       :cadastrar-btn="false"
-      :loading="estoqueStore.loading"
   >
     <template #resultados="{ selecionar }">
       <v-virtual-scroll
-          :items="ncms"
+          :items="medidas"
           :height="80"
           item-height="45"
       >
@@ -20,13 +19,13 @@
               class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer w-[400px]"
               @click="selecionar(item)"
           >
-            <p class="text-body-1 overflow-hidden text-ellipsis whitespace-nowrap">
-              {{ item.id + ' - ' + item.desc_ncm || 'Sem nome' }}
+            <p class="text-body-1 overflow-hidden text-ellipsis whitespace-nowrap text-capitalize">
+              {{ item.abreviatura + ' - ' + item.descmedida }}
             </p>
           </div>
         </template>
       </v-virtual-scroll>
-      <p class="text-sm opacity-50">Exibindo {{ ncms?.length }} de {{ estoqueStore.recordsNcm }}</p>
+      <p class="text-sm opacity-50">Exibindo {{ medidas?.length }} de {{ estoqueStore.recordsMedidas }}</p>
     </template>
   </busca-padrao-menu>
 </template>
@@ -34,33 +33,33 @@
 <script setup>
 import BuscaPadraoMenu from "@/components/base/menu/BuscaPadraoMenu.vue";
 import {ref, computed, defineEmits, watch, watchEffect} from "vue";
-import {useEstoqueStore} from "@/stores/APIs/estoque";
+import {useProdutosStore} from "@/stores/APIs/produtos";
 
 const emit = defineEmits(["selecionar"]);
 
 const menu = ref(false);
 const termoPesquisa = ref("");
 
-const estoqueStore = useEstoqueStore();
-const ncms = computed(() => estoqueStore.ncms);
+const estoqueStore = useProdutosStore();
+const medidas = computed(() => estoqueStore.medidas);
 
 watchEffect(() => {
-  if (ncms.value.length === 0) {
-    estoqueStore.buscarNcms("", 15);
+  if (medidas.value.length === 0) {
+    estoqueStore.buscarMedidas("", 15);
   }
 })
 
 watch( () => termoPesquisa.value, async (pesquisa) => {
   if (!pesquisa || pesquisa.length < 3) {
-    ncms.value = [];
+    medidas.value = [];
     return;
   }
-  console.log("Pesquisando Ncm: ", pesquisa);
-  await estoqueStore.buscarNcms(pesquisa, 0);
+  console.log("Pesquisando medida: ", pesquisa);
+  await estoqueStore.buscarMedidas(pesquisa, 0);
 })
 
-const selecionarNcm = (NcmSelecionado) => {
-  emit("selecionar", NcmSelecionado);
+const selecionarmedida = (medidaselecionado) => {
+  emit("selecionar", medidaselecionado);
   menu.value = false;
 };
 </script>
