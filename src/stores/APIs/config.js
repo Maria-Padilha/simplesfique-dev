@@ -2,7 +2,6 @@ import {defineStore} from "pinia"
 import api from "@/services/api";
 import {useApiStore} from "@/stores/APIs/api";
 // import {toast} from "vue3-toastify";
- const apiStore = useApiStore();
 
 export const useConfigParfinStore = defineStore('config-parfin', {
     state: () => ({
@@ -49,7 +48,7 @@ export const useConfigParfinStore = defineStore('config-parfin', {
             }
         },
         async cadastrarParfin(parfinData) {
-
+            const apiStore = useApiStore();
             this.loading = apiStore.loading;
             const result = await apiStore.executarAcao('ccustoparametro', 'post', parfinData);
 
@@ -62,6 +61,7 @@ export const useConfigParfinStore = defineStore('config-parfin', {
 
 
         async alterarParfin(parfinData) {
+            const apiStore = useApiStore();
             this.loading = apiStore.loading;
             const result = await apiStore.executarAcao('ccustoparametro', 'put', parfinData);
 

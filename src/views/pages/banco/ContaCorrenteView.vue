@@ -128,6 +128,47 @@
                                       </v-combobox>
                                     </v-col>
 
+                    <!-- Plano de Conta (Obrigatório) -->
+                    <v-col cols="12" md="12">
+                      <v-autocomplete
+                        v-model="formData.id_reduzido_ctb"
+                        :items="financeiroStore.planosConta"
+                        item-title="descconta"
+                        item-value="id"
+                        label="Plano de Conta *"
+                        :rules="[rules.required]"
+                        variant="outlined"
+                        density="compact"
+                        class="custom-text-field"
+                        prepend-inner-icon="mdi-file-tree"
+                        :loading="loadingPlanosConta"
+                        hide-no-data
+                      >
+                        <template v-slot:item="{ props, item }">
+                          <v-list-item v-bind="props">
+                            <template v-slot:prepend>
+                              <v-icon icon="mdi-file-tree" size="20" class="mr-2"></v-icon>
+                            </template>
+                            <template v-slot:title>
+                              {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
+                            </template>
+                            <template v-slot:subtitle>
+                              <span class="text-caption opacity-70">
+                                Tipo: {{ item.raw.tipo_conta }} | Natureza: {{ item.raw.natureza }} | Nível: {{ item.raw.nivel }}
+                              </span>
+                            </template>
+                          </v-list-item>
+                        </template>
+                        <template v-slot:selection="{ item }">
+                          {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
+                        </template>
+                        <template v-slot:no-data>
+                          <v-list-item>
+                            <v-list-item-title>Nenhum plano de conta encontrado</v-list-item-title>
+                          </v-list-item>
+                        </template>
+                      </v-autocomplete>
+                    </v-col>
 
                     <!-- Limite (Obrigatório) -->
                     <v-col cols="12" md="6">
@@ -541,6 +582,7 @@ const agenciaRef = ref(null)
 const openAgenciaModal = ref(false)
 // banco selecionado (objeto) to improve typing UX
 const bancoSelecionado = ref(null)
+const loadingPlanosConta = ref(false)
 
 // form for creating agency in modal
 const agenciaForm = reactive({
@@ -590,7 +632,8 @@ const formData = reactive({
   digito_cc: '',
   titular: '', // Nome correto do campo titular
   id_banco: '',
-
+  id_agencia: '',
+  id_reduzido_ctb: null, // Plano de Conta
   limite: '0',
   dtabertura: '',
   dtvenctolimite: '', // Nome correto do campo vencimento do limite
@@ -907,6 +950,8 @@ const resetarForm = () => {
     digito_cc: '',
     titular: '', // Nome correto
     id_banco: '',
+    id_agencia: '',
+    id_reduzido_ctb: null,
     limite: '0',
     dtabertura: '',
     dtvenctolimite: '', // Nome correto
@@ -952,6 +997,17 @@ const excluirConta = async (conta) => {
   }
 }
 
+const carregarPlanosConta = async () => {
+  loadingPlanosConta.value = true
+  try {
+    await financeiroStore.buscarPlanosConta()
+  } catch (error) {
+    console.error('Erro ao carregar planos de conta:', error)
+  } finally {
+    loadingPlanosConta.value = false
+  }
+}
+
 const mostrarSnackbar = (message, color = 'success') => {
   snackbar.message = message
   snackbar.color = color
@@ -989,7 +1045,8 @@ onMounted(async () => {
       financeiroStore.buscarContas(),
       financeiroStore.buscarBancos(),
       financeiroStore.buscarAgencias(),
-      financeiroStore.buscarUFs()
+      financeiroStore.buscarUFs(),
+      carregarPlanosConta()
     ])
   } catch (error) {
     mostrarSnackbar('Erro ao carregar dados: ' + error.message, 'error')

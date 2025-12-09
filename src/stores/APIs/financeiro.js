@@ -89,6 +89,54 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
+    // Buscar contas correntes ativas do usuário logado (GET /ccorrenteusuativo)
+    async buscarContasUsuarioAtivo() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get('/ccorrenteusuativo', {
+          headers: this.getAuthHeaders()
+        });
+        
+        const resposta = response.data;
+        
+        // A API retorna {data: {id, numero_ccorrente, titular}}
+        // Precisamos transformar em array
+        let dados;
+        if (resposta && resposta.data) {
+          // Se data é um objeto único, transformar em array
+          if (typeof resposta.data === 'object' && !Array.isArray(resposta.data)) {
+            dados = [resposta.data];
+          }
+          // Se data já é array
+          else if (Array.isArray(resposta.data)) {
+            dados = resposta.data;
+          }
+          else {
+            dados = [];
+          }
+        } 
+        // Se é array diretamente
+        else if (Array.isArray(resposta)) {
+          dados = resposta;
+        }
+        // Se é objeto válido, transformar em array
+        else if (resposta && resposta !== '' && typeof resposta === 'object') {
+          dados = [resposta];
+        }
+        else {
+          dados = [];
+        }
+        
+        return dados;
+      } catch (error) {
+        this.error = error.message;
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     // Buscar conta corrente por ID
     async buscarContaPorId(id) {
       this.loading = true;
@@ -184,6 +232,80 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return true;
       } catch (error) {
         this.error = error.response?.data?.message || 'Erro ao deletar conta';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // ========== MOVIMENTAÇÕES DE CONTA CORRENTE ==========
+    
+    // Buscar movimentações de conta corrente
+    async buscarMovimentacoesContaCorrente(idEmpresa, idCcorrente, dtini, dtfim) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get(`/ccorrentemov/${idEmpresa}/idccorrente/${idCcorrente}/dtini/${dtini}/dtfim/${dtfim}`, {
+          headers: this.getAuthHeaders()
+        });
+        
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar movimentações';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Criar movimentação de conta corrente
+    async criarMovimentacaoContaCorrente(idEmpresa, idCcorrente, payload) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.post(`/ccorrentemov/${idEmpresa}/idccorrente/${idCcorrente}`, payload, {
+          headers: this.getAuthHeaders()
+        });
+        
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao criar movimentação';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Atualizar movimentação de conta corrente
+    async atualizarMovimentacaoContaCorrente(idEmpresa, idCcorrente, id, payload) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.put(`/ccorrentemov/${idEmpresa}/idccorrente/${idCcorrente}/id/${id}`, payload, {
+          headers: this.getAuthHeaders()
+        });
+        
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao atualizar movimentação';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Deletar movimentação de conta corrente
+    async deletarMovimentacaoContaCorrente(idEmpresa, idCcorrente, id) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.delete(`/ccorrentemov/${idEmpresa}/idccorrente/${idCcorrente}/id/${id}`, {
+          headers: this.getAuthHeaders()
+        });
+        
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao deletar movimentação';
         throw error;
       } finally {
         this.loading = false;
@@ -830,6 +952,33 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
       catch (error) {
         this.error = error.response?.data?.message || 'Erro ao buscar históricos contábeis'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar históricos bancários (GET /histbancario)
+    async buscarHistoricosBancarios() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get('/histbancario', {
+          headers: this.getAuthHeaders()
+        })
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+        } else if (Array.isArray(resp)) {
+          dados = resp
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+        }
+        return dados
+      }
+      catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar históricos bancários'
         throw error
       } finally {
         this.loading = false

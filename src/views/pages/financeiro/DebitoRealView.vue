@@ -81,45 +81,117 @@
           <v-card-text class="pa-0">
             <v-data-table
               :headers="headers"
-              :items="debitosRealizados"
+              :items="debitosPorCentroCusto"
               :loading="loading"
-              item-key="id_ccusto"
-              class="elevation-0"
+              item-value="id"
+              class="elevation-0 background-card"
               :items-per-page="15"
+              :items-per-page-options="[10, 25, 50, 100]"
               density="compact"
+              :theme="themeStore.darkMode ? 'dark' : 'light'"
+              show-expand
+              :single-expand="true"
             >
-               <!-- Coluna Centro de Custo -->
-              <template v-slot:[`item.desccentrocusto`]="{ item }">
-                {{ item.desccentrocusto || '--' }}
-              </template>
-              <!-- Coluna Data Lançamento -->
-              <template v-slot:[`item.dtlancamento`]="{ item }">
-                {{ formatarData(item.dtlancamento) }}
+              <template v-slot:top>
+                <v-toolbar flat>
+                  <v-toolbar-title>Resultado dos Débitos Realizados</v-toolbar-title>
+                </v-toolbar>
               </template>
 
-              <!-- Coluna Conta -->
-              <template v-slot:[`item.descconta`]="{ item }">
-                {{ item.descconta || '--' }}
+              <!-- Coluna Centro de Custo -->
+              <template v-slot:[`item.centroCusto`]="{ item }">
+                <span class="font-weight-medium">{{ item.centroCusto }}</span>
+              </template>
+
+              <!-- Colunas de datas (dinâmicas) -->
+              <template v-for="data in datasUnicas" :key="data" v-slot:[`item.data_${data}`]="{ item }">
+                <span>
+                  {{ item[`data_${data}`] ? formatarMoeda(item[`data_${data}`]) : '-' }}
+                </span>
               </template>
            
-              <!-- Coluna Valor -->
-              <template v-slot:[`item.valor`]="{ item }">
-                <span class="text-error font-weight-bold">
-                  {{ formatarMoeda(item.valor) }}
+              <!-- Coluna Total -->
+              <template v-slot:[`item.total`]="{ item }">
+                <span class="font-weight-bold" style="color: var(--text-color-laranja)">
+                  {{ formatarMoeda(item.total) }}
                 </span>
+              </template>
+
+              <!-- Conteúdo expandido -->
+              <template v-slot:expanded-row="{ item }">
+                <tr>
+                  <td :colspan="headers.length + 1" class="pa-0">
+                    <v-card flat class="background-card ma-2">
+                      <v-card-title class="text-subtitle-2 pa-3 d-flex align-center">
+                        <v-icon icon="mdi-format-list-bulleted" size="small" class="mr-2"></v-icon>
+                        Detalhamento das Despesas
+                      </v-card-title>
+                      <v-divider></v-divider>
+                      <v-card-text class="pa-0">
+                        <v-table density="compact">
+                          <thead>
+                            <tr>
+                              <th class="text-left">Conta</th>
+                              <th v-for="data in datasUnicas" :key="data" class="text-center">
+                                {{ formatarDataCurta(data) }}
+                              </th>
+                              <th class="text-center">Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-for="(despesaAgrupada, index) in agruparDespesasPorConta(item.despesas)" :key="index">
+                              <td class="text-left">{{ despesaAgrupada.conta }}</td>
+                              <td v-for="data in datasUnicas" :key="data" class="text-center">
+                                {{ despesaAgrupada[`data_${data}`] ? formatarMoeda(despesaAgrupada[`data_${data}`]) : '-' }}
+                              </td>
+                              <td class="text-center font-weight-medium">
+                                {{ formatarMoeda(despesaAgrupada.total) }}
+                              </td>
+                            </tr>
+                          </tbody>
+                          <tfoot>
+                            <tr class="font-weight-bold">
+                              <td class="text-right">Subtotal:</td>
+                              <td v-for="data in datasUnicas" :key="data" class="text-center">
+                                {{ formatarMoeda(calcularTotalPorData(item.despesas, data)) }}
+                              </td>
+                              <td class="text-center" style="color: var(--text-color-laranja)">
+                                {{ formatarMoeda(item.total) }}
+                              </td>
+                            </tr>
+                          </tfoot>
+                        </v-table>
+                      </v-card-text>
+                    </v-card>
+                  </td>
+                </tr>
               </template>
 
               <!-- Loading -->
               <template v-slot:loading>
-                <v-skeleton-loader type="table-row@5"></v-skeleton-loader>
+                <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
               </template>
 
               <!-- Sem dados -->
               <template v-slot:no-data>
-                <div class="text-center py-8">
-                  <v-icon icon="mdi-cash-check" size="64" color="grey" class="mb-4"></v-icon>
-                  <p class="text-h6 text-grey">Nenhum débito realizado encontrado</p>
+                <div class="text-center pa-4">
+                  <v-icon size="64" color="grey">mdi-cash-check</v-icon>
+                  <p class="text-body-1 mt-2">Nenhum débito realizado encontrado</p>
+                  <p class="text-caption">Configure os filtros e clique em Buscar</p>
                 </div>
+              </template>
+
+              <!-- Totais -->
+              <template #[`body.append`]>
+                <tr v-if="debitosPorCentroCusto.length > 0" class="font-weight-bold total-row">
+                  <td class="text-right">TOTAL GERAL:</td>
+                  <td v-for="data in datasUnicas" :key="data" class="text-center">
+                    {{ formatarMoeda(totaisPorData[`data_${data}`] || 0) }}
+                  </td>
+                  <td class="text-center" style="color: var(--text-color-laranja)">
+                    {{ formatarMoeda(totalDebitos) }}
+                  </td>
+                </tr>
               </template>
             </v-data-table>
           </v-card-text>
@@ -214,13 +286,41 @@ const periodos = [
   { title: 'Personalizado', value: 'personalizado' }
 ]
 
-// Headers da tabela
-const headers = [
-  { title: 'Centro de Custo', key: 'desccentrocusto', sortable: true, width: '250px' },
-  { title: 'Data Lançamento', key: 'dtlancamento', sortable: true, width: '130px' },
-  { title: 'Conta', key: 'descconta', sortable: true, width: '200px' },
-  { title: 'Valor', key: 'valor', sortable: true, align: 'end', width: '150px' }
-]
+// Headers da tabela (dinâmicos baseados nas datas)
+const headers = computed(() => {
+  const baseHeaders = [
+    { title: 'Centro de Custo', key: 'centroCusto', sortable: true, width: '200px' }
+  ]
+  
+  // Adiciona uma coluna para cada data encontrada
+  const dataHeaders = datasUnicas.value.map(data => ({
+    title: formatarDataCurta(data),
+    key: `data_${data}`,
+    sortable: false,
+    align: 'center',
+    width: '120px'
+  }))
+  
+  return [
+    ...baseHeaders,
+    ...dataHeaders,
+    { title: 'Total', key: 'total', sortable: true, align: 'end', width: '150px' }
+  ]
+})
+
+// Datas únicas encontradas nos débitos
+const datasUnicas = computed(() => {
+  if (!debitosRealizados.value.length) return []
+  
+  const datas = new Set()
+  debitosRealizados.value.forEach(item => {
+    if (item.dtvencimento) {
+      datas.add(item.dtvencimento)
+    }
+  })
+  
+  return Array.from(datas).sort()
+})
 
 // Computed
 const totalDebitos = computed(() => {
@@ -229,7 +329,7 @@ const totalDebitos = computed(() => {
   }, 0)
 })
 
-// Agrupa débitos por centro de custo
+// Agrupa débitos por centro de custo com valores por data
 const debitosPorCentroCusto = computed(() => {
   if (!debitosRealizados.value.length) return []
   
@@ -237,20 +337,52 @@ const debitosPorCentroCusto = computed(() => {
   
   debitosRealizados.value.forEach(item => {
     const centroCusto = item.desccentrocusto || 'Sem Centro de Custo'
+    const key = `${item.id_ccusto || 0}_${centroCusto}`
+    const data = item.dtvencimento
+    const dataKey = `data_${data}`
     
-    if (!agrupado[centroCusto]) {
-      agrupado[centroCusto] = {
-        desccentrocusto: centroCusto,
+    if (!agrupado[key]) {
+      agrupado[key] = {
+        id: key,
+        centroCusto: centroCusto,
         total: 0,
-        quantidade: 0
+        despesas: [] // Armazena despesas agrupadas por data
       }
+      
+      // Inicializa todas as datas com 0
+      datasUnicas.value.forEach(d => {
+        agrupado[key][`data_${d}`] = 0
+      })
     }
     
-    agrupado[centroCusto].total += parseFloat(item.valor || 0)
-    agrupado[centroCusto].quantidade += 1
+    // Acumula o valor na data correspondente
+    const valor = parseFloat(item.valor || 0)
+    agrupado[key][dataKey] = (agrupado[key][dataKey] || 0) + valor
+    agrupado[key].total += valor
+    
+    // Armazena despesa para o detalhamento
+    agrupado[key].despesas.push({
+      dtvencimento: item.dtvencimento,
+      descconta: item.descconta,
+      valor: valor
+    })
   })
   
   return Object.values(agrupado).sort((a, b) => b.total - a.total)
+})
+
+// Totais por data
+const totaisPorData = computed(() => {
+  const totais = {}
+  
+  datasUnicas.value.forEach(data => {
+    const dataKey = `data_${data}`
+    totais[dataKey] = debitosPorCentroCusto.value.reduce((sum, item) => {
+      return sum + (item[dataKey] || 0)
+    }, 0)
+  })
+  
+  return totais
 })
 
 // Dados do gráfico de pizza
@@ -270,7 +402,7 @@ const chartPieOptions = computed(() => ({
       }
     }
   },
-  labels: debitosPorCentroCusto.value.map(item => item.desccentrocusto),
+  labels: debitosPorCentroCusto.value.map(item => item.centroCusto),
   colors: ['#FF8C42', '#FFA726', '#FFB74D', '#FFCC80', '#FFE0B2', '#FF9800', '#FB8C00', '#F57C00', '#EF6C00', '#E65100'],
   theme: {
     mode: themeStore.darkMode ? 'dark' : 'light',
@@ -362,7 +494,7 @@ const chartBarOptions = computed(() => ({
     }
   },
   xaxis: {
-    categories: debitosPorCentroCusto.value.map(item => item.desccentrocusto),
+    categories: debitosPorCentroCusto.value.map(item => item.centroCusto),
     labels: {
       formatter: function (val) {
         return formatarMoeda(val)
@@ -405,13 +537,48 @@ const formatarMoeda = (valor) => {
   }).format(valor)
 }
 
-const formatarData = (data) => {
+const formatarDataCurta = (data) => {
   if (!data) return '--'
   try {
-    return new Date(data).toLocaleDateString('pt-BR')
+    const [, mes, dia] = data.split('-')
+    return `${dia}/${mes.substring(1) || mes}`
   } catch {
     return '--'
   }
+}
+
+// Agrupa despesas por conta para exibição detalhada
+const agruparDespesasPorConta = (despesas) => {
+  const agrupado = {}
+  
+  despesas.forEach(despesa => {
+    const conta = despesa.descconta || 'Sem Conta'
+    const data = despesa.dtvencimento
+    const dataKey = `data_${data}`
+    
+    if (!agrupado[conta]) {
+      agrupado[conta] = {
+        conta: conta,
+        total: 0
+      }
+      // Inicializa todas as datas
+      datasUnicas.value.forEach(d => {
+        agrupado[conta][`data_${d}`] = 0
+      })
+    }
+    
+    agrupado[conta][dataKey] = (agrupado[conta][dataKey] || 0) + despesa.valor
+    agrupado[conta].total += despesa.valor
+  })
+  
+  return Object.values(agrupado)
+}
+
+// Calcula total de despesas por data
+const calcularTotalPorData = (despesas, data) => {
+  return despesas
+    .filter(d => d.dtvencimento === data)
+    .reduce((sum, d) => sum + d.valor, 0)
 }
 
 // Aplicar período selecionado
@@ -520,5 +687,33 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Estilos específicos se necessário */
+.v-data-table {
+  background-color: transparent !important;
+}
+
+.v-data-table :deep(.v-data-table__td),
+.v-data-table :deep(.v-data-table__th) {
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+/* Linhas zebradas */
+.v-data-table :deep(tbody tr:nth-child(odd)) {
+  background-color: rgba(var(--v-theme-on-surface), 0.02);
+}
+
+.v-data-table :deep(tbody tr:nth-child(even)) {
+  background-color: rgba(var(--v-theme-on-surface), 0.05);
+}
+
+/* Hover effect */
+.v-data-table :deep(tbody tr:hover) {
+  background-color: rgba(var(--v-theme-primary), 0.08) !important;
+}
+
+/* Linha de totais */
+.total-row {
+  background-color: rgba(var(--v-theme-primary), 0.1) !important;
+  border-top: 2px solid rgba(var(--v-theme-primary), 0.3) !important;
+}
 </style>
+

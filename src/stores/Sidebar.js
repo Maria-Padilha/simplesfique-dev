@@ -20,9 +20,12 @@ export const useSidebarStore = defineStore('sidebar', () => {
             icon: 'mdi-currency-usd',
             submenus: [
                 {
-                    text: 'Conta Corrente',
+                    text: 'Banco',
                     icon: 'mdi-bank-outline',
-                    route: '/paginas/financeiro/contacorrente'
+                    submenus: [
+                        { text: 'Conta Corrente', icon: 'mdi-bank', route: '/paginas/financeiro/contacorrente' },
+                        { text: 'Movimentação Bancária', icon: 'mdi-bank-transfer', route: '/paginas/banco/movimentacao' },
+                    ]
                 },
                 {
                     text: 'Centro de Custo',
@@ -30,7 +33,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     submenus: [
                         { text: 'Cadastro', icon: 'mdi-file-tree', route: '/paginas/financeiro/centrodecusto/cadastro' },
                         { text: 'Previsão de Débitos', icon: 'mdi-chart-timeline-variant', route: '/paginas/financeiro/centrodecusto/previsao' },
-                        { text: 'Débito Real', icon: 'mdi-chart-bar', route: '/paginas/financeiro/centrodecusto/debitoreal' }
+                        { text: 'Débito Realizado', icon: 'mdi-chart-bar', route: '/paginas/financeiro/centrodecusto/debitoreal' }
                     ]
                 },
                 {
