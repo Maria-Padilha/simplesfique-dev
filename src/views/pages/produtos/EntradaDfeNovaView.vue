@@ -3,6 +3,11 @@
     <template #titulo>Entrada de Nota</template>
     <template #section>
       <v-form ref="formsNf" @submit="salvarFormulario">
+        <div class="flex items-center justify-end gap-3 mb-4">
+          <v-btn size="small" color="var(--text-color-laranja)" variant="tonal" @click="limparFormulario">Cancelar</v-btn>
+          <v-btn size="small" color="var(--text-color-laranja)" class="text-white" type="submit" variant="flat">Salvar entrada</v-btn>
+        </div>
+
         <v-expansion-panels :theme="themeStore.darkMode ? 'dark' : 'light'" color="var(--bg-card)">
           <v-expansion-panel elevation="1" class="mb-5" title="Entrada de Nota" color="var(--bg-card)">
             <template #text>
@@ -484,18 +489,33 @@ import {computed, reactive, ref, watchEffect} from "vue";
 import TabelaPadrao from "@/components/base/padrao-paginas/TabelaPadrao.vue";
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {toast} from "vue3-toastify";
+import {useLocalizacaoStore} from "@/stores/APIs/localizacao";
 
 const themeStore = useThemeStore();
-const produtosStore = useProdutosStore();
-const idEmpresa = JSON.parse(localStorage.getItem('empresaSelecionada'));
 const pessoasStore = usePessoasStore();
+const produtosStore = useProdutosStore();
+const localizacaoStore = useLocalizacaoStore();
+const idEmpresa = JSON.parse(localStorage.getItem('empresaSelecionada'));
 
 const pessoas = computed(() => pessoasStore.pessoas);
+const ufs = computed(() => localizacaoStore.ufs);
 
 const almoxarifadoNome = ref("");
 const cfopNome = ref("");
 const editando = ref(false);
 const produtos = ref([]);
+
+// DADOS DO XML
+const xmlData = ref(null);
+
+const ide = ref(null);
+const emit = ref(null);
+const dest = ref(null);
+const itens = ref([]);
+const total = ref(null);
+const transp = ref(null);
+const pag = ref(null);
+const infAdic = ref(null);
 
 const headers = ref([
   {title: 'Cod. Ref', key: 'id'},
@@ -619,30 +639,33 @@ const selecionarCfop = (cfop) => {
   cfopNome.value = cfop.id_cfop + ' - ' + (cfop.descricao || '');
 };
 
+const limparFormulario = () => {
+  cancelarFormulario();
+  itens.value = [];
+  produtos.value = [];
+  editando.value = false;
+};
+
+const formsNf = ref(null);
+
 const salvarFormulario = async () => {
   forms.gerou_financeiro = forms.gerou_financeiro ? 'S' : 'N';
   forms.gerou_estoque = forms.gerou_estoque ? 'S' : 'N';
   forms.importacaoxml = forms.importacaoxml ? 'S' : 'N';
   forms.nf_origem = forms.nf_origem ? 'S' : 'N';
+  forms.arquivoxml = forms.arquivoxml ? forms.arquivoxml.name : null;
+  forms.id_uf = forms.id_uf ? forms.id_uf.sigla : null;
 
-  if (!editando.value) {
-    console.log('Payload para salvar: ', payload);
-
-    const payload = normalizarForm(forms);
-    await produtosStore.cadastrarEntradaDfe(
-        {data: [payload]},
-        idEmpresa?.id ?? 1
-    );
-  } else {
-    console.log('Payload para editar: ', forms);
-    await produtosStore.atualizarEntradaDfe(
-        idEmpresa?.id ?? 1,
-        forms.id,
-        {data: [forms]}
-    );
+  if (formsNf.value && !(await formsNf.value.validate())) {
+    return;
   }
 
-  editando.value = false;
+  const payload = normalizarForm(forms);
+
+  await produtosStore.cadastrarEntradaDfe({
+    data: [payload]
+  }, idEmpresa?.id ?? 1);
+
   cancelarFormulario();
 };
 
@@ -662,7 +685,7 @@ const camposFloat = [
 
 const camposInteiros = [
   "id_fornecedor", "id_nota", "id_serie",
-  "id_almoxarifado", "id_cfop", "id_uf",
+  "id_almoxarifado", "id_cfop",
   "id_transportadora", "qtd_volume",
   "id_planopagto", "id_usuario_aprovou_fiscal",
   "nfe_numero", "nfe_numero_serie", "nfe_acesso"
@@ -704,16 +727,6 @@ const normalizarForm = (data) => {
 /**
  * TRABALHANDO COM XML
  */
-const xmlData = ref(null);
-
-const ide = ref(null);
-const emit = ref(null);
-const dest = ref(null);
-const itens = ref([]);
-const total = ref(null);
-const transp = ref(null);
-const pag = ref(null);
-const infAdic = ref(null);
 
 // --- Função universal para converter XML → JSON
 function xmlToJson(element) {
@@ -954,7 +967,8 @@ function preencherForms(ide, total, emit, xml, dest, itens, transp, pag, infAdic
   forms.dtentrada = ide?.dhSaiEnt || null;
 
   forms.nfe_numero = ide?.nNF || null;
-  forms.id_uf = Number(ide?.cUF) || null;
+  forms.id_uf = ufs.value.find(uf => uf.id == ide?.cUF);
+  console.log("UF encontrada:", forms.id_uf);
   forms.id_serie = ide?.serie || null;
   forms.nfe_modelo = ide?.mod || null;
   forms.nfe_chavedeacesso = chave || null;
@@ -1036,6 +1050,10 @@ function formatarReal(valor) {
 watchEffect(() => {
   if (pessoas.value.length === 0 && !forms.arquivoxml) {
     pessoasStore.buscarTodasPessoas();
+  }
+
+  if (localizacaoStore.ufs.length === 0) {
+    localizacaoStore.buscarTodasUfs();
   }
 })
 </script>

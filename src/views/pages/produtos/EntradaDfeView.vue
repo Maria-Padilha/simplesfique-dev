@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import {ref, computed, watchEffect} from "vue";
+import {ref, computed, onMounted} from "vue";
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import TabelaPadrao from "@/components/base/padrao-paginas/TabelaPadrao.vue";
 import {useProdutosStore} from "@/stores/APIs/produtos";
@@ -74,7 +74,7 @@ const headers = ref([
   {title: 'Ações', key: 'acoes', sortable: false},
 ]);
 
-watchEffect(() => {
+onMounted(() => {
   if (entradaDfe.value.length === 0)
     produtosStore.buscarEntradasDfe(1);
 
