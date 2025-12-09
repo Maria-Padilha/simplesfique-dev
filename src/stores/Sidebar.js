@@ -123,7 +123,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     route: '/paginas/produtos'
                 },
                 {
-                    text: 'Entrada de DFe',
+                    text: 'Entrada Nota Fiscal',
                     icon: 'mdi-file-document-outline',
                     route: '/paginas/entradadfe'
                 },

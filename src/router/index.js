@@ -160,6 +160,11 @@ const routes = [
         name: 'entradadfe',
         component: () => import('@/views/pages/produtos/EntradaDfeView.vue')
     },
+    {
+        path: '/paginas/entradadfe/nova',
+        name: 'entradadfe-nova',
+        component: () => import('@/views/pages/produtos/EntradaDfeNovaView.vue')
+    },
 
     // páginas do pdv
     {
