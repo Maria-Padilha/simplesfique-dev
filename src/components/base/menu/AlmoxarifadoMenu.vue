@@ -4,22 +4,22 @@
       :pesquisar="pesquisar"
       :modalCadastrar="abrirModalCadastrar"
       :modelInput="termoPesquisa"
-      :resultados="marcas"
-      :loading="marcaStore.loading"
+      :resultados="almoxarifados"
+      :loading="almoxStore.loading"
       @update:modelInput="termoPesquisa = $event"
-      @selecionar="selecionarmarca"
+      @selecionar="selecionarAlmoxarifado"
       :cadastrar-btn="true"
   >
     <template #resultados="{ selecionar }">
-      <div class="marcas-menu-scroll-container" style="height: 200px; overflow-y: auto;">
-        <template v-if="marcas.length">
+      <div class="almoxarifado-menu-scroll-container" style="height: 200px; overflow-y: auto;">
+        <template v-if="almoxarifados.length">
           <div
-              v-for="item in marcas"
+              v-for="item in almoxarifados"
               :key="item.id"
               class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer transition-colors"
               @click="selecionar(item)"
           >
-            <p class="text-body-1">{{ item.descmarca || 'Sem nome' }}</p>
+            <p class="text-body-1">{{ item.descalmoxarifado || 'Sem nome' }}</p>
           </div>
         </template>
         <template v-else>
@@ -28,26 +28,26 @@
           </div>
         </template>
       </div>
-      <p class="text-sm opacity-50 px-3 py-2">Exibindo {{ marcas?.length }} de {{ marcaStore.recordsMarcas }}</p>
+      <p class="text-sm opacity-50 px-3 py-2">Exibindo {{ almoxarifados?.length }} de {{ almoxStore.recordsAlmoxarifados }}</p>
     </template>
   </busca-padrao-menu>
 
    <CadastrarModal
       :cadastrarModal="cadastrarModal"
       :clearInput="clearInput"
-      :cadastrarcidade="cadastrarmarca"
+      :cadastrarcidade="cadastrarAlmoxarifado"
   >
-    <template #titulo>Marca</template>
+    <template #titulo>Almoxarifado</template>
     <template #textfields>
 
       <v-card-text>
         <v-form class="d-flex flex-column gap-3 w-100">
           <v-text-field
-              label="marca"
+              label="Almoxarifado"
               variant="outlined"
               density="comfortable"
               hide-details="auto"
-              v-model="marca"
+              v-model="almoxarifado"
           />
         </v-form>
       </v-card-text>
@@ -59,7 +59,7 @@
 import BuscaPadraoMenu from "@/components/base/menu/BuscaPadraoMenu.vue";
 import CadastrarModal from "@/components/base/modais/CadastrarModal.vue";
 import {ref, computed, defineEmits, watch, watchEffect} from "vue";
-import {useProdutosStore} from "@/stores/APIs/produtos";
+import {useEstoqueStore} from "@/stores/APIs/estoque";
 import { toast } from "vue3-toastify";
 
 const emit = defineEmits(["selecionar"]);
@@ -68,33 +68,38 @@ const menu = ref(false);
 const termoPesquisa = ref("");
 const cadastrarModal = ref(false);
 
-const marca = ref("");
+const almoxarifado = ref("");
 
-const marcaStore = useProdutosStore();
-const marcas = computed(() => marcaStore.marcas);
+const almoxStore = useEstoqueStore();
+const almoxarifados = computed(() => almoxStore.almoxarifados);
+
+// Obtém ID da empresa do localStorage
+const idEmpresa = JSON.parse(localStorage.getItem('empresaSelecionada'))?.id;
 
 watchEffect(() => {
-  if (marcas.value.length === 0) {
-    marcaStore.buscarMarcas("", 15);
+  if (almoxarifados.value.length === 0 && idEmpresa) {
+    almoxStore.buscarAlmoxarifados(idEmpresa, "", 15);
   }
 })
 
 watch( () => termoPesquisa.value, async (pesquisa) => {
   if (!pesquisa || pesquisa.lenght < 2) {
-    marcas.value = [];
+    almoxarifados.value = [];
     return;
   }
-  console.log("Pesquisando marca: ", pesquisa);
-  await marcaStore.buscarMarcas(pesquisa);
+  console.log("Pesquisando almoxarifado: ", pesquisa);
+  if (idEmpresa) {
+    await almoxStore.buscarAlmoxarifados(idEmpresa, pesquisa);
+  }
 })
 
-const selecionarmarca = (marcaSelecionado) => {
-  emit("selecionar", marcaSelecionado);
+const selecionarAlmoxarifado = (almoxarifadoSelecionado) => {
+  emit("selecionar", almoxarifadoSelecionado);
   menu.value = false;
 };
 
 const clearInput = () => {
-  marca.value = "";
+  almoxarifado.value = "";
   cadastrarModal.value = false;
 };
 
@@ -102,20 +107,28 @@ const abrirModalCadastrar = () => {
   cadastrarModal.value = true;
 };
 
-const cadastrarmarca = async () => {
-  if (!marca.value) {
-    toast.error("O marca é obrigatório!");
+const cadastrarAlmoxarifado = async () => {
+  if (!almoxarifado.value) {
+    toast.error("O almoxarifado é obrigatório!");
     return;
   }
 
-  await marcaStore.cadastrarMarca({
+  if (!idEmpresa) {
+    toast.error("Empresa não selecionada!");
+    return;
+  }
+
+  await almoxStore.cadastrarAlmoxarifado(idEmpresa, {
     data: [
       {
-        descmarca: marca.value
+        descalmox: almoxarifado.value
       }
     ]
   })
 
-  if (!marcaStore.errorMessage) cadastrarModal.value = false;
+  if (!almoxStore.errorMessage) {
+    clearInput();
+  }
 };
 </script>
+

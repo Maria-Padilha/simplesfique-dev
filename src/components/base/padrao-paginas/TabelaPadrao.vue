@@ -22,6 +22,7 @@
           :item-key="itemKey"
           :search="searchModel"
           class="elevation-1 background-secondary"
+          :hide-default-footer="esconderFooter"
         >
           <!-- Slots dinâmicos para formatação customizada -->
           <template
@@ -236,8 +237,15 @@ const props = defineProps({
   deleteItemDisplayField: {
     type: String,
     default: null
+  },
+
+  esconderFooter: {
+    type: Boolean,
+    default: false
   }
 })
+
+const esconderFooter = computed(() => props.esconderFooter)
 
 // Emits
 const emit = defineEmits([
