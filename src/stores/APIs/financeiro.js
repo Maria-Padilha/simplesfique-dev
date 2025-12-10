@@ -258,6 +258,24 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
+    // Buscar movimentação específica de conta corrente
+    async buscarMovimentacaoContaCorrente(idEmpresa, idCcorrente, id) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get(`/ccorrentemov/${idEmpresa}/idccorrente/${idCcorrente}/id/${id}`, {
+          headers: this.getAuthHeaders()
+        });
+        
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar movimentação';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     // Criar movimentação de conta corrente
     async criarMovimentacaoContaCorrente(idEmpresa, idCcorrente, payload) {
       this.loading = true;

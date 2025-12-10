@@ -448,7 +448,7 @@
               :items="movimentacoesFiltradas"
               :loading="loading"
               item-key="id"
-              class="elevation-0"
+              class="elevation-1 background-secondary"
               :items-per-page="15"
               density="compact"
             >
@@ -837,26 +837,80 @@ const aplicarFiltros = () => {
 }
 
 const editarMovimentacao = async (item) => {
-  Object.assign(formData, {
-    id: item.id,
-    id_ccorrente: item.id_ccorrente,
-    id_empresa: item.id_empresa,
-    id_historico: item.id_historico,
-    id_hist_contabil: item.id_hist_contabil,
-    id_planoconta: item.id_planoconta,
-    nrdocumento: item.nrdocumento || '',
-    observacao: item.observacao || '',
-    valor: item.valor,
-    dtlancamento: item.dtlancamento,
-    origem: item.origem,
-    tipo: item.tipo
-  })
-  editando.value = true
-  formularioAberto.value = true
+  try {
+    loading.value = true
+    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
+    
+    if (!idEmpresa) {
+      console.error('ID da empresa não encontrado')
+      return
+    }
 
-  // Se for saída, verificar e mostrar o slide de centro de custo
-  if (item.tipo === '-') {
-    await verificarUtilizaCCusto()
+    console.log('Buscando movimentação completa:', item.id, item.id_ccorrente)
+    
+    // Buscar dados completos da movimentação da API
+    const response = await financeiroStore.buscarMovimentacaoContaCorrente(idEmpresa, item.id_ccorrente, item.id)
+    
+    console.log('Resposta completa da API:', response)
+    
+    // A API retorna { data: [...], contabil: [...], ccusto: [...] }
+    const dados = Array.isArray(response?.data) ? response.data[0] : response?.data || item
+    const contabil = response?.contabil || []
+    const ccusto = response?.ccusto || []
+    
+    console.log('Dados da movimentação:', dados)
+    console.log('Dados contábeis:', contabil)
+    console.log('Rateio de centro de custo:', ccusto)
+    
+    // Buscar id_planoconta e id_hist_contabil do array contabil
+    const contabilPrincipal = contabil.find(c => c.id_planoconta) || {}
+    const contabilHistorico = contabil.find(c => c.id_historico_ctb) || {}
+    
+    Object.assign(formData, {
+      id: dados.id,
+      id_ccorrente: dados.id_ccorrente,
+      id_empresa: dados.id_empresa,
+      id_historico: dados.id_historico,
+      id_hist_contabil: contabilHistorico.id_historico_ctb || null,
+      id_planoconta: contabilPrincipal.id_planoconta || null,
+      nrdocumento: dados.nrdocumento || '',
+      observacao: dados.observacao || '',
+      valor: dados.valor,
+      dtlancamento: dados.dtlancamento,
+      origem: dados.origem,
+      tipo: dados.tipo
+    })
+    
+    console.log('Dados carregados no formulário:', formData)
+    
+    editando.value = true
+    formularioAberto.value = true
+
+    // Se for saída, verificar e carregar rateio de centro de custo
+    if (dados.tipo === '-') {
+      await verificarUtilizaCCusto()
+      
+      // Se houver rateio no lançamento, carregar
+      if (Array.isArray(ccusto) && ccusto.length > 0) {
+        console.log('Carregando rateio existente:', ccusto)
+        
+        // Calcular porcentagem baseado no valor total
+        const valorTotal = parseFloat(dados.valor || 0)
+        
+        ccustosRateio.value = ccusto.map(c => ({
+          id_ccusto: c.id_ccusto,
+          desccentrocusto: c.desccentrocusto || '',
+          valor: parseFloat(c.valor || 0),
+          porcentagem: valorTotal > 0 ? ((parseFloat(c.valor || 0) / valorTotal) * 100).toFixed(2) : 0
+        }))
+        
+        console.log('Rateio carregado:', ccustosRateio.value)
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao carregar movimentação para edição:', error)
+  } finally {
+    loading.value = false
   }
 }
 

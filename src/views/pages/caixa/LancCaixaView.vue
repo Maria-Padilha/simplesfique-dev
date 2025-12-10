@@ -114,20 +114,32 @@
                         density="compact"
                         prepend-inner-icon="mdi-cash-register"
                         no-data-text="Nenhum caixa disponível"
+                        @update:model-value="onCaixaChange"
                       ></v-autocomplete>
                     </v-col>
 
-                    <!-- Data de Lançamento -->
+                    <!-- Data de Abertura do Caixa -->
                     <v-col cols="12" md="4">
                       <v-text-field
                         v-model="formData.dtlancamento"
-                        label="Data de Lançamento *"
+                        label="Data de Abertura do Caixa *"
                         type="date"
                         :rules="[rules.required]"
                         variant="outlined"
                         density="compact"
                         prepend-inner-icon="mdi-calendar"
-                      ></v-text-field>
+                        readonly
+                        disabled
+                      >
+                        <template v-slot:append-inner>
+                          <v-tooltip location="top">
+                            <template v-slot:activator="{ props }">
+                              <v-icon v-bind="props" size="20" color="grey">mdi-information-outline</v-icon>
+                            </template>
+                            Data de abertura do caixa selecionado (não editável)
+                          </v-tooltip>
+                        </template>
+                      </v-text-field>
                     </v-col>
 
                     <!-- Valor -->
@@ -438,7 +450,7 @@
               :items="lancamentosFiltrados"
               :loading="loading"
               item-key="id"
-              class="elevation-0"
+              class="elevation-1 background-secondary"
               :items-per-page="15"
               density="compact"
             >
@@ -493,6 +505,38 @@
               <!-- Coluna Observação -->
               <template v-slot:[`item.observacao`]="{ item }">
                 {{ item.observacao || '--' }}
+              </template>
+
+              <!-- Coluna Ações -->
+              <template v-slot:[`item.actions`]="{ item }">
+                <div class="d-flex justify-center gap-1">
+                  <v-btn
+                    icon="mdi-pencil"
+                    size="small"
+                    variant="text"
+                    color="primary"
+                    @click="editarLancamento(item)"
+                    :disabled="item.origem !== 'CAI'"
+                  >
+                    <v-icon size="20">mdi-pencil</v-icon>
+                    <v-tooltip activator="parent" location="top">
+                      {{ item.origem !== 'CAI' ? 'Apenas lançamentos de caixa podem ser editados' : 'Editar' }}
+                    </v-tooltip>
+                  </v-btn>
+                  <v-btn
+                    icon="mdi-delete"
+                    size="small"
+                    variant="text"
+                    color="error"
+                    @click="confirmarExclusao(item)"
+                    :disabled="item.origem !== 'CAI'"
+                  >
+                    <v-icon size="20">mdi-delete</v-icon>
+                    <v-tooltip activator="parent" location="top">
+                      {{ item.origem !== 'CAI' ? 'Apenas lançamentos de caixa podem ser excluídos' : 'Excluir' }}
+                    </v-tooltip>
+                  </v-btn>
+                </div>
               </template>
 
               <!-- Loading -->
@@ -621,7 +665,8 @@ const headers = [
   { title: 'Saldo', key: 'saldo', sortable: false, align: 'end', width: '120px' },
   { title: 'Origem', key: 'origem', sortable: true, width: '100px' },
   { title: 'Tipo Pagamento', key: 'desctipopagrec', sortable: true, width: '150px' },
-  { title: 'Observação', key: 'observacao', sortable: false, width: '200px' }
+  { title: 'Observação', key: 'observacao', sortable: false, width: '200px' },
+  { title: 'Ações', key: 'actions', sortable: false, align: 'center', width: '100px' }
 ]
 
 // Filtros
@@ -686,6 +731,7 @@ const formatarData = (data) => {
 
 const obterLabelOrigem = (origem) => {
   const origens = {
+    'CAI': 'CAIXA',
     'M': 'MANUAL',
     'A': 'AUTOMÁTICO',
     'I': 'IMPORTAÇÃO',
@@ -873,6 +919,24 @@ const distribuirIgualmente = () => {
   })
 }
 
+// Atualizar data quando caixa for selecionado
+const onCaixaChange = (idCaixa) => {
+  console.log('Caixa selecionado:', idCaixa)
+  
+  if (!idCaixa) {
+    formData.dtlancamento = new Date().toISOString().split('T')[0]
+    return
+  }
+  
+  const caixaSelecionado = caixasDisponiveis.value.find(c => c.id_caixa === idCaixa)
+  console.log('Dados do caixa:', caixaSelecionado)
+  
+  if (caixaSelecionado && caixaSelecionado.dt_abertura) {
+    formData.dtlancamento = caixaSelecionado.dt_abertura
+    console.log('Data de abertura atribuída:', formData.dtlancamento)
+  }
+}
+
 // Carregar dados
 const carregarCaixas = async () => {
   loadingCaixas.value = true
@@ -1043,6 +1107,7 @@ const carregarLancamentos = async () => {
 // Salvar lançamento
 const salvarLancamento = async () => {
   if (!formValido.value) {
+    mostrarMensagem('Preencha todos os campos obrigatórios', 'warning')
     return
   }
 
@@ -1051,6 +1116,14 @@ const salvarLancamento = async () => {
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
     
     if (!idEmpresa) {
+      mostrarMensagem('ID da empresa não encontrado', 'error')
+      loading.value = false
+      return
+    }
+
+    if (!formData.id_caixa) {
+      mostrarMensagem('Selecione um caixa', 'warning')
+      loading.value = false
       return
     }
 
@@ -1077,10 +1150,12 @@ const salvarLancamento = async () => {
     const payload = {
       data: [{
         tipo: formData.tipo,
+        dtlancamento: formData.dtlancamento,
         valor: parseFloat(formData.valor),
         origem: formData.origem,
         observacao: formData.observacao || null,
         id_tipopagrec: formData.id_tipopagrec,
+        id_tipodocumento: formData.id_tipodocumento,
         id_caixahist: formData.id_caixahist,
         id_hist_contabil: formData.id_hist_contabil || null,
         id_planoconta: formData.id_planoconta,
@@ -1089,16 +1164,24 @@ const salvarLancamento = async () => {
       ccusto: ccustoArray
     }
 
+    console.log('Payload a ser enviado:', payload)
+    console.log('Editando?', editando.value, 'ID:', formData.id)
+
     if (editando.value && formData.id) {
+      console.log('Atualizando lançamento:', idEmpresa, formData.id_caixa, formData.id)
       await caixaStore.atualizarLancamentoCaixa(idEmpresa, formData.id_caixa, formData.id, payload)
+      mostrarMensagem('Lançamento atualizado com sucesso!', 'success')
     } else {
+      console.log('Criando novo lançamento:', idEmpresa, formData.id_caixa)
       await caixaStore.criarLancamentoCaixa(idEmpresa, formData.id_caixa, payload)
+      mostrarMensagem('Lançamento cadastrado com sucesso!', 'success')
     }
     
     cancelarFormulario()
     await carregarLancamentos()
   } catch (error) {
     console.error('Erro ao salvar lançamento:', error)
+    mostrarMensagem(error?.response?.data?.message || 'Erro ao salvar lançamento', 'error')
   } finally {
     loading.value = false
   }
@@ -1109,27 +1192,103 @@ const mostrarMensagem = (mensagem, tipo) => {
   // Aqui você pode adicionar um toast/snackbar se quiser
 }
 
-// Editar lançamento (funcionalidade futura)
-// const editarLancamento = (item) => {
-//   editando.value = true
-//   formularioAberto.value = true
-//   
-//   Object.assign(formData, {
-//     id: item.id,
-//     id_caixa: item.id_caixa,
-//     id_planoconta: item.id_planoconta || null,
-//     id_tipodocumento: item.id_tipodocumento,
-//     nrdocumento: item.nrdocumento || '',
-//     id_caixahist: item.id_caixahist,
-//     id_hist_contabil: item.id_hist_contabil || null,
-//     dtlancamento: item.dtlancamento,
-//     valor: item.valor,
-//     tipo: item.tipo,
-//     id_tipopagrec: item.id_tipopagrec,
-//     origem: item.origem || 'M',
-//     observacao: item.observacao || ''
-//   })
-// }
+// Editar lançamento
+const editarLancamento = async (item) => {
+  // Só permite editar lançamentos de caixa (CAI)
+  if (item.origem !== 'CAI') {
+    return
+  }
+
+  try {
+    loading.value = true
+    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
+    
+    if (!idEmpresa) {
+      mostrarMensagem('ID da empresa não encontrado', 'error')
+      return
+    }
+
+    console.log('Buscando lançamento completo:', item.id, item.id_caixa)
+    
+    // Buscar dados completos do lançamento da API
+    const response = await caixaStore.buscarLancamentoCaixa(idEmpresa, item.id_caixa, item.id)
+    
+    console.log('Resposta completa da API:', response)
+    
+    // A API retorna { data: [...], contabil: [...], ccusto: [...] }
+    const dados = Array.isArray(response?.data) ? response.data[0] : response?.data || item
+    const contabil = response?.contabil || []
+    const ccusto = response?.ccusto || []
+    
+    console.log('Dados do lançamento:', dados)
+    console.log('Dados contábeis:', contabil)
+    console.log('Rateio de centro de custo:', ccusto)
+    
+    editando.value = true
+    formularioAberto.value = true
+    
+    // Buscar id_planoconta e id_hist_contabil do array contabil
+    const contabilPrincipal = contabil.find(c => c.id_planoconta) || {}
+    const contabilHistorico = contabil.find(c => c.id_historico_ctb) || {}
+    
+    Object.assign(formData, {
+      id: dados.id,
+      id_caixa: dados.id_caixa,
+      id_planoconta: contabilPrincipal.id_planoconta || null,
+      id_tipodocumento: dados.id_tipodocumento || null,
+      nrdocumento: dados.nrdocumento || '',
+      id_caixahist: dados.id_caixahist,
+      id_hist_contabil: contabilHistorico.id_historico_ctb || null,
+      dtlancamento: dados.dtlancamento,
+      valor: dados.valor,
+      tipo: dados.tipo,
+      id_tipopagrec: dados.id_tipopagrec,
+      origem: dados.origem || 'CAI',
+      observacao: dados.observacao || ''
+    })
+
+    console.log('Dados carregados no formulário:', formData)
+
+    // Se for saída, verificar rateio de centro de custo
+    if (formData.tipo === '-') {
+      await verificarUtilizaCCusto()
+      
+      // Se houver rateio no lançamento, carregar
+      if (Array.isArray(ccusto) && ccusto.length > 0) {
+        console.log('Carregando rateio existente:', ccusto)
+        
+        // Calcular porcentagem baseado no valor total
+        const valorTotal = parseFloat(dados.valor || 0)
+        
+        ccustosRateio.value = ccusto.map(c => ({
+          id_ccusto: c.id_ccusto,
+          desccentrocusto: c.desccentrocusto || '',
+          valor: parseFloat(c.valor || 0),
+          porcentagem: valorTotal > 0 ? ((parseFloat(c.valor || 0) / valorTotal) * 100).toFixed(2) : 0
+        }))
+        
+        console.log('Rateio carregado:', ccustosRateio.value)
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao carregar lançamento para edição:', error)
+    mostrarMensagem('Erro ao carregar dados do lançamento', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+// Confirmar exclusão
+const confirmarExclusao = (item) => {
+  // Só permite excluir lançamentos de caixa (CAI)
+  if (item.origem !== 'CAI') {
+    return
+  }
+
+  if (confirm(`Deseja realmente excluir este lançamento?\n\nDocumento: ${item.nrdocumento || 'Sem número'}\nValor: ${formatarMoeda(item.valor)}`)) {
+    excluirLancamento(item)
+  }
+}
 
 // Excluir lançamento
 const excluirLancamento = async (item) => {
@@ -1138,20 +1297,31 @@ const excluirLancamento = async (item) => {
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
     
     if (!idEmpresa) {
+      mostrarMensagem('ID da empresa não encontrado', 'error')
+      loading.value = false
       return
     }
 
     const idParaExcluir = item?.id || formData.id
-    if (!idParaExcluir) {
+    const idCaixa = item?.id_caixa || formData.id_caixa
+    
+    console.log('Excluindo lançamento:', { item, idParaExcluir, idCaixa, idEmpresa })
+    
+    if (!idParaExcluir || !idCaixa) {
+      console.error('IDs inválidos:', { idParaExcluir, idCaixa, item })
+      mostrarMensagem('ID do lançamento ou caixa não encontrado', 'error')
+      loading.value = false
       return
     }
 
-    await caixaStore.deletarLancamentoCaixa(idEmpresa, idParaExcluir)
+    await caixaStore.deletarLancamentoCaixa(idEmpresa, idCaixa, idParaExcluir)
     
+    mostrarMensagem('Lançamento excluído com sucesso!', 'success')
     cancelarFormulario()
     await carregarLancamentos()
   } catch (error) {
     console.error('Erro ao excluir lançamento:', error)
+    mostrarMensagem(error?.response?.data?.message || 'Erro ao excluir lançamento', 'error')
   } finally {
     loading.value = false
   }
@@ -1177,6 +1347,13 @@ onMounted(async () => {
   if (caixasDisponiveis.value.length > 0 && !filtros.id_caixa) {
     filtros.id_caixa = caixasDisponiveis.value[0].id_caixa
     console.log('Caixa selecionado automaticamente:', filtros.id_caixa)
+  }
+  
+  // Também definir o caixa no formulário e sua data de abertura
+  if (caixasDisponiveis.value.length > 0 && !formData.id_caixa) {
+    formData.id_caixa = caixasDisponiveis.value[0].id_caixa
+    formData.dtlancamento = caixasDisponiveis.value[0].dt_abertura
+    console.log('Caixa e data iniciais:', formData.id_caixa, formData.dtlancamento)
   }
   
   await carregarLancamentos()
