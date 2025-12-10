@@ -28,6 +28,7 @@ import ConfigTabs from './ConfigTabs.vue'
 import ConfigContasPagar from './ConfigContasPagar.vue'
 import ConfigContasReceber from './ConfigContasReceber.vue'
 import ConfigCentroCusto from './ConfigCentroCusto.vue'
+import ConfigCaixa from './ConfigCaixa.vue'
 
 // Estado da aba ativa
 const activeTab = ref('contas-pagar')
@@ -45,6 +46,11 @@ const abas = ref([
     icon: 'mdi-cash-multiple'
   },
   {
+    id: 'caixa',
+    label: 'Caixa',
+    icon: 'mdi-cash-register'
+  },
+  {
     id: 'centro-custo',
     label: 'Centro de Custo',
     icon: 'mdi-chart-tree'
@@ -55,7 +61,8 @@ const abas = ref([
 const componentMap = {
   'contas-pagar': ConfigContasPagar,
   'contas-receber': ConfigContasReceber,
-  'centro-custo': ConfigCentroCusto
+  'centro-custo': ConfigCentroCusto,
+  'caixa': ConfigCaixa
 }
 
 // Função para retornar o componente ativo

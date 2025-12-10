@@ -20,44 +20,49 @@ export const useSidebarStore = defineStore('sidebar', () => {
             icon: 'mdi-currency-usd',
             submenus: [
                 {
-                    text: 'Conta Corrente',
+                    text: 'Banco',
                     icon: 'mdi-bank-outline',
-                    route: '/paginas/financeiro/contacorrente'
-                },
-                {
-                    
-                    text: 'Centro de Custo',
-                    
-                    icon: 'mdi-warehouse',
-                    
                     submenus: [
-                        { text: 'Cadastro', icon: 'mdi-file-tree', route: '/paginas/financeiro/centrodecusto/cadastro'
-                },
-                        { text: 'Previsão de Débitos', icon: 'mdi-chart-timeline-variant', route: '/paginas/financeiro/centrodecusto/previsao' }
+                        { text: 'Conta Corrente', icon: 'mdi-bank', route: '/paginas/financeiro/contacorrente' },
+                        { text: 'Movimentação Bancária', icon: 'mdi-bank-transfer', route: '/paginas/banco/movimentacao' },
                     ]
                 },
                 {
-                    text: 'Pagar',
-                    icon: 'mdi-credit-card-outline',
-                    route: '/paginas/financeiro/pagar'
-                },
-                {
-                    text: 'Receber',
-                    icon: 'mdi-cash-plus',
-                    route: '/paginas/financeiro/receber'
+                    text: 'Centro de Custo',
+                    icon: 'mdi-warehouse',
+                    submenus: [
+                        { text: 'Cadastro', icon: 'mdi-file-tree', route: '/paginas/financeiro/centrodecusto/cadastro' },
+                        { text: 'Previsão de Débitos', icon: 'mdi-chart-timeline-variant', route: '/paginas/financeiro/centrodecusto/previsao' },
+                        { text: 'Débito Realizado', icon: 'mdi-chart-bar', route: '/paginas/financeiro/centrodecusto/debitoreal' }
+                    ]
                 },
                 {
                     text: 'Caixa',
                     icon: 'mdi-cash-register',
-                    route: '/paginas/financeiro/caixa'
+                    submenus: [
+                        {
+                            text: 'Cadastro de Caixa',
+                            icon: 'mdi-cash-register',
+                            route: '/paginas/financeiro/caixa'
+                        },
+                        {
+                            text: 'Abertura de Caixa',
+                            icon: 'mdi-cash-multiple',
+                            route: '/paginas/financeiro/caixa/abertura'
+                        },
+                        {
+                            text: 'Lançamento de Caixa',
+                            icon: 'mdi-cash-plus',
+                            route: '/paginas/financeiro/caixa/lancamento'
+                        }
+                    ]
                 },
-                {
-                    text: 'Plano de Conta',
-                    icon: 'mdi-format-list-bulleted-type',
-                    route: '/paginas/financeiro/planoconta'
-                },
+                { text: 'Pagar', icon: 'mdi-credit-card-outline', route: '/paginas/financeiro/pagar' },
+                { text: 'Receber', icon: 'mdi-cash-plus', route: '/paginas/financeiro/receber' },
+                { text: 'Plano de Conta', icon: 'mdi-format-list-bulleted-type', route: '/paginas/financeiro/planoconta' }
             ]
         },
+        
         {
             id: 'contabil',
             titulo: 'Contabil',
@@ -123,7 +128,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     route: '/paginas/produtos'
                 },
                 {
-                    text: 'Entrada de DFe',
+                    text: 'Entrada Nota Fiscal',
                     icon: 'mdi-file-document-outline',
                     route: '/paginas/entradadfe'
                 },
