@@ -597,7 +597,6 @@ import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
 import { useConfigParfinStore } from '@/stores/APIs/config'
 import { useEmpresaStore } from '@/stores/APIs/empresa'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
-import axios from 'axios'
 
 const useConfig = useConfigParfinStore()
 const empresaStore = useEmpresaStore()
@@ -825,82 +824,83 @@ const buscarHistoricoBanco = async (id, campoDesc) => {
 }
 
 
-// Métodos
 // Função para carregar parâmetros financeiros e preencher o formulário
 const carregarParametrosFinanceiros = async () => {
   const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-  const token = localStorage.getItem('token')
-  if (!idEmpresa || !token) {
-    console.error('ID da empresa ou token não encontrado!')
+  
+  if (!idEmpresa) {
+    console.error('ID da empresa não encontrado!')
     return
   }
+  
   try {
-    const response = await axios.get(`http://192.168.10.100:9005/parfin/${idEmpresa}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const dadosArray = response.data?.data
+    const response = await useConfig.buscarParametrosFinanceirosPagar(idEmpresa)
+    const dadosArray = response?.data
+    
     // Se o array tem pelo menos um objeto com algum campo preenchido, é PUT
-    let dados = null;
+    let dados = null
     if (Array.isArray(dadosArray) && dadosArray.length > 0) {
       // Verifica se algum campo relevante está preenchido
-      const temCampos = Object.keys(dadosArray[0] || {}).filter(k => k.startsWith('pag_id_') || k.startsWith('desc_')).length > 0;
+      const temCampos = Object.keys(dadosArray[0] || {}).filter(k => k.startsWith('pag_id_') || k.startsWith('desc_')).length > 0
       if (temCampos) {
-        dados = dadosArray[0];
+        dados = dadosArray[0]
       }
     }
+    
     if (dados) {
       Object.keys(config).forEach(key => {
         if (Object.prototype.hasOwnProperty.call(dados, key)) {
           config[key] = dados[key]
         }
       })
+      
       // Preencher descrições dos históricos
-      buscarHistoricoCaixa(config.pag_id_hist_bxa_caixa, 'hist_bxa_caixa_desc');
-      buscarHistoricoBanco(config.pag_id_hist_bxa_banco, 'hist_bxa_banco_desc');
-      buscarHistoricoCaixa(config.pag_id_hist_adt_for_caixa, 'hist_adt_caixa_desc');
-      buscarHistoricoBanco(config.pag_id_hist_adt_for_banco, 'hist_adt_banco_desc');
+      buscarHistoricoCaixa(config.pag_id_hist_bxa_caixa, 'hist_bxa_caixa_desc')
+      buscarHistoricoBanco(config.pag_id_hist_bxa_banco, 'hist_bxa_banco_desc')
+      buscarHistoricoCaixa(config.pag_id_hist_adt_for_caixa, 'hist_adt_caixa_desc')
+      buscarHistoricoBanco(config.pag_id_hist_adt_for_banco, 'hist_adt_banco_desc')
 
       // Preencher descrições dos campos de estorno
-      config.hist_est_bxa_caixa_desc = '';
+      config.hist_est_bxa_caixa_desc = ''
       if (Array.isArray(historicoCaixa.value) && config.pag_id_hist_est_bxa_caixa) {
-        const estCaixa = historicoCaixa.value.find(h => Number(h.id) === Number(config.pag_id_hist_est_bxa_caixa));
-        config.hist_est_bxa_caixa_desc = estCaixa ? estCaixa.deschistorico : '';
+        const estCaixa = historicoCaixa.value.find(h => Number(h.id) === Number(config.pag_id_hist_est_bxa_caixa))
+        config.hist_est_bxa_caixa_desc = estCaixa ? estCaixa.deschistorico : ''
       }
 
-      config.hist_est_bxa_banco_desc = '';
+      config.hist_est_bxa_banco_desc = ''
       if (Array.isArray(historicoBancario.value) && config.pag_id_hist_est_bxa_banco) {
-        const estBanco = historicoBancario.value.find(h => Number(h.id) === Number(config.pag_id_hist_est_bxa_banco));
-        config.hist_est_bxa_banco_desc = estBanco ? estBanco.deschistorico : '';
+        const estBanco = historicoBancario.value.find(h => Number(h.id) === Number(config.pag_id_hist_est_bxa_banco))
+        config.hist_est_bxa_banco_desc = estBanco ? estBanco.deschistorico : ''
       }
 
       // Preencher descrição do tipo de documento
-      config.tipo_doc_desc = '';
+      config.tipo_doc_desc = ''
       if (Array.isArray(tiposDocumento.value) && config.tipo_documento_padrao) {
-        const tipoDoc = tiposDocumento.value.find(t => Number(t.id) === Number(config.tipo_documento_padrao));
-        config.tipo_doc_desc = tipoDoc ? (tipoDoc.desctipodocumento || tipoDoc.descricao) : '';
+        const tipoDoc = tiposDocumento.value.find(t => Number(t.id) === Number(config.tipo_documento_padrao))
+        config.tipo_doc_desc = tipoDoc ? (tipoDoc.desctipodocumento || tipoDoc.descricao) : ''
       }
 
       // Preencher descrições dos planos de conta
-      config.desc_ctb_juros_pago = '';
-      config.desc_ctb_multa_paga = '';
-      config.desc_ctb_desc_obtido = '';
-      config.desc_ctb_for = '';
+      config.desc_ctb_juros_pago = ''
+      config.desc_ctb_multa_paga = ''
+      config.desc_ctb_desc_obtido = ''
+      config.desc_ctb_for = ''
       if (Array.isArray(planosConta.value)) {
         if (config.pag_id_red_ctb_juros_pago) {
-          const planoJuros = planosConta.value.find(p => Number(p.id) === Number(config.pag_id_red_ctb_juros_pago));
-          config.desc_ctb_juros_pago = planoJuros ? (planoJuros.descconta || planoJuros.descricao) : '';
+          const planoJuros = planosConta.value.find(p => Number(p.id) === Number(config.pag_id_red_ctb_juros_pago))
+          config.desc_ctb_juros_pago = planoJuros ? (planoJuros.descconta || planoJuros.descricao) : ''
         }
         if (config.pag_id_red_ctb_multa_paga) {
-          const planoMulta = planosConta.value.find(p => Number(p.id) === Number(config.pag_id_red_ctb_multa_paga));
-          config.desc_ctb_multa_paga = planoMulta ? (planoMulta.descconta || planoMulta.descricao) : '';
+          const planoMulta = planosConta.value.find(p => Number(p.id) === Number(config.pag_id_red_ctb_multa_paga))
+          config.desc_ctb_multa_paga = planoMulta ? (planoMulta.descconta || planoMulta.descricao) : ''
         }
         if (config.pag_id_red_ctb_desc_obtido) {
-          const planoDesc = planosConta.value.find(p => Number(p.id) === Number(config.pag_id_red_ctb_desc_obtido));
-          config.desc_ctb_desc_obtido = planoDesc ? (planoDesc.descconta || planoDesc.descricao) : '';
+          const planoDesc = planosConta.value.find(p => Number(p.id) === Number(config.pag_id_red_ctb_desc_obtido))
+          config.desc_ctb_desc_obtido = planoDesc ? (planoDesc.descconta || planoDesc.descricao) : ''
         }
         if (config.pag_id_red_ctb_for) {
-          const planoFor = planosConta.value.find(p => Number(p.id) === Number(config.pag_id_red_ctb_for));
-          config.desc_ctb_for = planoFor ? (planoFor.descconta || planoFor.descricao) : '';
+          const planoFor = planosConta.value.find(p => Number(p.id) === Number(config.pag_id_red_ctb_for))
+          config.desc_ctb_for = planoFor ? (planoFor.descconta || planoFor.descricao) : ''
         }
       }
       dadosExistem.value = true
@@ -930,24 +930,23 @@ const salvarConfiguracoes = async () => {
         pag_id_hist_adt_for_banco: config.pag_id_hist_adt_for_banco
       }]
     }
+    
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-    const token = localStorage.getItem('token')
-    if (!idEmpresa || !token) {
-      console.error('ID da empresa ou token não encontrado!')
+    
+    if (!idEmpresa) {
+      console.error('ID da empresa não encontrado!')
       return
     }
+    
     let response
     // PUT só se dadosExistem for verdadeiro (edição), POST se for falso (cadastro)
     if (dadosExistem.value === true) {
-      response = await axios.put(`http://192.168.10.100:9005/parfin/${idEmpresa}`, dadosParaEnvio, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      response = await useConfig.alterarParametrosFinanceirosPagar(idEmpresa, dadosParaEnvio)
     } else {
-      response = await axios.post(`http://192.168.10.100:9005/parfin/${idEmpresa}`, dadosParaEnvio, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      response = await useConfig.cadastrarParametrosFinanceirosPagar(idEmpresa, dadosParaEnvio)
     }
-    if (response && response.status === 200) {
+    
+    if (response) {
       await carregarParametrosFinanceiros()
       console.log('Configurações de Contas a Pagar salvas com sucesso!')
     }

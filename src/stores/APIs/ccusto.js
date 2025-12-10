@@ -234,6 +234,61 @@ export const useCCustoStore = defineStore('ccusto', {
       } finally {
         this.loading = false
       }
+    },
+
+    /**
+     * BUSCAR PARÂMETROS DE CENTRO DE CUSTO
+     * Verifica se a empresa utiliza centro de custo (utiliza_ccusto)
+     *
+     * @param {number} idEmpresa
+     * @return {Promise<Object>}
+     */
+    async buscarParametrosCCusto() {
+      this.loading = true
+
+      try {
+        const response = await api.get(`/ccustoparametro`, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        })
+
+        this.errorMessage = ''
+        return response.data
+      } catch (error) {
+        this.errorMessage = error.response?.data?.message || 'Erro ao buscar parâmetros de centro de custo'
+        console.error('Erro ao buscar parâmetros de centro de custo:', error)
+        return null
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * BUSCAR DÉBITOS REALIZADOS POR CENTRO DE CUSTO
+     * Lista os débitos já realizados por centro de custo
+     *
+     * @param {number} idEmpresa
+     * @param {string} dtini - Data inicial (YYYY-MM-DD)
+     * @param {string} dtfim - Data final (YYYY-MM-DD)
+     * @return {Promise<Array>}
+     */
+    async buscarDebitosRealizados(idEmpresa, dtini, dtfim) {
+      this.loading = true
+
+      try {
+        const response = await api.get(`/ccustoreal/${idEmpresa}?dtini=${dtini}&dtfim=${dtfim}`, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        })
+
+        this.errorMessage = ''
+        return response.data
+      } catch (error) {
+        this.errorMessage = error.response?.data?.message || 'Erro ao buscar débitos realizados'
+        console.error('Erro ao buscar débitos realizados:', error)
+        toast.error(this.errorMessage)
+        return []
+      } finally {
+        this.loading = false
+      }
     }
   }
 })

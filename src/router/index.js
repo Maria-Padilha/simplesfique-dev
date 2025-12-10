@@ -10,17 +10,18 @@ import IntegracoesView from "@/views/site/IntegracoesSiteView.vue";
 import PlanosSiteView from "@/views/site/PlanosSiteView.vue";
 import PagarView from "@/views/pages/financeiro/PagarView.vue";
 import ReceberView from "@/views/pages/financeiro/ReceberView.vue";
-import ContaCorrenteView from "@/views/pages/financeiro/ContaCorrenteView.vue";
+import ContaCorrenteView from "@/views/pages/banco/ContaCorrenteView.vue";
 import CentroDeCustoView from "@/views/pages/financeiro/CentroDeCustoView.vue";
 import PrevisaoDebitosView from "@/views/pages/financeiro/PrevisaoDebitosView.vue";
 import PessoasView from '@/views/pages/PessoasView.vue';
-import CaixaView from '@/views/pages/financeiro/CaixaView.vue';
 import PlanoContaView from '@/views/pages/financeiro/PlanoContaView.vue';
+import DebitoRealView from '@/views/pages/financeiro/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
 import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
 import PdvView from '@/views/pages/pdv/PdvView.vue';
 import PagamentoView from '@/views/pages/pdv/PagamentoView.vue';
+import MovimentacaoView from '@/views/pages/banco/MovimentacaoView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
@@ -114,9 +115,24 @@ const routes = [
         component: PrevisaoDebitosView
     },
     {
+        path: '/paginas/financeiro/centrodecusto/debitoreal',
+        name: 'financeiro_debitoreal',
+        component: DebitoRealView
+    },
+    {
         path: '/paginas/financeiro/caixa',
         name: 'financeiro_caixa',
-        component: CaixaView
+        component: () => import('@/views/pages/financeiro/CaixaView.vue')
+    },
+    {
+        path: '/paginas/financeiro/caixa/abertura',
+        name: 'financeiro_caixa_abertura',
+        component: () => import('@/views/pages/caixa/AberCaixaView.vue')
+    },
+    {
+        path: '/paginas/financeiro/caixa/lancamento',
+        name: 'financeiro_caixa_lancamento',
+        component: () => import('@/views/pages/caixa/LancCaixaView.vue')
     },
     {
         path: '/paginas/financeiro/planoconta',
@@ -124,7 +140,12 @@ const routes = [
         component: PlanoContaView
     },
 
-
+    // Paginas de banco
+    {
+        path: '/paginas/banco/movimentacao',
+        name: 'financeiro_banco_movimentacao',
+        component: MovimentacaoView
+    },
 
     // páginas do estoque (substituídas por placeholder até criar os arquivos reais)
     {
