@@ -22,6 +22,7 @@ import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
 import PdvView from '@/views/pages/pdv/PdvView.vue';
 import PagamentoView from '@/views/pages/pdv/PagamentoView.vue';
 import MovimentacaoView from '@/views/pages/banco/MovimentacaoView.vue';
+import AdiantamentoClienteView from '@/views/pages/adiantamento/AdiantamentoClienteView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
@@ -162,6 +163,12 @@ const routes = [
         path: '/paginas/estoque/cest',
         name: 'cest',
         component: () => import('@/views/pages/estoque/CestView.vue')
+    },
+    // Paginas de adiantamento de cliente
+    {
+        path: '/paginas/adiantamento/cliente',
+        name: 'adiantamento_cliente',
+        component: AdiantamentoClienteView
     },
 
     // páginas de produtos
