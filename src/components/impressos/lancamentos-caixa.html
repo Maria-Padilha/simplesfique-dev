@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lançamentos de Caixa - SimplesFique</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            font-size: 12px;
+            color: #2b2b2b;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #F57C00;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        .logo-text {
+            font-size: 26px;
+            font-weight: bold;
+            color: #F57C00;
+        }
+
+        .logo-text span {
+            color: #de7e3e;
+        }
+
+        .info-caixa {
+            font-size: 12px;
+            line-height: 1.6;
+            text-align: right;
+        }
+
+        .info-caixa strong {
+            color: #F57C00;
+        }
+
+        .section-title {
+            color: #F57C00;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 25px 0 15px 0;
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .section-title span {
+            font-size: 12px;
+            font-weight: normal;
+            color: #666;
+        }
+
+        /* Tabela de Lançamentos */
+        .table-lancamentos {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .table-lancamentos thead {
+            background: linear-gradient(135deg, #F57C00 0%, #de7e3e 100%);
+            color: white;
+        }
+
+        .table-lancamentos th {
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-lancamentos th.text-right {
+            text-align: right;
+        }
+
+        .table-lancamentos th.text-center {
+            text-align: center;
+        }
+
+        .table-lancamentos td {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 11px;
+        }
+
+        .table-lancamentos td.text-right {
+            text-align: right;
+        }
+
+        .table-lancamentos td.text-center {
+            text-align: center;
+        }
+
+        .table-lancamentos tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        .table-lancamentos tbody tr:hover {
+            background-color: #fff8f3;
+        }
+
+        .table-lancamentos tbody tr:first-child {
+            background-color: #fff3e0;
+        }
+
+        .table-lancamentos .saldo-anterior td {
+            font-style: italic;
+            color: #888;
+        }
+
+        .valor-negativo {
+            color: #d32f2f;
+            font-weight: 500;
+        }
+
+        .valor-positivo {
+            color: #2e7d32;
+            font-weight: 500;
+        }
+
+        .tipo-entrada {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 10px;
+        }
+
+        .tipo-saida {
+            background-color: #ffebee;
+            color: #d32f2f;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 10px;
+        }
+
+        /* Tabela de Resumo */
+        .table-resumo {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: #fafafa;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table-resumo tr {
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .table-resumo tr:last-child {
+            border-bottom: none;
+        }
+
+        .table-resumo td {
+            padding: 10px 12px;
+            font-size: 11px;
+        }
+
+        .table-resumo td:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .table-resumo .destaque {
+            background-color: #fff3e0;
+        }
+
+        .table-resumo .destaque td:last-child {
+            color: #F57C00;
+            font-size: 13px;
+        }
+
+        .table-resumo .entrada td:last-child {
+            color: #2e7d32;
+        }
+
+        .table-resumo .saida td:last-child {
+            color: #d32f2f;
+        }
+
+        .footer-note {
+            font-size: 10px;
+            color: #888;
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .footer-brand {
+            margin-top: 8px;
+            color: #F57C00;
+            font-weight: 500;
+        }
+
+        .info-impressao {
+            font-size: 9px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        @media print {
+            body {
+                padding: 10px;
+            }
+
+            .no-print {
+                display: none;
+            }
+
+            .table-lancamentos tbody tr:hover {
+                background-color: transparent;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-container">
+            <img src="{{logoUrl}}" alt="Logo" class="logo-img">
+            <div class="logo-text">Simples<span>Fique</span></div>
+        </div>
+        <div class="info-caixa">
+            <strong>Caixa:</strong> {{nomeCaixa}}<br>
+            <strong>Operador:</strong> {{operador}}<br>
+            <strong>Empresa:</strong> {{empresa}}
+        </div>
+    </div>
+
+    <h2 class="section-title">Lançamentos de Caixa <span>(Período de {{dataInicio}} a {{dataFim}})</span></h2>
+
+    <table class="table-lancamentos">
+        <thead>
+            <tr>
+                <th style="width: 80px;">Data</th>
+                <th style="width: 70px;" class="text-center">Tipo</th>
+                <th>Histórico</th>
+                <th>Forma Pgto</th>
+                <th style="width: 130px;">Nº Documento</th>
+                <th style="width: 90px;" class="text-right">Valor (R$)</th>
+                <th style="width: 90px;" class="text-right">Saldo (R$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="saldo-anterior">
+                <td></td>
+                <td></td>
+                <td>SALDO ANTERIOR</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="text-right">{{saldoAnterior}}</td>
+            </tr>
+            <!-- Loop de lançamentos -->
+            {{#each lancamentos}}
+            <tr>
+                <td>{{this.dtlancamento}}</td>
+                <td class="text-center">
+                    <span class="{{#if this.isEntrada}}tipo-entrada{{else}}tipo-saida{{/if}}">
+                        {{this.desctipo}}
+                    </span>
+                </td>
+                <td>{{this.deschistorico}}</td>
+                <td>{{this.desctipopagrec}}</td>
+                <td>{{this.nrdocumento}}</td>
+                <td class="text-right {{#if this.isEntrada}}valor-positivo{{else}}valor-negativo{{/if}}">
+                    {{#if this.isEntrada}}+{{else}}-{{/if}} {{this.valor}}
+                </td>
+                <td class="text-right">{{this.saldo}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <h2 class="section-title">Resumo do Caixa <span>({{dataFim}})</span></h2>
+
+    <table class="table-resumo">
+        <tr>
+            <td>Saldo Anterior</td>
+            <td>R$ {{saldoAnterior}}</td>
+        </tr>
+        <tr class="entrada">
+            <td>Total de Entradas</td>
+            <td>R$ {{totalEntradas}}</td>
+        </tr>
+        <tr class="saida">
+            <td>Total de Saídas</td>
+            <td>R$ {{totalSaidas}}</td>
+        </tr>
+        <tr class="destaque">
+            <td><strong>Saldo Atual</strong></td>
+            <td>R$ {{saldoAtual}}</td>
+        </tr>
+        <tr>
+            <td>Total de Lançamentos</td>
+            <td>{{totalLancamentos}}</td>
+        </tr>
+    </table>
+
+    <div class="footer-note">
+        Documento gerado automaticamente pelo sistema.
+        <div class="footer-brand">SimplesFique - Sistema de Gestão Empresarial</div>
+        <div class="info-impressao">Impresso em: {{dataImpressao}}</div>
+    </div>
+</body>
+</html>
+

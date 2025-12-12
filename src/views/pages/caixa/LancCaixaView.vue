@@ -535,6 +535,12 @@
       </v-card-text>
     </v-card>
   </div>
+  <v-card class="background-secondary mb-4 ma-4 py-3 px-3 d-flex gap-4">
+    <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-file-pdf-box" @click="exportarPDF">PDF</v-btn>
+    <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-file-delimited" @click="exportarCSV">CSV</v-btn>
+    <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-microsoft-excel" @click="exportarExcel">EXCEL</v-btn>
+    <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-printer" @click="imprimirRelatorio">IMPRIMIR</v-btn>
+  </v-card>
 </template>
 
 <script setup>
@@ -546,6 +552,7 @@ import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useConfigParfinStore } from '@/stores/APIs/config'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
+import html2pdf from 'html2pdf.js'
 
 const themeStore = useThemeStore()
 const caixaStore = useCaixaStore()
@@ -571,6 +578,9 @@ const loadingTiposPagRec = ref(false)
 const mostrarRateio = ref(false)
 const centrosCusto = ref([])
 const ccustosRateio = ref([])
+
+// Template HTML
+const templateLancamentosCaixa = ref('')
 
 // Dados
 const caixasDisponiveis = ref([])
@@ -1157,9 +1167,252 @@ const excluirLancamento = async (item) => {
   }
 }
 
+// ========== FUNÇÕES DE IMPRESSÃO E EXPORTAÇÃO ==========
+
+// Preparar dados para impressão/exportação
+const prepararDadosRelatorio = () => {
+  const caixaSelecionado = caixasDisponiveis.value.find(c => c.id_caixa === filtros.id_caixa)
+  const empresa = empresaStore.empresa || empresaStore.empresaSelecionada
+
+  // Calcular saldo acumulado para cada lançamento
+  let saldoAcumulado = saldoAnterior.value
+  const lancamentosComSaldo = lancamentosFiltrados.value.map(item => {
+    if (item.tipo === '+') {
+      saldoAcumulado += parseFloat(item.valor || 0)
+    } else {
+      saldoAcumulado -= parseFloat(item.valor || 0)
+    }
+    return {
+      ...item,
+      saldoCalculado: saldoAcumulado,
+      isEntrada: item.tipo === '+'
+    }
+  })
+
+  return {
+    nomeCaixa: caixaSelecionado?.desccaixa || 'Caixa',
+    operador: lancamentosFiltrados.value[0]?.nome || 'N/A',
+    empresa: empresa?.razao || empresa?.fantasia || 'Empresa',
+    dataInicio: formatarData(filtros.dataInicio),
+    dataFim: formatarData(filtros.dataFim),
+    saldoAnterior: formatarMoeda(saldoAnterior.value),
+    totalEntradas: formatarMoeda(totalEntradas.value),
+    totalSaidas: formatarMoeda(totalSaidas.value),
+    saldoAtual: formatarMoeda(saldoFinal.value),
+    totalLancamentos: lancamentosFiltrados.value.length,
+    dataImpressao: new Date().toLocaleString('pt-BR'),
+    logoUrl: new URL('/src/assets/img/logo/logo-2.png', import.meta.url).href,
+    lancamentos: lancamentosComSaldo.map(item => ({
+      ...item,
+      dtlancamento: formatarData(item.dtlancamento),
+      valor: formatarMoeda(item.valor),
+      saldo: formatarMoeda(item.saldoCalculado)
+    }))
+  }
+}
+
+// Processar template com Handlebars simples
+const processarTemplate = (template, dados) => {
+  let html = template
+
+  // Substituir variáveis simples {{variavel}}
+  html = html.replace(/{{([^}]+)}}/g, (match, variable) => {
+    return dados[variable.trim()] || match
+  })
+
+  // Processar loop {{#each lancamentos}}...{{/each}}
+  const eachRegex = /{{#each\s+(\w+)}}([\s\S]*?){{\/each}}/g
+  html = html.replace(eachRegex, (match, arrayName, content) => {
+    const array = dados[arrayName.trim()] || []
+    return array.map(item => {
+      let itemHtml = content
+      // Substituir {{this.propriedade}} por {{propriedade}} para processamento
+      itemHtml = itemHtml.replace(/{{this\.(\w+)}}/g, (m, prop) => {
+        return item[prop] !== undefined ? item[prop] : m
+      })
+      // Processar if {{#if condicao}}...{{else}}...{{/if}}
+      itemHtml = itemHtml.replace(/{{#if\s+this\.(\w+)}}([\s\S]*?){{else}}([\s\S]*?){{\/if}}/g, (m, prop, trueHtml, falseHtml) => {
+        return item[prop] ? trueHtml : falseHtml
+      })
+      // Processar if sem else {{#if condicao}}...{{/if}}
+      itemHtml = itemHtml.replace(/{{#if\s+this\.(\w+)}}([\s\S]*?){{\/if}}/g, (m, prop, trueHtml) => {
+        return item[prop] ? trueHtml : ''
+      })
+      return itemHtml
+    }).join('')
+  })
+
+  return html
+}
+
+// Gerar HTML do relatório
+const gerarHtmlRelatorio = () => {
+  const dados = prepararDadosRelatorio()
+
+  // Processar template
+  return processarTemplate(templateLancamentosCaixa.value, dados)
+}
+
+
+
+// Imprimir relatório
+const imprimirRelatorio = () => {
+  const html = gerarHtmlRelatorio()
+  const janela = window.open('', '_blank')
+  janela.document.write(html)
+  janela.document.close()
+  janela.focus()
+  setTimeout(() => {
+    janela.print()
+  }, 500)
+}
+
+// Exportar PDF
+const exportarPDF = () => {
+  try {
+    const html = gerarHtmlRelatorio()
+
+    // Criar elemento temporário com o HTML
+    const element = document.createElement('div')
+    element.innerHTML = html
+
+    // Configurações do pdf
+    const opt = {
+      margin: 10,
+      filename: `lancamentos-caixa-${filtros.dataInicio}-${filtros.dataFim}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    }
+
+    // Gerar PDF
+    html2pdf().set(opt).from(element).save()
+  } catch (error) {
+    console.error('Erro ao gerar PDF:', error)
+    alert('Erro ao gerar PDF. Tente novamente.')
+  }
+}
+
+// Exportar CSV
+const exportarCSV = () => {
+  const dados = prepararDadosRelatorio()
+
+  // Cabeçalho
+  const cabecalho = ['Data', 'Tipo', 'Histórico', 'Forma Pgto', 'Nº Documento', 'Valor', 'Saldo']
+
+  // Linhas de dados
+  const linhas = dados.lancamentos.map(item => [
+    item.dtlancamento,
+    item.desctipo,
+    item.deschistorico || '',
+    item.desctipopagrec || '',
+    item.nrdocumento || '',
+    item.valor,
+    item.saldo
+  ])
+
+  // Adicionar linha de saldo anterior no início
+  linhas.unshift(['', '', 'SALDO ANTERIOR', '', '', '', dados.saldoAnterior])
+
+  // Adicionar resumo no final
+  linhas.push([])
+  linhas.push(['', '', 'RESUMO', '', '', '', ''])
+  linhas.push(['', '', 'Saldo Anterior', '', '', '', dados.saldoAnterior])
+  linhas.push(['', '', 'Total de Entradas', '', '', '', dados.totalEntradas])
+  linhas.push(['', '', 'Total de Saídas', '', '', '', dados.totalSaidas])
+  linhas.push(['', '', 'Saldo Atual', '', '', '', dados.saldoAtual])
+
+  // Converter para CSV
+  const csv = [
+    cabecalho.join(';'),
+    ...linhas.map(linha => linha.join(';'))
+  ].join('\n')
+
+  // Download
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `lancamentos-caixa-${filtros.dataInicio}-${filtros.dataFim}.csv`
+  link.click()
+  URL.revokeObjectURL(link.href)
+}
+
+// Exportar Excel (usa CSV com separador de ponto-e-vírgula que Excel reconhece)
+const exportarExcel = () => {
+  const dados = prepararDadosRelatorio()
+
+  // HTML com tabela que Excel pode abrir
+  const html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+    <head><meta charset="UTF-8"></head>
+    <body>
+      <table border="1">
+        <tr><td colspan="7" style="font-size:16px;font-weight:bold;">Lançamentos de Caixa - ${dados.nomeCaixa}</td></tr>
+        <tr><td colspan="7">Período: ${dados.dataInicio} a ${dados.dataFim}</td></tr>
+        <tr><td colspan="7">Empresa: ${dados.empresa}</td></tr>
+        <tr><td colspan="7"></td></tr>
+        <tr style="background:#F57C00;color:white;font-weight:bold;">
+          <td>Data</td>
+          <td>Tipo</td>
+          <td>Histórico</td>
+          <td>Forma Pgto</td>
+          <td>Nº Documento</td>
+          <td>Valor</td>
+          <td>Saldo</td>
+        </tr>
+        <tr style="background:#fff3e0;font-style:italic;">
+          <td></td>
+          <td></td>
+          <td>SALDO ANTERIOR</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>${dados.saldoAnterior}</td>
+        </tr>
+        ${dados.lancamentos.map(item => `
+          <tr>
+            <td>${item.dtlancamento}</td>
+            <td style="color:${item.isEntrada ? 'green' : 'red'}">${item.desctipo}</td>
+            <td>${item.deschistorico || ''}</td>
+            <td>${item.desctipopagrec || ''}</td>
+            <td>${item.nrdocumento || ''}</td>
+            <td style="color:${item.isEntrada ? 'green' : 'red'}">${item.isEntrada ? '+' : '-'} ${item.valor}</td>
+            <td>${item.saldo}</td>
+          </tr>
+        `).join('')}
+        <tr><td colspan="7"></td></tr>
+        <tr style="background:#fafafa;"><td colspan="6">Saldo Anterior</td><td>${dados.saldoAnterior}</td></tr>
+        <tr style="background:#e8f5e9;"><td colspan="6" style="color:green">Total de Entradas</td><td style="color:green">${dados.totalEntradas}</td></tr>
+        <tr style="background:#ffebee;"><td colspan="6" style="color:red">Total de Saídas</td><td style="color:red">${dados.totalSaidas}</td></tr>
+        <tr style="background:#fff3e0;font-weight:bold;"><td colspan="6">Saldo Atual</td><td style="color:#F57C00">${dados.saldoAtual}</td></tr>
+        <tr><td colspan="6">Total de Lançamentos</td><td>${dados.totalLancamentos}</td></tr>
+      </table>
+    </body>
+    </html>
+  `
+
+  const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `lancamentos-caixa-${filtros.dataInicio}-${filtros.dataFim}.xls`
+  link.click()
+  URL.revokeObjectURL(link.href)
+}
+
 // Lifecycle
 onMounted(async () => {
   console.log('🚀 Iniciando carregamento de dados...')
+
+  // Carregar template HTML
+  try {
+    const response = await fetch(new URL('@/components/impressos/lancamentos-caixa.html', import.meta.url))
+    templateLancamentosCaixa.value = await response.text()
+  } catch (error) {
+    console.error('Erro ao carregar template:', error)
+    // Fallback: usar template vazio se não conseguir carregar
+    templateLancamentosCaixa.value = ''
+  }
+
   await Promise.all([
     carregarCaixas(),
     carregarTiposDocumento(),
