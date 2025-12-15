@@ -12,10 +12,14 @@
 
     <!-- Filtros -->
     <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4">
+      <v-card-title class="text-h6 pa-4">
+        <v-icon icon="mdi-filter" class="mr-2"></v-icon>
+        Filtros de Período e Centro de Custo
+      </v-card-title>
       <v-card-text class="pa-4">
         <v-row>
           <!-- Select Centro de Custo -->
-          <v-col cols="12" md="4" class="d-flex align-center">
+          <v-col cols="12" md="3" class="d-flex align-center">
             <v-select
               v-model="filtros.centroCustoSelecionado"
               :items="centrosCustoOptions"
@@ -25,6 +29,20 @@
               prepend-inner-icon="mdi-file-tree"
               hide-details
               :loading="loadingCentroCusto"
+            ></v-select>
+          </v-col>
+
+          <!-- Atalho de Período -->
+          <v-col cols="12" md="2" class="d-flex align-center">
+            <v-select
+              v-model="periodoSelecionado"
+              :items="periodos"
+              label="Período"
+              variant="outlined"
+              density="compact"
+              prepend-inner-icon="mdi-calendar-clock"
+              hide-details
+              @update:model-value="aplicarPeriodo"
             ></v-select>
           </v-col>
 
@@ -42,7 +60,7 @@
           </v-col>
 
           <!-- Data Final -->
-          <v-col cols="12" md="2" class="d-flex align-center">
+          <v-col cols="12" md="3" class="d-flex align-center">
             <v-text-field
               v-model="filtros.dataFinal"
               label="Data Final"
@@ -212,12 +230,24 @@ const idEmpresa = ref(1) // TODO: Obter do contexto de autenticação
 const diasComCobranca = ref([]) // Dias únicos que têm cobranças
 
 // Filtros
+const periodoSelecionado = ref('mes')
 const filtros = reactive({
   centroCustoSelecionado: 'todos',
   periodo: 'competencia',
-  dataInicial: '',
-  dataFinal: ''
+  dataInicial: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0], // Primeiro dia do mês
+  dataFinal: new Date().toISOString().split('T')[0] // Hoje
 })
+
+// Opções de período
+const periodos = [
+  { title: 'Hoje', value: 'hoje' },
+  { title: 'Essa Semana', value: 'semana' },
+  { title: 'Esse Mês', value: 'mes' },
+  { title: 'Esse Ano', value: 'ano' },
+  { title: 'Últimos 7 dias', value: '7dias' },
+  { title: 'Últimos 30 dias', value: '30dias' },
+  { title: 'Personalizado', value: 'personalizado' }
+]
 
 // Meses
 const meses = [
@@ -381,6 +411,59 @@ const chartOptions = computed(() => ({
 }))
 
 // Métodos
+// Aplicar período selecionado
+const aplicarPeriodo = (periodo) => {
+  const hoje = new Date()
+  let dataInicio = new Date()
+  let dataFim = new Date()
+
+  switch (periodo) {
+    case 'hoje':
+      dataInicio = hoje
+      dataFim = hoje
+      break
+    
+    case 'semana': {
+      // Primeiro dia da semana (domingo)
+      const primeiroDiaSemana = hoje.getDate() - hoje.getDay()
+      dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), primeiroDiaSemana)
+      dataFim = hoje
+      break
+    }
+    
+    case 'mes':
+      // Primeiro dia do mês
+      dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
+      dataFim = hoje
+      break
+    
+    case 'ano':
+      // Primeiro dia do ano
+      dataInicio = new Date(hoje.getFullYear(), 0, 1)
+      dataFim = hoje
+      break
+    
+    case '7dias':
+      // Últimos 7 dias
+      dataInicio = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000)
+      dataFim = hoje
+      break
+    
+    case '30dias':
+      // Últimos 30 dias
+      dataInicio = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000)
+      dataFim = hoje
+      break
+    
+    case 'personalizado':
+      // Não altera as datas, usuário define manualmente
+      return
+  }
+
+  filtros.dataInicial = dataInicio.toISOString().split('T')[0]
+  filtros.dataFinal = dataFim.toISOString().split('T')[0]
+}
+
 const validarPeriodo = () => {
   erroData.value = ''
   

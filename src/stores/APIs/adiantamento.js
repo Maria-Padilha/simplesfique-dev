@@ -113,7 +113,7 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
       const token = localStorage.getItem('token')
 
       try {
-        const response = await api.delete(`/adtcliente/${idEmpresa}/id/${id}`, {
+        const response = await api.delete(`/adtcliente/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         return response.data

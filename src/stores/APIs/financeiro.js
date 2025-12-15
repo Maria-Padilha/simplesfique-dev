@@ -89,6 +89,50 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
+    // Alias semântico para buscarContas
+    async buscarContasCorrentes() {
+      return await this.buscarContas();
+    },
+
+    // Buscar históricos bancários
+    async buscarHistoricosBancarios() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get('/histbancario', {
+          headers: this.getAuthHeaders()
+        });
+        
+        // Garantir que response.data seja um array válido
+        const resposta = response.data;
+        
+        // Verificar se a resposta tem a estrutura {data: [...], records: X}
+        let dados;
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data;
+        } 
+        // Se é array diretamente
+        else if (Array.isArray(resposta)) {
+          dados = resposta;
+        }
+        // Se é objeto válido (não null, não undefined, não string vazia), transformar em array
+        else if (resposta && resposta !== '' && typeof resposta === 'object' && !resposta.data) {
+          dados = [resposta];
+        }
+        // Qualquer outro caso (null, undefined, string vazia, etc), usar array vazio
+        else {
+          dados = [];
+        }
+        
+        return dados;
+      } catch (error) {
+        this.error = error.message;
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     // Buscar contas correntes ativas do usuário logado (GET /ccorrenteusuativo)
     async buscarContasUsuarioAtivo() {
       this.loading = true;
@@ -970,33 +1014,6 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
       catch (error) {
         this.error = error.response?.data?.message || 'Erro ao buscar históricos contábeis'
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
-
-    // Buscar históricos bancários (GET /histbancario)
-    async buscarHistoricosBancarios() {
-      this.loading = true
-      this.error = null
-      try {
-        const response = await api.get('/histbancario', {
-          headers: this.getAuthHeaders()
-        })
-        const resp = response.data
-        let dados = []
-        if (resp && resp.data && Array.isArray(resp.data)) {
-          dados = resp.data
-        } else if (Array.isArray(resp)) {
-          dados = resp
-        } else if (resp && typeof resp === 'object') {
-          dados = [resp]
-        }
-        return dados
-      }
-      catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar históricos bancários'
         throw error
       } finally {
         this.loading = false

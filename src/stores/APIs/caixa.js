@@ -382,16 +382,40 @@ export const useCaixaStore = defineStore('caixa', {
         /**
          * DELETAR LANÇAMENTO DO CAIXA
          * 
-         * @param {number} idEmpresa - ID da empresa
          * @param {number} idCaixa - ID do caixa
-         * @param {number} idLancamento - ID do lançamento
          * @return {Promise<boolean>}
          */
-        async deletarLancamentoCaixa(idEmpresa, idCaixa, idLancamento) {
+        async deletarLancamentoCaixa(idCaixa) {
             this.loading = true;
             
             try {
-                await api.delete(`caixalct/${idEmpresa}/idcaixa/${idCaixa}/id/${idLancamento}`, {
+                await api.delete(`caixalct/${idCaixa}`, {
+                    headers: { Authorization: `Bearer ${this.token}` }
+                });
+                
+                this.successMessage = 'Lançamento deletado com sucesso!';
+                return true;
+                
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || 'Erro ao deletar lançamento';
+                console.error('Erro ao deletar lançamento:', error);
+                throw error;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * DELETAR LANÇAMENTO DO CAIXA POR ID DO DOCUMENTO
+         * 
+         * @param {number} idLancamento - ID do lançamento/documento
+         * @return {Promise<boolean>}
+         */
+        async deletarLancamentoCaixaPorId(idLancamento) {
+            this.loading = true;
+            
+            try {
+                await api.delete(`caixalct/${idLancamento}`, {
                     headers: { Authorization: `Bearer ${this.token}` }
                 });
                 

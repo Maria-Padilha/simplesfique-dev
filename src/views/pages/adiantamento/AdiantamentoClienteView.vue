@@ -140,6 +140,57 @@
                       ></v-autocomplete>
                     </v-col>
 
+                    <!-- Conta Corrente (se local_lct = BAN) -->
+                    <v-col cols="12" md="4" v-if="formData.local_lct === 'BAN'">
+                      <v-autocomplete
+                        v-model="formData.id_ccorrente"
+                        :items="contasCorrentes"
+                        :loading="loadingContaCorrente"
+                        item-title="titular"
+                        item-value="id"
+                        label="Conta Corrente *"
+                        :rules="[rules.required]"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-bank"
+                        no-data-text="Nenhuma conta corrente disponível"
+                      >
+                        <template v-slot:item="{ props, item }">
+                          <v-list-item v-bind="props">
+                            <template v-slot:title>
+                              {{ item.raw.descbanco || '' }} - {{ item.raw.titular || '' }}
+                            </template>
+                            <template v-slot:subtitle>
+                              <span class="text-caption opacity-70">
+                                Agência: {{ item.raw.id_agencia || '--' }} | Conta: {{ item.raw.numero_ccorrente || '--' }}-{{ item.raw.digito_cc || '' }}
+                              </span>
+                            </template>
+                          </v-list-item>
+                        </template>
+                        <template v-slot:selection="{ item }">
+                          {{ item.raw.descbanco || '' }} - {{ item.raw.titular || '' }}
+                        </template>
+                      </v-autocomplete>
+                    </v-col>
+
+                    <!-- Histórico Bancário (se local_lct = BAN) -->
+                    <v-col cols="12" md="4" v-if="formData.local_lct === 'BAN'">
+                      <v-autocomplete
+                        v-model="formData.id_historico"
+                        :items="historicosBancarios"
+                        :loading="loadingHistBancario"
+                        item-title="deschistorico"
+                        item-value="id"
+                        label="Histórico Bancário *"
+                        :rules="[rules.required]"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-history"
+                        no-data-text="Nenhum histórico bancário disponível"
+                        clearable
+                      ></v-autocomplete>
+                    </v-col>
+
                     <!-- Histórico Contábil do Caixa (se local_lct = CAI) -->
                     <v-col cols="12" md="4" v-if="formData.local_lct === 'CAI'">
                       <v-autocomplete
@@ -198,8 +249,8 @@
                       </v-text-field>
                     </v-col>
 
-                    <!-- Data de Cobrança -->
-                    <v-col cols="12" md="4">
+                    <!-- Data de Cobrança (não para Banco) -->
+                    <v-col cols="12" md="4" v-if="formData.local_lct !== 'BAN'">
                       <v-text-field
                         v-model="formData.dtcobranca"
                         label="Data de Cobrança"
@@ -210,8 +261,8 @@
                       ></v-text-field>
                     </v-col>
 
-                    <!-- Tipo Documento -->
-                    <v-col cols="12" md="4">
+                    <!-- Tipo Documento (não para Banco) -->
+                    <v-col cols="12" md="4" v-if="formData.local_lct !== 'BAN'">
                       <v-autocomplete
                         v-model="formData.id_tipodocumento"
                         :items="tiposDocumento"
@@ -293,11 +344,15 @@
         </v-expand-transition>
 
         <!-- Filtros de Busca -->
-        <v-card class="background-card mb-4" elevation="1">
+        <v-card class="mb-4 background-card" elevation="1">
+          <v-card-title class="text-h6 pa-4">
+            <v-icon icon="mdi-filter" class="mr-2"></v-icon>
+            Filtros de Período e Cliente
+          </v-card-title>
           <v-card-text class="pa-4">
             <v-row>
               <!-- Cliente -->
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="3">
                 <v-autocomplete
                   v-model="filtros.id_cliente"
                   :items="clientes"
@@ -326,6 +381,19 @@
                 </v-autocomplete>
               </v-col>
 
+              <!-- Atalho de Período -->
+              <v-col cols="12" md="2">
+                <v-select
+                  v-model="periodoSelecionado"
+                  :items="periodos"
+                  label="Período"
+                  variant="outlined"
+                  density="compact"
+                  prepend-inner-icon="mdi-calendar-clock"
+                  @update:model-value="aplicarPeriodo"
+                ></v-select>
+              </v-col>
+
               <!-- Data Inicial -->
               <v-col cols="12" md="3">
                 <v-text-field
@@ -334,7 +402,7 @@
                   type="date"
                   variant="outlined"
                   density="compact"
-                  prepend-inner-icon="mdi-calendar-start"
+                  prepend-inner-icon="mdi-calendar"
                 ></v-text-field>
               </v-col>
 
@@ -346,12 +414,12 @@
                   type="date"
                   variant="outlined"
                   density="compact"
-                  prepend-inner-icon="mdi-calendar-end"
+                  prepend-inner-icon="mdi-calendar"
                 ></v-text-field>
               </v-col>
 
               <!-- Botão Buscar -->
-              <v-col cols="12" md="2" class="d-flex align-center">
+              <v-col cols="12" md="1" class="d-flex align-center">
                 <v-btn
                   color="var(--text-color-laranja)"
                   :loading="loading"
@@ -493,6 +561,8 @@ const loadingCaixas = ref(false)
 const loadingTiposPagRec = ref(false)
 const loadingHistContabil = ref(false)
 const loadingTiposDoc = ref(false)
+const loadingContaCorrente = ref(false)
+const loadingHistBancario = ref(false)
 
 // Dados
 const clientes = ref([])
@@ -501,15 +571,29 @@ const caixasDisponiveis = ref([])
 const tiposPagRec = ref([])
 const historicosContabil = ref([])
 const tiposDocumento = ref([])
+const contasCorrentes = ref([])
+const historicosBancarios = ref([])
 const lancamentos = ref([])
 const saldoAnterior = ref(0)
 
 // Filtros de busca
+const periodoSelecionado = ref('mes')
 const filtros = reactive({
   id_cliente: null,
   dtini: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0], // Primeiro dia do mês
   dtfim: new Date().toISOString().split('T')[0] // Data atual
 })
+
+// Opções de período
+const periodos = [
+  { title: 'Hoje', value: 'hoje' },
+  { title: 'Essa Semana', value: 'semana' },
+  { title: 'Esse Mês', value: 'mes' },
+  { title: 'Esse Ano', value: 'ano' },
+  { title: 'Últimos 7 dias', value: '7dias' },
+  { title: 'Últimos 30 dias', value: '30dias' },
+  { title: 'Personalizado', value: 'personalizado' }
+]
 
 // Formulário
 const formData = reactive({
@@ -519,6 +603,8 @@ const formData = reactive({
   id_hist_contabil: null,
   local_lct: 'CAI',
   id_caixa: null,
+  id_ccorrente: null,
+  id_historico: null,
   id_hist_contabil_caixa: null,
   id_tipopagrec: null,
   id_tipodocumento: null,
@@ -576,6 +662,59 @@ const formatarData = (data) => {
   }
 }
 
+// Aplicar período selecionado
+const aplicarPeriodo = (periodo) => {
+  const hoje = new Date()
+  let dataInicio = new Date()
+  let dataFim = new Date()
+
+  switch (periodo) {
+    case 'hoje':
+      dataInicio = hoje
+      dataFim = hoje
+      break
+    
+    case 'semana': {
+      // Primeiro dia da semana (domingo)
+      const primeiroDiaSemana = hoje.getDate() - hoje.getDay()
+      dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), primeiroDiaSemana)
+      dataFim = hoje
+      break
+    }
+    
+    case 'mes':
+      // Primeiro dia do mês
+      dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
+      dataFim = hoje
+      break
+    
+    case 'ano':
+      // Primeiro dia do ano
+      dataInicio = new Date(hoje.getFullYear(), 0, 1)
+      dataFim = hoje
+      break
+    
+    case '7dias':
+      // Últimos 7 dias
+      dataInicio = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000)
+      dataFim = hoje
+      break
+    
+    case '30dias':
+      // Últimos 30 dias
+      dataInicio = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000)
+      dataFim = hoje
+      break
+    
+    case 'personalizado':
+      // Não altera as datas, usuário define manualmente
+      return
+  }
+
+  filtros.dtini = dataInicio.toISOString().split('T')[0]
+  filtros.dtfim = dataFim.toISOString().split('T')[0]
+}
+
 // Métodos de ação
 const toggleFormulario = () => {
   formularioAberto.value = !formularioAberto.value
@@ -598,6 +737,8 @@ const limparFormulario = () => {
     id_hist_contabil: null,
     local_lct: 'CAI',
     id_caixa: null,
+    id_ccorrente: null,
+    id_historico: null,
     id_hist_contabil_caixa: null,
     id_tipopagrec: null,
     id_tipodocumento: null,
@@ -707,6 +848,36 @@ const carregarTiposDocumento = async () => {
   }
 }
 
+const carregarContasCorrentes = async () => {
+  loadingContaCorrente.value = true
+  try {
+    const response = await financeiroStore.buscarContasCorrentes()
+    const dados = response?.data || response || []
+    contasCorrentes.value = Array.isArray(dados) ? dados : []
+    console.log('Contas correntes carregadas:', contasCorrentes.value)
+  } catch (error) {
+    console.error('Erro ao carregar contas correntes:', error)
+    contasCorrentes.value = []
+  } finally {
+    loadingContaCorrente.value = false
+  }
+}
+
+const carregarHistoricosBancarios = async () => {
+  loadingHistBancario.value = true
+  try {
+    const response = await financeiroStore.buscarHistoricosBancarios()
+    const dados = response?.data || response || []
+    historicosBancarios.value = Array.isArray(dados) ? dados : []
+    console.log('Históricos bancários carregados:', historicosBancarios.value)
+  } catch (error) {
+    console.error('Erro ao carregar históricos bancários:', error)
+    historicosBancarios.value = []
+  } finally {
+    loadingHistBancario.value = false
+  }
+}
+
 const carregarLancamentos = async () => {
   if (!filtros.id_cliente) {
     console.warn('Selecione um cliente para buscar os lançamentos')
@@ -794,7 +965,9 @@ const salvarLancamento = async () => {
         id_cliente: formData.id_pessoa,
         id_empresa: idEmpresa,
         id_caixahist: formData.local_lct === 'CAI' ? formData.id_hist_contabil_caixa : null,
-        id_caixa: formData.local_lct === 'CAI' ? formData.id_caixa : null,      
+        id_caixa: formData.local_lct === 'CAI' ? formData.id_caixa : null,
+        id_ccorrente: formData.local_lct === 'BAN' ? formData.id_ccorrente : null,
+        id_historico: formData.local_lct === 'BAN' ? formData.id_historico : null,      
         local_lct: formData.local_lct,
         tipo: formData.tipo,
         dtlancamento: formData.dtlancamento,
@@ -804,7 +977,7 @@ const salvarLancamento = async () => {
         id_tipopagrec: formData.id_tipopagrec,
         id_hist_contabil: formData.id_hist_contabil || null,
         id_planoconta: formData.id_planoconta,
-        id_tipodocumento: formData.id_tipodocumento,
+        id_tipodocumento: formData.local_lct !== 'BAN' ? formData.id_tipodocumento : null,
         nrdocumento: formData.nrdocumento || null
       }]
     }
@@ -837,6 +1010,8 @@ const editarLancamento = (item) => {
     id_hist_contabil: item.id_hist_contabil || null,
     local_lct: item.local_lct || 'CAI',
     id_caixa: item.id_caixa,
+    id_ccorrente: item.id_ccorrente || null,
+    id_historico: item.id_historico || null,
     id_hist_contabil_caixa: item.id_hist_contabil_caixa || null,
     id_tipopagrec: item.id_tipopagrec,
     id_tipodocumento: item.id_tipodocumento || null,
@@ -889,7 +1064,9 @@ onMounted(async () => {
     carregarCaixas(),
     carregarTiposPagRec(),
     carregarHistoricosContabil(),
-    carregarTiposDocumento()
+    carregarTiposDocumento(),
+    carregarContasCorrentes(),
+    carregarHistoricosBancarios()
   ])
   
   console.log('✅ Carregamento inicial completo')

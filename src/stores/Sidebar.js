@@ -60,7 +60,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
                 { text: 'Pagar', icon: 'mdi-credit-card-outline', route: '/paginas/financeiro/pagar' },
                 { text: 'Receber', icon: 'mdi-cash-plus', route: '/paginas/financeiro/receber' },
                 { text: 'Plano de Conta', icon: 'mdi-format-list-bulleted-type', route: '/paginas/financeiro/planoconta' },
-                { text: 'Adiantamento de Cliente', icon: 'mdi-cash-clock', route: '/paginas/adiantamento/cliente' },
+                { text: 'Adiantamento de Cliente', icon: 'mdi-account-cash', route: '/paginas/adiantamento/cliente' },
             ]
         },
         
