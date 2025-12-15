@@ -23,6 +23,7 @@ import PdvView from '@/views/pages/pdv/PdvView.vue';
 import PagamentoView from '@/views/pages/pdv/PagamentoView.vue';
 import MovimentacaoView from '@/views/pages/banco/MovimentacaoView.vue';
 import AdiantamentoClienteView from '@/views/pages/adiantamento/AdiantamentoClienteView.vue';
+import AdiantamentoFornecedorView from '@/views/pages/adiantamento/AdiantamentoFornecedorView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
@@ -169,6 +170,12 @@ const routes = [
         path: '/paginas/adiantamento/cliente',
         name: 'adiantamento_cliente',
         component: AdiantamentoClienteView
+    },
+    // Paginas de adiantamento de fornecedor
+    {
+        path: '/paginas/adiantamento/fornecedor',
+        name: 'adiantamento_fornecedor',
+        component: AdiantamentoFornecedorView
     },
 
     // páginas de produtos

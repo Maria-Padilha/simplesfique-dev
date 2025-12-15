@@ -516,6 +516,17 @@
         </template>
         </v-text-field>
       </div>
+
+      <div class="mb-5">
+        <p class="texto-color-primary font-medium mb-2">Utiliza aprovação do fornecedor:</p>
+        <v-switch
+          v-model="aprovacaoFornecedor"
+          label="Solicitar aprovação para adiantamento de fornecedor"
+          color="var(--text-color-laranja)"
+          hide-details
+          density="compact"
+        />
+      </div>
       </div>
     </v-form>
 
@@ -560,6 +571,7 @@ const config = reactive({
   pag_id_hist_est_bxa_banco: null,
   pag_id_hist_adt_for_caixa: null, // Histórico adiantamento fornecedor caixa
   pag_id_hist_adt_for_banco: null, // Histórico adiantamento fornecedor banco
+  pag_utiliza_aprov_adt_for: 'N',  // Utiliza aprovação do fornecedor (S/N)
   tipo_documento_padrao: null,     // Tipo de documento padrão
   // Campos de descrição
   desc_ctb_juros_pago: '',
@@ -592,6 +604,13 @@ const planoContaForLabel = computed(() => config.pag_id_red_ctb_for ? `( ${confi
 const histAdtCaixaLabel = computed(() => config.pag_id_hist_adt_for_caixa ? `( ${config.pag_id_hist_adt_for_caixa} ) - ${config.hist_adt_caixa_desc}` : '');
 const histAdtBancoLabel = computed(() => config.pag_id_hist_adt_for_banco ? `( ${config.pag_id_hist_adt_for_banco} ) - ${config.hist_adt_banco_desc}` : '');
 const tipoDocumentoLabel = computed(() => config.tipo_documento_padrao ? `( ${config.tipo_documento_padrao} ) - ${config.tipo_doc_desc}` : '');
+const aprovacaoFornecedor = computed({
+  get: () => config.pag_utiliza_aprov_adt_for === 'S',
+  set: (value) => {
+    config.pag_utiliza_aprov_adt_for = value ? 'S' : 'N'
+  }
+});
+
 import { watch, ref, reactive, onMounted, computed } from 'vue'
 import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
 import { useConfigParfinStore } from '@/stores/APIs/config'
@@ -927,7 +946,8 @@ const salvarConfiguracoes = async () => {
         pag_id_hist_est_bxa_caixa: config.pag_id_hist_est_bxa_caixa,
         pag_id_hist_est_bxa_banco: config.pag_id_hist_est_bxa_banco,
         pag_id_hist_adt_for_caixa: config.pag_id_hist_adt_for_caixa,
-        pag_id_hist_adt_for_banco: config.pag_id_hist_adt_for_banco
+        pag_id_hist_adt_for_banco: config.pag_id_hist_adt_for_banco,
+        pag_utiliza_aprov_adt_for: config.pag_utiliza_aprov_adt_for,
       }]
     }
     
@@ -969,6 +989,7 @@ const resetarConfiguracoes = () => {
   config.pag_id_hist_bxa_banco = null
   config.pag_id_hist_adt_for_caixa = null
   config.pag_id_hist_adt_for_banco = null
+  config.pag_utiliza_aprov_adt_for = 'N'
   config.tipo_documento_padrao = null
   
   // Campos de descrição
