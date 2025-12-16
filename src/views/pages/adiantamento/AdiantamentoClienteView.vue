@@ -41,7 +41,6 @@
                         item-title="nome_razao"
                         item-value="id"
                         label="Cliente *"
-                        :rules="[rules.required]"
                         variant="outlined"
                         density="compact"
                         prepend-inner-icon="mdi-account"
@@ -423,7 +422,7 @@
                 <v-btn
                   color="var(--text-color-laranja)"
                   :loading="loading"
-                  :disabled="!filtros.id_cliente || !filtros.dtini || !filtros.dtfim"
+                  :disabled=" !filtros.dtini || !filtros.dtfim"
                   @click="carregarLancamentos"
                   variant="flat"
                   class="text-white"
@@ -879,10 +878,6 @@ const carregarHistoricosBancarios = async () => {
 }
 
 const carregarLancamentos = async () => {
-  if (!filtros.id_cliente) {
-    console.warn('Selecione um cliente para buscar os lançamentos')
-    return
-  }
 
   if (!filtros.dtini || !filtros.dtfim) {
     console.warn('Selecione as datas para buscar os lançamentos')

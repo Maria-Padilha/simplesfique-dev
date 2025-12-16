@@ -26,15 +26,27 @@
             <v-card class="background-card mb-7" elevation="2">
               <v-card-title class="text-h6 pa-4">
                 <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-                {{ editando ? 'Editar Adiantamento' : 'Novo Adiantamento' }}
+                {{ editando ? 'Editar Adiantamento' : (utilizaAprovacaoAdiantamento === 'S' ? 'Nova Aprovação de Adiantamento' : 'Novo Adiantamento') }}
               </v-card-title>
               <v-card-text class="pa-4">
+                <!-- Aviso modo aprovação -->
+                <v-alert 
+                  v-if="utilizaAprovacaoAdiantamento === 'S'" 
+                  type="info" 
+                  variant="tonal" 
+                  class="mb-4"
+                  icon="mdi-information"
+                >
+                  <v-alert-title>Modo de Aprovação de Adiantamento</v-alert-title>
+                  Campos disponíveis para aprovação: Fornecedor, Conta Contábil, Histórico Contábil, Data de Lançamento, Valor Documento, Valor Solicitado e Observação.
+                </v-alert>
+                
                 <v-form ref="formRef" v-model="formValido">
                   <v-row>
                     <!-- Fornecedor -->
-                    <v-col cols="12" md="6">
+                    <v-col cols="12" md="4">
                       <v-autocomplete
-                        v-model="formData.id_fornecedor"
+                        v-model="formData.id_pessoa"
                         :items="fornecedores"
                         :loading="loadingFornecedores"
                         item-title="nome_razao"
@@ -46,37 +58,24 @@
                         prepend-inner-icon="mdi-account"
                         no-data-text="Nenhum fornecedor disponível"
                         @update:search="buscarFornecedores"
-                        @update:model-value="onFornecedorChange"
                       >
                         <template v-slot:item="{ props, item }">
-                          <v-list-item v-bind="props" :title="item.raw.nome_razao">
+                          <v-list-item v-bind="props">
                             <v-list-item-subtitle>
-                              {{ item.raw.cnpj_cpf }}
+                              {{ item.raw.cpf_cnpj }}
                             </v-list-item-subtitle>
                           </v-list-item>
                         </template>
                       </v-autocomplete>
                     </v-col>
 
-                    <!-- CPF/CNPJ -->
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="formData.cnpj_cpf"
-                        label="CPF/CNPJ"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-card-account-details"
-                        readonly
-                      />
-                    </v-col>
-
                     <!-- Conta Contábil de Adiantamento -->
-                    <v-col cols="12" md="6">
+                    <v-col cols="12" :md="utilizaAprovacaoAdiantamento === 'S' ? '4' : '4'">
                       <v-autocomplete
                         v-model="formData.id_planoconta"
                         :items="planosConta"
                         :loading="loadingPlanosConta"
-                        item-title="descplanoconta"
+                        item-title="descconta"
                         item-value="id"
                         label="Conta Contábil de Adiantamento *"
                         :rules="[rules.required]"
@@ -86,20 +85,140 @@
                         no-data-text="Nenhuma conta disponível"
                       >
                         <template v-slot:item="{ props, item }">
-                          <v-list-item v-bind="props" :title="item.raw.descplanoconta">
+                          <v-list-item v-bind="props">
                             <v-list-item-subtitle>
-                              Código: {{ item.raw.codplanoconta }}
+                              Classificador: {{ item.raw.id_classificador }} | Natureza: {{ item.raw.natureza }}
                             </v-list-item-subtitle>
                           </v-list-item>
                         </template>
                       </v-autocomplete>
                     </v-col>
 
-                    <!-- Previsão de Pagamento -->
-                    <v-col cols="12" md="6">
+                    <!-- Histórico Contábil -->
+                    <v-col cols="12" md="4">
+                      <v-autocomplete
+                        v-model="formData.id_hist_contabil"
+                        :items="historicosContabil"
+                        :loading="loadingHistContabil"
+                        item-title="deschistorico"
+                        item-value="id"
+                        label="Histórico Contábil"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-book-open"
+                        clearable
+                      ></v-autocomplete>
+                    </v-col>
+
+                    <!-- Local de lançamento -->
+                    <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'N'">
+                      <v-select
+                        v-model="formData.local_lct"
+                        :items="[{ title: 'Caixa', value: 'CAI' }, { title: 'Banco', value: 'BAN' }]"
+                        label="Local de Lançamento *"
+                        :rules="[rules.requiredConditional]"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-map-marker"
+                      ></v-select>
+                    </v-col>
+
+                    <!-- Caixa (se local_lct = CAI) -->
+                    <v-col cols="12" md="4" v-if="formData.local_lct === 'CAI' && utilizaAprovacaoAdiantamento === 'N'">
+                      <v-autocomplete
+                        v-model="formData.id_caixa"
+                        :items="caixasDisponiveis"
+                        :loading="loadingCaixas"
+                        item-title="desccaixa"
+                        item-value="id_caixa"
+                        label="Caixa *"
+                        :rules="[rules.requiredConditional]"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-cash-register"
+                        no-data-text="Nenhum caixa disponível"
+                      ></v-autocomplete>
+                    </v-col>
+
+                    <!-- Conta Corrente (se local_lct = BAN) -->
+                    <v-col cols="12" md="4" v-if="formData.local_lct === 'BAN' && utilizaAprovacaoAdiantamento === 'N'">
+                      <v-autocomplete
+                        v-model="formData.id_ccorrente"
+                        :items="contasCorrentes"
+                        :loading="loadingContaCorrente"
+                        item-title="titular"
+                        item-value="id"
+                        label="Conta Corrente *"
+                        :rules="[rules.requiredConditional]"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-bank"
+                        no-data-text="Nenhuma conta disponível"
+                      >
+                        <template v-slot:item="{ props, item }">
+                          <v-list-item v-bind="props">
+                            <v-list-item-title>{{ item.raw.titular }}</v-list-item-title>
+                            <v-list-item-subtitle>
+                              Agência: {{ item.raw.agencia }} | Conta: {{ item.raw.numero_ccorrente }}
+                            </v-list-item-subtitle>
+                          </v-list-item>
+                        </template>
+                      </v-autocomplete>
+                    </v-col>
+
+                    <!-- Histórico Bancário (se local_lct = BAN) -->
+                    <v-col cols="12" md="4" v-if="formData.local_lct === 'BAN' && utilizaAprovacaoAdiantamento === 'N'">
+                      <v-autocomplete
+                        v-model="formData.id_historico"
+                        :items="historicosBancarios"
+                        :loading="loadingHistBancario"
+                        item-title="deschistorico"
+                        item-value="id"
+                        label="Histórico Bancário"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-bank-transfer"
+                        clearable
+                      ></v-autocomplete>
+                    </v-col>
+
+                    <!-- Histórico Contábil do Caixa (se local_lct = CAI) -->
+                    <v-col cols="12" md="4" v-if="formData.local_lct === 'CAI' && utilizaAprovacaoAdiantamento === 'N'">
+                      <v-autocomplete
+                        v-model="formData.id_hist_contabil_caixa"
+                        :items="historicosContabil"
+                        :loading="loadingHistContabil"
+                        item-title="deschistorico"
+                        item-value="id"
+                        label="Histórico Contábil do Caixa"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-cash-register"
+                        clearable
+                      ></v-autocomplete>
+                    </v-col>
+
+                    <!-- Tipo Pagamento/Recebimento (se local_lct = CAI) -->
+                    <v-col cols="12" md="4" v-if="formData.local_lct === 'CAI' && utilizaAprovacaoAdiantamento === 'N'">
+                      <v-autocomplete
+                        v-model="formData.id_tipopagrec"
+                        :items="tiposPagRec"
+                        :loading="loadingTiposPagRec"
+                        item-title="desctipopagrec"
+                        item-value="id"
+                        label="Tipo Pagamento/Recebimento"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-credit-card"
+                        clearable
+                      ></v-autocomplete>
+                    </v-col>
+
+                    <!-- Data de Lançamento -->
+                    <v-col cols="12" :md="utilizaAprovacaoAdiantamento === 'S' ? '4' : '4'">
                       <v-text-field
-                        v-model="formData.dtprevisao_pagamento"
-                        label="Previsão de Pagamento *"
+                        v-model="formData.dtlancamento"
+                        label="Data de Lançamento *"
                         type="date"
                         :rules="[rules.required]"
                         variant="outlined"
@@ -108,58 +227,115 @@
                       />
                     </v-col>
 
-                    <!-- Valor Solicitado -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        v-model="formData.valor_solicitado"
-                        label="Valor Solicitado *"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        :rules="[rules.required, rules.valorPositivo]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-currency-usd"
-                        @input="calcularValorAdiantamento"
-                      />
-                    </v-col>
-
-                    <!-- Valor Documento -->
-                    <v-col cols="12" md="4">
+                    <!-- Valor Documento (modo aprovação) -->
+                    <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'S'">
                       <v-text-field
                         v-model="formData.valor_documento"
                         label="Valor Documento *"
                         type="number"
                         step="0.01"
                         min="0"
-                        :rules="[rules.required, rules.valorPositivo]"
+                        :rules="[rules.required]"
                         variant="outlined"
                         density="compact"
                         prepend-inner-icon="mdi-file-document"
-                        @input="calcularValorAdiantamento"
                       />
                     </v-col>
 
-                    <!-- Valor Adiantamento (calculado) -->
-                    <v-col cols="12" md="4">
+                    <!-- Valor Solicitado (modo aprovação) -->
+                    <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'S'">
                       <v-text-field
-                        v-model="formData.valor_adiantamento"
-                        label="Valor Adiantamento"
+                        v-model="formData.valor_solicitado"
+                        label="Valor Solicitado *"
                         type="number"
                         step="0.01"
+                        min="0"
+                        :rules="[rules.required]"
                         variant="outlined"
                         density="compact"
                         prepend-inner-icon="mdi-cash-multiple"
-                        readonly
-                        :color="formData.valor_adiantamento < 0 ? 'error' : 'success'"
                       />
                     </v-col>
 
-                    <!-- Observações -->
-                    <v-col cols="12">
+                    <!-- Data Previsão Pagamento -->
+                    <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'S'">
+                      <v-text-field
+                        v-model="formData.dtprevisao_pagto"
+                        label="Data Previsão Pagamento"
+                        type="date"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-calendar-clock"
+                      />
+                    </v-col>
+
+                    <!-- Número de Documento (para Banco e Caixa) -->
+                    <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'N'">
+                      <v-text-field
+                        v-model="formData.nrdocumento"
+                        label="Número do Documento"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-file-document-outline"
+                        placeholder="Ex: 123456"
+                      />
+                    </v-col>
+
+                    <!-- Tipo Documento (não para Banco) -->
+                    <v-col cols="12" md="4" v-if="formData.local_lct !== 'BAN' && utilizaAprovacaoAdiantamento === 'N'">
+                      <v-autocomplete
+                        v-model="formData.id_tipodocumento"
+                        :items="tiposDocumento"
+                        :loading="loadingTiposDoc"
+                        item-title="desctipodocumento"
+                        item-value="id"
+                        label="Tipo de Documento"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-file-document"
+                        clearable
+                      ></v-autocomplete>
+                    </v-col>
+
+                    <!-- Valor Documento -->
+                    <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'N'">
+                      <v-text-field
+                        v-model="formData.valor_documento"
+                        label="Valor Documento *"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        :rules="[rules.valorPositivo]"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-file-document"
+                        @input="calcularValorSolicitado"
+                      />
+                    </v-col>
+
+                    <!-- Valor Solicitado -->
+                    <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'N'">
+                      <v-text-field
+                        v-model="formData.valor_solicitado"
+                        label="Valor Solicitado *"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        :rules="[rules.valorPositivo]"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-cash-multiple"
+                        @input="calcularValorDocumento"
+                      />
+                    </v-col>
+
+
+
+                    <!-- Observação -->
+                    <v-col cols="12" :md="utilizaAprovacaoAdiantamento === 'S' ? '12' : '12'">
                       <v-textarea
-                        v-model="formData.observacoes"
-                        label="Observações"
+                        v-model="formData.observacao"
+                        label="Observação"
                         variant="outlined"
                         density="compact"
                         rows="3"
@@ -187,115 +363,341 @@
           </div>
         </v-expand-transition>
 
-        <!-- Data Table -->
-        <TabelaPadrao
-          :formulario-aberto="formularioAberto"
-          :headers="headers"
-          :items="itemsFiltrados"
-          :loading="loading"
-          :search="search"
-          @update:search="(value) => search = value"
-          search-label="Pesquisar Adiantamento"
-          item-key="id"
-          no-data-icon="mdi-account-cash-outline"
-          no-data-text="Nenhum adiantamento de fornecedor cadastrado"
-          delete-item-display-field="fornecedor_nome"
-          @edit-item="editarAdiantamento"
-          @confirm-delete="excluirAdiantamento"
-        >
-          <!-- Slot customizado para valor solicitado -->
-          <template v-slot:[`item.valor_solicitado`]="{ item }">
-            <span class="font-weight-medium text-success">
-              {{ formatarMoeda(item.valor_solicitado) }}
-            </span>
-          </template>
+        <!-- Filtros de Busca -->
+        <v-card class="mb-4 background-card" elevation="1">
+          <v-card-title class="text-h6 pa-4">
+            <v-icon icon="mdi-filter" class="mr-2"></v-icon>
+            Filtros de Período e Fornecedor
+          </v-card-title>
+          <v-card-text class="pa-4">
+            <v-row>
+              <!-- Fornecedor -->
+              <v-col cols="12" md="3">
+                <v-autocomplete
+                  v-model="filtros.id_fornecedor"
+                  :items="fornecedores"
+                  :loading="loadingFornecedores"
+                  item-title="nome_razao"
+                  item-value="id"
+                  label="Fornecedor"
+                  variant="outlined"
+                  density="compact"
+                  prepend-inner-icon="mdi-account"
+                  no-data-text="Nenhum fornecedor disponível"
+                >
+                </v-autocomplete>
+              </v-col>
 
-          <!-- Slot customizado para valor documento -->
-          <template v-slot:[`item.valor_documento`]="{ item }">
-            <span class="font-weight-medium text-info">
-              {{ formatarMoeda(item.valor_documento) }}
-            </span>
-          </template>
+              <!-- Atalho de Período -->
+              <v-col cols="12" md="2">
+                <v-select
+                  v-model="periodoSelecionado"
+                  :items="periodos"
+                  label="Período"
+                  variant="outlined"
+                  density="compact"
+                  prepend-inner-icon="mdi-calendar-clock"
+                  @update:model-value="aplicarPeriodo"
+                ></v-select>
+              </v-col>
 
-          <!-- Slot customizado para valor adiantamento -->
-          <template v-slot:[`item.valor_adiantamento`]="{ item }">
-            <span 
-              class="font-weight-bold" 
-              :class="item.valor_adiantamento >= 0 ? 'text-success' : 'text-error'"
+              <!-- Data Inicial -->
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="filtros.dtini"
+                  label="Data Inicial *"
+                  type="date"
+                  variant="outlined"
+                  density="compact"
+                  prepend-inner-icon="mdi-calendar"
+                ></v-text-field>
+              </v-col>
+
+              <!-- Data Final -->
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="filtros.dtfim"
+                  label="Data Final *"
+                  type="date"
+                  variant="outlined"
+                  density="compact"
+                  prepend-inner-icon="mdi-calendar"
+                ></v-text-field>
+              </v-col>
+
+              <!-- Botão Buscar -->
+              <v-col cols="12" md="1" class="d-flex align-center">
+                <v-btn
+                  color="var(--text-color-laranja)"
+                  :loading="loading"
+                  :disabled="!filtros.dtini || !filtros.dtfim"
+                  @click="carregarLancamentos"
+                  variant="flat"
+                  class="text-white"
+                  block
+                >
+                  <v-icon start>mdi-magnify</v-icon>
+                  Buscar
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+
+        <!-- Tabela de Lançamentos -->
+        <v-card class="background-card" elevation="1">
+          <v-card-text class="pa-0">
+            <!-- Saldo Anterior -->
+            <v-card class="ma-4 mb-0 background-card" elevation="2">
+              <v-card-text class="d-flex justify-space-between align-center pa-3">
+                <span class="text-subtitle-1 font-weight-bold">Saldo Anterior</span>
+                <span class="text-h6 font-weight-bold" :class="saldoAnterior >= 0 ? 'text-success' : 'text-error'">
+                  {{ formatarMoeda(saldoAnterior) }}
+                </span>
+              </v-card-text>
+            </v-card>
+
+            <v-data-table
+              :headers="headers"
+              :items="lancamentosFiltrados"
+              :loading="loading"
+              item-key="id"
+              class="elevation-1 background-secondary"
+              :items-per-page="15"
+              density="compact"
             >
-              {{ formatarMoeda(item.valor_adiantamento) }}
-            </span>
-          </template>
+              <!-- Coluna Fornecedor -->
+              <template v-slot:[`item.nome_razao`]="{ item }">
+                {{ item.nome_razao || '--' }}
+              </template>
 
-          <!-- Slot customizado para data de previsão -->
-          <template v-slot:[`item.dtprevisao_pagamento`]="{ item }">
-            {{ formatarData(item.dtprevisao_pagamento) }}
-          </template>
+              <!-- Coluna Data -->
+              <template v-slot:[`item.dtlancamento`]="{ item }">
+                {{ formatarData(item.dtlancamento) }}
+              </template>
 
-          <!-- Slot customizado para status -->
-          <template v-slot:[`item.status`]="{ item }">
-            <v-chip
-              :color="getStatusColor(item.status)"
-              size="small"
-              variant="flat"
-            >
-              {{ getStatusLabel(item.status) }}
-            </v-chip>
-          </template>
-        </TabelaPadrao>
+              <!-- Coluna Nr Documento -->
+              <template v-slot:[`item.nrdocumento`]="{ item }">
+                {{ item.nrdocumento || '--' }}
+              </template>
+
+              <!-- Coluna Valor Documento -->
+              <template v-slot:[`item.valor_documento`]="{ item }">
+                <span class="font-weight-medium text-info">
+                  {{ formatarMoeda(item.valor_documento) }}
+                </span>
+              </template>
+
+              <!-- Coluna Valor Solicitado -->
+              <template v-slot:[`item.valor_solicitado`]="{ item }">
+                <span class="font-weight-bold text-warning">
+                  {{ formatarMoeda(item.valor_solicitado) }}
+                </span>
+              </template>
+
+              <!-- Coluna Valor Autorizado -->
+              <template v-slot:[`item.valor_autorizado`]="{ item }">
+                <span 
+                  class="font-weight-bold" 
+                  :class="item.valor_autorizado >= 0 ? 'text-success' : 'text-error'"
+                >
+                  {{ formatarMoeda(item.valor_autorizado) }}
+                </span>
+              </template>
+
+              <!-- Coluna Situação -->
+              <template v-slot:[`item.situacao`]="{ item }">
+                <v-chip 
+                  :color="getCorSituacao(item.situacao)" 
+                  size="small" 
+                  variant="tonal"
+                >
+                  {{ item.descsituacao || getSituacaoTexto(item.situacao) }}
+                </v-chip>
+              </template>
+
+              <!-- Coluna Tipo -->
+              <template v-slot:[`item.tipo`]="{ item }">
+                <v-chip 
+                  :color="item.tipo === 'Saida' ? 'error' : 'success'" 
+                  size="small" 
+                  variant="tonal"
+                >
+                  {{ item.tipo }}
+                </v-chip>
+              </template>
+
+              <!-- Coluna Origem -->
+              <template v-slot:[`item.origem`]="{ item }">
+                <v-chip 
+                  :color="item.origem === 'CAI' ? 'primary' : 'secondary'" 
+                  size="small" 
+                  variant="outlined"
+                >
+                  {{ item.origem }}
+                </v-chip>
+              </template>
+
+              <!-- Coluna Data Inclusão -->
+              <template v-slot:[`item.dhinc`]="{ item }">
+                {{ formatarDataHora(item.dhinc) }}
+              </template>
+
+              <!-- Coluna Observação -->
+              <template v-slot:[`item.observacao`]="{ item }">
+                {{ item.observacao || '--' }}
+              </template>
+
+              <!-- Coluna Ações -->
+              <template v-slot:[`item.actions`]="{ item }">
+                <div class="d-flex justify-center gap-1">
+                  <v-btn
+                    icon="mdi-pencil"
+                    size="small"
+                    variant="text"
+                    color="primary"
+                    @click="editarLancamento(item)"
+                  >
+                    <v-icon size="20">mdi-pencil</v-icon>
+                    <v-tooltip activator="parent" location="top">Editar</v-tooltip>
+                  </v-btn>
+                  <v-btn
+                    icon="mdi-delete"
+                    size="small"
+                    variant="text"
+                    color="error"
+                    @click="confirmarExclusao(item)"
+                  >
+                    <v-icon size="20">mdi-delete</v-icon>
+                    <v-tooltip activator="parent" location="top">Excluir</v-tooltip>
+                  </v-btn>
+                </div>
+              </template>
+
+              <!-- Loading -->
+              <template v-slot:loading>
+                <v-skeleton-loader type="table-row@5"></v-skeleton-loader>
+              </template>
+
+              <!-- Sem dados -->
+              <template v-slot:no-data>
+                <div class="text-center py-8">
+                  <v-icon icon="mdi-account-cash" size="64" color="grey" class="mb-4"></v-icon>
+                  <p class="text-h6 text-grey">Nenhum lançamento encontrado</p>
+                </div>
+              </template>
+            </v-data-table>
+          </v-card-text>
+        </v-card>
       </v-card-text>
     </v-card>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
+import { usePessoasStore } from '@/stores/APIs/pessoas'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
+import { useCaixaStore } from '@/stores/APIs/caixa'
 import { useEmpresaStore } from '@/stores/APIs/empresa'
+import { useAdiantamentoStore } from '@/stores/APIs/adiantamento'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
-import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 
 const themeStore = useThemeStore()
+const pessoasStore = usePessoasStore()
 const financeiroStore = useFinanceiroStore()
+const caixaStore = useCaixaStore()
 const empresaStore = useEmpresaStore()
+const adiantamentoStore = useAdiantamentoStore()
 
 // Estado
 const formularioAberto = ref(false)
 const editando = ref(false)
 const formValido = ref(false)
 const formRef = ref(null)
-const search = ref('')
 const loading = ref(false)
 const loadingFornecedores = ref(false)
 const loadingPlanosConta = ref(false)
+const loadingCaixas = ref(false)
+const loadingTiposPagRec = ref(false)
+const loadingHistContabil = ref(false)
+const loadingTiposDoc = ref(false)
+const loadingContaCorrente = ref(false)
+const loadingHistBancario = ref(false)
 
 // Dados
 const fornecedores = ref([])
 const planosConta = ref([])
-const adiantamentos = ref([]) // Dados simulados por enquanto
+const caixasDisponiveis = ref([])
+const tiposPagRec = ref([])
+const historicosContabil = ref([])
+const tiposDocumento = ref([])
+const contasCorrentes = ref([])
+const historicosBancarios = ref([])
+const lancamentos = ref([])
+const saldoAnterior = ref(0)
+const utilizaAprovacaoAdiantamento = ref('N') // Controla quais campos exibir
+
+// Filtros de busca
+const periodoSelecionado = ref('mes')
+const filtros = reactive({
+  id_fornecedor: null,
+  dtini: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0], // Primeiro dia do mês
+  dtfim: new Date().toISOString().split('T')[0] // Data atual
+})
+
+// Opções de período
+const periodos = [
+  { title: 'Hoje', value: 'hoje' },
+  { title: 'Essa Semana', value: 'semana' },
+  { title: 'Esse Mês', value: 'mes' },
+  { title: 'Esse Ano', value: 'ano' },
+  { title: 'Últimos 7 dias', value: '7dias' },
+  { title: 'Últimos 30 dias', value: '30dias' },
+  { title: 'Personalizado', value: 'personalizado' }
+]
+
+
 
 // Formulário
 const formData = reactive({
   id: null,
-  id_fornecedor: null,
-  fornecedor_nome: '',
-  cnpj_cpf: '',
+  id_pessoa: null,
   id_planoconta: null,
-  observacoes: '',
-  valor_solicitado: 0,
+  id_hist_contabil: null,
+  local_lct: 'CAI',
+  id_caixa: null,
+  id_ccorrente: null,
+  id_historico: null,
+  id_hist_contabil_caixa: null,
+  id_tipopagrec: null,
+  id_tipodocumento: null,
+  nrdocumento: null,
+  dtlancamento: new Date().toISOString().split('T')[0],
+  dtprevisao_pagto: null,
   valor_documento: 0,
-  valor_adiantamento: 0,
-  dtprevisao_pagamento: '',
-  status: 'pendente' // pendente, aprovado, pago, cancelado
+  valor_solicitado: 0,
+  valor_autorizado: 0,
+  tipo: 'Saida',
+  origem: 'CAI',
+  observacao: ''
 })
 
 // Regras de validação
 const rules = {
   required: (value) => !!value || 'Campo obrigatório',
+  requiredConditional: (value) => {
+    if (utilizaAprovacaoAdiantamento.value === 'N') {
+      return !!value || 'Campo obrigatório'
+    }
+    return true
+  },
   valorPositivo: (value) => {
-    if (!value) return 'Campo obrigatório'
-    if (parseFloat(value) <= 0) return 'Valor deve ser maior que zero'
+    if (utilizaAprovacaoAdiantamento.value === 'N') {
+      if (!value) return 'Campo obrigatório'
+      if (parseFloat(value) <= 0) return 'Valor deve ser maior que zero'
+    }
     return true
   }
 }
@@ -303,19 +705,22 @@ const rules = {
 // Headers da tabela
 const headers = [
   { title: 'ID', key: 'id', sortable: true, width: '80px' },
-  { title: 'Fornecedor', key: 'fornecedor_nome', sortable: true },
-  { title: 'CPF/CNPJ', key: 'cnpj_cpf', sortable: true, width: '150px' },
-  { title: 'Valor Solicitado', key: 'valor_solicitado', sortable: true, align: 'end', width: '140px' },
-  { title: 'Valor Documento', key: 'valor_documento', sortable: true, align: 'end', width: '140px' },
-  { title: 'Valor Adiantamento', key: 'valor_adiantamento', sortable: true, align: 'end', width: '150px' },
-  { title: 'Previsão Pagamento', key: 'dtprevisao_pagamento', sortable: true, width: '140px' },
-  { title: 'Status', key: 'status', sortable: true, width: '100px' },
+  { title: 'Fornecedor', key: 'nome_razao', sortable: true },
+  { title: 'Data Lançamento', key: 'dtlancamento', sortable: true, width: '140px' },
+  { title: 'Valor Documento', key: 'valor_documento', sortable: true, align: 'end', width: '130px' },
+  { title: 'Valor Solicitado', key: 'valor_solicitado', sortable: true, align: 'end', width: '130px' },
+  { title: 'Valor Autorizado', key: 'valor_autorizado', sortable: true, align: 'end', width: '130px' },
+  { title: 'Situação', key: 'situacao', sortable: true, width: '120px' },
+  { title: 'Tipo', key: 'tipo', sortable: true, width: '100px' },
+  { title: 'Origem', key: 'origem', sortable: true, width: '100px' },
+  { title: 'Data Inclusão', key: 'dhinc', sortable: true, width: '140px' },
+  { title: 'Observação', key: 'observacao', sortable: false, width: '200px' },
   { title: 'Ações', key: 'actions', sortable: false, align: 'center', width: '100px' }
 ]
 
 // Computed
-const itemsFiltrados = computed(() => {
-  const dados = adiantamentos.value || []
+const lancamentosFiltrados = computed(() => {
+  const dados = lancamentos.value || []
   return Array.isArray(dados) ? dados : []
 })
 
@@ -337,45 +742,103 @@ const formatarData = (data) => {
   }
 }
 
-const getStatusColor = (status) => {
-  const cores = {
-    'pendente': 'warning',
-    'aprovado': 'info',
-    'pago': 'success',
-    'cancelado': 'error'
+const formatarDataHora = (dataHora) => {
+  if (!dataHora) return '--'
+  try {
+    return new Date(dataHora).toLocaleString('pt-BR')
+  } catch {
+    return '--'
   }
-  return cores[status] || 'grey'
 }
 
-const getStatusLabel = (status) => {
-  const labels = {
-    'pendente': 'Pendente',
-    'aprovado': 'Aprovado',
-    'pago': 'Pago',
-    'cancelado': 'Cancelado'
+// Funções para formatar situação
+const getSituacaoTexto = (situacao) => {
+  switch(situacao) {
+    case '1': return 'Pendente'
+    case '2': return 'Aprovado'
+    case '3': return 'Negado'
+    case '9': return 'Pago'
+    default: return 'Desconhecido'
   }
-  return labels[status] || status
+}
+
+const getCorSituacao = (situacao) => {
+  switch(situacao) {
+    case '1': return 'warning'    // Pendente - amarelo
+    case '2': return 'success'    // Aprovado - verde
+    case '3': return 'error'      // Negado - vermelho
+    case '9': return 'primary'    // Pago - azul
+    default: return 'grey'
+  }
+}
+
+// Aplicar período selecionado
+const aplicarPeriodo = (periodo) => {
+  const hoje = new Date()
+  let dataInicio = new Date()
+  let dataFim = new Date()
+
+  switch (periodo) {
+    case 'hoje':
+      dataInicio = hoje
+      dataFim = hoje
+      break
+    
+    case 'semana': {
+      // Primeiro dia da semana (domingo)
+      const primeiroDiaSemana = hoje.getDate() - hoje.getDay()
+      dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), primeiroDiaSemana)
+      dataFim = hoje
+      break
+    }
+    
+    case 'mes':
+      // Primeiro dia do mês
+      dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
+      dataFim = hoje
+      break
+    
+    case 'ano':
+      // Primeiro dia do ano
+      dataInicio = new Date(hoje.getFullYear(), 0, 1)
+      dataFim = hoje
+      break
+    
+    case '7dias':
+      // Últimos 7 dias
+      dataInicio = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000)
+      dataFim = hoje
+      break
+    
+    case '30dias':
+      // Últimos 30 dias
+      dataInicio = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000)
+      dataFim = hoje
+      break
+    
+    case 'personalizado':
+      // Não altera as datas, usuário define manualmente
+      return
+  }
+
+  filtros.dtini = dataInicio.toISOString().split('T')[0]
+  filtros.dtfim = dataFim.toISOString().split('T')[0]
+}
+
+// Métodos de cálculo
+const calcularValorSolicitado = () => {
+  const documento = parseFloat(formData.valor_documento) || 0
+  const autorizado = parseFloat(formData.valor_autorizado) || 0
+  formData.valor_solicitado = documento - autorizado
+}
+
+const calcularValorDocumento = () => {
+  const solicitado = parseFloat(formData.valor_solicitado) || 0
+  const autorizado = parseFloat(formData.valor_autorizado) || 0
+  formData.valor_documento = solicitado + autorizado
 }
 
 // Métodos de negócio
-const calcularValorAdiantamento = () => {
-  const solicitado = parseFloat(formData.valor_solicitado) || 0
-  const documento = parseFloat(formData.valor_documento) || 0
-  formData.valor_adiantamento = solicitado - documento
-}
-
-const onFornecedorChange = (idFornecedor) => {
-  const fornecedor = fornecedores.value.find(f => f.id === idFornecedor)
-  if (fornecedor) {
-    formData.fornecedor_nome = fornecedor.nome_razao
-    formData.cnpj_cpf = fornecedor.cnpj_cpf || ''
-  } else {
-    formData.fornecedor_nome = ''
-    formData.cnpj_cpf = ''
-  }
-}
-
-// Métodos de ação
 const toggleFormulario = () => {
   formularioAberto.value = !formularioAberto.value
   if (!formularioAberto.value) {
@@ -392,16 +855,25 @@ const cancelarFormulario = () => {
 const resetFormulario = () => {
   Object.assign(formData, {
     id: null,
-    id_fornecedor: null,
-    fornecedor_nome: '',
-    cnpj_cpf: '',
+    id_pessoa: null,
     id_planoconta: null,
-    observacoes: '',
-    valor_solicitado: 0,
+    id_hist_contabil: null,
+    local_lct: 'CAI',
+    id_caixa: null,
+    id_ccorrente: null,
+    id_historico: null,
+    id_hist_contabil_caixa: null,
+    id_tipopagrec: null,
+    id_tipodocumento: null,
+    nrdocumento: null,
+    dtlancamento: new Date().toISOString().split('T')[0],
+    dtprevisao_pagto: null,
     valor_documento: 0,
-    valor_adiantamento: 0,
-    dtprevisao_pagamento: '',
-    status: 'pendente'
+    valor_solicitado: 0,
+    valor_autorizado: 0,
+    tipo: 'Saida',
+    origem: 'CAI',
+    observacao: ''
   })
   
   if (formRef.value) {
@@ -410,14 +882,17 @@ const resetFormulario = () => {
 }
 
 // Buscar dados
-const buscarFornecedores = async (searchTerm = '') => {
+const buscarFornecedores = async () => {
   if (loadingFornecedores.value) return
+  
+  // Se já temos fornecedores carregados, não recarregar
+  if (fornecedores.value.length > 0) return
   
   loadingFornecedores.value = true
   try {
-    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-    const dados = await financeiroStore.buscarPessoasFornecedores(searchTerm, idEmpresa)
-    fornecedores.value = Array.isArray(dados) ? dados : []
+    await pessoasStore.buscarTodasPessoas()
+    // Filtrar apenas fornecedores
+    fornecedores.value = (pessoasStore.pessoas || []).filter(p => p.fornecedor === 'S')
   } catch (error) {
     console.error('Erro ao buscar fornecedores:', error)
     fornecedores.value = []
@@ -429,7 +904,8 @@ const buscarFornecedores = async (searchTerm = '') => {
 const carregarPlanosConta = async () => {
   loadingPlanosConta.value = true
   try {
-    const dados = await financeiroStore.buscarPlanosConta()
+    const response = await financeiroStore.buscarPlanosConta()
+    const dados = response?.data || response || []
     planosConta.value = Array.isArray(dados) ? dados : []
   } catch (error) {
     console.error('Erro ao carregar planos de conta:', error)
@@ -439,114 +915,321 @@ const carregarPlanosConta = async () => {
   }
 }
 
-// CRUD - Por enquanto simulado, será conectado à API depois
-const salvarAdiantamento = async () => {
-  if (!formValido.value) return
+const carregarCaixas = async () => {
+  loadingCaixas.value = true
+  try {
+    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
+    if (!idEmpresa) return
+    
+    const dados = await caixaStore.buscarCaixasUsuarioAberto(idEmpresa)
+    caixasDisponiveis.value = Array.isArray(dados) ? dados : []
+  } catch (error) {
+    console.error('Erro ao carregar caixas:', error)
+    caixasDisponiveis.value = []
+  } finally {
+    loadingCaixas.value = false
+  }
+}
+
+const carregarHistoricosContabil = async () => {
+  loadingHistContabil.value = true
+  try {
+    const dados = await financeiroStore.buscarHistoricosContabil()
+    
+    // Normalizar resposta
+    let historicos = []
+    if (dados && dados.data && Array.isArray(dados.data)) {
+      historicos = dados.data
+    } else if (Array.isArray(dados)) {
+      historicos = dados
+    } else if (dados && typeof dados === 'object') {
+      historicos = [dados]
+    }
+    
+    historicosContabil.value = historicos
+  } catch (error) {
+    console.error('Erro ao carregar históricos contábeis:', error)
+    historicosContabil.value = []
+  } finally {
+    loadingHistContabil.value = false
+  }
+}
+
+const carregarTiposPagRec = async () => {
+  loadingTiposPagRec.value = true
+  try {
+    await financeiroStore.buscarTiposPagRec()
+    tiposPagRec.value = financeiroStore.tiposPagRec || []
+  } catch (error) {
+    console.error('Erro ao carregar tipos de pagamento/recebimento:', error)
+    tiposPagRec.value = []
+  } finally {
+    loadingTiposPagRec.value = false
+  }
+}
+
+const carregarTiposDocumento = async () => {
+  loadingTiposDoc.value = true
+  try {
+    await financeiroStore.buscarTiposDocumento()
+    tiposDocumento.value = financeiroStore.tiposDocumento || []
+  } catch (error) {
+    console.error('Erro ao carregar tipos de documento:', error)
+    tiposDocumento.value = []
+  } finally {
+    loadingTiposDoc.value = false
+  }
+}
+
+const carregarContasCorrentes = async () => {
+  loadingContaCorrente.value = true
+  try {
+    // Se for modo banco, usar contas ativas do usuário, senão usar todas as contas
+    let response
+    if (formData.local_lct === 'BAN') {
+      response = await financeiroStore.buscarContasUsuarioAtivo()
+    } else {
+      response = await financeiroStore.buscarContasCorrentes()
+    }
+    
+    const dados = response?.data || response || []
+    contasCorrentes.value = Array.isArray(dados) ? dados : []
+    console.log('Contas correntes carregadas:', contasCorrentes.value)
+  } catch (error) {
+    console.error('Erro ao carregar contas correntes:', error)
+    contasCorrentes.value = []
+  } finally {
+    loadingContaCorrente.value = false
+  }
+}
+
+const carregarHistoricosBancarios = async () => {
+  loadingHistBancario.value = true
+  try {
+    const response = await financeiroStore.buscarHistoricosBancarios()
+    const dados = response?.data || response || []
+    historicosBancarios.value = Array.isArray(dados) ? dados : []
+    console.log('Históricos bancários carregados:', historicosBancarios.value)
+  } catch (error) {
+    console.error('Erro ao carregar históricos bancários:', error)
+    historicosBancarios.value = []
+  } finally {
+    loadingHistBancario.value = false
+  }
+}
+
+const carregarLancamentos = async () => {
+  if (!filtros.dtini || !filtros.dtfim) {
+    console.warn('Selecione as datas para buscar os lançamentos')
+    return
+  }
 
   loading.value = true
   try {
-    // Simular salvamento - substituir pela chamada da API quando estiver disponível
-    const novoAdiantamento = {
-      ...formData,
-      id: editando.value ? formData.id : Date.now(), // ID temporário
-      dtcriacao: new Date().toISOString().split('T')[0]
+    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
+    
+    if (!idEmpresa) {
+      console.error('ID da empresa não encontrado')
+      loading.value = false
+      return
     }
 
-    if (editando.value) {
-      const index = adiantamentos.value.findIndex(a => a.id === formData.id)
-      if (index !== -1) {
-        adiantamentos.value[index] = novoAdiantamento
-      }
-      console.log('✅ Adiantamento atualizado (simulado):', novoAdiantamento)
-    } else {
-      adiantamentos.value.push(novoAdiantamento)
-      console.log('✅ Adiantamento criado (simulado):', novoAdiantamento)
-    }
-
-    cancelarFormulario()
+    console.log('Buscando lançamentos de fornecedores:', {
+      idEmpresa,
+      dtini: filtros.dtini,
+      dtfim: filtros.dtfim,
+      idFornecedor: filtros.id_fornecedor || 'todos'
+    })
+    
+    const resultado = await adiantamentoStore.buscarAdiantamentosFornecedores(
+      idEmpresa,
+      filtros.dtini,
+      filtros.dtfim,
+      filtros.id_fornecedor // Pode ser null para buscar todos
+    )
+    
+    console.log('Resultado da API:', resultado)
+    
+    // A API retorna { saldoanterior: [valor], data: [...], records: N, pag_utiliza_aprov_adt_for: 'S/N' }
+    saldoAnterior.value = Array.isArray(resultado.saldoanterior) ? resultado.saldoanterior[0] : (resultado.saldoanterior || 0)
+    lancamentos.value = Array.isArray(resultado.data) ? resultado.data : []
+    utilizaAprovacaoAdiantamento.value = resultado.pag_utiliza_aprov_adt_for || 'N'
+    
+    console.log('Lançamentos carregados:', lancamentos.value.length)
+    console.log('Saldo anterior:', saldoAnterior.value)
   } catch (error) {
-    console.error('❌ Erro ao salvar adiantamento:', error)
+    console.error('Erro ao carregar lançamentos:', error)
+    lancamentos.value = []
+    saldoAnterior.value = 0
   } finally {
     loading.value = false
   }
 }
 
-const editarAdiantamento = (item) => {
-  editando.value = true
-  formularioAberto.value = true
-  
+// CRUD
+const salvarAdiantamento = async () => {
+  if (!formValido.value) {
+    console.warn('Preencha todos os campos obrigatórios')
+    return
+  }
+
+  loading.value = true
+  try {
+    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
+    
+    if (!idEmpresa) {
+      console.error('ID da empresa não encontrado')
+      loading.value = false
+      return
+    }
+
+    const payload = {
+      data: [{
+        id_fornecedor: formData.id_pessoa,
+        id_empresa: idEmpresa,
+        id_caixahist: formData.local_lct === 'CAI' ? formData.id_hist_contabil_caixa : null,
+        id_caixa: formData.local_lct === 'CAI' ? formData.id_caixa : null,
+        id_ccorrente: formData.local_lct === 'BAN' ? formData.id_ccorrente : null,
+        id_historico: formData.local_lct === 'BAN' ? formData.id_historico : null,      
+        local_lct: formData.local_lct,
+        tipo: formData.tipo,
+        origem: formData.origem,
+        dtlancamento: formData.dtlancamento,
+        dtprevisao_pagto: formData.dtprevisao_pagto || null,
+        nrdocumento: formData.nrdocumento || null,
+        vlr_documento: parseFloat(formData.valor_documento) || 0,
+        vlr_solicitado: parseFloat(formData.valor_solicitado) || 0,
+        observacao: formData.observacao || null,
+        id_tipopagrec: formData.id_tipopagrec,
+        id_hist_contabil: formData.id_hist_contabil || null,
+        id_planoconta: formData.id_planoconta,
+        id_tipodocumento: formData.local_lct !== 'BAN' ? formData.id_tipodocumento : null
+      }]
+    }
+
+    console.log('Payload a ser enviado:', payload)
+
+    if (editando.value && formData.id) {
+      await adiantamentoStore.atualizarAdiantamentoFornecedor(formData.id, payload)
+      console.log('Adiantamento atualizado com sucesso!')
+    } else {
+      await adiantamentoStore.criarAdiantamentoFornecedor(payload)
+      console.log('Adiantamento cadastrado com sucesso!')
+    }
+    
+    cancelarFormulario()
+    // Recarregar dados se filtros estiverem preenchidos
+    if (filtros.id_fornecedor && filtros.dtini && filtros.dtfim) {
+      await carregarLancamentos()
+    }
+  } catch (error) {
+    console.error('Erro ao salvar adiantamento:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const editarLancamento = (item) => {
   Object.assign(formData, {
     id: item.id,
-    id_fornecedor: item.id_fornecedor,
-    fornecedor_nome: item.fornecedor_nome,
-    cnpj_cpf: item.cnpj_cpf,
+    id_pessoa: item.id_fornecedor,
     id_planoconta: item.id_planoconta,
-    observacoes: item.observacoes,
-    valor_solicitado: item.valor_solicitado,
-    valor_documento: item.valor_documento,
-    valor_adiantamento: item.valor_adiantamento,
-    dtprevisao_pagamento: item.dtprevisao_pagamento,
-    status: item.status
+    id_hist_contabil: item.id_hist_contabil || null,
+    local_lct: item.origem || 'CAI',
+    id_caixa: item.id_caixa,
+    id_ccorrente: item.id_ccorrente || null,
+    id_historico: item.id_historico || null,
+    id_hist_contabil_caixa: item.id_hist_contabil_caixa || null,
+    id_tipopagrec: item.id_tipopagrec,
+    id_tipodocumento: item.id_tipodocumento || null,
+    nrdocumento: item.nrdocumento || null,
+    dtlancamento: item.dtlancamento,
+    dtprevisao_pagto: item.dtprevisao_pagto || null,
+    valor_documento: item.valor_documento || 0,
+    valor_solicitado: item.valor_solicitado || 0,
+    valor_autorizado: item.valor_autorizado || 0,
+    tipo: item.tipo || 'Saida',
+    origem: item.origem || 'CAI',
+    observacao: item.observacao || ''
   })
+  
+  editando.value = true
+  formularioAberto.value = true
 }
 
 const excluirAdiantamento = async (item) => {
   loading.value = true
   try {
-    // Simular exclusão - substituir pela chamada da API quando estiver disponível
-    const index = adiantamentos.value.findIndex(a => a.id === item.id)
-    if (index !== -1) {
-      adiantamentos.value.splice(index, 1)
+    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
+    
+    if (!idEmpresa) {
+      console.error('ID da empresa não encontrado')
+      loading.value = false
+      return
     }
-    console.log('✅ Adiantamento excluído (simulado):', item.id)
+    
+    await adiantamentoStore.excluirAdiantamentoFornecedor(idEmpresa, item.id)
+    console.log('Adiantamento excluído com sucesso!')
+    // Recarregar dados se filtros de data estiverem preenchidos
+    if (filtros.dtini && filtros.dtfim) {
+      await carregarLancamentos()
+    }
   } catch (error) {
-    console.error('❌ Erro ao excluir adiantamento:', error)
+    console.error('Erro ao excluir adiantamento:', error)
   } finally {
     loading.value = false
   }
 }
+
+// Confirmar exclusão
+const confirmarExclusao = (item) => {
+  if (confirm(`Deseja realmente excluir este lançamento?\n\nFornecedor: ${item.nome_razao}\nValor: ${formatarMoeda(item.valor_solicitado)}`)) {
+    excluirAdiantamento(item)
+  }
+}
+
+// Watch para atualizar data quando caixa for selecionado
+watch(() => formData.id_caixa, (novoIdCaixa) => {
+  if (!novoIdCaixa || formData.local_lct !== 'CAI') return
+  
+  const caixaSelecionado = caixasDisponiveis.value.find(c => c.id_caixa === novoIdCaixa)
+  console.log('Caixa selecionado:', caixaSelecionado)
+  
+  if (caixaSelecionado && caixaSelecionado.dt_abertura) {
+    formData.dtlancamento = caixaSelecionado.dt_abertura
+    console.log('Data de abertura atribuída:', formData.dtlancamento)
+  }
+})
+
+// Watch para recarregar contas correntes quando local de lançamento mudar
+watch(() => formData.local_lct, async (novoLocal) => {
+  if (novoLocal === 'BAN') {
+    console.log('Mudou para Banco - recarregando contas do usuário ativo')
+    await carregarContasCorrentes()
+    // Limpar conta selecionada pois a lista mudou
+    formData.id_ccorrente = null
+  } else if (novoLocal === 'CAI') {
+    // Limpar dados de banco quando mudar para caixa
+    formData.id_ccorrente = null
+    formData.id_historico = null
+  }
+})
 
 // Lifecycle
 onMounted(async () => {
   console.log('🚀 Carregando dados iniciais...')
   await Promise.all([
     buscarFornecedores(),
-    carregarPlanosConta()
+    carregarPlanosConta(),
+    carregarCaixas(),
+    carregarTiposPagRec(),
+    carregarHistoricosContabil(),
+    carregarTiposDocumento(),
+    carregarContasCorrentes(),
+    carregarHistoricosBancarios()
   ])
   
-  // Dados simulados para demonstração
-  adiantamentos.value = [
-    {
-      id: 1,
-      id_fornecedor: 1,
-      fornecedor_nome: 'Fornecedor Exemplo Ltda',
-      cnpj_cpf: '12.345.678/0001-90',
-      id_planoconta: 1,
-      observacoes: 'Adiantamento para compra de materiais',
-      valor_solicitado: 5000.00,
-      valor_documento: 3000.00,
-      valor_adiantamento: 2000.00,
-      dtprevisao_pagamento: '2024-12-30',
-      status: 'pendente',
-      dtcriacao: '2024-12-15'
-    },
-    {
-      id: 2,
-      id_fornecedor: 2,
-      fornecedor_nome: 'Outro Fornecedor S.A.',
-      cnpj_cpf: '98.765.432/0001-10',
-      id_planoconta: 2,
-      observacoes: 'Adiantamento para serviços de manutenção',
-      valor_solicitado: 8000.00,
-      valor_documento: 8500.00,
-      valor_adiantamento: -500.00,
-      dtprevisao_pagamento: '2025-01-15',
-      status: 'aprovado',
-      dtcriacao: '2024-12-10'
-    }
-  ]
-  
-  console.log('✅ Dados carregados')
+  console.log('✅ Carregamento inicial completo')
 })
 </script>
 

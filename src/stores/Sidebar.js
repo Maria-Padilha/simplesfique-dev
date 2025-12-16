@@ -57,19 +57,17 @@ export const useSidebarStore = defineStore('sidebar', () => {
                         }
                     ]
                 },
+                {
+                    text: 'Adiantamento',
+                    icon: 'mdi-account-cash',
+                    submenus: [
+                        { text: 'Cliente', icon: 'mdi-account-multiple', route: '/paginas/adiantamento/cliente' },
+                        { text: 'Fornecedor', icon: 'mdi-account-tie', route: '/paginas/adiantamento/fornecedor' },
+                    ]
+                },
                 { text: 'Pagar', icon: 'mdi-credit-card-outline', route: '/paginas/financeiro/pagar' },
                 { text: 'Receber', icon: 'mdi-cash-plus', route: '/paginas/financeiro/receber' },
                 { text: 'Plano de Conta', icon: 'mdi-format-list-bulleted-type', route: '/paginas/financeiro/planoconta' },
-            ]
-        },
-        
-        {
-            id: 'adiantamento',
-            titulo: 'Adiantamento',
-            icon: 'mdi-account-cash',
-            submenus: [
-                { text: 'Adiantamento de Cliente', icon: 'mdi-account-multiple', route: '/paginas/adiantamento/cliente' },
-                { text: 'Adiantamento de Fornecedor', icon: 'mdi-account-tie', route: '/paginas/adiantamento/fornecedor' },
             ]
         },
         
