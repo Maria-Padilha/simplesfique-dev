@@ -4,8 +4,13 @@
     <template #section>
       <v-form ref="formsNf" @submit="salvarFormulario">
         <div class="flex items-center justify-end gap-3 mb-4">
-          <v-btn size="small" color="var(--text-color-laranja)" variant="tonal" @click="limparFormulario">Cancelar</v-btn>
-          <v-btn size="small" color="var(--text-color-laranja)" class="text-white" type="submit" variant="flat">Salvar entrada</v-btn>
+          <v-btn size="small" color="var(--text-color-laranja)" variant="tonal" @click="cancelarFormulario">
+            Cancelar
+          </v-btn>
+
+          <v-btn size="small" color="var(--text-color-laranja)" class="text-white" type="submit" variant="flat" :loading="produtosStore.loading">
+            Salvar entrada
+          </v-btn>
         </div>
 
         <v-expansion-panels :theme="themeStore.darkMode ? 'dark' : 'light'" color="var(--bg-card)">
@@ -51,7 +56,7 @@
                 <!-- id_almoxarifado -->
                 <v-col cols="12" md="2">
                   <v-text-field density="compact" variant="outlined" label="Almoxarifado" hide-details="auto"
-                                v-model="almoxarifadoNome" readonly>
+                                v-model="almoxarifadoNome" readonly :rules="validacao">
                     <template #append-inner>
                       <almoxarifado-menu @selecionar="selecionarAlmoxarifado"/>
                     </template>
@@ -61,7 +66,7 @@
                 <!-- id_cfop -->
                 <v-col cols="12" md="2">
                   <v-text-field density="compact" variant="outlined" label="C.F.O.P" hide-details="auto"
-                                v-model="cfopNome" readonly>
+                                v-model="cfopNome" readonly :rules="validacao">
                     <template #append-inner>
                       <cfop-menu @selecionar="selecionarCfop"/>
                     </template>
@@ -71,9 +76,8 @@
                 <!-- id_uf -->
                 <v-col cols="12" md="2">
                   <v-autocomplete
-                      density="compact" variant="outlined" label="UF" hide-details="auto"
-                      v-model="forms.id_uf" :rules="validacao"
-                      :items="ufs" item-title="sigla" item-value="sigla"
+                      density="compact" variant="outlined" label="UF" hide-details="auto" :rules="validacao"
+                      v-model="forms.id_uf" :items="ufs" item-title="sigla" item-value="sigla"
                   />
                 </v-col>
 
@@ -308,7 +312,16 @@
             no-data-icon="mdi-database-off"
             :item-por-pag="5"
             no-data-text="Nenhum item encontrado"
-        />
+        >
+          <template v-slot:[`item.acoes`]='{ item }'>
+            <v-btn
+              variant="text"
+              icon="mdi-plus-circle-outline"
+              color="var(--text-color-laranja)"
+              @click="abrirModalAdd(item)"
+            />
+          </template>
+        </tabela-padrao>
 
         <v-row class="mt-5" dense>
           <!-- ICMS -->
@@ -475,6 +488,13 @@
           </v-col>
         </v-row>
       </v-form>
+
+      <VincularProdutos
+          v-model:modalItemAberto="modalItemAberto"
+          :todosProdutos="todosProdutos"
+          :itemSelecionado="itemSelecionado"
+          @vincular="vincularProduto"
+      />
     </template>
   </top-all-pages>
 </template>
@@ -482,28 +502,33 @@
 <script setup>
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import {usePessoasStore} from "@/stores/APIs/pessoas";
-// import CfopMenu from "@/components/base/menu/CfopMenu.vue";
-// import AlmoxarifadoMenu from "@/components/base/menu/AlmoxarifadoMenu.vue";
+import CfopMenu from "@/components/base/menu/CfopMenu.vue";
+import AlmoxarifadoMenu from "@/components/base/menu/AlmoxarifadoMenu.vue";
 import {useProdutosStore} from "@/stores/APIs/produtos";
-import {computed, reactive, ref, watchEffect} from "vue";
+import {computed, onMounted, reactive, ref} from "vue";
 import TabelaPadrao from "@/components/base/padrao-paginas/TabelaPadrao.vue";
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {toast} from "vue3-toastify";
 import {useLocalizacaoStore} from "@/stores/APIs/localizacao";
+import VincularProdutos from "@/components/base/modais/VincularProdutos.vue";
+// import router from "@/router";
 
 const themeStore = useThemeStore();
 const pessoasStore = usePessoasStore();
 const produtosStore = useProdutosStore();
 const localizacaoStore = useLocalizacaoStore();
 const idEmpresa = JSON.parse(localStorage.getItem('empresaSelecionada'));
+const cnpjEmpresa = idEmpresa?.cnpj || null;
 
 const pessoas = computed(() => pessoasStore.pessoas);
 const ufs = computed(() => localizacaoStore.ufs);
+const todosProdutos = computed(() => produtosStore.produtos);
 
 const almoxarifadoNome = ref("");
 const cfopNome = ref("");
 const editando = ref(false);
-const produtos = ref([]);
+const produtos = ref([{ "descproduto": "CURVA 90 SCH 40 8", "und": "PC", "vlr_unitario": "R$ 632,30", "qtd": "5.0000", "vlr_total": "R$ 3.161,50", "icms": "R$ 12,00", "bc_icms": "2783.00", "vlr_icms": "333.96", "ipi": null, "cor": null, "tamanho": null, "bc_ii": null }]);
+const itemSelecionado = ref({});
 
 // DADOS DO XML
 const xmlData = ref(null);
@@ -531,6 +556,7 @@ const headers = ref([
   {title: 'BC ICMS', key: 'bc_icms'},
   {title: 'Vlr ICMS', key: 'vlr_icms'},
   {title: 'BC II', key: 'bc_ii'},
+  {title: 'Ações', key: 'acoes', sortable: false},
 ])
 
 const validacao = [
@@ -545,7 +571,6 @@ const forms = reactive({
   "id_almoxarifado": null,
   "id_cfop": null,
   "id_uf": null,
-
   "dtcadastro": null,
   "dtemissao": null,
   "dtentrada": null,
@@ -627,6 +652,9 @@ const cancelarFormulario = () => {
   forms.id_empresa = idEmpresa?.id ?? null;
   almoxarifadoNome.value = "";
   cfopNome.value = "";
+  itens.value = [];
+  produtos.value = [];
+  editando.value = false;
 };
 
 const selecionarAlmoxarifado = (almoxarifado) => {
@@ -639,16 +667,16 @@ const selecionarCfop = (cfop) => {
   cfopNome.value = cfop.id_cfop + ' - ' + (cfop.descricao || '');
 };
 
-const limparFormulario = () => {
-  cancelarFormulario();
-  itens.value = [];
-  produtos.value = [];
-  editando.value = false;
-};
-
 const formsNf = ref(null);
 
 const salvarFormulario = async () => {
+  const { valid } = await formsNf.value.validate();
+
+  if (!valid) {
+    toast.error('Por favor, preencha os campos obrigatórios.');
+    return;
+  }
+
   forms.gerou_financeiro = forms.gerou_financeiro ? 'S' : 'N';
   forms.gerou_estoque = forms.gerou_estoque ? 'S' : 'N';
   forms.importacaoxml = forms.importacaoxml ? 'S' : 'N';
@@ -656,17 +684,18 @@ const salvarFormulario = async () => {
   forms.arquivoxml = forms.arquivoxml ? forms.arquivoxml.name : null;
   forms.id_uf = forms.id_uf ? forms.id_uf.sigla : null;
 
-  if (formsNf.value && !(await formsNf.value.validate())) {
-    return;
-  }
-
   const payload = normalizarForm(forms);
 
   await produtosStore.cadastrarEntradaDfe({
     data: [payload]
   }, idEmpresa?.id ?? 1);
 
-  cancelarFormulario();
+  // cancelarFormulario();
+
+  // setTimeout(() => {
+  //   router.push('/paginas/entradadfe')
+  // }, 1500);
+
 };
 
 const camposFloat = [
@@ -685,7 +714,7 @@ const camposFloat = [
 
 const camposInteiros = [
   "id_fornecedor", "id_nota", "id_serie",
-  "id_almoxarifado", "id_cfop",
+  "id_almoxarifado",
   "id_transportadora", "qtd_volume",
   "id_planopagto", "id_usuario_aprovou_fiscal",
   "nfe_numero", "nfe_numero_serie", "nfe_acesso"
@@ -697,10 +726,10 @@ const normalizarForm = (data) => {
   for (const key in data) {
     const value = data[key];
 
-    // FLOATS → sempre retornar 0.00
+    // FLOATS → enviar sempre string "0.00"
     if (camposFloat.includes(key)) {
       const num = Number(value);
-      result[key] = isNaN(num) ? parseFloat("0.00") : parseFloat(num.toFixed(2));
+      result[key] = Number(num.toFixed(2));
       continue;
     }
 
@@ -768,6 +797,11 @@ const lerXML = (event) => {
 
     if (!ide.value || !emit.value || !total.value) {
       toast.error("XML inválido ou incompleto.");
+      return;
+    }
+
+    if (cnpjEmpresa && dest.value.CNPJ !== cnpjEmpresa) {
+      toast.error(`CNPJ do destinatário não corresponde ao CNPJ da empresa selecionada!`);
       return;
     }
 
@@ -1047,13 +1081,52 @@ function formatarReal(valor) {
       });
 }
 
-watchEffect(() => {
+/**
+ * ADICIONANDO ITENS
+ */
+
+const modalItemAberto = ref(false);
+
+const abrirModalAdd = (item) => {
+  itemSelecionado.value = item;
+  modalItemAberto.value = true;
+};
+
+const vincularProduto = async ({ item, produto }) => {
+
+  await produtosStore.buscarProdutosSimilares(produto.id);
+  const similar = produtosStore.similar.find(s => s.descproduto === item.descproduto);
+
+  if (similar) {
+    toast.info('Produto já está vinculado como similar.');
+    return;
+  }
+
+  const index = produtosStore.similar.length - 1;
+  const ids = produtosStore.similar.map(s => s.id_similar);
+
+  await produtosStore.cadastrarProdutoSimilar({
+    data: [{
+      id_produto: produto.id,
+      id_similar: ids[index]+1,
+      descproduto: item.descproduto,
+      ativo: 'S'
+    }]
+  }, produto.id);
+};
+
+
+onMounted(() => {
   if (pessoas.value.length === 0 && !forms.arquivoxml) {
     pessoasStore.buscarTodasPessoas();
   }
 
   if (localizacaoStore.ufs.length === 0) {
     localizacaoStore.buscarTodasUfs();
+  }
+
+  if (produtosStore.produtos.length === 0) {
+    produtosStore.buscarProdutos();
   }
 })
 </script>
