@@ -40,14 +40,6 @@
           @toggle="toggleFormulario"
         />
 
-        <!-- Busca Avançada -->
-        <div class="my-4">
-          <BuscaAvancada
-            v-model="filtrosAvancados"
-            @aplicar="aplicarFiltrosAvancados"
-          />
-        </div>
-
         <!-- Formulário Expansível -->
         <v-expand-transition>
           <div v-if="formularioAberto">
@@ -118,30 +110,49 @@
                       </v-text-field>
                     </v-col>
 
-                    <!-- Fornecedor (autocomplete remoto) -->
+                    <!-- Fornecedor -->
                     <v-col cols="12" md="4">
-                      <v-autocomplete
-                        v-model="formData.id_fornecedor"
-                        v-model:search-input="fornecedorSearch"
-                        @input="onFornecedorInput"
-                        :items="pessoas"
-                        :item-title="item => item.apelido_fantasia || item.nome_razao || item.nome || item.apelido || ''"
-                        item-value="id"
-                        label="Fornecedor"
+                      <v-text-field
+                        label="Fornecedor *"
+                        v-model="fornecedorSelecionado"
                         variant="outlined"
                         density="compact"
+                        hide-details="auto"
+                        :rules="[rules.required]"
                         class=""
                         prepend-inner-icon="mdi-account-box"
-                        :loading="fornecedorLoading"
-                        hide-no-data
-                        @update:model-value="onFornecedorSelect"
+                        readonly
+                        placeholder="Selecione um fornecedor"
                       >
-                        <template v-slot:no-data>
-                          <v-list-item>
-                            <v-list-item-title>Nenhum fornecedor encontrado</v-list-item-title>
-                          </v-list-item>
+                        <template #append-inner>
+                          <busca-padrao-menu
+                            v-model="menuFornecedor"
+                            :pesquisar="pesquisarFornecedores"
+                            :modelInput="termoFornecedor"
+                            :resultados="fornecedorResultados"
+                            @update:modelInput="termoFornecedor = $event"
+                            @selecionar="selecionarFornecedor"
+                          >
+                            <template #resultados="{ selecionar }">
+                              <v-virtual-scroll
+                                :items="fornecedorResultados"
+                                :height="120"
+                                item-height="42"
+                                class="mt-3"
+                              >
+                                <template #default="{ item }">
+                                  <div
+                                    class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                                    @click="selecionar(item)"
+                                  >
+                                    <p class="text-body-1">{{ item.apelido_fantasia || item.nome_razao || item.nome || item.apelido }}</p>
+                                  </div>
+                                </template>
+                              </v-virtual-scroll>
+                            </template>
+                          </busca-padrao-menu>
                         </template>
-                      </v-autocomplete>
+                      </v-text-field>
                     </v-col>
 
                     <!-- Plano de Conta -->
@@ -745,6 +756,14 @@
           </div>
         </v-expand-transition>
 
+        <!-- Busca Avançada -->
+        <div v-if="!formularioAberto" class="my-4">
+          <BuscaAvancada
+            v-model="filtrosAvancados"
+            @aplicar="aplicarFiltrosAvancados"
+          />
+        </div>
+
         <!-- Tabela de Contas a Pagar -->
         <TabelaPadrao
           :formulario-aberto="formularioAberto"
@@ -1041,6 +1060,7 @@ const pessoas = ref([])
 // Campos de texto para os menus
 const tipoDocumentoSelecionado = ref('')
 const planoContaSelecionado = ref('')
+const fornecedorSelecionado = ref('')
 
 // Histórico Contábil (campo de busca + modal de cadastro)
 const menuHistContabil = ref(false)
@@ -1050,6 +1070,11 @@ const historicoContabilResultados = ref([])
 const histContabilLabel = ref('')
 const descricaoHistorico = ref('')
 
+// Fornecedor (campo de busca)
+const menuFornecedor = ref(false)
+const termoFornecedor = ref('')
+const fornecedorResultados = ref([])
+
 // Fornecedor autocomplete
 const fornecedorSearch = ref('')
 const fornecedorLoading = ref(false)
@@ -1057,38 +1082,6 @@ let fornecedorSearchTimer = null
 
 // store label/name of selected fornecedor to ensure we can include it in payload
 const fornecedorLabel = ref('')
-
-const onFornecedorSelect = (val) => {
-  // val is the selected id (item-value)
-  formData.id_fornecedor = val
-  // find the selected item to capture the display name
-  const sel = (pessoas.value || []).find(p => p.id === val)
-  fornecedorLabel.value = sel ? (sel.apelido_fantasia || sel.nome_razao || sel.nome || sel.apelido || '') : ''
-  // also persist into formData to guarantee payload has name even if pessoas is cleared later
-  formData.fornecedor = fornecedorLabel.value
-  
-  // Capturar id_red_ctb_for quando fornecedor for selecionado
-  if (sel && (sel.id_red_ctb_for || sel.id_red_ctb)) {
-    formData.id_red_ctb_for = sel.id_red_ctb_for || sel.id_red_ctb
-  } else {
-    formData.id_red_ctb_for = null
-  }
-}
-
-const onFornecedorInput = (ev) => {
-  try {
-    // If Vuetify emits InputEvent, extract value; otherwise coerce to string
-    if (ev && ev.target && typeof ev.target.value === 'string') {
-      fornecedorSearch.value = ev.target.value
-    } else if (typeof ev === 'string') {
-      fornecedorSearch.value = ev
-    } else {
-      fornecedorSearch.value = String(ev || '')
-    }
-  } catch (err) {
-    fornecedorSearch.value = String(ev || '')
-  }
-}
 
 // Buscar fornecedor específico por ID (usado ao editar documento)
 const buscarFornecedorPorId = async (idFornecedor) => {
@@ -1547,6 +1540,7 @@ const editarContaPagar = async (item) => {
             
             if (foundPessoa) {
               fornecedorLabel.value = foundPessoa.apelido_fantasia || foundPessoa.nome_razao || foundPessoa.nome || ''
+              fornecedorSelecionado.value = fornecedorLabel.value
             } else {
               // Se não encontrar, busca na API pelo ID
               await buscarFornecedorPorId(formData.id_fornecedor)
@@ -1560,6 +1554,7 @@ const editarContaPagar = async (item) => {
                 }
                 pessoas.value = [...(pessoas.value || []), novo]
                 fornecedorLabel.value = novo.apelido_fantasia || novo.nome_razao || ''
+                fornecedorSelecionado.value = fornecedorLabel.value
               }
             }
           }
@@ -1735,6 +1730,7 @@ const resetarForm = () => {
   // Limpar campos de texto dos menus
   tipoDocumentoSelecionado.value = ''
   planoContaSelecionado.value = ''
+  fornecedorSelecionado.value = ''
 
   // Limpar parcelas
   parcelas.value = []
@@ -1977,6 +1973,11 @@ const selecionarPlanoConta = (planoConta) => {
   planoContaSelecionado.value = planoConta.descconta || planoConta.descricao
 }
 
+const selecionarFornecedor = (fornecedor) => {
+  formData.id_fornecedor = fornecedor.id
+  fornecedorSelecionado.value = fornecedor.apelido_fantasia || fornecedor.nome_razao || fornecedor.nome || fornecedor.apelido || ''
+}
+
 // Histórico Contábil: pesquisar, selecionar e cadastrar
 const pesquisarHistoricosContabil = async () => {
   try {
@@ -1992,6 +1993,32 @@ const pesquisarHistoricosContabil = async () => {
     })
   } catch (error) {
     mostrarMensagem('Erro ao buscar históricos contábeis', 'error')
+  }
+}
+
+// Fornecedor: pesquisar e selecionar
+const pesquisarFornecedores = async () => {
+  try {
+    // usar lista já carregada ou buscar fornecedores via financeiroStore
+    let dados = pessoas.value && pessoas.value.length > 0 ? pessoas.value : null
+    
+    if (!dados) {
+      // Buscar fornecedores usando o mesmo método que já funciona no código
+      dados = await financeiroStore.buscarPessoasFornecedores('', idEmpresa.value)
+    }
+    
+    if (!termoFornecedor.value || termoFornecedor.value.length < 2) {
+      fornecedorResultados.value = dados || []
+      return
+    }
+    const termo = termoFornecedor.value.toLowerCase()
+    fornecedorResultados.value = (dados || []).filter(d => {
+      const nome = d.apelido_fantasia || d.nome_razao || d.nome || d.apelido || ''
+      return nome.toLowerCase().includes(termo) || String(d.id).includes(termo)
+    })
+  } catch (error) {
+    console.error('Erro ao buscar fornecedores:', error)
+    mostrarMensagem('Erro ao buscar fornecedores', 'error')
   }
 }
 

@@ -26,7 +26,7 @@
             <v-card class="background-card mb-7" elevation="2">
               <v-card-title class="text-h6 pa-4">
                 <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-                {{ editando ? 'Editar Adiantamento' : (utilizaAprovacaoAdiantamento === 'S' ? 'Nova Aprovação de Adiantamento' : 'Novo Adiantamento') }}
+                {{ editando ? 'Editar Adiantamento' : (modoPagamento ? 'Pagar Adiantamento' : (utilizaAprovacaoAdiantamento === 'S' ? 'Nova Aprovação de Adiantamento' : 'Novo Adiantamento')) }}
               </v-card-title>
               <v-card-text class="pa-4">
                 <!-- Aviso modo aprovação -->
@@ -356,7 +356,7 @@
                   variant="flat"
                   class="text-white"
                 >
-                  {{ editando ? 'Atualizar' : 'Salvar' }}
+                  {{ editando ? 'Atualizar' : (modoPagamento ? 'Processar Pagamento' : 'Salvar') }}
                 </v-btn>
               </v-card-actions>
             </v-card>
@@ -550,26 +550,16 @@
 
               <!-- Coluna Ações -->
               <template v-slot:[`item.actions`]="{ item }">
-                <div class="d-flex justify-center gap-1">
+                <div class="d-flex justify-center">
                   <v-btn
-                    icon="mdi-pencil"
+                    icon="mdi-dots-vertical"
                     size="small"
                     variant="text"
                     color="primary"
-                    @click="editarLancamento(item)"
+                    @click="abrirModalAcoes(item)"
                   >
-                    <v-icon size="20">mdi-pencil</v-icon>
-                    <v-tooltip activator="parent" location="top">Editar</v-tooltip>
-                  </v-btn>
-                  <v-btn
-                    icon="mdi-delete"
-                    size="small"
-                    variant="text"
-                    color="error"
-                    @click="confirmarExclusao(item)"
-                  >
-                    <v-icon size="20">mdi-delete</v-icon>
-                    <v-tooltip activator="parent" location="top">Excluir</v-tooltip>
+                    <v-icon size="20">mdi-dots-vertical</v-icon>
+                    <v-tooltip activator="parent" location="top">Ações</v-tooltip>
                   </v-btn>
                 </div>
               </template>
@@ -589,8 +579,184 @@
             </v-data-table>
           </v-card-text>
         </v-card>
+
+        <!-- Card de Totais -->
+        <v-card class="mt-4 background-card" elevation="1">
+          <v-card-text class="pa-4">
+            <v-row>
+              <v-col cols="12" md="3">
+                <div class="text-caption text-grey">Entrada</div>
+                <div class="text-h6 text-success font-weight-bold">{{ formatarMoeda(totalEntradas) }}</div>
+              </v-col>
+              <v-col cols="12" md="3">
+                <div class="text-caption text-grey">Saída</div>
+                <div class="text-h6 text-error font-weight-bold">{{ formatarMoeda(totalSaidas) }}</div>
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="text-caption text-grey">TOTAL DO PERÍODO:</div>
+                <div class="text-h5 font-weight-bold" :class="saldoFinal >= 0 ? 'text-success' : 'text-error'">
+                  {{ formatarMoeda(saldoFinal) }}
+                </div>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
       </v-card-text>
     </v-card>
+
+    <!-- Modal de Ações -->
+    <v-dialog v-model="modalAcoes" max-width="500px">
+      <v-card class="background-secondary">
+        <v-card-title class="text-h6 pa-4">
+          <v-icon icon="mdi-cog" class="mr-2"></v-icon>
+          Ações do Adiantamento
+        </v-card-title>
+        
+        <v-card-text class="pa-4">
+          <div v-if="itemSelecionado" class="mb-4">
+            <div class="text-subtitle-1 font-weight-bold mb-2">{{ itemSelecionado.nome_razao }}</div>
+            <div class="text-body-2 text-grey mb-1">
+              <strong>Valor Solicitado:</strong> {{ formatarMoeda(itemSelecionado.valor_solicitado) }}
+            </div>
+            <div class="text-body-2 text-grey mb-1">
+              <strong>Valor Autorizado:</strong> {{ formatarMoeda(itemSelecionado.valor_autorizado) }}
+            </div>
+            <div class="text-body-2 text-grey">
+              <strong>Situação:</strong> 
+              <v-chip 
+                :color="getCorSituacao(itemSelecionado.situacao)" 
+                size="small" 
+                variant="tonal"
+                class="ml-2"
+              >
+                {{ itemSelecionado.descsituacao || getSituacaoTexto(itemSelecionado.situacao) }}
+              </v-chip>
+            </div>
+          </div>
+
+          <v-divider class="mb-4"></v-divider>
+
+          <div class="d-flex flex-column gap-3">
+            <!-- Ações para situação Pendente (1) -->
+            <template v-if="itemSelecionado?.situacao === '1'">
+              <v-btn
+                color="success"
+                variant="flat"
+                size="large"
+                prepend-icon="mdi-check"
+                @click="confirmarAprovar(itemSelecionado)"
+                block
+              >
+                Aprovar Adiantamento
+              </v-btn>
+              <v-btn
+                color="primary"
+                variant="flat"
+                size="large"
+                prepend-icon="mdi-cash"
+                @click="confirmarPagar(itemSelecionado)"
+                block
+              >
+                Pagar Diretamente
+              </v-btn>
+              <v-btn
+                color="error"
+                variant="flat"
+                size="large"
+                prepend-icon="mdi-close"
+                @click="confirmarRecusar(itemSelecionado)"
+                block
+              >
+                Recusar Adiantamento
+              </v-btn>
+              
+              <v-divider class="my-2"></v-divider>
+              
+              <v-btn
+                color="warning"
+                variant="outlined"
+                size="large"
+                prepend-icon="mdi-pencil"
+                @click="editarLancamento(itemSelecionado)"
+                block
+              >
+                Editar
+              </v-btn>
+              <v-btn
+                color="error"
+                variant="outlined"
+                size="large"
+                prepend-icon="mdi-delete"
+                @click="confirmarExclusao(itemSelecionado)"
+                block
+              >
+                Excluir
+              </v-btn>
+            </template>
+
+            <!-- Ações para situação Aprovado (2) -->
+            <template v-if="itemSelecionado?.situacao === '2'">
+              <v-btn
+                color="primary"
+                variant="flat"
+                size="large"
+                prepend-icon="mdi-cash"
+                @click="confirmarPagar(itemSelecionado)"
+                block
+              >
+                Pagar Adiantamento
+              </v-btn>
+            </template>
+
+            <!-- Ações para situação Recusado (3) -->
+            <template v-if="itemSelecionado?.situacao === '3'">
+              <v-btn
+                color="warning"
+                variant="outlined"
+                size="large"
+                prepend-icon="mdi-pencil"
+                @click="editarLancamento(itemSelecionado)"
+                block
+              >
+                Editar
+              </v-btn>
+              <v-btn
+                color="error"
+                variant="outlined"
+                size="large"
+                prepend-icon="mdi-delete"
+                @click="confirmarExclusao(itemSelecionado)"
+                block
+              >
+                Excluir
+              </v-btn>
+            </template>
+
+            <!-- Situação Pago (9) - Apenas visualização -->
+            <template v-if="itemSelecionado?.situacao === '9'">
+              <v-alert
+                type="info"
+                variant="tonal"
+                icon="mdi-check-circle"
+              >
+                Este adiantamento já foi pago. Nenhuma ação adicional disponível.
+              </v-alert>
+            </template>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn
+            color="grey"
+            variant="text"
+            @click="fecharModalAcoes"
+          >
+            Fechar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -614,6 +780,7 @@ const adiantamentoStore = useAdiantamentoStore()
 // Estado
 const formularioAberto = ref(false)
 const editando = ref(false)
+const modoPagamento = ref(false) // Controla se está no modo pagamento
 const formValido = ref(false)
 const formRef = ref(null)
 const loading = ref(false)
@@ -638,6 +805,10 @@ const historicosBancarios = ref([])
 const lancamentos = ref([])
 const saldoAnterior = ref(0)
 const utilizaAprovacaoAdiantamento = ref('N') // Controla quais campos exibir
+
+// Modal de ações
+const modalAcoes = ref(false)
+const itemSelecionado = ref(null)
 
 // Filtros de busca
 const periodoSelecionado = ref('mes')
@@ -715,13 +886,30 @@ const headers = [
   { title: 'Origem', key: 'origem', sortable: true, width: '100px' },
   { title: 'Data Inclusão', key: 'dhinc', sortable: true, width: '140px' },
   { title: 'Observação', key: 'observacao', sortable: false, width: '200px' },
-  { title: 'Ações', key: 'actions', sortable: false, align: 'center', width: '100px' }
+  { title: 'Ações', key: 'actions', sortable: false, align: 'center', width: '80px' }
 ]
 
 // Computed
 const lancamentosFiltrados = computed(() => {
   const dados = lancamentos.value || []
   return Array.isArray(dados) ? dados : []
+})
+
+// Cálculos de totais
+const totalEntradas = computed(() => {
+  return lancamentosFiltrados.value
+    .filter(l => l.tipo === 'Entrada')
+    .reduce((sum, l) => sum + parseFloat(l.valor_autorizado || 0), 0)
+})
+
+const totalSaidas = computed(() => {
+  return lancamentosFiltrados.value
+    .filter(l => l.tipo === 'Saida')
+    .reduce((sum, l) => sum + parseFloat(l.valor_autorizado || 0), 0)
+})
+
+const saldoFinal = computed(() => {
+  return saldoAnterior.value + totalEntradas.value - totalSaidas.value
 })
 
 // Métodos de formatação
@@ -850,6 +1038,10 @@ const cancelarFormulario = () => {
   resetFormulario()
   formularioAberto.value = false
   editando.value = false
+  modoPagamento.value = false
+  
+  // Restaurar o modo de aprovação para o padrão
+  utilizaAprovacaoAdiantamento.value = 'N'
 }
 
 const resetFormulario = () => {
@@ -875,6 +1067,9 @@ const resetFormulario = () => {
     origem: 'CAI',
     observacao: ''
   })
+  
+  editando.value = false
+  modoPagamento.value = false
   
   if (formRef.value) {
     formRef.value.resetValidation()
@@ -1067,6 +1262,56 @@ const carregarLancamentos = async () => {
 }
 
 // CRUD
+const carregarAdiantamentoParaPagamento = async (id) => {
+  loading.value = true
+  try {
+    console.log('Buscando adiantamento para pagamento:', id)
+    
+    const resultado = await adiantamentoStore.buscarAdiantamentoFornecedorPorId(id)
+    console.log('Dados do adiantamento:', resultado)
+    
+    // Preencher o formulário com os dados existentes
+    const dados = resultado.data?.[0] || resultado.data || resultado
+    if (dados) {
+      Object.assign(formData, {
+        id: dados.id,
+        id_pessoa: dados.id_fornecedor || dados.id_pessoa,
+        id_planoconta: dados.id_planoconta,
+        id_hist_contabil: dados.id_hist_contabil,
+        local_lct: dados.local_lct || 'CAI',
+        id_caixa: dados.id_caixa,
+        id_ccorrente: dados.id_ccorrente,
+        id_historico: dados.id_historico,
+        id_hist_contabil_caixa: dados.id_hist_contabil_caixa,
+        id_tipopagrec: dados.id_tipopagrec,
+        id_tipodocumento: dados.id_tipodocumento,
+        nrdocumento: dados.nrdocumento || '',
+        dtlancamento: dados.dtlancamento || new Date().toISOString().split('T')[0],
+        dtprevisao_pagto: dados.dtprevisao_pagto,
+        valor_documento: dados.valor_documento || 0,
+        valor_solicitado: dados.valor_solicitado || 0,
+        valor_autorizado: dados.valor_autorizado || 0,
+        tipo: dados.tipo || 'Saida',
+        origem: dados.origem || 'CAI',
+        observacao: dados.observacao || ''
+      })
+      
+      console.log('Dados preenchidos no formulário:', formData)
+    }
+    
+    // Configurar o modo de pagamento
+    modoPagamento.value = true
+    editando.value = false // Garantir que não está em modo de edição
+    utilizaAprovacaoAdiantamento.value = 'N' // Desativar modo aprovação para mostrar todos os campos
+    formularioAberto.value = true
+    
+  } catch (error) {
+    console.error('Erro ao carregar adiantamento para pagamento:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
 const salvarAdiantamento = async () => {
   if (!formValido.value) {
     console.warn('Preencha todos os campos obrigatórios')
@@ -1109,17 +1354,23 @@ const salvarAdiantamento = async () => {
 
     console.log('Payload a ser enviado:', payload)
 
-    if (editando.value && formData.id) {
+    if (modoPagamento.value) {
+      // Modo pagamento - usar API específica de pagamento
+      await adiantamentoStore.pagarAdiantamentoFornecedorCompleto(formData.id, payload)
+      console.log('Pagamento processado com sucesso!')
+    } else if (editando.value && formData.id) {
+      // Modo edição
       await adiantamentoStore.atualizarAdiantamentoFornecedor(formData.id, payload)
       console.log('Adiantamento atualizado com sucesso!')
     } else {
+      // Modo criação
       await adiantamentoStore.criarAdiantamentoFornecedor(payload)
       console.log('Adiantamento cadastrado com sucesso!')
     }
     
     cancelarFormulario()
     // Recarregar dados se filtros estiverem preenchidos
-    if (filtros.id_fornecedor && filtros.dtini && filtros.dtfim) {
+    if (filtros.dtini && filtros.dtfim) {
       await carregarLancamentos()
     }
   } catch (error) {
@@ -1181,10 +1432,83 @@ const excluirAdiantamento = async (item) => {
   }
 }
 
+// Funções do modal de ações
+const abrirModalAcoes = (item) => {
+  itemSelecionado.value = item
+  modalAcoes.value = true
+}
+
+const fecharModalAcoes = () => {
+  modalAcoes.value = false
+  itemSelecionado.value = null
+}
+
+// Ações de aprovação/pagamento/recusa
+const aprovarAdiantamento = async (item) => {
+  loading.value = true
+  try {
+    await adiantamentoStore.aprovarAdiantamentoFornecedor(item.id, item.valor_solicitado)
+    console.log('Adiantamento aprovado com sucesso!')
+    
+    // Recarregar dados
+    if (filtros.dtini && filtros.dtfim) {
+      await carregarLancamentos()
+    }
+  } catch (error) {
+    console.error('Erro ao aprovar adiantamento:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const pagarAdiantamento = async (item) => {
+  await carregarAdiantamentoParaPagamento(item.id)
+}
+
+const recusarAdiantamento = async (item) => {
+  loading.value = true
+  try {
+    await adiantamentoStore.recusarAdiantamentoFornecedor(item.id)
+    console.log('Adiantamento recusado com sucesso!')
+    
+    // Recarregar dados
+    if (filtros.dtini && filtros.dtfim) {
+      await carregarLancamentos()
+    }
+  } catch (error) {
+    console.error('Erro ao recusar adiantamento:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// Confirmar ações
+const confirmarAprovar = (item) => {
+  if (confirm(`Deseja realmente aprovar este adiantamento?\n\nFornecedor: ${item.nome_razao}\nValor Solicitado: ${formatarMoeda(item.valor_solicitado)}`)) {
+    aprovarAdiantamento(item)
+    fecharModalAcoes()
+  }
+}
+
+const confirmarPagar = (item) => {
+  if (confirm(`Deseja realmente pagar este adiantamento?\n\nFornecedor: ${item.nome_razao}\nValor a Pagar: ${formatarMoeda(item.valor_autorizado || item.valor_solicitado)}`)) {
+    pagarAdiantamento(item)
+    fecharModalAcoes()
+  }
+}
+
+const confirmarRecusar = (item) => {
+  if (confirm(`Deseja realmente recusar este adiantamento?\n\nFornecedor: ${item.nome_razao}\nValor: ${formatarMoeda(item.valor_solicitado)}\n\nEsta ação não pode ser desfeita.`)) {
+    recusarAdiantamento(item)
+    fecharModalAcoes()
+  }
+}
+
 // Confirmar exclusão
 const confirmarExclusao = (item) => {
   if (confirm(`Deseja realmente excluir este lançamento?\n\nFornecedor: ${item.nome_razao}\nValor: ${formatarMoeda(item.valor_solicitado)}`)) {
     excluirAdiantamento(item)
+    fecharModalAcoes()
   }
 }
 

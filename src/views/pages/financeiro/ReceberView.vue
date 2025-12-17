@@ -40,14 +40,6 @@
           @toggle="toggleFormulario"
         />
 
-        <!-- Busca Avançada -->
-        <div class="my-4">
-          <BuscaAvancada
-            v-model="filtrosAvancados"
-            @aplicar="aplicarFiltrosAvancados"
-          />
-        </div>
-
         <!-- Formulário Expansível -->
         <v-expand-transition>
           <div v-if="formularioAberto">
@@ -118,30 +110,49 @@
                       </v-text-field>
                     </v-col>
 
-                    <!-- Cliente (autocomplete remoto) -->
+                    <!-- Cliente -->
                     <v-col cols="12" md="4">
-                      <v-autocomplete
-                        v-model="formData.id_cliente"
-                        v-model:search-input="clienteSearch"
-                        @input="onClienteInput"
-                        :items="pessoas"
-                        :item-title="item => item.apelido_fantasia || item.nome_razao || item.nome || item.apelido || ''"
-                        item-value="id"
-                        label="Cliente"
+                      <v-text-field
+                        label="Cliente *"
+                        v-model="clienteSelecionado"
                         variant="outlined"
                         density="compact"
+                        hide-details="auto"
+                        :rules="[rules.required]"
                         class=""
                         prepend-inner-icon="mdi-account-box"
-                        :loading="clienteLoading"
-                        hide-no-data
-                        @update:model-value="onClienteSelect"
+                        readonly
+                        placeholder="Selecione um cliente"
                       >
-                        <template v-slot:no-data>
-                          <v-list-item>
-                            <v-list-item-title>Nenhum Cliente encontrado</v-list-item-title>
-                          </v-list-item>
+                        <template #append-inner>
+                          <busca-padrao-menu
+                            v-model="menuCliente"
+                            :pesquisar="pesquisarClientes"
+                            :modelInput="termoCliente"
+                            :resultados="clienteResultados"
+                            @update:modelInput="termoCliente = $event"
+                            @selecionar="selecionarCliente"
+                          >
+                            <template #resultados="{ selecionar }">
+                              <v-virtual-scroll
+                                :items="clienteResultados"
+                                :height="120"
+                                item-height="42"
+                                class="mt-3"
+                              >
+                                <template #default="{ item }">
+                                  <div
+                                    class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                                    @click="selecionar(item)"
+                                  >
+                                    <p class="text-body-1">{{ item.apelido_fantasia || item.nome_razao || item.nome || item.apelido }}</p>
+                                  </div>
+                                </template>
+                              </v-virtual-scroll>
+                            </template>
+                          </busca-padrao-menu>
                         </template>
-                      </v-autocomplete>
+                      </v-text-field>
                     </v-col>
 
                     <!-- Plano de Conta -->
@@ -639,6 +650,14 @@
           </div>
         </v-expand-transition>
 
+        <!-- Busca Avançada -->
+        <div v-if="!formularioAberto" class="my-4">
+          <BuscaAvancada
+            v-model="filtrosAvancados"
+            @aplicar="aplicarFiltrosAvancados"
+          />
+        </div>
+
         <!-- Tabela de Contas a Receber -->
         <TabelaPadrao
           :formulario-aberto="formularioAberto"
@@ -917,6 +936,12 @@ const pessoas = ref([])
 // Campos de texto para os menus
 const tipoDocumentoSelecionado = ref('')
 const planoContaSelecionado = ref('')
+const clienteSelecionado = ref('')
+
+// Cliente (campo de busca)
+const menuCliente = ref(false)
+const termoCliente = ref('')
+const clienteResultados = ref([])
 
 // Histórico Contábil (campo de busca + modal de cadastro)
 const menuHistContabil = ref(false)
@@ -934,35 +959,6 @@ let clienteSearchTimer = null
 // store label/name of selected Cliente to ensure we can include it in payload
 const clienteLabel = ref('')
 
-const onClienteSelect = (val) => {
-  // val is the selected id (item-value)
-  formData.id_cliente = val
-  // find the selected item to capture the display name
-  const sel = (pessoas.value || []).find(p => p.id === val)
-  clienteLabel.value = sel ? (sel.apelido_fantasia || sel.nome_razao || sel.nome || sel.apelido || '') : ''
-  // also persist into formData to guarantee payload has name even if pessoas is cleared later
-  formData.cliente = clienteLabel.value
-  
-  // Capturar id_red_ctb_cli (redução da base de cálculo para cliente)
-  if (sel && (sel.id_red_ctb_cli || sel.id_red_ctb)) {
-    formData.id_red_ctb_cli = sel.id_red_ctb_cli || sel.id_red_ctb
-  }
-}
-
-const onClienteInput = (ev) => {
-  try {
-    // If Vuetify emits InputEvent, extract value; otherwise coerce to string
-    if (ev && ev.target && typeof ev.target.value === 'string') {
-      clienteSearch.value = ev.target.value
-    } else if (typeof ev === 'string') {
-      clienteSearch.value = ev
-    } else {
-      clienteSearch.value = String(ev || '')
-    }
-  } catch (err) {
-    clienteSearch.value = String(ev || '')
-  }
-}
 
 // Buscar Cliente específico por ID (usado ao editar documento)
 const buscarClientePorId = async (idCliente) => {
@@ -1312,6 +1308,7 @@ const editarContaReceber = async (item) => {
             
             if (foundPessoa) {
               clienteLabel.value = foundPessoa.apelido_fantasia || foundPessoa.nome_razao || foundPessoa.nome || ''
+              clienteSelecionado.value = clienteLabel.value
             } else {
               // Se não encontrar, busca na API pelo ID
               await buscarClientePorId(formData.id_cliente)
@@ -1325,6 +1322,7 @@ const editarContaReceber = async (item) => {
                 }
                 pessoas.value = [...(pessoas.value || []), novo]
                 clienteLabel.value = novo.apelido_fantasia || novo.nome_razao || ''
+                clienteSelecionado.value = clienteLabel.value
               }
             }
           }
@@ -1463,6 +1461,7 @@ const resetarForm = () => {
   // Limpar campos de texto dos menus
   tipoDocumentoSelecionado.value = ''
   planoContaSelecionado.value = ''
+  clienteSelecionado.value = ''
 
   // Limpar parcelas
   parcelas.value = []
@@ -1680,6 +1679,37 @@ const selecionarTipoDocumento = (tipoDoc) => {
 const selecionarPlanoConta = (planoConta) => {
   formData.id_planoconta = planoConta.id
   planoContaSelecionado.value = planoConta.descconta || planoConta.descricao
+}
+
+const selecionarCliente = (cliente) => {
+  formData.id_cliente = cliente.id
+  clienteSelecionado.value = cliente.apelido_fantasia || cliente.nome_razao || cliente.nome || cliente.apelido || ''
+}
+
+// Cliente: pesquisar e selecionar
+const pesquisarClientes = async () => {
+  try {
+    // usar lista já carregada ou buscar clientes via financeiroStore
+    let dados = pessoas.value && pessoas.value.length > 0 ? pessoas.value : null
+    
+    if (!dados) {
+      // Buscar clientes usando o mesmo método que já funciona no código
+      dados = await financeiroStore.buscarPessoasClientes('', idEmpresa.value)
+    }
+    
+    if (!termoCliente.value || termoCliente.value.length < 2) {
+      clienteResultados.value = dados || []
+      return
+    }
+    const termo = termoCliente.value.toLowerCase()
+    clienteResultados.value = (dados || []).filter(d => {
+      const nome = d.apelido_fantasia || d.nome_razao || d.nome || d.apelido || ''
+      return nome.toLowerCase().includes(termo) || String(d.id).includes(termo)
+    })
+  } catch (error) {
+    console.error('Erro ao buscar clientes:', error)
+    mostrarMensagem('Erro ao buscar clientes', 'error')
+  }
 }
 
 // Histórico Contábil: pesquisar, selecionar e cadastrar
