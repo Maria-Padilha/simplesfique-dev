@@ -145,6 +145,23 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     route: '/paginas/pdv/operacao'
                 },
             ]
+        },
+        {
+            id: 'relatorios',
+            titulo: 'Relatórios',
+            icon: 'mdi-file-chart',
+            submenus: [
+                {
+                    text: 'Relatório Financeiro',
+                    icon: 'mdi-chart-line',
+                    route: '/paginas/relatorios/financeiro'
+                },
+                {
+                    text: 'Relatório Contábil',
+                    icon: 'mdi-file-document-outline',
+                    route: '/paginas/relatorios/contabil'
+                }
+            ]
         }
     ]);
 

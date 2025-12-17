@@ -1,4 +1,3 @@
-// javascript
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/pages/HomeView.vue'
 import NotFoundView from "@/views/NotFoundView.vue";
@@ -22,6 +21,7 @@ import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
 import PdvView from '@/views/pages/pdv/PdvView.vue';
 import PagamentoView from '@/views/pages/pdv/PagamentoView.vue';
 import MovimentacaoView from '@/views/pages/banco/MovimentacaoView.vue';
+import FinanceiroRelatorioView from '@/views/pages/relatorios/FinanceiroRelatorioView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
@@ -215,6 +215,17 @@ const routes = [
         component: () => import('@/views/pages/contabil/NotaDeServicoView.vue')
     },
 
+    // Páginas de Relatórios
+    {
+        path: '/paginas/relatorios/financeiro',
+        name: 'relatorio_financeiro',
+        component: FinanceiroRelatorioView
+    },
+    {
+        path: '/paginas/relatorios/contabil',
+        name: 'relatorio_contabil',
+        component: () => import('@/views/pages/contabil/NotaDeServicoView.vue')
+    },
 
     //    Páginas do site
     {

@@ -118,6 +118,41 @@ export const usePessoasStore = defineStore('pessoas', {
             } finally {
                 this.loading = false
             }
+        },
+
+        async importarPessoasCSV(pessoas) {
+            this.loading = true
+            try {
+                // Processar cada pessoa e limpar máscaras
+                const pessoasProcessadas = pessoas.map(pessoa => ({
+                    ...pessoa,
+                    cpf_cnpj: pessoa.cpf_cnpj?.replace(/\D/g, '') || '',
+                    telefone: pessoa.telefone?.replace(/\D/g, '') || '',
+                    celular: pessoa.celular?.replace(/\D/g, '') || '',
+                    whats: pessoa.whats?.replace(/\D/g, '') || '',
+                    latitude: pessoa.latitude ? Number(pessoa.latitude) : null,
+                    longitude: pessoa.longitude ? Number(pessoa.longitude) : null,
+                    cliente: pessoa.cliente || 'N',
+                    fornecedor: pessoa.fornecedor || 'N',
+                    transportadora: pessoa.transportadora || 'N',
+                    colaborador: pessoa.colaborador || 'N',
+                    representante: pessoa.representante || 'N',
+                    ativo: pessoa.ativo || 'S'
+                }))
+
+                const payload = { data: pessoasProcessadas }
+                await api.post('/pessoa', payload, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                })
+                
+                this.errorMessage = ''
+            } catch (e) {
+                console.error('Erro ao importar pessoas:', e)
+                this.errorMessage = 'Erro ao importar pessoas'
+                throw e
+            } finally {
+                this.loading = false
+            }
         }
     }
 })

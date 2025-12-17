@@ -6,7 +6,16 @@
           <v-icon icon="mdi-account-group" class="mr-3"></v-icon>
           Pessoas
         </div>
-
+        <v-btn
+          color="var(--text-color-laranja)"
+          variant="flat"
+          size="small"
+          prepend-icon="mdi-file-upload"
+          class="text-white"
+          @click="abrirImportacao"
+        >
+          Importar CSV
+        </v-btn>
       </v-card-title>
     </v-card>
 
@@ -306,6 +315,88 @@
           </div>
         </v-expand-transition>
 
+        <!-- Modal de Importação CSV -->
+        <v-dialog v-model="importacaoAberta" max-width="600px" persistent>
+          <v-card class="background-card">
+            <v-card-title class="text-h6 pa-4 d-flex align-center">
+              <v-icon icon="mdi-file-upload" class="mr-2"></v-icon>
+              Importar Pessoas via CSV
+            </v-card-title>
+            
+            <v-card-text class="pa-4">
+              <v-alert
+                type="info"
+                variant="tonal"
+                density="compact"
+                class="mb-4"
+              >
+                <div class="text-caption">
+                  <strong>Formato esperado:</strong> Arquivo CSV com as colunas do modelo.
+                  Campos obrigatórios: tipo_pessoa, nome_razao, apelido_fantasia.
+                </div>
+              </v-alert>
+
+              <div class="d-flex gap-2 mb-4">
+                <v-btn
+                  color="primary"
+                  variant="outlined"
+                  prepend-icon="mdi-download"
+                  @click="baixarModeloCSV"
+                  size="small"
+                  block
+                >
+                  Baixar Modelo CSV
+                </v-btn>
+              </div>
+
+              <v-file-input
+                v-model="arquivoCSV"
+                label="Selecione o arquivo CSV"
+                accept=".csv"
+                prepend-icon="mdi-file-delimited"
+                variant="outlined"
+                density="compact"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
+                show-size
+                @change="onArquivoSelecionado"
+              ></v-file-input>
+
+              <v-alert
+                v-if="resultadoImportacao.show"
+                :type="resultadoImportacao.type"
+                variant="tonal"
+                density="compact"
+                class="mt-4"
+              >
+                {{ resultadoImportacao.message }}
+              </v-alert>
+            </v-card-text>
+
+            <v-card-actions class="pa-4">
+              <v-spacer></v-spacer>
+              <v-btn
+                color="grey"
+                variant="text"
+                @click="fecharImportacao"
+                size="small"
+              >
+                Cancelar
+              </v-btn>
+              <v-btn
+                color="var(--text-color-laranja)"
+                variant="flat"
+                class="text-white"
+                :loading="importandoCSV"
+                :disabled="!arquivoCSV"
+                @click="importarCSV"
+                size="small"
+              >
+                Importar
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
         <v-expand-transition>
           <div v-if="!formularioAberto">
             <v-row class="mb-4">
@@ -378,6 +469,12 @@ const formularioAberto = ref(false)
 const formValido = ref(false)
 const formRef = ref(null)
 const editando = ref(false)
+
+// Importação CSV
+const importacaoAberta = ref(false)
+const arquivoCSV = ref(null)
+const importandoCSV = ref(false)
+const resultadoImportacao = reactive({ show: false, message: '', type: 'success' })
 
 const form = reactive({
   "tipo_pessoa": "",
@@ -490,6 +587,154 @@ const confirmarExclusao = (p) => {
 
 const deletarPessoa = async (id) => {
   await pessoasStore.deletarPessoa(id, snackbar)
+}
+
+// Importação CSV
+const abrirImportacao = () => {
+  importacaoAberta.value = true
+  resultadoImportacao.show = false
+}
+
+const fecharImportacao = () => {
+  importacaoAberta.value = false
+  arquivoCSV.value = null
+  resultadoImportacao.show = false
+}
+
+const baixarModeloCSV = () => {
+  const csvContent = `tipo_pessoa,nome_razao,apelido_fantasia,cpf_cnpj,rg_inscricao,telefone,celular,whats,website,cliente,fornecedor,transportadora,colaborador,representante,instagram,facebook,twitter_x,tik_tok,telegram,latitude,longitude,ativo
+F,João Silva,João,12345678900,123456789,1133334444,11999998888,11999998888,https://exemplo.com,S,N,N,N,N,@joao,joao.silva,@joaosilva,@joao,@joaosilva,-23.5505,-46.6333,S
+J,Empresa XYZ Ltda,XYZ Comércio,12345678000199,987654321,1144445555,11988887777,11988887777,https://empresaxyz.com.br,N,S,N,N,N,@empresaxyz,empresa.xyz,@empresaxyz,@xyzempresa,@empresaxyz,-23.5489,-46.6388,S`
+  
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+  
+  link.setAttribute('href', url)
+  link.setAttribute('download', 'modelo_importacao_pessoas.csv')
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+const onArquivoSelecionado = () => {
+  resultadoImportacao.show = false
+}
+
+const parseCSV = (text) => {
+  const lines = text.split('\n').filter(line => line.trim())
+  const headers = lines[0].split(',').map(h => h.trim())
+  const data = []
+  
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',')
+    const obj = {}
+    
+    headers.forEach((header, index) => {
+      let value = values[index]?.trim() || ''
+      
+      // Converter valores numéricos
+      if (header === 'latitude' || header === 'longitude') {
+        value = value ? Number(value) : null
+      }
+      
+      // Normalizar tipo_pessoa: "Física" -> "F", "Jurídica" -> "J"
+      if (header === 'tipo_pessoa') {
+        if (value.toLowerCase().includes('física') || value.toLowerCase() === 'fisica' || value === 'F') {
+          value = 'F'
+        } else if (value.toLowerCase().includes('jurídica') || value.toLowerCase() === 'juridica' || value === 'J') {
+          value = 'J'
+        }
+      }
+      
+      // Normalizar Sim/Não -> S/N
+      if (['cliente', 'fornecedor', 'transportadora', 'colaborador', 'representante', 'ativo'].includes(header)) {
+        if (value.toLowerCase() === 'sim' || value === 'S') {
+          value = 'S'
+        } else if (value.toLowerCase() === 'não' || value.toLowerCase() === 'nao' || value === 'N') {
+          value = 'N'
+        } else {
+          value = value || 'N' // Padrão
+        }
+      }
+      
+      obj[header] = value
+    })
+    
+    data.push(obj)
+  }
+  
+  return data
+}
+
+const importarCSV = async () => {
+  if (!arquivoCSV.value) {
+    resultadoImportacao.show = true
+    resultadoImportacao.type = 'error'
+    resultadoImportacao.message = 'Selecione um arquivo CSV'
+    return
+  }
+  
+  importandoCSV.value = true
+  resultadoImportacao.show = false
+  
+  try {
+    // v-file-input retorna array ou objeto dependendo da versão
+    const file = Array.isArray(arquivoCSV.value) ? arquivoCSV.value[0] : arquivoCSV.value
+    
+    if (!file) {
+      resultadoImportacao.show = true
+      resultadoImportacao.type = 'error'
+      resultadoImportacao.message = 'Arquivo inválido'
+      return
+    }
+    
+    const text = await file.text()
+    const pessoas = parseCSV(text)
+    
+    if (pessoas.length === 0) {
+      resultadoImportacao.show = true
+      resultadoImportacao.type = 'warning'
+      resultadoImportacao.message = 'Nenhuma pessoa encontrada no arquivo'
+      return
+    }
+    
+    // Validar campos obrigatórios
+    const pessoasValidas = pessoas.filter(p => 
+      p.tipo_pessoa && p.nome_razao && p.apelido_fantasia
+    )
+    
+    if (pessoasValidas.length === 0) {
+      resultadoImportacao.show = true
+      resultadoImportacao.type = 'error'
+      resultadoImportacao.message = 'Nenhuma pessoa válida encontrada. Verifique os campos obrigatórios.'
+      return
+    }
+    
+    // Importar pessoas
+    await pessoasStore.importarPessoasCSV(pessoasValidas)
+    
+    resultadoImportacao.show = true
+    resultadoImportacao.type = 'success'
+    resultadoImportacao.message = `${pessoasValidas.length} pessoa(s) importada(s) com sucesso!`
+    
+    // Recarregar lista
+    await pessoasStore.buscarTodasPessoas()
+    
+    // Fechar após 2 segundos
+    setTimeout(() => {
+      fecharImportacao()
+    }, 2000)
+    
+  } catch (error) {
+    console.error('Erro ao importar CSV:', error)
+    resultadoImportacao.show = true
+    resultadoImportacao.type = 'error'
+    resultadoImportacao.message = 'Erro ao processar arquivo CSV'
+  } finally {
+    importandoCSV.value = false
+  }
 }
 
 watchEffect(() => {
