@@ -34,7 +34,6 @@
                   density="compact"
                   prepend-inner-icon="mdi-cash-register"
                   clearable
-                  @update:model-value="aplicarFiltros"
                 >
                   <template v-slot:prepend-item>
                     <v-list-item>
@@ -67,7 +66,7 @@
               </v-col>
 
               <!-- Período de Cadastro - De -->
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="2">
                 <v-text-field
                   v-model="filtros.dataInicio"
                   label="Data Inicial *"
@@ -75,12 +74,11 @@
                   variant="outlined"
                   density="compact"
                   prepend-inner-icon="mdi-calendar"
-                  @update:model-value="aplicarFiltros"
                 ></v-text-field>
               </v-col>
 
               <!-- Período de Cadastro - Até -->
-              <v-col cols="12" md="3">
+              <v-col cols="12" md="2">
                 <v-text-field
                   v-model="filtros.dataFim"
                   label="Data Final *"
@@ -88,8 +86,22 @@
                   variant="outlined"
                   density="compact"
                   prepend-inner-icon="mdi-calendar"
-                  @update:model-value="aplicarFiltros"
                 ></v-text-field>
+              </v-col>
+
+              <!-- Botão Buscar -->
+              <v-col cols="12" md="2" class="d-flex">
+                <v-btn
+                  color="var(--text-color-laranja)"
+                  variant="flat"
+                  prepend-icon="mdi-magnify"
+                  @click="carregarLancamentos"
+                  :loading="loading"
+                  :disabled="!filtros.id_caixa || !filtros.dataInicio || !filtros.dataFim"
+                  class="text-white"
+                >
+                  Buscar
+                </v-btn>
               </v-col>
             </v-row>
           </v-card-text>
@@ -832,11 +844,6 @@ const aplicarPeriodo = (periodo) => {
 
   filtros.dataInicio = dataInicio.toISOString().split('T')[0]
   filtros.dataFim = dataFim.toISOString().split('T')[0]
-}
-
-const aplicarFiltros = () => {
-  // Filtros são aplicados automaticamente via computed
-  carregarLancamentos()
 }
 
 // Métodos de ação

@@ -818,6 +818,46 @@
             </v-chip>
           </template>
 
+          <!-- Formatação para Saldo Devedor -->
+          <template v-slot:[`item.saldo_devedor`]="{ item }">
+            <span v-if="item.pag_utiliza_aut_pagto === 'N'" class="font-weight-medium">
+              {{ formatarMoeda(item.saldo_devedor) }}
+            </span>
+            <span v-else class="text-grey">-</span>
+          </template>
+
+          <!-- Formatação para Valor Quitado -->
+          <template v-slot:[`item.vlrquitado`]="{ item }">
+            <span v-if="item.pag_utiliza_aut_pagto === 'N'" class="font-weight-medium text-success">
+              {{ formatarMoeda(item.vlrquitado) }}
+            </span>
+            <span v-else class="text-grey">-</span>
+          </template>
+
+          <!-- Autorizado Por -->
+          <template v-slot:[`item.user_liberou`]="{ item }">
+            <span v-if="item.pag_utiliza_aut_pagto === 'S' && item.user_liberou" class="font-weight-medium">
+              {{ item.user_liberou }}
+            </span>
+            <span v-else class="text-grey">-</span>
+          </template>
+
+          <!-- Valor Autorizado -->
+          <template v-slot:[`item.vlrliberadopagto`]="{ item }">
+            <span v-if="item.pag_utiliza_aut_pagto === 'S' && item.vlrliberadopagto > 0" class="font-weight-medium text-success">
+              {{ formatarMoeda(item.vlrliberadopagto) }}
+            </span>
+            <span v-else class="text-grey">-</span>
+          </template>
+
+          <!-- Data de Autorização -->
+          <template v-slot:[`item.dhliberacaopagto`]="{ item }">
+            <span v-if="item.pag_utiliza_aut_pagto === 'S' && item.dhliberacaopagto">
+              {{ formatarDataHora(item.dhliberacaopagto) }}
+            </span>
+            <span v-else class="text-grey">-</span>
+          </template>
+
           <!-- Formatação para Data de Emissão -->
           <template v-slot:[`item.dtemissao`]="{ item }">
             <span v-if="item.dtemissao">
@@ -830,6 +870,14 @@
           <template v-slot:[`item.dtvencimento`]="{ item }">
             <span v-if="item.dtvencimento">
               {{ new Date(item.dtvencimento).toLocaleDateString('pt-BR') }}
+            </span>
+            <span v-else class="text-grey">-</span>
+          </template>
+
+          <!-- Formatação para Data de Inclusão -->
+          <template v-slot:[`item.dhinc`]="{ item }">
+            <span v-if="item.dhinc">
+              {{ formatarDataHora(item.dhinc) }}
             </span>
             <span v-else class="text-grey">-</span>
           </template>
@@ -992,25 +1040,46 @@ const dialogExclusao = reactive({
   item: null
 })
 
-// Headers da tabela
-const headers = [
-  { title: '', key: 'imagem', sortable: false, width: '60px' },
-  { title: 'Documento', key: 'nrdocumento', sortable: true },
-  { title: 'Série', key: 'serie', sortable: true },
-  { title: 'Espécie', key: 'especie', sortable: true },
-  { title: 'Parcela', key: 'id_parcela', sortable: true },
-  { title: 'Qtd Total', key: 'qtdparcelas', sortable: true },
-  { title: 'Data Emissão', key: 'dtemissao', sortable: true },
-  { title: 'Vencimento', key: 'dtvencimento', sortable: true },
-  { title: 'Fornecedor', key: 'fornecedor', sortable: true },
-  { title: 'Vlr Documento', key: 'vlrdocumento', sortable: true },
-  { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
-  { title: 'Origem', key: 'origem', sortable: true },
-  { title: 'Tipo Doc.', key: 'abreviatura', sortable: true },
-  { title: 'Local Cobrança', key: 'desclocalcobranca', sortable: true },
-  { title: 'Usuário', key: 'user_inc', sortable: true },
-  { title: 'Ações', key: 'actions', sortable: false }
-]
+// Headers da tabela - computados dinamicamente baseado na utilização de autorização
+const headers = computed(() => {
+  const baseHeaders = [
+    { title: '', key: 'imagem', sortable: false, width: '60px' },
+    { title: 'Documento', key: 'nrdocumento', sortable: true },
+    { title: 'Série', key: 'serie', sortable: true },
+    { title: 'Espécie', key: 'especie', sortable: true },
+    { title: 'Parcela', key: 'id_pagparcela', sortable: true },
+    { title: 'Qtd Total', key: 'qtdparcelas', sortable: true },
+    { title: 'Data Emissão', key: 'dtemissao', sortable: true },
+    { title: 'Vencimento', key: 'dtvencimento', sortable: true },
+    { title: 'Fornecedor', key: 'fornecedor', sortable: true },
+    { title: 'Vlr Documento', key: 'vlrdocumento', sortable: true },
+    { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
+    { title: 'Vlr Quitado', key: 'vlrquitado', sortable: true },
+    { title: 'Saldo Devedor', key: 'saldo_devedor', sortable: true }
+  ]
+
+  // Verificar se algum item tem autorização ativa para mostrar as colunas de autorização
+  const temAutorizacao = contasPagar.value.some(item => item.pag_utiliza_aut_pagto === 'S')
+  
+  if (temAutorizacao) {
+    baseHeaders.push(
+      { title: 'Autorizado Por', key: 'user_liberou', sortable: true },
+      { title: 'Vlr Autorizado', key: 'vlrliberadopagto', sortable: true },
+      { title: 'Data Autorização', key: 'dhliberacaopagto', sortable: true }
+    )
+  }
+
+  baseHeaders.push(
+    { title: 'Origem', key: 'origem', sortable: true },
+    { title: 'Tipo Doc.', key: 'abreviatura', sortable: true },
+    { title: 'Local Cobrança', key: 'desclocalcobranca', sortable: true },
+    { title: 'Usuário', key: 'user_inc', sortable: true },
+    { title: 'Data Inclusão', key: 'dhinc', sortable: true },
+    { title: 'Ações', key: 'actions', sortable: false }
+  )
+
+  return baseHeaders
+})
 
 // Headers da tabela de parcelas
 const headersParcelas = [
@@ -1170,6 +1239,22 @@ const formatarMoeda = (valor) => {
   }).format(numero)
 }
 
+// Função para formatação de data e hora brasileira
+const formatarDataHora = (dataHora) => {
+  if (!dataHora) return '--'
+  try {
+    return new Date(dataHora).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch {
+    return '--'
+  }
+}
+
 // Regras de validação
 const rules = {
   required: (value) => !!value || 'Campo obrigatório',
@@ -1269,16 +1354,25 @@ const carregarContasPagar = async (filtrosApi = null) => {
       serie: item.serie || '',
       especie: item.especie || '',
       id_parcela: item.id_parcela || 1,
+      id_pagparcela: item.id_pagparcela || null,
       qtdparcelas: item.qtdparcelas || 1,
       dtemissao: item.dtemissao || '',
       dtvencimento: item.dtvencimento || '',
       fornecedor: item.fornecedor || '',
       vlrdocumento: parseFloat(item.vlrdocumento || 0),
       vlrparcela: parseFloat(item.vlrparcela || 0),
+      saldo_devedor: parseFloat(item.saldo_devedor || 0),
+      vlrquitado: parseFloat(item.vlrquitado || 0),
+      vlrliberadopagto: parseFloat(item.vlrliberadopagto || 0),
       origem: item.origem || '',
       user_inc: item.user_inc || '',
+      user_liberou: item.user_liberou || '',
       abreviatura: item.abreviatura || '',
+      desctipodocumento: item.desctipodocumento || '',
       desclocalcobranca: item.desclocalcobranca || '',
+      dhinc: item.dhinc || '',
+      dhliberacaopagto: item.dhliberacaopagto || '',
+      pag_utiliza_aut_pagto: item.pag_utiliza_aut_pagto || 'N',
       id_media: item.id_media || ''
     })) || []
     

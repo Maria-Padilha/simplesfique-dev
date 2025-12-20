@@ -527,6 +527,17 @@
           density="compact"
         />
       </div>
+
+      <div class="mb-5">
+        <p class="texto-color-primary font-medium mb-2">Utiliza autorização de pagamento:</p>
+        <v-switch
+          v-model="autorizacaoPagamento"
+          label="Solicitar autorização para pagamentos"
+          color="var(--text-color-laranja)"
+          hide-details
+          density="compact"
+        />
+      </div>
       </div>
     </v-form>
 
@@ -572,6 +583,7 @@ const config = reactive({
   pag_id_hist_adt_for_caixa: null, // Histórico adiantamento fornecedor caixa
   pag_id_hist_adt_for_banco: null, // Histórico adiantamento fornecedor banco
   pag_utiliza_aprov_adt_for: 'N',  // Utiliza aprovação do fornecedor (S/N)
+  pag_utiliza_aut_pagto: 'N',     // Utiliza autorização de pagamento (S/N)
   tipo_documento_padrao: null,     // Tipo de documento padrão
   // Campos de descrição
   desc_ctb_juros_pago: '',
@@ -608,6 +620,12 @@ const aprovacaoFornecedor = computed({
   get: () => config.pag_utiliza_aprov_adt_for === 'S',
   set: (value) => {
     config.pag_utiliza_aprov_adt_for = value ? 'S' : 'N'
+  }
+});
+const autorizacaoPagamento = computed({
+  get: () => config.pag_utiliza_aut_pagto === 'S',
+  set: (value) => {
+    config.pag_utiliza_aut_pagto = value ? 'S' : 'N'
   }
 });
 
@@ -948,6 +966,7 @@ const salvarConfiguracoes = async () => {
         pag_id_hist_adt_for_caixa: config.pag_id_hist_adt_for_caixa,
         pag_id_hist_adt_for_banco: config.pag_id_hist_adt_for_banco,
         pag_utiliza_aprov_adt_for: config.pag_utiliza_aprov_adt_for,
+        pag_utiliza_aut_pagto: config.pag_utiliza_aut_pagto,
       }]
     }
     
@@ -990,6 +1009,7 @@ const resetarConfiguracoes = () => {
   config.pag_id_hist_adt_for_caixa = null
   config.pag_id_hist_adt_for_banco = null
   config.pag_utiliza_aprov_adt_for = 'N'
+  config.pag_utiliza_aut_pagto = 'N'
   config.tipo_documento_padrao = null
   
   // Campos de descrição

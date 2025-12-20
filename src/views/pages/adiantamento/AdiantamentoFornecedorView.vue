@@ -426,7 +426,7 @@
               </v-col>
 
               <!-- Botão Buscar -->
-              <v-col cols="12" md="1" class="d-flex align-center">
+              <v-col cols="12" md="1" class="d-flex">
                 <v-btn
                   color="var(--text-color-laranja)"
                   :loading="loading"
@@ -483,14 +483,14 @@
 
               <!-- Coluna Valor Documento -->
               <template v-slot:[`item.valor_documento`]="{ item }">
-                <span class="font-weight-medium text-info">
+                <span class="font-weight-medium" style="color: var(--text-secondary-laranja)">
                   {{ formatarMoeda(item.valor_documento) }}
                 </span>
               </template>
 
               <!-- Coluna Valor Solicitado -->
               <template v-slot:[`item.valor_solicitado`]="{ item }">
-                <span class="font-weight-bold text-warning">
+                <span class="font-weight-bold" style="color: var(--text-color-preto);">
                   {{ formatarMoeda(item.valor_solicitado) }}
                 </span>
               </template>
@@ -519,7 +519,7 @@
               <!-- Coluna Tipo -->
               <template v-slot:[`item.tipo`]="{ item }">
                 <v-chip 
-                  :color="item.tipo === 'Saida' ? 'error' : 'success'" 
+                  :color="item.tipo === 'Saida' ? 'var(--text-color-laranja)' : 'var(--text-secondary-laranja)'" 
                   size="small" 
                   variant="tonal"
                 >
@@ -530,7 +530,7 @@
               <!-- Coluna Origem -->
               <template v-slot:[`item.origem`]="{ item }">
                 <v-chip 
-                  :color="item.origem === 'CAI' ? 'primary' : 'secondary'" 
+                  :color="item.origem === 'CAI' ? 'var(--text-color-laranja)' : 'var(--text-secondary-laranja)'" 
                   size="small" 
                   variant="outlined"
                 >
@@ -555,7 +555,7 @@
                     icon="mdi-dots-vertical"
                     size="small"
                     variant="text"
-                    color="primary"
+                    color="var(--text-color-laranja)"
                     @click="abrirModalAcoes(item)"
                   >
                     <v-icon size="20">mdi-dots-vertical</v-icon>
@@ -640,28 +640,30 @@
             <!-- Ações para situação Pendente (1) -->
             <template v-if="itemSelecionado?.situacao === '1'">
               <v-btn
-                color="success"
+                color="var(--text-color-laranja)"
                 variant="flat"
                 size="large"
                 prepend-icon="mdi-check"
                 @click="confirmarAprovar(itemSelecionado)"
+                class="text-white"
                 block
               >
                 Aprovar Adiantamento
               </v-btn>
               <v-btn
-                color="primary"
+                color="var(--text-secondary-laranja)"
                 variant="flat"
                 size="large"
                 prepend-icon="mdi-cash"
                 @click="confirmarPagar(itemSelecionado)"
+                class="text-white"
                 block
               >
                 Pagar Diretamente
               </v-btn>
               <v-btn
-                color="error"
-                variant="flat"
+                color="var(--text-color-laranja)"
+                variant="outlined"
                 size="large"
                 prepend-icon="mdi-close"
                 @click="confirmarRecusar(itemSelecionado)"
@@ -673,7 +675,7 @@
               <v-divider class="my-2"></v-divider>
               
               <v-btn
-                color="warning"
+                color="var(--text-secondary-laranja)"
                 variant="outlined"
                 size="large"
                 prepend-icon="mdi-pencil"
@@ -683,8 +685,8 @@
                 Editar
               </v-btn>
               <v-btn
-                color="error"
-                variant="outlined"
+                color="var(--text-color-laranja)"
+                variant="text"
                 size="large"
                 prepend-icon="mdi-delete"
                 @click="confirmarExclusao(itemSelecionado)"
@@ -697,11 +699,12 @@
             <!-- Ações para situação Aprovado (2) -->
             <template v-if="itemSelecionado?.situacao === '2'">
               <v-btn
-                color="primary"
+                color="var(--text-color-laranja)"
                 variant="flat"
                 size="large"
                 prepend-icon="mdi-cash"
                 @click="confirmarPagar(itemSelecionado)"
+                class="text-white"
                 block
               >
                 Pagar Adiantamento
@@ -711,7 +714,7 @@
             <!-- Ações para situação Recusado (3) -->
             <template v-if="itemSelecionado?.situacao === '3'">
               <v-btn
-                color="warning"
+                color="var(--text-secondary-laranja)"
                 variant="outlined"
                 size="large"
                 prepend-icon="mdi-pencil"
@@ -721,8 +724,8 @@
                 Editar
               </v-btn>
               <v-btn
-                color="error"
-                variant="outlined"
+                color="var(--text-color-laranja)"
+                variant="text"
                 size="large"
                 prepend-icon="mdi-delete"
                 @click="confirmarExclusao(itemSelecionado)"
@@ -735,7 +738,7 @@
             <!-- Situação Pago (9) - Apenas visualização -->
             <template v-if="itemSelecionado?.situacao === '9'">
               <v-alert
-                type="info"
+                color="var(--text-secondary-laranja)"
                 variant="tonal"
                 icon="mdi-check-circle"
               >
@@ -952,10 +955,10 @@ const getSituacaoTexto = (situacao) => {
 
 const getCorSituacao = (situacao) => {
   switch(situacao) {
-    case '1': return 'warning'    // Pendente - amarelo
-    case '2': return 'success'    // Aprovado - verde
-    case '3': return 'error'      // Negado - vermelho
-    case '9': return 'primary'    // Pago - azul
+    case '1': return 'var(--text-secondary-laranja)'    // Pendente - laranja claro
+    case '2': return 'var(--text-color-laranja)'        // Aprovado - laranja principal  
+    case '3': return 'var(--text-secondary-laranja)'    // Negado - laranja claro
+    case '9': return 'var(--text-color-laranja)'        // Pago - laranja principal
     default: return 'grey'
   }
 }

@@ -24,6 +24,8 @@ import PagamentoView from '@/views/pages/pdv/PagamentoView.vue';
 import MovimentacaoView from '@/views/pages/banco/MovimentacaoView.vue';
 import AdiantamentoClienteView from '@/views/pages/adiantamento/AdiantamentoClienteView.vue';
 import AdiantamentoFornecedorView from '@/views/pages/adiantamento/AdiantamentoFornecedorView.vue';
+import AutorizacaoPagtoView from '@/views/pages/financeiro/AutorizacaoPagtoView.vue';
+import BaixaPagtoView from '@/views/pages/financeiro/BaixaPagtoView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
@@ -140,6 +142,16 @@ const routes = [
         path: '/paginas/financeiro/planoconta',
         name: 'financeiro_planoconta',
         component: PlanoContaView
+    },
+    {
+        path: '/paginas/financeiro/autorizacao',
+        name: 'financeiro_autorizacao',
+        component: AutorizacaoPagtoView
+    },
+    {
+        path: '/paginas/financeiro/baixa',
+        name: 'financeiro_baixa',
+        component: BaixaPagtoView
     },
 
     // Paginas de banco

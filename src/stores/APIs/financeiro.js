@@ -1059,12 +1059,15 @@ export const useFinanceiroStore = defineStore('financeiro', {
         if (filtros.tpperiodo !== undefined) params.append('tpperiodo', filtros.tpperiodo)
         if (filtros.dtini) params.append('dtini', filtros.dtini)
         if (filtros.dtfim) params.append('dtfim', filtros.dtfim)
+        if (filtros.dt_inicio) params.append('dt_inicio', filtros.dt_inicio)
+        if (filtros.dt_fim) params.append('dt_fim', filtros.dt_fim)
         if (filtros.idfornecedor) params.append('idfornecedor', filtros.idfornecedor)
         if (filtros.cnpj_cpf) params.append('cnpj_cpf', filtros.cnpj_cpf)
         if (filtros.nrdocumento) params.append('nrdocumento', filtros.nrdocumento)
         if (filtros.idtpdocumento) params.append('idtpdocumento', filtros.idtpdocumento)
         if (filtros.idlocalcobranca) params.append('idlocalcobranca', filtros.idlocalcobranca)
         if (filtros.baixado) params.append('baixado', filtros.baixado)
+        if (filtros.liberadopagto) params.append('liberadopagto', filtros.liberadopagto)
         
         const queryString = params.toString()
         const url = queryString ? `/contaspagar/${idEmpresa}?${queryString}` : `/contaspagar/${idEmpresa}`
@@ -1199,6 +1202,29 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return true
       } catch (error) {
         this.error = error.response?.data?.message || 'Erro ao deletar conta a pagar'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Autorizar contas a pagar (POST /contaspagarautorizar)
+    async autorizarContasPagar(payload) {
+      this.loading = true
+      this.error = null
+      try {
+        console.log('🔒 Autorizando contas a pagar:', payload)
+        
+        // Garantir que o payload seja um objeto e não um array
+        const payloadFinal = Array.isArray(payload) ? { data: payload } : payload
+        
+        const response = await api.post('/contaspagarautorizar', payloadFinal, {
+          headers: this.getAuthHeaders()
+        })
+        
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao autorizar contas a pagar'
         throw error
       } finally {
         this.loading = false
@@ -1770,8 +1796,29 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.error = null;
       this.loading = false;
       this.search = '';
+    },
+
+    // ========== BAIXA DE PAGAMENTOS ==========
+    
+    // Baixar pagamentos em lote
+    async baixarPagamentos(idEmpresa, dadosBaixa) {
+      this.loading = true;
+      this.error = null;
+      
+      try {
+        const response = await api.post(`/contaspagarbaix/${idEmpresa}`, dadosBaixa, {
+          headers: this.getAuthHeaders()
+        });
+        
+        return response.data;
+      } catch (error) {
+        console.error('Erro ao baixar pagamentos:', error);
+        this.error = error.response?.data?.message || 'Erro ao baixar pagamentos';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
     }
-,
     
   },
 

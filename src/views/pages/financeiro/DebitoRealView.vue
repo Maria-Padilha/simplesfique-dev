@@ -59,7 +59,7 @@
               </v-col>
 
               <!-- Botão Buscar -->
-              <v-col cols="12" md="2" class="d-flex align-center">
+              <v-col cols="12" md="2" class="d-flex">
                 <v-btn
                   color="var(--text-color-laranja)"
                   :loading="loading"
