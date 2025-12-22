@@ -1096,6 +1096,54 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
+    // Buscar contas a pagar para baixa (GET /contaspagarbxa/:idempresa)
+    async buscarContasPagarBaixa(idEmpresa, filtros = {}) {
+      this.loading = true
+      this.error = null
+      try {
+        // Construir query params
+        const params = new URLSearchParams()
+        
+        if (filtros.tpperiodo !== undefined) params.append('tpperiodo', filtros.tpperiodo)
+        if (filtros.dtini) params.append('dtini', filtros.dtini)
+        if (filtros.dtfim) params.append('dtfim', filtros.dtfim)
+        if (filtros.dt_inicio) params.append('dt_inicio', filtros.dt_inicio)
+        if (filtros.dt_fim) params.append('dt_fim', filtros.dt_fim)
+        if (filtros.idfornecedor) params.append('idfornecedor', filtros.idfornecedor)
+        if (filtros.cnpj_cpf) params.append('cnpj_cpf', filtros.cnpj_cpf)
+        if (filtros.nrdocumento) params.append('nrdocumento', filtros.nrdocumento)
+        if (filtros.idtpdocumento) params.append('idtpdocumento', filtros.idtpdocumento)
+        if (filtros.idlocalcobranca) params.append('idlocalcobranca', filtros.idlocalcobranca)
+        if (filtros.baixado) params.append('baixado', filtros.baixado)
+        if (filtros.liberadopagto) params.append('liberadopagto', filtros.liberadopagto)
+        
+        const queryString = params.toString()
+        const url = queryString ? `/contaspagarbxa/${idEmpresa}?${queryString}` : `/contaspagarbxa/${idEmpresa}`
+        
+        console.log('🔍 Buscando contas a pagar para baixa:', url)
+        
+        const response = await api.get(url, {
+          headers: this.getAuthHeaders()
+        })
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+        } else if (Array.isArray(resp)) {
+          dados = resp
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar contas a pagar para baixa'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     // Buscar conta a pagar por ID (GET /contaspagar/:idempresa/id/:id)
     async buscarContaPagarPorId(idEmpresa, id) {
       this.loading = true

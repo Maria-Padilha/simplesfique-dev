@@ -22,10 +22,28 @@
             <p class="text-body-1 mb-1">
               Valor total: <strong>{{ formatarMoeda(totalParcelasFiltradas) }}</strong>
             </p>
-            <p class="text-body-1">
+            <p class="text-body-1 mb-1">
               Selecionados: <strong>{{ contasSelecionadas.length }}</strong> | 
               Valor selecionado: <strong>{{ formatarMoeda(valorSelecionado) }}</strong>
             </p>
+            
+            <!-- Select para tipo de baixa -->
+            <div class="mt-3">
+              <v-select
+                v-model="tipoBaixa"
+                :items="[
+                  { title: 'Banco', value: 'banco' },
+                  { title: 'Caixa', value: 'caixa' }
+                ]"
+                item-title="title"
+                item-value="value"
+                label="Tipo de Baixa"
+                variant="outlined"
+                density="compact"
+                style="max-width: 200px;"
+                hide-details
+              />
+            </div>
           </div>
           <div class="d-flex flex-column ga-2">
             <v-btn
@@ -57,7 +75,7 @@
     <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
       <v-card-text class="pa-4">
         <!-- Busca Avançada -->
-        <BuscaAvancada
+        <BuscaAvancadaBaixa
           entidade="contaspagar"
           @aplicar="aplicarFiltrosAvancados"
         />
@@ -112,29 +130,79 @@
             {{ formatarMoeda(item.vlrparcela) }}
           </template>
 
-          <!-- Formatação dos juros -->
+          <!-- Edição inline de Juros (sempre editável) -->
           <template v-slot:[`item.juros`]="{ item }">
-            {{ formatarMoeda(item.juros || 0) }}
+            <v-text-field
+              v-model="item.juros_display"
+              type="text"
+              variant="outlined"
+              density="compact"
+              hide-details
+              class="campo-editavel-tabela juros-input"
+              :class="{ 'campo-editavel-dark': themeStore.darkMode }"
+              style="min-width: 120px; width: 140px;"
+              @update:model-value="(val) => handleItemCurrencyInput(item, 'juros', val)"
+              @blur="() => handleItemCurrencyBlur(item, 'juros')"
+            />
           </template>
 
-          <!-- Formatação da multa -->
-          <template v-slot:[`item.multa`]="{ item }">
-            {{ formatarMoeda(item.multa || 0) }}
+            <!-- Edição inline de Multa (sempre editável) -->
+            <template v-slot:[`item.multa`]="{ item }">
+              <v-text-field
+                v-model="item.multa_display"
+                type="text"
+                variant="outlined"
+                density="compact"
+                hide-details
+                :class="{ 'campo-editavel-dark': themeStore.darkMode }"
+                class="campo-editavel-tabela multa-input"
+                style="min-width: 120px; width: 140px;"
+                @update:model-value="(val) => handleItemCurrencyInput(item, 'multa', val)"
+                @blur="() => handleItemCurrencyBlur(item, 'multa')"
+              />
+            </template>
+
+            <!-- Edição inline de Desconto (sempre editável) -->
+            <template v-slot:[`item.desconto`]="{ item }">
+              <v-text-field
+                v-model="item.desconto_display"
+                type="text"
+                variant="outlined"
+                density="compact"
+                hide-details
+                class="campo-editavel-tabela desconto-input"
+                :class="{ 'campo-editavel-dark': themeStore.darkMode }"
+                style="min-width: 120px; width: 140px;"
+                @update:model-value="(val) => handleItemCurrencyInput(item, 'desconto', val)"
+                @blur="() => handleItemCurrencyBlur(item, 'desconto')"
+              />
+            </template>
+
+            <!-- Formatação do saldo devedor (leitura) -->
+          <template v-slot:[`item.saldo_devedor`]="{ item }">
+            {{ formatarMoeda(item.saldo_devedor) }}
           </template>
 
-          <!-- Formatação do desconto -->
-          <template v-slot:[`item.desconto`]="{ item }">
-            {{ formatarMoeda(item.desconto || 0) }}
+          <!-- Edição inline de Vlr a Pagar (novo campo editável) -->
+          <template v-slot:[`item.vlrapagar`]="{ item }">
+            <v-text-field
+              v-model="item.vlrapagar_display"
+              type="text"
+              step="0.01"
+              variant="outlined"
+              density="compact"
+              hide-details
+              class="campo-editavel-tabela vlr-a-pagar"
+              :class="{ 'campo-editavel-dark': themeStore.darkMode }"
+              style="width: 160px; min-width: 120px;"
+              @update:model-value="(val) => handleItemCurrencyInput(item, 'vlrapagar', val)"
+              @blur="() => handleItemCurrencyBlur(item, 'vlrapagar')"
+            />
           </template>
 
           <!-- Formatação do valor quitado -->
           <template v-slot:[`item.vlrquitado`]="{ item }">
             {{ formatarMoeda(item.vlrquitado) }}
-          </template>
-
-          <!-- Formatação do saldo devedor -->
-          <template v-slot:[`item.saldo_devedor`]="{ item }">
-            {{ formatarMoeda(item.saldo_devedor) }}
           </template>
 
           <!-- Formatação do valor liberado -->
@@ -145,113 +213,26 @@
       </v-card-text>
     </v-card>
 
-    <!-- Dialog de Confirmação de Baixa -->
-    <v-dialog 
+    <!-- Modal de Baixa por Caixa -->
+    <BaixaCaixaModal
+      v-if="tipoBaixa === 'caixa'"
       v-model="dialogBaixa.aberto"
-      max-width="600px"
-      persistent
-    >
-      <v-card class="background-card">
-        <v-card-title class="text-h6 pa-4">
-          <v-icon icon="mdi-cash-minus" class="mr-2"></v-icon>
-          Confirmar Baixa de Pagamentos
-        </v-card-title>
-        
-        <v-card-text class="pa-4">
-          <div class="mb-4">
-            <p class="text-body-1 mb-2">
-              Você está prestes a realizar a baixa de <strong>{{ contasSelecionadas.length }}</strong> pagamento(s).
-            </p>
-            <p class="text-body-1 mb-3">
-              Valor total: <strong>{{ formatarMoeda(valorSelecionado) }}</strong>
-            </p>
-          </div>
+      :id-empresa="idEmpresa"
+      :contas-selecionadas="contasSelecionadas"
+      :valor-total="valorSelecionado"
+      :loading="loadingBaixa"
+      @confirmar="executarBaixaCaixa"
+    />
 
-          <v-form ref="formBaixaRef" v-model="formBaixaValido">
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="formBaixa.dtpagamento"
-                  label="Data do Pagamento"
-                  type="date"
-                  :rules="[rules.required]"
-                  variant="outlined"
-                  density="comfortable"
-                  required
-                />
-              </v-col>
-              
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="formBaixa.vlrpago"
-                  label="Valor Pago Total"
-                  :rules="[rules.required, rules.currency]"
-                  variant="outlined"
-                  density="comfortable"
-                  prefix="R$"
-                  required
-                />
-              </v-col>
-            </v-row>
-
-            <v-row>
-              <v-col cols="12">
-                <v-textarea
-                  v-model="formBaixa.observacao"
-                  label="Observação da Baixa"
-                  variant="outlined"
-                  density="comfortable"
-                  rows="3"
-                  placeholder="Informações adicionais sobre o pagamento..."
-                />
-              </v-col>
-            </v-row>
-          </v-form>
-
-          <div class="mt-4">
-            <h6 class="text-subtitle-1 mb-2">Contas selecionadas:</h6>
-            <div class="max-height-200 overflow-y-auto">
-              <v-list density="compact" class="background-card">
-                <v-list-item
-                  v-for="conta in contasSelecionadas"
-                  :key="conta.id"
-                  class="px-2"
-                >
-                  <v-list-item-title class="text-body-2">
-                    {{ conta.nrdocumento }} - {{ conta.fornecedor }} - {{ formatarMoeda(conta.vlrparcela) }}
-                  </v-list-item-title>
-                  <v-list-item-subtitle class="text-caption">
-                    Venc: {{ new Date(conta.dtvencimento).toLocaleDateString('pt-BR') }}
-                  </v-list-item-subtitle>
-                </v-list-item>
-              </v-list>
-            </div>
-          </div>
-        </v-card-text>
-        
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn 
-            color="grey" 
-            variant="text" 
-            @click="dialogBaixa.aberto = false"
-            :disabled="loadingBaixa"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            color="var(--text-color-laranja)"
-            :loading="loadingBaixa"
-            :disabled="!formBaixaValido"
-            @click="executarBaixaPagamento"
-            variant="flat"
-            class="text-white"
-          >
-            Confirmar Baixa
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <!-- Modal de Baixa por Banco -->
+    <BaixaBancoModal
+      v-if="tipoBaixa === 'banco'"
+      v-model="dialogBaixa.aberto"
+      :contas-selecionadas="contasSelecionadas"
+      :valor-total="valorSelecionado"
+      :loading="loadingBaixa"
+      @confirmar="executarBaixaBanco"
+    />
 
     <!-- Snackbar para feedback -->
     <v-snackbar
@@ -269,7 +250,9 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
-import BuscaAvancada from '@/components/base/padrao-paginas/BuscaAvancada.vue'
+import BuscaAvancadaBaixa from '@/components/base/padrao-paginas/BuscaAvancadaBaixa.vue'
+import BaixaCaixaModal from '@/components/base/modais/BaixaCaixaModal.vue'
+import BaixaBancoModal from '@/components/base/modais/BaixaBancoModal.vue'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -284,19 +267,11 @@ const filtrosAvancados = ref({}) // Remover filtro inicial baixado='N'
 const contasPagar = ref([])
 const contasSelecionadas = ref([])
 const todosSelecionados = ref(false)
+const tipoBaixa = ref('banco') // Tipo de baixa: banco ou caixa
 
 // Dialog de confirmação de baixa
 const dialogBaixa = reactive({
   aberto: false
-})
-
-// Form de baixa
-const formBaixaRef = ref(null)
-const formBaixaValido = ref(false)
-const formBaixa = reactive({
-  dtpagamento: new Date().toISOString().substr(0, 10), // Data atual
-  vlrpago: 0,
-  observacao: ''
 })
 
 // Snackbar
@@ -311,33 +286,24 @@ const idEmpresa = ref(1)
 
 // Headers da tabela - incluindo checkbox e colunas conforme solicitado
 const headers = computed(() => {
-  const baseHeaders = [
-    { title: '', key: 'checkbox', sortable: false, width: '60px' },
-    { title: 'DT Vencimento', key: 'dtvencimento', sortable: true },
-    { title: 'Nr Documento', key: 'nrdocumento', sortable: true },
-    { title: 'Nr Parcela', key: 'id_pagparcela', sortable: true },
-    { title: 'Filial', key: 'filial', sortable: true },
-    { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
-    { title: 'Juros', key: 'juros', sortable: true },
-    { title: 'Multa', key: 'multa', sortable: true },
-    { title: 'Desconto', key: 'desconto', sortable: true },
-    { title: 'Vlr Quitado', key: 'vlrquitado', sortable: true },
-    { title: 'Vlr Saldo', key: 'saldo_devedor', sortable: true },
-    { title: 'Vlr Liberado', key: 'vlrliberado', sortable: true },
-    { title: 'Fornecedor', key: 'fornecedor', sortable: true }
-  ]
+    const baseHeaders = [
+      { title: '', key: 'checkbox', sortable: false, width: '60px' },
+      { title: 'DT Vencimento', key: 'dtvencimento', sortable: true },
+      { title: 'Nr Documento', key: 'nrdocumento', sortable: true },
+      { title: 'Nr Parcela', key: 'id_pagparcela', sortable: true },
+      { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
+      { title: 'Juros', key: 'juros', sortable: true },
+      { title: 'Multa', key: 'multa', sortable: true },
+      { title: 'Desconto', key: 'desconto', sortable: true },
+      { title: 'Vlr Quitado', key: 'vlrquitado', sortable: true },
+      { title: 'Vlr Saldo', key: 'saldo_devedor', sortable: true },
+      { title: 'Vlr a Pagar', key: 'vlrapagar', sortable: true },
+      { title: 'Vlr Liberado', key: 'vlrliberado', sortable: true },
+      { title: 'Fornecedor', key: 'fornecedor', sortable: true }
+    ]
 
   return baseHeaders
 })
-
-// Regras de validação
-const rules = {
-  required: (value) => !!value || 'Campo obrigatório',
-  currency: (value) => {
-    if (!value) return true
-    return !isNaN(parseFloat(value)) || 'Valor deve ser numérico'
-  }
-}
 
 // Computed
 const contasPagarFiltradas = computed(() => {
@@ -356,18 +322,27 @@ const totalParcelasFiltradas = computed(() => {
   }, 0)
 })
 
-// Calcular valor total das contas selecionadas
+// Calcular valor total das contas selecionadas considerando campos editáveis
 const valorSelecionado = computed(() => {
   return contasSelecionadas.value.reduce((total, item) => {
-    const valor = parseFloat(item.vlrparcela || 0)
-    return total + valor
+    const vlrAPagar = parseFloat(item.vlrapagar || item.saldo_devedor || 0)
+    const juros = parseFloat(item.juros || 0)
+    const multa = parseFloat(item.multa || 0)
+    const desconto = parseFloat(item.desconto || 0)
+    const valorFinal = vlrAPagar + juros + multa - desconto
+    return total + (isNaN(valorFinal) ? 0 : valorFinal)
   }, 0)
 })
 
+// Função chamada quando usuário edita um dos campos na tabela
+function atualizarValorSelecionado() {
+  // O computed `valorSelecionado` depende dos campos reativos dos itens selecionados,
+  // então não precisamos fazer nada além de acessar os valores para forçar reatividade
+  // (manter função para ligação ao evento @input nos campos)
+  void valorSelecionado.value
+}
+
 // Watchers
-watch(valorSelecionado, (novoValor) => {
-  formBaixa.vlrpago = novoValor.toFixed(2)
-})
 
 watch(() => contasSelecionadas.value.length, (novaQtd) => {
   if (novaQtd === 0) {
@@ -390,6 +365,35 @@ const formatarMoeda = (valor) => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(numero)
+}
+
+// Formata número para moeda BRL (string)
+const formatCurrencyBR = (value) => {
+  const numero = Number(value) || 0
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numero)
+}
+
+// Converte string formatada (ex: "1.234,56" ou "R$ 1.234,56") para número
+const parseCurrencyBR = (str) => {
+  if (str === null || str === undefined) return 0
+  if (typeof str === 'number') return str
+  const s = String(str)
+  // Remove prefix R$, espaços, e pontos de milhar, substitui vírgula por ponto
+  const cleaned = s.replace(/R\$|\s/g, '').replace(/\./g, '').replace(/,/g, '.')
+  const n = parseFloat(cleaned.replace(/[^[0-9\-.]/g, ''))
+  return isNaN(n) ? 0 : n
+}
+
+// Handlers para inputs em linhas da tabela
+const handleItemCurrencyInput = (item, field, val) => {
+  // val é a string exibida; atualiza o campo numérico e a string
+  item[field + '_display'] = val
+  item[field] = parseCurrencyBR(val)
+  atualizarValorSelecionado()
+}
+
+const handleItemCurrencyBlur = (item, field) => {
+  item[field + '_display'] = formatCurrencyBR(item[field])
 }
 
 
@@ -417,8 +421,19 @@ const carregarContasPagar = async (filtrosApi = null) => {
       mostrarMensagem('Aplique pelo menos um filtro para buscar as contas', 'info')
       return
     }
+
+    // Verificar obrigatoriedade de datas (dtini/dtfim ou dt_inicio/dt_fim)
+    const temDataInicio = filtrosApi.dtini || filtrosApi.dt_inicio
+    const temDataFim = filtrosApi.dtfim || filtrosApi.dt_fim
     
-    const dados = await financeiroStore.buscarContasPagar(
+    if (!temDataInicio || !temDataFim) {
+      console.log('❌ Busca não executada: datas obrigatórias não informadas')
+      // mostrarMensagem('Informe o período para buscar as contas', 'info')
+      return
+    }
+    
+    console.log('🚀 Chamando buscarContasPagarBaixa com filtros:', filtrosApi)
+    const dados = await financeiroStore.buscarContasPagarBaixa(
       idEmpresa.value,
       filtrosApi
     )
@@ -428,10 +443,17 @@ const carregarContasPagar = async (filtrosApi = null) => {
       vlrparcela: parseFloat(item.vlrparcela || 0),
       vlrquitado: parseFloat(item.vlrquitado || 0),
       saldo_devedor: parseFloat(item.saldo_devedor || 0),
+      // Inicializa o valor que será pago com o saldo_devedor quando não houver valor específico
+      vlrapagar: parseFloat(item.vlrapagar || item.saldo_devedor || 0),
       juros: parseFloat(item.juros || 0),
       multa: parseFloat(item.multa || 0),
       desconto: parseFloat(item.desconto || 0),
       vlrliberado: parseFloat(item.vlrliberado || 0),
+      // campos de display para edição com máscara
+      vlrapagar_display: formatCurrencyBR(item.vlrapagar || item.saldo_devedor || 0),
+      juros_display: formatCurrencyBR(item.juros || 0),
+      multa_display: formatCurrencyBR(item.multa || 0),
+      desconto_display: formatCurrencyBR(item.desconto || 0),
       id_media: item.id_media || ''
     })) || []
     
@@ -492,24 +514,22 @@ const confirmarBaixaPagamento = () => {
   dialogBaixa.aberto = true
 }
 
-// Executar baixa de pagamento
-const executarBaixaPagamento = async () => {
+// Executar baixa por caixa
+const executarBaixaCaixa = async (dadosBaixa) => {
   try {
     loadingBaixa.value = true
     
-    // Preparar dados para baixa
-    const dadosBaixa = {
+    // Preparar dados específicos para baixa por caixa
+    const payload = {
+      ...dadosBaixa,
       ids: contasSelecionadas.value.map(conta => conta.id),
-      dtpagamento: formBaixa.dtpagamento,
-      vlrpago: parseFloat(formBaixa.vlrpago || 0),
-      observacao: formBaixa.observacao || '',
       baixadopor: 'SISTEMA' // TODO: Obter usuário logado
     }
     
-    // Chamar API de baixa (assumindo que existe um método para isso)
-    await financeiroStore.baixarPagamentos(idEmpresa.value, dadosBaixa)
+    // Chamar API de baixa por caixa
+    await financeiroStore.baixarPagamentosCaixa(idEmpresa.value, payload)
     
-    mostrarMensagem(`${contasSelecionadas.value.length} pagamento(s) baixado(s) com sucesso!`, 'success')
+    mostrarMensagem(`${contasSelecionadas.value.length} pagamento(s) baixado(s) por caixa com sucesso!`, 'success')
     
     // Limpar seleções e fechar dialog
     limparSelecoes()
@@ -519,8 +539,40 @@ const executarBaixaPagamento = async () => {
     await carregarContasPagar(filtrosAvancados.value)
     
   } catch (error) {
-    console.error('Erro ao baixar pagamentos:', error)
-    mostrarMensagem('Erro ao baixar pagamentos', 'error')
+    console.error('Erro ao baixar pagamentos por caixa:', error)
+    mostrarMensagem('Erro ao baixar pagamentos por caixa', 'error')
+  } finally {
+    loadingBaixa.value = false
+  }
+}
+
+// Executar baixa por banco
+const executarBaixaBanco = async (dadosBaixa) => {
+  try {
+    loadingBaixa.value = true
+    
+    // Preparar dados específicos para baixa por banco
+    const payload = {
+      ...dadosBaixa,
+      ids: contasSelecionadas.value.map(conta => conta.id),
+      baixadopor: 'SISTEMA' // TODO: Obter usuário logado
+    }
+    
+    // Chamar API de baixa por banco
+    await financeiroStore.baixarPagamentosBanco(idEmpresa.value, payload)
+    
+    mostrarMensagem(`${contasSelecionadas.value.length} pagamento(s) baixado(s) por banco com sucesso!`, 'success')
+    
+    // Limpar seleções e fechar dialog
+    limparSelecoes()
+    dialogBaixa.aberto = false
+    
+    // Recarregar dados
+    await carregarContasPagar(filtrosAvancados.value)
+    
+  } catch (error) {
+    console.error('Erro ao baixar pagamentos por banco:', error)
+    mostrarMensagem('Erro ao baixar pagamentos por banco', 'error')
   } finally {
     loadingBaixa.value = false
   }
@@ -561,6 +613,23 @@ onMounted(async () => {
 
 .max-height-200 {
   max-height: 200px;
+}
+
+.campo-editavel-tabela {
+  background-color: #faf2e5 !important;
+}
+
+.campo-editavel-dark {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: white !important;
+}
+
+.campo-editavel-tabela input {
+  text-align: right;
+}
+
+.vlr-a-pagar input {
+  text-align: right;
 }
 
 .text-red {

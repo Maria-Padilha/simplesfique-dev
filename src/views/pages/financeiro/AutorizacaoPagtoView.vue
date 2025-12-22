@@ -561,6 +561,15 @@ const carregarAutorizacoes = async () => {
     
     console.log('ID da empresa:', idEmpresa)
     
+    // Verificar obrigatoriedade de datas
+    const temDataInicio = filtrosAvancados.value.dtini || filtrosAvancados.value.dt_inicio
+    const temDataFim = filtrosAvancados.value.dtfim || filtrosAvancados.value.dt_fim
+    
+    if (!temDataInicio || !temDataFim) {
+      console.log('❌ Busca de autorizações não executada: datas obrigatórias não informadas')
+      return
+    }
+
     // Sempre buscar contas não baixadas e não liberadas para pagamento
     const filtros = {
       ...filtrosAvancados.value,
@@ -597,7 +606,8 @@ const mostrarSnackbar = (message, color = 'success') => {
 
 // Ciclo de vida
 onMounted(async () => {
-  await carregarAutorizacoes()
+  // Aguardar filtros do componente filho
+  console.log('Tela de autorização carregada')
 })
 </script>
 
