@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extrato Bancário - SimplesFique</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            font-size: 12px;
+            color: #2b2b2b;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #F57C00;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        .logo-text {
+            font-size: 26px;
+            font-weight: bold;
+            color: #F57C00;
+        }
+
+        .logo-text span {
+            color: #de7e3e;
+        }
+
+        .info-conta {
+            font-size: 12px;
+            line-height: 1.6;
+            text-align: right;
+        }
+
+        .info-conta strong {
+            color: #F57C00;
+        }
+
+        .section-title {
+            color: #F57C00;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 25px 0 15px 0;
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .section-title span {
+            font-size: 12px;
+            font-weight: normal;
+            color: #666;
+        }
+
+        /* Tabela de Extrato */
+        .table-extrato {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .table-extrato thead {
+            background: linear-gradient(135deg, #F57C00 0%, #de7e3e 100%);
+            color: white;
+        }
+
+        .table-extrato th {
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-extrato th:nth-child(3),
+        .table-extrato th:nth-child(4),
+        .table-extrato th:nth-child(5) {
+            text-align: right;
+        }
+
+        .table-extrato td {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 11px;
+        }
+
+        .table-extrato td:nth-child(3),
+        .table-extrato td:nth-child(4),
+        .table-extrato td:nth-child(5) {
+            text-align: right;
+        }
+
+        .table-extrato tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        .table-extrato tbody tr:hover {
+            background-color: #fff8f3;
+        }
+
+        .table-extrato tbody tr:first-child {
+            background-color: #fff3e0;
+        }
+
+        .table-extrato .saldo-anterior td {
+            font-style: italic;
+            color: #888;
+        }
+
+        .valor-negativo {
+            color: #d32f2f;
+            font-weight: 500;
+        }
+
+        .valor-positivo {
+            color: #2e7d32;
+            font-weight: 500;
+        }
+
+        /* Tabela de Saldo */
+        .table-saldo {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: #fafafa;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table-saldo tr {
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .table-saldo tr:last-child {
+            border-bottom: none;
+        }
+
+        .table-saldo td {
+            padding: 10px 12px;
+            font-size: 11px;
+        }
+
+        .table-saldo td:last-child {
+            text-align: right;
+            font-weight: 600;
+            color: #F57C00;
+        }
+
+        /* Tabela de Lançamentos Futuros */
+        .table-futuros {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .table-futuros th {
+            padding: 10px 0;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            border-bottom: 2px solid #F57C00;
+            color: #2b2b2b;
+        }
+
+        .table-futuros th:last-child {
+            text-align: right;
+        }
+
+        .table-futuros td {
+            padding: 10px 0;
+            font-size: 11px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .table-futuros td:last-child {
+            text-align: right;
+        }
+
+        .footer-note {
+            font-size: 10px;
+            color: #888;
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .footer-brand {
+            margin-top: 8px;
+            color: #F57C00;
+            font-weight: 500;
+        }
+
+        @media print {
+            body {
+                padding: 10px;
+            }
+
+            .no-print {
+                display: none;
+            }
+
+            .table-extrato tbody tr:hover {
+                background-color: transparent;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-container">
+            <img src="{{logoUrl}}" alt="Logo" class="logo-img">
+            <div class="logo-text">Simples<span>Fique</span></div>
+        </div>
+        <div class="info-conta">
+            <strong>Titular:</strong> {{associado}}<br>
+            <strong>Empresa:</strong> {{empresa}}<br>
+            <strong>Conta:</strong> {{conta}}<br>
+            <strong>Operador:</strong> {{operador}}
+        </div>
+    </div>
+
+    <h2 class="section-title">Extrato Bancário <span>(Período de {{dataInicio}} a {{dataFim}})</span></h2>
+
+    <table class="table-extrato">
+        <thead>
+            <tr>
+                <th style="width: 80px;">Data</th>
+                <th>Descrição</th>
+                <th style="width: 100px;">Documento</th>
+                <th style="width: 90px;">Valor (R$)</th>
+                <th style="width: 90px;">Saldo (R$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="saldo-anterior">
+                <td></td>
+                <td>SALDO ANTERIOR</td>
+                <td></td>
+                <td></td>
+                <td>{{saldoAnterior}}</td>
+            </tr>
+            <!-- Loop de movimentações -->
+            {{#each movimentacoes}}
+            <tr>
+                <td>{{this.data}}</td>
+                <td>{{this.descricao}}</td>
+                <td>{{this.documento}}</td>
+                <td class="{{#if this.valorNegativo}}valor-negativo{{/if}}">{{this.valor}}</td>
+                <td>{{this.saldo}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <h2 class="section-title">Resumo do Período <span>({{dataInicio}} a {{dataFim}})</span></h2>
+
+    <table class="table-saldo">
+        <tr>
+            <td>Saldo Anterior</td>
+            <td>{{saldoAnterior}}</td>
+        </tr>
+        <tr class="entrada">
+            <td>Total de Entradas</td>
+            <td style="color: #2e7d32;">{{totalEntradas}}</td>
+        </tr>
+        <tr class="saida">
+            <td>Total de Saídas</td>
+            <td style="color: #d32f2f;">{{totalSaidas}}</td>
+        </tr>
+        <tr>
+            <td><strong>Saldo Atual</strong></td>
+            <td><strong>{{saldoAtual}}</strong></td>
+        </tr>
+        <tr>
+            <td>Total de Movimentações</td>
+            <td>{{totalMovimentacoes}}</td>
+        </tr>
+    </table>
+
+    <h2 class="section-title">Informações da Conta</h2>
+
+    <table class="table-saldo">
+        <tr>
+            <td>Limite cheque especial</td>
+            <td>{{limiteChequeEspecial}}</td>
+        </tr>
+        <tr>
+            <td>Limite disponível do cheque especial</td>
+            <td>{{limiteDisponivelCheque}}</td>
+        </tr>
+        <tr>
+            <td>Vencimento do cheque especial</td>
+            <td>{{vencimentoChequeEspecial}}</td>
+        </tr>
+    </table>
+
+    <h2 class="section-title">Lançamentos Futuros <span>(Próximos 30 dias)</span></h2>
+
+    <table class="table-futuros">
+        <thead>
+            <tr>
+                <th style="width: 100px;">Data</th>
+                <th>Descrição</th>
+                <th style="width: 120px;">Valor (R$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Loop de lançamentos futuros -->
+            {{#each lancamentosFuturos}}
+            <tr>
+                <td>{{this.data}}</td>
+                <td>{{this.descricao}}</td>
+                <td class="{{#if this.valorNegativo}}valor-negativo{{/if}}">{{this.valor}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <div class="footer-note">
+        Documento gerado automaticamente pelo sistema.
+        <div class="footer-brand">SimplesFique - Sistema de Gestão Empresarial</div>
+        <div class="info-impressao" style="font-size: 9px; color: #aaa; margin-top: 5px;">Impresso em: {{dataImpressao}}</div>
+    </div>
+</body>
+</html>

@@ -9,14 +9,12 @@
       :cadastrar-btn="false"
   >
     <template #resultados="{ selecionar }">
-      <v-virtual-scroll
-          :items="medidas"
-          :height="80"
-          item-height="45"
-      >
-        <template #default="{ item }">
+      <div class="medidas-menu-scroll-container" style="height: 200px; overflow-y: auto;">
+        <template v-if="medidas.length">
           <div
-              class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer w-[400px]"
+              v-for="item in medidas"
+              :key="item.id"
+              class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer transition-colors w-[400px]"
               @click="selecionar(item)"
           >
             <p class="text-body-1 overflow-hidden text-ellipsis whitespace-nowrap text-capitalize">
@@ -24,8 +22,13 @@
             </p>
           </div>
         </template>
-      </v-virtual-scroll>
-      <p class="text-sm opacity-50">Exibindo {{ medidas?.length }} de {{ estoqueStore.recordsMedidas }}</p>
+        <template v-else>
+          <div class="px-3 py-4">
+            <p class="text-sm opacity-50">Nenhum resultado encontrado</p>
+          </div>
+        </template>
+      </div>
+      <p class="text-sm opacity-50 px-3 py-2">Exibindo {{ medidas?.length }} de {{ estoqueStore.recordsMedidas }}</p>
     </template>
   </busca-padrao-menu>
 </template>

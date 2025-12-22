@@ -565,6 +565,14 @@
         </v-card>
       </v-card-text>
     </v-card>
+    <v-card class="background-secondary mb-4 ma-4 py-3 px-3 d-flex gap-4">
+      <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-file-pdf-box" @click="exportarPDF">PDF</v-btn>
+      <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-file-delimited" @click="exportarCSV">CSV</v-btn>
+      <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-microsoft-excel" @click="exportarExcel">EXCEL</v-btn>
+      <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-printer" @click="imprimirRelatorio">IMPRIMIR</v-btn>
+    </v-card>
+
+
   </div>
 </template>
 
@@ -575,6 +583,8 @@ import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useEmpresaStore } from '@/stores/APIs/empresa'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
+import html2pdf from 'html2pdf.js'
+import logoImg from '@/assets/img/logo/logo-2.png'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -603,6 +613,9 @@ const centrosCusto = ref([])
 const ccustosRateio = ref([])
 const mostrarRateio = ref(false)
 const loadingCentros = ref(false)
+
+// Template HTML para impressão
+const templateMovimentacoes = ref('')
 
 // Opções de período
 const opcoesPeriodo = [
@@ -1216,9 +1229,258 @@ const salvarMovimentacao = async () => {
   }
 }
 
+// ========== FUNÇÕES DE EXPORTAÇÃO ==========
+
+
+// Processar template com Handlebars simples
+const processarTemplate = (template, dados) => {
+  let html = template
+
+  // Substituir variáveis simples {{variavel}}
+  html = html.replace(/{{([^}#/]+)}}/g, (match, variable) => {
+    const trimmed = variable.trim()
+    return dados[trimmed] !== undefined ? dados[trimmed] : match
+  })
+
+  // Processar {{#if variavel}}...{{/if}}
+  html = html.replace(/{{#if\s+(\w+)}}([\s\S]*?){{\/if}}/g, (match, variable, content) => {
+    return dados[variable.trim()] ? content : ''
+  })
+
+  // Processar loop {{#each array}}...{{/each}}
+  const eachRegex = /{{#each\s+(\w+)}}([\s\S]*?){{\/each}}/g
+  html = html.replace(eachRegex, (match, arrayName, content) => {
+    const array = dados[arrayName.trim()] || []
+    return array.map(item => {
+      let itemHtml = content
+      // Substituir {{this.propriedade}}
+      itemHtml = itemHtml.replace(/{{this\.(\w+)}}/g, (m, prop) => {
+        return item[prop] !== undefined ? item[prop] : ''
+      })
+      // Processar if dentro do each
+      itemHtml = itemHtml.replace(/{{#if\s+this\.(\w+)}}([\s\S]*?){{\/if}}/g, (m, prop, trueHtml) => {
+        return item[prop] ? trueHtml : ''
+      })
+      return itemHtml
+    }).join('')
+  })
+
+  return html
+}
+
+// Preparar dados para o relatório
+const prepararDadosRelatorio = () => {
+  const contaSelecionada = contasDisponiveis.value.find(c => c.id === filtros.id_ccorrente)
+  const empresa = empresaStore.empresa || empresaStore.empresaSelecionada
+
+  // Pegar dados da primeira movimentação (informações da conta vêm na API)
+  const primeiraMovimentacao = movimentacoesFiltradas.value[0] || {}
+
+  // Calcular saldo acumulado para cada movimentação
+  let saldoAcumulado = saldoAnterior.value
+  const movimentacoesComSaldo = movimentacoesFiltradas.value.map(item => {
+    if (item.tipo === '+') {
+      saldoAcumulado += parseFloat(item.valor || 0)
+    } else {
+      saldoAcumulado -= parseFloat(item.valor || 0)
+    }
+    return {
+      ...item,
+      saldoCalculado: saldoAcumulado,
+      valorNegativo: item.tipo === '-'
+    }
+  })
+
+  // Calcular totais
+  const totalEntradas = movimentacoesFiltradas.value
+    .filter(m => m.tipo === '+')
+    .reduce((acc, m) => acc + parseFloat(m.valor || 0), 0)
+
+  const totalSaidas = movimentacoesFiltradas.value
+    .filter(m => m.tipo === '-')
+    .reduce((acc, m) => acc + parseFloat(m.valor || 0), 0)
+
+  const saldoAtual = saldoAnterior.value + totalEntradas - totalSaidas
+
+  // Usar dados da API: titular, numero_ccorrente, limite, dtvenctolimite, nome (operador)
+  return {
+    logoUrl: logoImg,
+    associado: primeiraMovimentacao.titular || contaSelecionada?.titular || 'N/A',
+    empresa: empresa?.razao || empresa?.fantasia || 'Empresa',
+    conta: primeiraMovimentacao.numero_ccorrente
+      ? `${primeiraMovimentacao.numero_ccorrente}`
+      : (contaSelecionada ? `${contaSelecionada.numero_ccorrente}-${contaSelecionada.digito_cc}` : 'N/A'),
+    operador: primeiraMovimentacao.nome || 'N/A',
+    agencia: primeiraMovimentacao.id_agencia || 'N/A',
+    dataInicio: formatarData(filtros.dataInicio),
+    dataFim: formatarData(filtros.dataFim),
+    saldoAnterior: formatarMoeda(saldoAnterior.value),
+    saldoAtual: formatarMoeda(saldoAtual),
+    totalEntradas: formatarMoeda(totalEntradas),
+    totalSaidas: formatarMoeda(totalSaidas),
+    totalMovimentacoes: movimentacoesFiltradas.value.length,
+    saldoBloqueado: formatarMoeda(0),
+    lancamentosConferir: formatarMoeda(0),
+    saldoInvestimentos: formatarMoeda(0),
+    limiteChequeEspecial: formatarMoeda(primeiraMovimentacao.limite || contaSelecionada?.limite || 0),
+    limiteDisponivelCheque: formatarMoeda(primeiraMovimentacao.limite || contaSelecionada?.limite || 0),
+    vencimentoChequeEspecial: formatarData(primeiraMovimentacao.dtvenctolimite || contaSelecionada?.dtvenctolimite),
+    dataImpressao: new Date().toLocaleString('pt-BR'),
+    movimentacoes: movimentacoesComSaldo.map(item => ({
+      data: formatarData(item.dtlancamento),
+      descricao: item.deschistorico || '--',
+      documento: item.nrdocumento || '--',
+      tipo: item.desctipo || (item.tipo === '+' ? 'Entrada' : 'Saída'),
+      valor: `${item.tipo === '-' ? '-' : '+'} ${formatarMoeda(item.valor)}`,
+      saldo: formatarMoeda(item.saldoCalculado),
+      valorNegativo: item.tipo === '-',
+      observacao: item.observacao || '',
+      conciliado: item.dtconciliacao ? 'Sim' : 'Não'
+    })),
+    lancamentosFuturos: [] // Para implementação futura
+  }
+}
+
+// Gerar HTML do relatório
+const gerarHtmlRelatorio = () => {
+  const dados = prepararDadosRelatorio()
+  return processarTemplate(templateMovimentacoes.value, dados)
+}
+
+// Imprimir relatório
+const imprimirRelatorio = () => {
+  const html = gerarHtmlRelatorio()
+  const janela = window.open('', '_blank')
+  janela.document.write(html)
+  janela.document.close()
+  janela.focus()
+  setTimeout(() => {
+    janela.print()
+  }, 500)
+}
+
+// Exportar PDF
+const exportarPDF = () => {
+  try {
+    const html = gerarHtmlRelatorio()
+
+    // Criar elemento temporário com o HTML
+    const element = document.createElement('div')
+    element.innerHTML = html
+
+    // Configurações do PDF
+    const opt = {
+      margin: 10,
+      filename: `extrato-bancario-${filtros.dataInicio}-${filtros.dataFim}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    }
+
+    // Gerar PDF
+    html2pdf().set(opt).from(element).save()
+  } catch (error) {
+    console.error('Erro ao gerar PDF:', error)
+    alert('Erro ao gerar PDF. Tente novamente.')
+  }
+}
+
+// Exportar CSV
+const exportarCSV = () => {
+  const dados = prepararDadosRelatorio()
+
+  // Cabeçalho
+  const cabecalho = ['Data', 'Tipo', 'Descrição', 'Documento', 'Valor', 'Saldo']
+
+  // Linhas de dados
+  const linhas = dados.movimentacoes.map(item => [
+    item.data,
+    item.tipo,
+    item.descricao,
+    item.documento,
+    item.valor,
+    item.saldo
+  ])
+
+  // Adicionar linha de saldo anterior no início
+  linhas.unshift(['', '', 'SALDO ANTERIOR', '', '', dados.saldoAnterior])
+
+  // Adicionar resumo no final
+  linhas.push([])
+  linhas.push(['', '', 'RESUMO', '', '', ''])
+  linhas.push(['', '', 'Saldo Anterior', '', '', dados.saldoAnterior])
+  linhas.push(['', '', 'Total de Entradas', '', '', dados.totalEntradas])
+  linhas.push(['', '', 'Total de Saídas', '', '', dados.totalSaidas])
+  linhas.push(['', '', 'Saldo Atual', '', '', dados.saldoAtual])
+
+  // Converter para CSV
+  const csv = [
+    cabecalho.join(';'),
+    ...linhas.map(linha => linha.join(';'))
+  ].join('\n')
+
+  // Criar e baixar arquivo
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `extrato-bancario-${filtros.dataInicio}-${filtros.dataFim}.csv`
+  link.click()
+}
+
+// Exportar Excel
+const exportarExcel = () => {
+  const dados = prepararDadosRelatorio()
+
+  const htmlExcel = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+    <head><meta charset="utf-8"></head>
+    <body>
+      <h2>Extrato Bancário - ${dados.associado}</h2>
+      <p>Período: ${dados.dataInicio} a ${dados.dataFim}</p>
+      <p>Conta: ${dados.conta} | Operador: ${dados.operador}</p>
+      <table border="1">
+        <tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Documento</th><th>Valor</th><th>Saldo</th></tr>
+        <tr><td></td><td></td><td>SALDO ANTERIOR</td><td></td><td></td><td>${dados.saldoAnterior}</td></tr>
+        ${dados.movimentacoes.map(item => `
+          <tr>
+            <td>${item.data}</td>
+            <td>${item.tipo}</td>
+            <td>${item.descricao}</td>
+            <td>${item.documento}</td>
+            <td>${item.valor}</td>
+            <td>${item.saldo}</td>
+          </tr>
+        `).join('')}
+        <tr><td colspan="6"></td></tr>
+        <tr><td colspan="4"><strong>RESUMO</strong></td><td colspan="2"></td></tr>
+        <tr><td colspan="4">Saldo Anterior</td><td colspan="2">${dados.saldoAnterior}</td></tr>
+        <tr><td colspan="4">Total de Entradas</td><td colspan="2">${dados.totalEntradas}</td></tr>
+        <tr><td colspan="4">Total de Saídas</td><td colspan="2">${dados.totalSaidas}</td></tr>
+        <tr><td colspan="4"><strong>Saldo Atual</strong></td><td colspan="2"><strong>${dados.saldoAtual}</strong></td></tr>
+      </table>
+    </body>
+    </html>
+  `
+
+  const blob = new Blob([htmlExcel], { type: 'application/vnd.ms-excel' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `extrato-bancario-${filtros.dataInicio}-${filtros.dataFim}.xls`
+  link.click()
+}
+
 // Lifecycle
 onMounted(async () => {
   console.log('🚀 Iniciando carregamento de dados...')
+
+  // Carregar template HTML
+  try {
+    const response = await fetch(new URL('@/components/impressos/movimentacoes.html', import.meta.url))
+    templateMovimentacoes.value = await response.text()
+  } catch (error) {
+    console.error('Erro ao carregar template:', error)
+  }
+
   await Promise.all([
     carregarContas(),
     carregarHistoricos(),

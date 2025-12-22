@@ -10,14 +10,12 @@
       :loading="estoqueStore.loading"
   >
     <template #resultados="{ selecionar }">
-      <v-virtual-scroll
-          :items="ncms"
-          :height="80"
-          item-height="45"
-      >
-        <template #default="{ item }">
+      <div class="ncm-menu-scroll-container" style="height: 200px; overflow-y: auto;">
+        <template v-if="ncms.length">
           <div
-              class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer w-[400px]"
+              v-for="item in ncms"
+              :key="item.id"
+              class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer transition-colors w-[400px]"
               @click="selecionar(item)"
           >
             <p class="text-body-1 overflow-hidden text-ellipsis whitespace-nowrap">
@@ -25,8 +23,13 @@
             </p>
           </div>
         </template>
-      </v-virtual-scroll>
-      <p class="text-sm opacity-50">Exibindo {{ ncms?.length }} de {{ estoqueStore.recordsNcm }}</p>
+        <template v-else>
+          <div class="px-3 py-4">
+            <p class="text-sm opacity-50">Nenhum resultado encontrado</p>
+          </div>
+        </template>
+      </div>
+      <p class="text-sm opacity-50 px-3 py-2">Exibindo {{ ncms?.length }} de {{ estoqueStore.recordsNcm }}</p>
     </template>
   </busca-padrao-menu>
 </template>

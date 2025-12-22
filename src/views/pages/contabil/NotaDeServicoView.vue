@@ -97,108 +97,311 @@ const parseXML = (xmlString) => {
       return
     }
 
-    // Extrair dados do XML
+    // Detectar o tipo de XML
     const infNFSe = xmlDoc.querySelector('infNFSe')
-    if (!infNFSe) {
-      erroParser.value = 'XML não contém estrutura NFSe válida.'
+    const loteRps = xmlDoc.querySelector('LoteRps')
+    const infRps = xmlDoc.querySelector('InfRps')
+
+    let nota = null
+
+    if (infNFSe) {
+      // Formato NFSe (primeiro formato)
+      nota = parseNFSeFormat(xmlDoc, infNFSe)
+    } else if (loteRps || infRps) {
+      // Formato ABRASF/RPS
+      nota = parseABRASFFormat(xmlDoc)
+    } else {
+      erroParser.value = 'XML não contém estrutura NFSe ou RPS válida.'
       return
     }
 
-    const dps = xmlDoc.querySelector('DPS infDPS')
-    const emit = xmlDoc.querySelector('emit')
-    const toma = xmlDoc.querySelector('toma')
-    const valores = xmlDoc.querySelector('infNFSe > valores')
-    const valoresDPS = xmlDoc.querySelector('DPS valores')
-    const serv = xmlDoc.querySelector('serv')
+    if (nota) {
+      notaFiscal.value = nota
 
-    const nota = {
-      id: getTextContent(infNFSe, null, 'Id') || Date.now().toString(),
-      numero: getTextContent(infNFSe, 'nNFSe'),
-      serie: getTextContent(dps, 'serie'),
-      status: getTextContent(infNFSe, 'cStat'),
-      dataEmissao: getTextContent(dps, 'dhEmi'),
-      dataCompetencia: getTextContent(dps, 'dCompet'),
-      dataProcessamento: getTextContent(infNFSe, 'dhProc'),
-      localEmissao: getTextContent(infNFSe, 'xLocEmi'),
-      localPrestacao: getTextContent(infNFSe, 'xLocPrestacao'),
-      tribNacional: getTextContent(infNFSe, 'xTribNac'),
-      ambiente: getTextContent(infNFSe, 'ambGer'),
-      versaoApp: getTextContent(infNFSe, 'verAplic'),
-
-      prestador: emit ? {
-        cnpj: getTextContent(emit, 'CNPJ'),
-        inscricaoMunicipal: getTextContent(emit, 'IM'),
-        razaoSocial: getTextContent(emit, 'xNome'),
-        nomeFantasia: getTextContent(emit, 'xFant'),
-        telefone: getTextContent(emit, 'fone'),
-        email: getTextContent(emit, 'email'),
-        endereco: {
-          logradouro: getTextContent(emit, 'enderNac xLgr'),
-          numero: getTextContent(emit, 'enderNac nro'),
-          complemento: getTextContent(emit, 'enderNac xCpl'),
-          bairro: getTextContent(emit, 'enderNac xBairro'),
-          municipio: getTextContent(emit, 'enderNac cMun'),
-          uf: getTextContent(emit, 'enderNac UF'),
-          cep: getTextContent(emit, 'enderNac CEP')
-        }
-      } : null,
-
-      tomador: toma ? {
-        cnpj: getTextContent(toma, 'CNPJ'),
-        razaoSocial: getTextContent(toma, 'xNome'),
-        email: getTextContent(toma, 'email'),
-        endereco: {
-          logradouro: getTextContent(toma, 'end xLgr'),
-          numero: getTextContent(toma, 'end nro'),
-          complemento: getTextContent(toma, 'end xCpl'),
-          bairro: getTextContent(toma, 'end xBairro'),
-          municipio: getTextContent(toma, 'end endNac cMun'),
-          cep: getTextContent(toma, 'end endNac CEP')
-        }
-      } : null,
-
-      servico: serv ? {
-        codigoTribNacional: getTextContent(serv, 'cServ cTribNac'),
-        codigoTribMunicipal: getTextContent(serv, 'cServ cTribMun'),
-        descricao: getTextContent(serv, 'cServ xDescServ'),
-        localPrestacao: getTextContent(serv, 'locPrest cLocPrestacao'),
-        infoComplementar: getTextContent(serv, 'infoCompl xInfComp')
-      } : null,
-
-      valores: {
-        valorServico: parseFloat(getTextContent(valoresDPS, 'vServPrest vServ') || '0'),
-        baseCalculo: parseFloat(getTextContent(valores, 'vBC') || '0'),
-        valorLiquido: parseFloat(getTextContent(valores, 'vLiq') || '0'),
-        totalRetido: parseFloat(getTextContent(valores, 'vTotalRet') || '0')
-      },
-
-      tributos: {
-        issqn: {
-          aliquota: parseFloat(getTextContent(valores, 'pAliqAplic') || getTextContent(valoresDPS, 'trib tribMun pAliq') || '0'),
-          valor: parseFloat(getTextContent(valores, 'vISSQN') || '0')
-        },
-        pis: {
-          aliquota: parseFloat(getTextContent(valoresDPS, 'trib tribFed piscofins pAliqPis') || '0'),
-          valor: parseFloat(getTextContent(valoresDPS, 'trib tribFed piscofins vPis') || '0')
-        },
-        cofins: {
-          aliquota: parseFloat(getTextContent(valoresDPS, 'trib tribFed piscofins pAliqCofins') || '0'),
-          valor: parseFloat(getTextContent(valoresDPS, 'trib tribFed piscofins vCofins') || '0')
-        },
-        csll: parseFloat(getTextContent(valoresDPS, 'trib tribFed vRetCSLL') || '0')
+      // Adicionar à lista de notas importadas se não existir
+      const existe = notasImportadas.value.find(n => n.numero === nota.numero)
+      if (!existe) {
+        notasImportadas.value.unshift(nota)
       }
-    }
-
-    notaFiscal.value = nota
-
-    // Adicionar à lista de notas importadas se não existir
-    const existe = notasImportadas.value.find(n => n.numero === nota.numero)
-    if (!existe) {
-      notasImportadas.value.unshift(nota)
     }
 
   } catch (error) {
     erroParser.value = 'Erro ao processar XML: ' + error.message
+  }
+}
+
+// Parser para formato NFSe (primeiro formato - Caxias do Sul)
+const parseNFSeFormat = (xmlDoc, infNFSe) => {
+  const dps = xmlDoc.querySelector('DPS infDPS')
+  const emit = xmlDoc.querySelector('emit')
+  const toma = xmlDoc.querySelector('toma')
+  const valores = xmlDoc.querySelector('infNFSe > valores')
+  const valoresDPS = xmlDoc.querySelector('DPS valores')
+  const serv = xmlDoc.querySelector('serv')
+
+  return {
+    id: getTextContent(infNFSe, null, 'Id') || Date.now().toString(),
+    numero: getTextContent(infNFSe, 'nNFSe'),
+    serie: getTextContent(dps, 'serie'),
+    status: getTextContent(infNFSe, 'cStat'),
+    dataEmissao: getTextContent(dps, 'dhEmi'),
+    dataCompetencia: getTextContent(dps, 'dCompet'),
+    dataProcessamento: getTextContent(infNFSe, 'dhProc'),
+    localEmissao: getTextContent(infNFSe, 'xLocEmi'),
+    localPrestacao: getTextContent(infNFSe, 'xLocPrestacao'),
+    tribNacional: getTextContent(infNFSe, 'xTribNac'),
+    ambiente: getTextContent(infNFSe, 'ambGer'),
+    versaoApp: getTextContent(infNFSe, 'verAplic'),
+    tipoXml: 'NFSe',
+
+    prestador: emit ? {
+      cnpj: getTextContent(emit, 'CNPJ'),
+      inscricaoMunicipal: getTextContent(emit, 'IM'),
+      razaoSocial: getTextContent(emit, 'xNome'),
+      nomeFantasia: getTextContent(emit, 'xFant'),
+      telefone: getTextContent(emit, 'fone'),
+      email: getTextContent(emit, 'email'),
+      endereco: {
+        logradouro: getTextContent(emit, 'enderNac xLgr'),
+        numero: getTextContent(emit, 'enderNac nro'),
+        complemento: getTextContent(emit, 'enderNac xCpl'),
+        bairro: getTextContent(emit, 'enderNac xBairro'),
+        municipio: getTextContent(emit, 'enderNac cMun'),
+        uf: getTextContent(emit, 'enderNac UF'),
+        cep: getTextContent(emit, 'enderNac CEP')
+      }
+    } : null,
+
+    tomador: toma ? {
+      cnpj: getTextContent(toma, 'CNPJ'),
+      razaoSocial: getTextContent(toma, 'xNome'),
+      email: getTextContent(toma, 'email'),
+      endereco: {
+        logradouro: getTextContent(toma, 'end xLgr'),
+        numero: getTextContent(toma, 'end nro'),
+        complemento: getTextContent(toma, 'end xCpl'),
+        bairro: getTextContent(toma, 'end xBairro'),
+        municipio: getTextContent(toma, 'end endNac cMun'),
+        cep: getTextContent(toma, 'end endNac CEP')
+      }
+    } : null,
+
+    servico: serv ? {
+      codigoTribNacional: getTextContent(serv, 'cServ cTribNac'),
+      codigoTribMunicipal: getTextContent(serv, 'cServ cTribMun'),
+      descricao: getTextContent(serv, 'cServ xDescServ'),
+      localPrestacao: getTextContent(serv, 'locPrest cLocPrestacao'),
+      infoComplementar: getTextContent(serv, 'infoCompl xInfComp')
+    } : null,
+
+    valores: {
+      valorServico: parseFloat(getTextContent(valoresDPS, 'vServPrest vServ') || '0'),
+      baseCalculo: parseFloat(getTextContent(valores, 'vBC') || '0'),
+      valorLiquido: parseFloat(getTextContent(valores, 'vLiq') || '0'),
+      totalRetido: parseFloat(getTextContent(valores, 'vTotalRet') || '0')
+    },
+
+    tributos: {
+      issqn: {
+        aliquota: parseFloat(getTextContent(valores, 'pAliqAplic') || getTextContent(valoresDPS, 'trib tribMun pAliq') || '0'),
+        valor: parseFloat(getTextContent(valores, 'vISSQN') || '0')
+      },
+      pis: {
+        aliquota: parseFloat(getTextContent(valoresDPS, 'trib tribFed piscofins pAliqPis') || '0'),
+        valor: parseFloat(getTextContent(valoresDPS, 'trib tribFed piscofins vPis') || '0')
+      },
+      cofins: {
+        aliquota: parseFloat(getTextContent(valoresDPS, 'trib tribFed piscofins pAliqCofins') || '0'),
+        valor: parseFloat(getTextContent(valoresDPS, 'trib tribFed piscofins vCofins') || '0')
+      },
+      csll: parseFloat(getTextContent(valoresDPS, 'trib tribFed vRetCSLL') || '0')
+    },
+
+    intermediario: null,
+    construcaoCivil: null
+  }
+}
+
+// Parser para formato ABRASF (EnviarLoteRpsEnvio / RPS)
+const parseABRASFFormat = (xmlDoc) => {
+  const loteRps = xmlDoc.querySelector('LoteRps')
+  const infRps = xmlDoc.querySelector('InfRps')
+
+  if (!infRps) {
+    erroParser.value = 'XML ABRASF não contém InfRps válido.'
+    return null
+  }
+
+  const identificacaoRps = infRps.querySelector('IdentificacaoRps')
+  const servico = infRps.querySelector('Servico')
+  const valores = servico?.querySelector('Valores')
+  const prestador = infRps.querySelector('Prestador')
+  const tomador = infRps.querySelector('Tomador')
+  const intermediario = infRps.querySelector('IntermediarioServico')
+  const construcaoCivil = infRps.querySelector('ConstrucaoCivil')
+
+  // Dados do tomador
+  const tomadorEndereco = tomador?.querySelector('Endereco')
+  const tomadorContato = tomador?.querySelector('Contato')
+  const tomadorIdentificacao = tomador?.querySelector('IdentificacaoTomador')
+
+  // Calcular valor líquido se não informado
+  const valorServicos = parseFloat(getTextContent(valores, 'ValorServicos') || '0')
+  const valorDeducoes = parseFloat(getTextContent(valores, 'ValorDeducoes') || '0')
+  const valorPis = parseFloat(getTextContent(valores, 'ValorPis') || '0')
+  const valorCofins = parseFloat(getTextContent(valores, 'ValorCofins') || '0')
+  const valorInss = parseFloat(getTextContent(valores, 'ValorInss') || '0')
+  const valorIr = parseFloat(getTextContent(valores, 'ValorIr') || '0')
+  const valorCsll = parseFloat(getTextContent(valores, 'ValorCsll') || '0')
+  const valorIssRetido = parseFloat(getTextContent(valores, 'ValorIssRetido') || '0')
+  const outrasRetencoes = parseFloat(getTextContent(valores, 'OutrasRetencoes') || '0')
+  const descontoIncondicionado = parseFloat(getTextContent(valores, 'DescontoIncondicionado') || '0')
+  const descontoCondicionado = parseFloat(getTextContent(valores, 'DescontoCondicionado') || '0')
+
+  let valorLiquido = parseFloat(getTextContent(valores, 'ValorLiquidoNfse') || '0')
+  if (valorLiquido === 0) {
+    valorLiquido = valorServicos - valorDeducoes - valorPis - valorCofins - valorInss - valorIr - valorCsll - valorIssRetido - outrasRetencoes - descontoIncondicionado
+  }
+
+  const totalRetido = valorPis + valorCofins + valorInss + valorIr + valorCsll + valorIssRetido + outrasRetencoes
+
+  // Alíquota - converter de decimal para percentual se necessário
+  let aliquotaIss = parseFloat(getTextContent(valores, 'Aliquota') || '0')
+  if (aliquotaIss > 0 && aliquotaIss < 1) {
+    aliquotaIss = aliquotaIss * 100
+  }
+
+  // Mapear natureza da operação
+  const naturezaOperacao = getTextContent(infRps, 'NaturezaOperacao')
+  const naturezaOperacaoMap = {
+    '1': 'Tributação no município',
+    '2': 'Tributação fora do município',
+    '3': 'Isenção',
+    '4': 'Imune',
+    '5': 'Exigibilidade suspensa por decisão judicial',
+    '6': 'Exigibilidade suspensa por procedimento administrativo'
+  }
+
+  // Mapear regime especial tributação
+  const regimeEspecial = getTextContent(infRps, 'RegimeEspecialTributacao')
+  const regimeEspecialMap = {
+    '1': 'Microempresa Municipal',
+    '2': 'Estimativa',
+    '3': 'Sociedade de Profissionais',
+    '4': 'Cooperativa',
+    '5': 'MEI - Simples Nacional',
+    '6': 'ME EPP - Simples Nacional'
+  }
+
+  // Status
+  const status = getTextContent(infRps, 'Status')
+  const statusNormalizado = status === '1' ? '100' : status === '2' ? 'CANCELADO' : status
+
+  return {
+    id: getTextContent(infRps, null, 'Id') || Date.now().toString(),
+    numero: getTextContent(identificacaoRps, 'Numero') || getTextContent(loteRps, 'NumeroLote'),
+    serie: getTextContent(identificacaoRps, 'Serie'),
+    tipo: getTextContent(identificacaoRps, 'Tipo'),
+    status: statusNormalizado,
+    dataEmissao: getTextContent(infRps, 'DataEmissao'),
+    dataCompetencia: getTextContent(infRps, 'DataEmissao'),
+    dataProcessamento: null,
+    localEmissao: getTextContent(servico, 'CodigoMunicipio'),
+    localPrestacao: getTextContent(servico, 'CodigoMunicipio'),
+    tribNacional: naturezaOperacaoMap[naturezaOperacao] || `Natureza ${naturezaOperacao}`,
+    ambiente: null,
+    versaoApp: getTextContent(loteRps, null, 'versao'),
+    tipoXml: 'ABRASF',
+
+    // Dados adicionais ABRASF
+    naturezaOperacao: naturezaOperacao,
+    naturezaOperacaoDesc: naturezaOperacaoMap[naturezaOperacao],
+    regimeEspecialTributacao: regimeEspecial,
+    regimeEspecialTributacaoDesc: regimeEspecialMap[regimeEspecial],
+    optanteSimplesNacional: getTextContent(infRps, 'OptanteSimplesNacional') === '1',
+    incentivadorCultural: getTextContent(infRps, 'IncentivadorCultural') === '1',
+    numeroLote: getTextContent(loteRps, 'NumeroLote'),
+    quantidadeRps: getTextContent(loteRps, 'QuantidadeRps'),
+
+    prestador: prestador ? {
+      cnpj: getTextContent(prestador, 'Cnpj'),
+      inscricaoMunicipal: getTextContent(prestador, 'InscricaoMunicipal'),
+      razaoSocial: null,
+      nomeFantasia: null,
+      telefone: null,
+      email: null,
+      endereco: null
+    } : null,
+
+    tomador: tomador ? {
+      cnpj: getTextContent(tomadorIdentificacao, 'CpfCnpj Cnpj') || getTextContent(tomadorIdentificacao, 'CpfCnpj Cpf'),
+      cpf: getTextContent(tomadorIdentificacao, 'CpfCnpj Cpf'),
+      inscricaoMunicipal: getTextContent(tomadorIdentificacao, 'InscricaoMunicipal'),
+      razaoSocial: getTextContent(tomador, 'RazaoSocial'),
+      email: getTextContent(tomadorContato, 'Email'),
+      telefone: getTextContent(tomadorContato, 'Telefone'),
+      endereco: tomadorEndereco ? {
+        logradouro: getTextContent(tomadorEndereco, 'Endereco'),
+        numero: getTextContent(tomadorEndereco, 'Numero'),
+        complemento: getTextContent(tomadorEndereco, 'Complemento'),
+        bairro: getTextContent(tomadorEndereco, 'Bairro'),
+        municipio: getTextContent(tomadorEndereco, 'CodigoMunicipio'),
+        uf: getTextContent(tomadorEndereco, 'Uf'),
+        cep: getTextContent(tomadorEndereco, 'Cep')
+      } : null
+    } : null,
+
+    servico: servico ? {
+      itemListaServico: getTextContent(servico, 'ItemListaServico'),
+      codigoCnae: getTextContent(servico, 'CodigoCnae'),
+      codigoTribNacional: getTextContent(servico, 'ItemListaServico'),
+      codigoTribMunicipal: getTextContent(servico, 'CodigoTributacaoMunicipio'),
+      descricao: getTextContent(servico, 'Discriminacao'),
+      localPrestacao: getTextContent(servico, 'CodigoMunicipio'),
+      infoComplementar: null
+    } : null,
+
+    valores: {
+      valorServico: valorServicos,
+      valorDeducoes: valorDeducoes,
+      baseCalculo: parseFloat(getTextContent(valores, 'BaseCalculo') || '0'),
+      valorLiquido: valorLiquido,
+      totalRetido: totalRetido,
+      descontoIncondicionado: descontoIncondicionado,
+      descontoCondicionado: descontoCondicionado
+    },
+
+    tributos: {
+      issqn: {
+        aliquota: aliquotaIss,
+        valor: parseFloat(getTextContent(valores, 'ValorIss') || '0'),
+        retido: getTextContent(valores, 'IssRetido') === '1',
+        valorRetido: valorIssRetido
+      },
+      pis: {
+        aliquota: 0,
+        valor: valorPis
+      },
+      cofins: {
+        aliquota: 0,
+        valor: valorCofins
+      },
+      inss: parseFloat(getTextContent(valores, 'ValorInss') || '0'),
+      ir: parseFloat(getTextContent(valores, 'ValorIr') || '0'),
+      csll: valorCsll,
+      outrasRetencoes: outrasRetencoes
+    },
+
+    intermediario: intermediario ? {
+      razaoSocial: getTextContent(intermediario, 'RazaoSocial'),
+      cnpj: getTextContent(intermediario, 'CpfCnpj Cnpj') || getTextContent(intermediario, 'CpfCnpj Cpf'),
+      inscricaoMunicipal: getTextContent(intermediario, 'InscricaoMunicipal')
+    } : null,
+
+    construcaoCivil: construcaoCivil ? {
+      codigoObra: getTextContent(construcaoCivil, 'CodigoObra'),
+      art: getTextContent(construcaoCivil, 'Art')
+    } : null
   }
 }
 
@@ -750,11 +953,14 @@ const imprimirNota = () => {
             <v-card-title class="pa-4 pb-2">
               <v-icon icon="mdi-information-outline" class="mr-2"></v-icon>
               Dados Gerais
+              <v-chip v-if="notaFiscal.tipoXml" size="small" class="ml-2" variant="outlined">
+                {{ notaFiscal.tipoXml }}
+              </v-chip>
             </v-card-title>
             <v-card-text class="pa-4 pt-0">
               <v-row>
                 <v-col cols="12" md="3">
-                  <div class="campo-label">Número NFSe</div>
+                  <div class="campo-label">Número {{ notaFiscal.tipoXml === 'ABRASF' ? 'RPS' : 'NFSe' }}</div>
                   <div class="campo-valor">{{ notaFiscal.numero }}</div>
                 </v-col>
                 <v-col cols="12" md="3">
@@ -769,15 +975,40 @@ const imprimirNota = () => {
                   <div class="campo-label">Data de Competência</div>
                   <div class="campo-valor">{{ formatarData(notaFiscal.dataCompetencia) }}</div>
                 </v-col>
+
+                <!-- Campos ABRASF específicos -->
+                <template v-if="notaFiscal.tipoXml === 'ABRASF'">
+                  <v-col cols="12" md="4">
+                    <div class="campo-label">Natureza da Operação</div>
+                    <div class="campo-valor">{{ notaFiscal.naturezaOperacaoDesc || notaFiscal.naturezaOperacao || '-' }}</div>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <div class="campo-label">Regime Especial Tributação</div>
+                    <div class="campo-valor">{{ notaFiscal.regimeEspecialTributacaoDesc || notaFiscal.regimeEspecialTributacao || '-' }}</div>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <div class="campo-label">Opções</div>
+                    <div class="campo-valor d-flex gap-2 flex-wrap">
+                      <v-chip v-if="notaFiscal.optanteSimplesNacional" size="small" color="primary" variant="tonal">
+                        Simples Nacional
+                      </v-chip>
+                      <v-chip v-if="notaFiscal.incentivadorCultural" size="small" color="purple" variant="tonal">
+                        Incentivador Cultural
+                      </v-chip>
+                      <span v-if="!notaFiscal.optanteSimplesNacional && !notaFiscal.incentivadorCultural">-</span>
+                    </div>
+                  </v-col>
+                </template>
+
                 <v-col cols="12" md="6">
                   <div class="campo-label">Local de Emissão</div>
-                  <div class="campo-valor">{{ notaFiscal.localEmissao }}</div>
+                  <div class="campo-valor">{{ notaFiscal.localEmissao || '-' }}</div>
                 </v-col>
                 <v-col cols="12" md="6">
                   <div class="campo-label">Local de Prestação</div>
-                  <div class="campo-valor">{{ notaFiscal.localPrestacao }}</div>
+                  <div class="campo-valor">{{ notaFiscal.localPrestacao || '-' }}</div>
                 </v-col>
-                <v-col cols="12">
+                <v-col cols="12" v-if="notaFiscal.tribNacional">
                   <div class="campo-label">Tributação Nacional</div>
                   <div class="campo-valor">{{ notaFiscal.tribNacional }}</div>
                 </v-col>
@@ -841,28 +1072,81 @@ const imprimirNota = () => {
             </v-card-title>
             <v-card-text class="pa-4 pt-0">
               <v-row>
-                <v-col cols="12" md="8">
+                <v-col cols="12" md="6">
                   <div class="campo-label">Razão Social</div>
-                  <div class="campo-valor font-weight-bold">{{ notaFiscal.tomador?.razaoSocial }}</div>
+                  <div class="campo-valor font-weight-bold">{{ notaFiscal.tomador?.razaoSocial || '-' }}</div>
                 </v-col>
-                <v-col cols="12" md="4">
-                  <div class="campo-label">CNPJ</div>
-                  <div class="campo-valor">{{ formatarCNPJ(notaFiscal.tomador?.cnpj) }}</div>
+                <v-col cols="12" md="3">
+                  <div class="campo-label">{{ notaFiscal.tomador?.cpf ? 'CPF' : 'CNPJ' }}</div>
+                  <div class="campo-valor">{{ formatarCNPJ(notaFiscal.tomador?.cnpj || notaFiscal.tomador?.cpf) }}</div>
                 </v-col>
-                <v-col cols="12">
+                <v-col cols="12" md="3" v-if="notaFiscal.tomador?.inscricaoMunicipal">
+                  <div class="campo-label">Inscrição Municipal</div>
+                  <div class="campo-valor">{{ notaFiscal.tomador?.inscricaoMunicipal }}</div>
+                </v-col>
+                <v-col cols="12" v-if="notaFiscal.tomador?.endereco">
                   <div class="campo-label">Endereço</div>
                   <div class="campo-valor">
                     {{ notaFiscal.tomador?.endereco?.logradouro }},
                     {{ notaFiscal.tomador?.endereco?.numero }}
                     {{ notaFiscal.tomador?.endereco?.complemento ? ' - ' + notaFiscal.tomador?.endereco?.complemento : '' }}
                     <br>
-                    {{ notaFiscal.tomador?.endereco?.bairro }} -
+                    {{ notaFiscal.tomador?.endereco?.bairro }}
+                    {{ notaFiscal.tomador?.endereco?.uf ? ' - ' + notaFiscal.tomador?.endereco?.uf : '' }} -
                     CEP: {{ formatarCEP(notaFiscal.tomador?.endereco?.cep) }}
                   </div>
                 </v-col>
-                <v-col cols="12">
+                <v-col cols="12" md="6" v-if="notaFiscal.tomador?.telefone">
+                  <div class="campo-label">Telefone</div>
+                  <div class="campo-valor">{{ formatarTelefone(notaFiscal.tomador?.telefone) }}</div>
+                </v-col>
+                <v-col cols="12" :md="notaFiscal.tomador?.telefone ? 6 : 12">
                   <div class="campo-label">E-mail</div>
                   <div class="campo-valor">{{ notaFiscal.tomador?.email || '-' }}</div>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+
+          <!-- Intermediário do Serviço (ABRASF) -->
+          <v-card v-if="notaFiscal.intermediario" class="background-secondary mb-4">
+            <v-card-title class="pa-4 pb-2">
+              <v-icon icon="mdi-handshake" class="mr-2"></v-icon>
+              Intermediário do Serviço
+            </v-card-title>
+            <v-card-text class="pa-4 pt-0">
+              <v-row>
+                <v-col cols="12" md="6">
+                  <div class="campo-label">Razão Social</div>
+                  <div class="campo-valor font-weight-bold">{{ notaFiscal.intermediario?.razaoSocial }}</div>
+                </v-col>
+                <v-col cols="12" md="3">
+                  <div class="campo-label">CNPJ</div>
+                  <div class="campo-valor">{{ formatarCNPJ(notaFiscal.intermediario?.cnpj) }}</div>
+                </v-col>
+                <v-col cols="12" md="3" v-if="notaFiscal.intermediario?.inscricaoMunicipal">
+                  <div class="campo-label">Inscrição Municipal</div>
+                  <div class="campo-valor">{{ notaFiscal.intermediario?.inscricaoMunicipal }}</div>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+
+          <!-- Construção Civil (ABRASF) -->
+          <v-card v-if="notaFiscal.construcaoCivil" class="background-secondary mb-4">
+            <v-card-title class="pa-4 pb-2">
+              <v-icon icon="mdi-office-building" class="mr-2"></v-icon>
+              Construção Civil
+            </v-card-title>
+            <v-card-text class="pa-4 pt-0">
+              <v-row>
+                <v-col cols="12" md="6">
+                  <div class="campo-label">Código da Obra</div>
+                  <div class="campo-valor">{{ notaFiscal.construcaoCivil?.codigoObra }}</div>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <div class="campo-label">ART</div>
+                  <div class="campo-valor">{{ notaFiscal.construcaoCivil?.art }}</div>
                 </v-col>
               </v-row>
             </v-card-text>
@@ -876,11 +1160,23 @@ const imprimirNota = () => {
             </v-card-title>
             <v-card-text class="pa-4 pt-0">
               <v-row>
+                <!-- Campos ABRASF específicos -->
+                <template v-if="notaFiscal.tipoXml === 'ABRASF'">
+                  <v-col cols="12" md="4" v-if="notaFiscal.servico?.itemListaServico">
+                    <div class="campo-label">Item Lista Serviço</div>
+                    <div class="campo-valor">{{ notaFiscal.servico?.itemListaServico }}</div>
+                  </v-col>
+                  <v-col cols="12" md="4" v-if="notaFiscal.servico?.codigoCnae">
+                    <div class="campo-label">Código CNAE</div>
+                    <div class="campo-valor">{{ notaFiscal.servico?.codigoCnae }}</div>
+                  </v-col>
+                </template>
+
                 <v-col cols="12" md="4">
-                  <div class="campo-label">Código Tributação Nacional</div>
-                  <div class="campo-valor">{{ notaFiscal.servico?.codigoTribNacional || '-' }}</div>
+                  <div class="campo-label">Código Tributação {{ notaFiscal.tipoXml === 'ABRASF' ? 'Municipal' : 'Nacional' }}</div>
+                  <div class="campo-valor">{{ notaFiscal.servico?.codigoTribNacional || notaFiscal.servico?.codigoTribMunicipal || '-' }}</div>
                 </v-col>
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="4" v-if="notaFiscal.tipoXml !== 'ABRASF' || !notaFiscal.servico?.codigoCnae">
                   <div class="campo-label">Código Tributação Municipal</div>
                   <div class="campo-valor">{{ notaFiscal.servico?.codigoTribMunicipal || '-' }}</div>
                 </v-col>
@@ -890,7 +1186,7 @@ const imprimirNota = () => {
                 </v-col>
                 <v-col cols="12">
                   <div class="campo-label">Descrição do Serviço</div>
-                  <div class="campo-valor descricao-servico">{{ notaFiscal.servico?.descricao }}</div>
+                  <div class="campo-valor descricao-servico">{{ notaFiscal.servico?.descricao || '-' }}</div>
                 </v-col>
                 <v-col cols="12" v-if="notaFiscal.servico?.infoComplementar">
                   <div class="campo-label">Informações Complementares</div>
@@ -950,15 +1246,22 @@ const imprimirNota = () => {
                     <v-card-title class="text-subtitle-1 pa-3 pb-1">
                       <v-icon icon="mdi-city" size="small" class="mr-2"></v-icon>
                       ISSQN (Municipal)
+                      <v-chip v-if="notaFiscal.tributos?.issqn?.retido" size="x-small" color="warning" class="ml-2">
+                        RETIDO
+                      </v-chip>
                     </v-card-title>
                     <v-card-text class="pa-3 pt-0">
                       <div class="d-flex justify-space-between mb-1">
                         <span class="opacity-70">Alíquota:</span>
                         <span>{{ notaFiscal.tributos?.issqn?.aliquota || 0 }}%</span>
                       </div>
-                      <div class="d-flex justify-space-between">
+                      <div class="d-flex justify-space-between mb-1">
                         <span class="opacity-70">Valor:</span>
                         <span class="font-weight-bold">{{ formatarMoeda(notaFiscal.tributos?.issqn?.valor) }}</span>
+                      </div>
+                      <div v-if="notaFiscal.tributos?.issqn?.valorRetido" class="d-flex justify-space-between">
+                        <span class="opacity-70">Valor Retido:</span>
+                        <span class="text-warning">{{ formatarMoeda(notaFiscal.tributos?.issqn?.valorRetido) }}</span>
                       </div>
                     </v-card-text>
                   </v-card>
@@ -973,16 +1276,28 @@ const imprimirNota = () => {
                     </v-card-title>
                     <v-card-text class="pa-3 pt-0">
                       <div class="d-flex justify-space-between mb-1">
-                        <span class="opacity-70">PIS ({{ notaFiscal.tributos?.pis?.aliquota || 0 }}%):</span>
+                        <span class="opacity-70">PIS{{ notaFiscal.tributos?.pis?.aliquota ? ` (${notaFiscal.tributos?.pis?.aliquota}%)` : '' }}:</span>
                         <span>{{ formatarMoeda(notaFiscal.tributos?.pis?.valor) }}</span>
                       </div>
                       <div class="d-flex justify-space-between mb-1">
-                        <span class="opacity-70">COFINS ({{ notaFiscal.tributos?.cofins?.aliquota || 0 }}%):</span>
+                        <span class="opacity-70">COFINS{{ notaFiscal.tributos?.cofins?.aliquota ? ` (${notaFiscal.tributos?.cofins?.aliquota}%)` : '' }}:</span>
                         <span>{{ formatarMoeda(notaFiscal.tributos?.cofins?.valor) }}</span>
+                      </div>
+                      <div v-if="notaFiscal.tributos?.inss" class="d-flex justify-space-between mb-1">
+                        <span class="opacity-70">INSS:</span>
+                        <span>{{ formatarMoeda(notaFiscal.tributos?.inss) }}</span>
+                      </div>
+                      <div v-if="notaFiscal.tributos?.ir" class="d-flex justify-space-between mb-1">
+                        <span class="opacity-70">IR:</span>
+                        <span>{{ formatarMoeda(notaFiscal.tributos?.ir) }}</span>
                       </div>
                       <div class="d-flex justify-space-between mb-1">
                         <span class="opacity-70">CSLL:</span>
                         <span>{{ formatarMoeda(notaFiscal.tributos?.csll) }}</span>
+                      </div>
+                      <div v-if="notaFiscal.tributos?.outrasRetencoes" class="d-flex justify-space-between mb-1">
+                        <span class="opacity-70">Outras Retenções:</span>
+                        <span>{{ formatarMoeda(notaFiscal.tributos?.outrasRetencoes) }}</span>
                       </div>
                       <v-divider class="my-2"></v-divider>
                       <div class="d-flex justify-space-between">

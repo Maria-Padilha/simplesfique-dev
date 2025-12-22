@@ -10,21 +10,23 @@
       :cadastrar-btn="true"
   >
     <template #resultados="{ selecionar }">
-      <v-virtual-scroll
-          :items="bairros"
-          :height="80"
-          item-height="42"
-          class="mt-3"
-      >
-        <template #default="{ item }">
+      <div class="bairro-menu-scroll-container" style="height: 200px; overflow-y: auto;">
+        <template v-if="bairros.length">
           <div
-              class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+              v-for="item in bairros"
+              :key="item.id"
+              class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer transition-colors"
               @click="selecionar(item)"
           >
             <p class="text-body-1">{{ item.descbairro || item.nome || 'Sem nome' }}</p>
           </div>
         </template>
-      </v-virtual-scroll>
+        <template v-else>
+          <div class="px-3 py-4">
+            <p class="text-sm opacity-50">Nenhum resultado encontrado</p>
+          </div>
+        </template>
+      </div>
     </template>
   </busca-padrao-menu>
 
