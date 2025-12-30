@@ -1854,7 +1854,22 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.error = null;
       
       try {
-        const response = await api.post(`/contaspagarbaix/${idEmpresa}`, dadosBaixa, {
+        // Endpoint alvo: /contaspagarbxa
+        // Mantém idEmpresa na assinatura por compatibilidade com chamadas existentes,
+        // mas garante que o payload carregue o id_empresa quando necessário.
+        const payload = { ...(dadosBaixa || {}) }
+
+        if (Array.isArray(payload.data)) {
+          payload.data = payload.data.map((item) => ({
+            ...(item || {}),
+            id_empresa: (item && item.id_empresa != null) ? item.id_empresa : idEmpresa
+          }))
+        }
+
+        // Não adicionar `id_empresa` no objeto raiz do payload.
+        // Garantir apenas que cada item em payload.data tenha `id_empresa`.
+
+        const response = await api.post(`/contaspagarbxa`, payload, {
           headers: this.getAuthHeaders()
         });
         
@@ -1866,7 +1881,99 @@ export const useFinanceiroStore = defineStore('financeiro', {
       } finally {
         this.loading = false;
       }
-    }
+    },
+
+    // Buscar contas a receber para baixa
+    async buscarContasReceberBaixa(idEmpresa, filtros ={}) {
+      this.loading = true;
+      this.error = null;
+
+      try{
+        const params = new URLSearchParams();
+
+        Object.entries(filtros).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            params.append(key, value);
+          }
+        });
+        const queryString = params.toString();
+        const url = `/contasreceberbxa/${idEmpresa}${queryString ? `?${queryString}` : ''}`;
+
+        const response = await api.get(url, {
+          headers: this.getAuthHeaders()
+        });
+
+        const resposta = response.data;
+        let dados;
+
+        if(resposta && resposta.data && Array.isArray(resposta.data)){
+          dados = resposta.data;
+        } else if (Array.isArray(resposta)) {
+          dados = resposta;
+        } else {
+          dados = [];
+        }
+
+        return dados;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar contas a receber para baixa';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Baixar recebimentos em lote (POST /contasreceberbxa)
+    async baixarContasReceber(idEmpresa, dadosBaixa) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        console.log('Baixando contas a receber - payload recebido:', dadosBaixa);
+        const payload = { ...(dadosBaixa || {}) }
+
+        if (Array.isArray(payload.data)) {
+          payload.data = payload.data.map((item) => ({
+            ...(item || {}),
+            id_empresa: (item && item.id_empresa != null) ? item.id_empresa : idEmpresa
+          }))
+        }
+        const response = await api.post(`/contasreceberbxa`, payload, {
+          headers: this.getAuthHeaders()
+        });
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao baixar contas a receber';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // ========== TRANSFERÊNCIAS ==========
+
+    // Realizar transferência entre contas/caixas (POST /ccorrentetransf)
+    async realizarTransferencia(payload) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        console.log('Realizando transferência - payload:', payload);
+        
+        const response = await api.post('/ccorrentetransf', payload, {
+          headers: this.getAuthHeaders()
+        });
+        
+        console.log('✅ Transferência realizada com sucesso:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('❌ Erro ao realizar transferência:', error.response?.data);
+        this.error = error.response?.data?.message || 'Erro ao realizar transferência';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
     
   },
 

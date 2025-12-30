@@ -1347,7 +1347,7 @@ const carregarContasPagar = async (filtrosApi = null) => {
       filtrosApi || {}
     )
     
-    // A API agora retorna dados expandidos de parcelas
+    // Esses sao os dados expandidos da tabela
     contasPagar.value = dados?.map(item => ({
       id: item.id || null,
       nrdocumento: item.nrdocumento || '',
@@ -1807,6 +1807,7 @@ const resetarForm = () => {
     especie: '',
     id_tipodocumen: null,
     id_fornecedor: null,
+    id_red_ctb_for: null,
     id_planoconta: null,
     observacao: '',
     vlroriginal: null,
@@ -1863,11 +1864,8 @@ const salvarContaPagar = async () => {
     const fornecedorNome = fornecedorObj.apelido_fantasia || fornecedorObj.nome_razao || fornecedorObj.nome || ''
 
     const dadosPrincipais = {
-      // enviar o nome do fornecedor em `fornecedor` (backend espera nome),
-      // manter também `id_fornecedor` separado
       fornecedor: fornecedorNome,
       id_fornecedor: formData.id_fornecedor,
-      // Histórico contábil (id) com nome de campo pedido pelo backend
       id_historico_ctb: formData.id_historicocontabil || null,
       id_red_ctb_for: formData.id_red_ctb_for || null,
       abreviatura: tipoDocumentoSelecionado.value,
@@ -2070,6 +2068,7 @@ const selecionarPlanoConta = (planoConta) => {
 const selecionarFornecedor = (fornecedor) => {
   formData.id_fornecedor = fornecedor.id
   fornecedorSelecionado.value = fornecedor.apelido_fantasia || fornecedor.nome_razao || fornecedor.nome || fornecedor.apelido || ''
+  formData.id_red_ctb_for = fornecedor.id_red_ctb_for || fornecedor.id_red_ctb || null
 }
 
 // Histórico Contábil: pesquisar, selecionar e cadastrar

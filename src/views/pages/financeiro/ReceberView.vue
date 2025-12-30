@@ -1683,6 +1683,7 @@ const selecionarPlanoConta = (planoConta) => {
 
 const selecionarCliente = (cliente) => {
   formData.id_cliente = cliente.id
+  formData.id_red_ctb_cli = cliente.id_red_ctb_cli || cliente.id_red_ctb || null
   clienteSelecionado.value = cliente.apelido_fantasia || cliente.nome_razao || cliente.nome || cliente.apelido || ''
 }
 

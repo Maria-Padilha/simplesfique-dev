@@ -100,6 +100,8 @@
         </template>
         </v-text-field>
 
+       
+
         <div>
         <p class="texto-color-primary font-medium mb-2">Código do histórico para baixa no banco:</p>
         <v-text-field
@@ -175,6 +177,98 @@
             <template #resultados="{ selecionar }">
             <v-virtual-scroll
               :items="historicoBancoResultados"
+              :height="120"
+              item-height="42"
+              class="mt-3"
+            >
+              <template #default="{ item }">
+              <div
+                class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                @click="selecionar(item)"
+              >
+                <p class="text-body-1">({{ item.id }}) - {{ item.deschistorico }}</p>
+              </div>
+              </template>
+            </v-virtual-scroll>
+            </template>
+          </busca-padrao-menu>
+          </div>
+        </template>
+        </v-text-field>
+
+         <p class="texto-color-primary font-medium mb-2 mt-4">Código do hist. contábil para baixa no caixa:</p>
+        <v-text-field
+        v-model="histCaixaCtbLabel"
+        label="Histórico Contábil Caixa *"
+        variant="outlined"
+        density="compact"
+        hide-details="auto"
+        class="custom-text-field"
+        prepend-inner-icon="mdi-cash-multiple"
+        readonly
+        :rules="[v => !!config.pag_id_hist_bxa_caixa_ctb || 'Campo obrigatório']"
+        placeholder="Selecione um histórico"
+        style="max-width: 420px;"
+        >
+        <template #append-inner>
+          <div class="d-flex align-center">
+          <busca-padrao-menu
+            v-model="menuHistCaixaCtb"
+            :pesquisar="pesquisarHistoricoCaixaCtb"
+            :modelInput="termoHistCaixaCtb"
+            :resultados="historicoCaixaCtbResultados"
+            @update:modelInput="termoHistCaixaCtb = $event"
+            @selecionar="selecionarHistoricoCaixaCtb"
+          >
+            <template #resultados="{ selecionar }">
+            <v-virtual-scroll
+              :items="historicoCaixaCtbResultados"
+              :height="120"
+              item-height="42"
+              class="mt-3"
+            >
+              <template #default="{ item }">
+              <div
+                class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                @click="selecionar(item)"
+              >
+                <p class="text-body-1">({{ item.id }}) - {{ item.deschistorico }}</p>
+              </div>
+              </template>
+            </v-virtual-scroll>
+            </template>
+          </busca-padrao-menu>
+          </div>
+        </template>
+        </v-text-field>
+
+        <p class="texto-color-primary font-medium mb-2 mt-4">Código do hist. contábil para baixa no banco:</p>
+        <v-text-field
+        v-model="histBancoCtbLabel"
+        label="Histórico Contábil Banco *"
+        variant="outlined"
+        density="compact"
+        hide-details="auto"
+        class="custom-text-field"
+        prepend-inner-icon="mdi-bank-transfer"
+        readonly
+        :rules="[v => !!config.pag_id_hist_bxa_banco_ctb || 'Campo obrigatório']"
+        placeholder="Selecione um histórico"
+        style="max-width: 420px;"
+        >
+        <template #append-inner>
+          <div class="d-flex align-center">
+          <busca-padrao-menu
+            v-model="menuHistBancoCtb"
+            :pesquisar="pesquisarHistoricoBancoCtb"
+            :modelInput="termoHistBancoCtb"
+            :resultados="historicoBancoCtbResultados"
+            @update:modelInput="termoHistBancoCtb = $event"
+            @selecionar="selecionarHistoricoBancoCtb"
+          >
+            <template #resultados="{ selecionar }">
+            <v-virtual-scroll
+              :items="historicoBancoCtbResultados"
               :height="120"
               item-height="42"
               class="mt-3"
@@ -568,6 +662,19 @@
 </template>
 
 <script setup>
+import { watch, ref, reactive, onMounted, computed } from 'vue'
+import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
+import { useConfigParfinStore } from '@/stores/APIs/config'
+import { useEmpresaStore } from '@/stores/APIs/empresa'
+import { useFinanceiroStore } from '@/stores/APIs/financeiro'
+
+const useConfig = useConfigParfinStore()
+const empresaStore = useEmpresaStore()
+const useFinanceiro = useFinanceiroStore()
+const formRef = ref(null)
+const formValid = ref(false)
+const loading = ref(false)
+const dadosExistem = ref(false)
 
 // Dados de configuração com os nomes corretos da API
 const config = reactive({
@@ -580,6 +687,8 @@ const config = reactive({
   pag_id_hist_bxa_banco: null,
   pag_id_hist_est_bxa_caixa: null,
   pag_id_hist_est_bxa_banco: null,
+  pag_id_hist_bxa_caixa_ctb: null, // Histórico contábil baixa caixa
+  pag_id_hist_bxa_banco_ctb: null, // Histórico contábil baixa banco
   pag_id_hist_adt_for_caixa: null, // Histórico adiantamento fornecedor caixa
   pag_id_hist_adt_for_banco: null, // Histórico adiantamento fornecedor banco
   pag_utiliza_aprov_adt_for: 'N',  // Utiliza aprovação do fornecedor (S/N)
@@ -594,21 +703,20 @@ const config = reactive({
   hist_est_bxa_caixa_desc: '',
   hist_est_bxa_banco_desc: '',
   hist_bxa_banco_desc: '',
+  hist_bxa_caixa_ctb_desc: '',
+  hist_bxa_banco_ctb_desc: '',
   hist_adt_caixa_desc: '',
   hist_adt_banco_desc: '',
   tipo_doc_desc: ''
 })
-// ...existing code...
-
 
 // Computed para labels dinâmicos dos campos unificados
-
 const histCaixaLabel = computed(() => config.pag_id_hist_bxa_caixa ? `( ${config.pag_id_hist_bxa_caixa} ) - ${config.hist_bxa_caixa_desc}` : '');
-console.log('config.pag_id_hist_bxa_caixa', config.pag_id_hist_bxa_caixa);
 const histEstBxaCaixaLabel = computed(() => config.pag_id_hist_est_bxa_caixa ? `( ${config.pag_id_hist_est_bxa_caixa} ) - ${config.hist_est_bxa_caixa_desc}` : '');
 const histEstBxaBancoLabel = computed(() => config.pag_id_hist_est_bxa_banco ? `( ${config.pag_id_hist_est_bxa_banco} ) - ${config.hist_est_bxa_banco_desc}` : '');
-console.log('config.pag_id_hist_est_bxa_banco', config.pag_id_hist_est_bxa_banco);
 const histBancoLabel = computed(() => config.pag_id_hist_bxa_banco ? `( ${config.pag_id_hist_bxa_banco} ) - ${config.hist_bxa_banco_desc}` : '');
+const histCaixaCtbLabel = computed(() => config.pag_id_hist_bxa_caixa_ctb ? `( ${config.pag_id_hist_bxa_caixa_ctb} ) - ${config.hist_bxa_caixa_ctb_desc}` : '');
+const histBancoCtbLabel = computed(() => config.pag_id_hist_bxa_banco_ctb ? `( ${config.pag_id_hist_bxa_banco_ctb} ) - ${config.hist_bxa_banco_ctb_desc}` : '');
 const planoContaJurosLabel = computed(() => config.pag_id_red_ctb_juros_pago ? `( ${config.pag_id_red_ctb_juros_pago} ) - ${config.desc_ctb_juros_pago}` : '');
 const planoContaMultaLabel = computed(() => config.pag_id_red_ctb_multa_paga ? `( ${config.pag_id_red_ctb_multa_paga} ) - ${config.desc_ctb_multa_paga}` : '');
 const planoContaDescLabel = computed(() => config.pag_id_red_ctb_desc_obtido ? `( ${config.pag_id_red_ctb_desc_obtido} ) - ${config.desc_ctb_desc_obtido}` : '');
@@ -629,28 +737,11 @@ const autorizacaoPagamento = computed({
   }
 });
 
-import { watch, ref, reactive, onMounted, computed } from 'vue'
-import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
-import { useConfigParfinStore } from '@/stores/APIs/config'
-import { useEmpresaStore } from '@/stores/APIs/empresa'
-import { useFinanceiroStore } from '@/stores/APIs/financeiro'
-
-const useConfig = useConfigParfinStore()
-const empresaStore = useEmpresaStore()
-const useFinanceiro = useFinanceiroStore()
-const formRef = ref(null)
-const formValid = ref(false)
-const loading = ref(false)
-const dadosExistem = ref(false)
-
-
 // Dados dos selects
 const historicoCaixa = ref([])
 const historicoBancario = ref([])
 const tiposDocumento = ref([])
 const planosConta = computed(() => useFinanceiro.planosConta || [])
-
-// Watch para preencher todos os campos de descrição dos labels após GET e seleção
 
 // Estados dos modais de busca para plano de conta
 const menuPlanoContaJuros = ref(false)
@@ -699,7 +790,6 @@ watch([planosConta, termoPlanoContaFor], pesquisarPlanoContaFor, { immediate: tr
 
 
 // Estados dos modais de busca
-
 const menuHistCaixa = ref(false)
 const termoHistCaixa = ref('')
 const historicoCaixaResultados = ref([])
@@ -713,6 +803,14 @@ const historicoBancoResultados = ref([])
 
 const menuHistEstBxaBanco = ref(false)
 const termoHistEstBxaBanco = ref('')
+
+const menuHistCaixaCtb = ref(false)
+const termoHistCaixaCtb = ref('')
+const historicoCaixaCtbResultados = ref([])
+
+const menuHistBancoCtb = ref(false)
+const termoHistBancoCtb = ref('')
+const historicoBancoCtbResultados = ref([])
 
 const menuHistAdtCaixa = ref(false)
 const termoHistAdtCaixa = ref('')
@@ -743,6 +841,14 @@ const atualizarHistoricoBancoResultados = () => {
   historicoBancoResultados.value = filtrarLista(historicoBancario.value, termoHistBanco.value, ['deschistorico', 'id'])
 }
 
+const atualizarHistoricoCaixaCtbResultados = () => {
+  historicoCaixaCtbResultados.value = filtrarLista(historicoCaixa.value, termoHistCaixaCtb.value, ['deschistorico', 'id'])
+}
+
+const atualizarHistoricoBancoCtbResultados = () => {
+  historicoBancoCtbResultados.value = filtrarLista(historicoBancario.value, termoHistBancoCtb.value, ['deschistorico', 'id'])
+}
+
 const atualizarHistoricoAdtCaixaResultados = () => {
   historicoAdtCaixaResultados.value = filtrarLista(historicoCaixa.value, termoHistAdtCaixa.value, ['deschistorico', 'id'])
 }
@@ -757,12 +863,16 @@ const atualizarTiposDocumentoResultados = () => {
  
 const pesquisarHistoricoCaixa = () => atualizarHistoricoCaixaResultados()
 const pesquisarHistoricoBanco = () => atualizarHistoricoBancoResultados()
+const pesquisarHistoricoCaixaCtb = () => atualizarHistoricoCaixaCtbResultados()
+const pesquisarHistoricoBancoCtb = () => atualizarHistoricoBancoCtbResultados()
 const pesquisarHistoricoAdtCaixa = () => atualizarHistoricoAdtCaixaResultados()
 const pesquisarHistoricoAdtBanco = () => atualizarHistoricoAdtBancoResultados()
 const pesquisarTipoDocumento = () => atualizarTiposDocumentoResultados()
 
 watch([historicoCaixa, termoHistCaixa], atualizarHistoricoCaixaResultados, { immediate: true })
 watch([historicoBancario, termoHistBanco], atualizarHistoricoBancoResultados, { immediate: true })
+watch([historicoCaixa, termoHistCaixaCtb], atualizarHistoricoCaixaCtbResultados, { immediate: true })
+watch([historicoBancario, termoHistBancoCtb], atualizarHistoricoBancoCtbResultados, { immediate: true })
 watch([historicoCaixa, termoHistAdtCaixa], atualizarHistoricoAdtCaixaResultados, { immediate: true })
 watch([historicoBancario, termoHistAdtBanco], atualizarHistoricoAdtBancoResultados, { immediate: true })
 watch([tiposDocumento, termoTipoDocumento], atualizarTiposDocumentoResultados, { immediate: true })
@@ -789,6 +899,18 @@ const selecionarHistoricoBanco = (item) => {
   config.pag_id_hist_bxa_banco = item?.id ?? null;
   config.hist_bxa_banco_desc = item?.deschistorico ?? '';
   menuHistBanco.value = false;
+};
+
+const selecionarHistoricoCaixaCtb = (item) => {
+  config.pag_id_hist_bxa_caixa_ctb = item?.id ?? null;
+  config.hist_bxa_caixa_ctb_desc = item?.deschistorico ?? '';
+  menuHistCaixaCtb.value = false;
+};
+
+const selecionarHistoricoBancoCtb = (item) => {
+  config.pag_id_hist_bxa_banco_ctb = item?.id ?? null;
+  config.hist_bxa_banco_ctb_desc = item?.deschistorico ?? '';
+  menuHistBancoCtb.value = false;
 };
 
 const selecionarHistoricoAdtCaixa = (item) => {
@@ -896,6 +1018,8 @@ const carregarParametrosFinanceiros = async () => {
       buscarHistoricoBanco(config.pag_id_hist_bxa_banco, 'hist_bxa_banco_desc')
       buscarHistoricoCaixa(config.pag_id_hist_adt_for_caixa, 'hist_adt_caixa_desc')
       buscarHistoricoBanco(config.pag_id_hist_adt_for_banco, 'hist_adt_banco_desc')
+      buscarHistoricoCaixa(config.pag_id_hist_bxa_caixa_ctb, 'hist_bxa_caixa_ctb_desc')
+      buscarHistoricoBanco(config.pag_id_hist_bxa_banco_ctb, 'hist_bxa_banco_ctb_desc')
 
       // Preencher descrições dos campos de estorno
       config.hist_est_bxa_caixa_desc = ''
@@ -963,6 +1087,8 @@ const salvarConfiguracoes = async () => {
         pag_id_hist_bxa_banco: config.pag_id_hist_bxa_banco,
         pag_id_hist_est_bxa_caixa: config.pag_id_hist_est_bxa_caixa,
         pag_id_hist_est_bxa_banco: config.pag_id_hist_est_bxa_banco,
+        pag_id_hist_bxa_caixa_ctb: config.pag_id_hist_bxa_caixa_ctb,
+        pag_id_hist_bxa_banco_ctb: config.pag_id_hist_bxa_banco_ctb,
         pag_id_hist_adt_for_caixa: config.pag_id_hist_adt_for_caixa,
         pag_id_hist_adt_for_banco: config.pag_id_hist_adt_for_banco,
         pag_utiliza_aprov_adt_for: config.pag_utiliza_aprov_adt_for,
@@ -1006,6 +1132,8 @@ const resetarConfiguracoes = () => {
   config.pag_id_hist_est_bxa_caixa = null
   config.pag_id_hist_bxa_caixa = null
   config.pag_id_hist_bxa_banco = null
+  config.pag_id_hist_bxa_caixa_ctb = null
+  config.pag_id_hist_bxa_banco_ctb = null
   config.pag_id_hist_adt_for_caixa = null
   config.pag_id_hist_adt_for_banco = null
   config.pag_utiliza_aprov_adt_for = 'N'
@@ -1015,6 +1143,8 @@ const resetarConfiguracoes = () => {
   // Campos de descrição
   config.hist_bxa_caixa_desc = ''
   config.hist_bxa_banco_desc = ''
+  config.hist_bxa_caixa_ctb_desc = ''
+  config.hist_bxa_banco_ctb_desc = ''
   config.hist_adt_caixa_desc = ''
   config.hist_adt_banco_desc = ''
   config.tipo_doc_desc = ''
@@ -1048,6 +1178,8 @@ onMounted(async () => {
     // Atualizar resultados dos menus de busca imediatamente após carregar os dados
     atualizarHistoricoCaixaResultados()
     atualizarHistoricoBancoResultados()
+    atualizarHistoricoCaixaCtbResultados()
+    atualizarHistoricoBancoCtbResultados()
     atualizarHistoricoAdtCaixaResultados()
     atualizarHistoricoAdtBancoResultados()
     atualizarTiposDocumentoResultados()

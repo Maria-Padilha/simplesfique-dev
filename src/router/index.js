@@ -25,7 +25,9 @@ import AdiantamentoClienteView from '@/views/pages/adiantamento/AdiantamentoClie
 import AdiantamentoFornecedorView from '@/views/pages/adiantamento/AdiantamentoFornecedorView.vue';
 import AutorizacaoPagtoView from '@/views/pages/financeiro/AutorizacaoPagtoView.vue';
 import BaixaPagtoView from '@/views/pages/financeiro/BaixaPagtoView.vue';
+import BaixaRecebView from '@/views/pages/financeiro/BaixaRecebView.vue';
 import FinanceiroRelatorioView from '@/views/pages/relatorios/FinanceiroRelatorioView.vue';
+import TransferenciasView from '@/views/pages/financeiro/TransferenciasView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
@@ -152,6 +154,16 @@ const routes = [
         path: '/paginas/financeiro/baixa',
         name: 'financeiro_baixa',
         component: BaixaPagtoView
+    },
+    {
+        path: '/paginas/financeiro/baixareceb',
+        name: 'financeiro_baixareceb',
+        component: BaixaRecebView
+    },
+    {
+        path: '/paginas/financeiro/transferencia',
+        name: 'financeiro_transferencia',
+        component: TransferenciasView
     },
 
     // Paginas de banco

@@ -69,6 +69,8 @@ export const useSidebarStore = defineStore('sidebar', () => {
                 { text: 'Receber', icon: 'mdi-cash-plus', route: '/paginas/financeiro/receber' },
                 { text: 'Autorização de Pagamento', icon: 'mdi-shield-check', route: '/paginas/financeiro/autorizacao' },
                 { text: 'Baixa de Pagamento', icon: 'mdi-cash-minus', route: '/paginas/financeiro/baixa' },
+                { text: 'Baixa de Recebimento', icon: 'mdi-cash-plus', route: '/paginas/financeiro/baixareceb' },
+                { text: 'Transferencia entre Contas', icon: 'mdi-swap-horizontal', route: '/paginas/financeiro/transferencia' },
                 { text: 'Plano de Conta', icon: 'mdi-format-list-bulleted-type', route: '/paginas/financeiro/planoconta' },
             ]
         },

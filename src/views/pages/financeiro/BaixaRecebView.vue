@@ -4,8 +4,8 @@
     <v-card class="background-secondary mb-4">
       <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
         <div class="d-flex align-center">
-          <v-icon icon="mdi-cash-minus" class="mr-3"></v-icon>
-          Baixa de Pagamentos
+          <v-icon icon="mdi-cash-plus" class="mr-3"></v-icon>
+          Baixa de Recebimentos
         </div>
       </v-card-title>
     </v-card>
@@ -17,7 +17,7 @@
           <div>
             <h4 class="text-h6 mb-2">Resumo Financeiro</h4>
             <p class="text-body-1 mb-1">
-              Total de parcelas: <strong>{{ contasPagar.length }}</strong>
+              Total de parcelas: <strong>{{ contasReceber.length }}</strong>
             </p>
             <p class="text-body-1 mb-1">
               Valor total: <strong>{{ formatarMoeda(totalParcelasFiltradas) }}</strong>
@@ -50,12 +50,12 @@
               color="var(--text-color-laranja)"
               :disabled="contasSelecionadas.length === 0"
               :loading="loadingBaixa"
-              @click="confirmarBaixaPagamento"
+              @click="confirmarBaixaRecebimento"
               variant="flat"
               class="text-white"
-              prepend-icon="mdi-cash-minus"
+              prepend-icon="mdi-cash-plus"
             >
-              Baixar {{ contasSelecionadas.length }} Pagamento(s)
+              Baixar {{ contasSelecionadas.length }} Recebimento(s)
             </v-btn>
             <v-btn
               variant="text"
@@ -71,26 +71,26 @@
       </v-card-text>
     </v-card>
 
-    <!-- Lista de Contas a Pagar -->
+    <!-- Lista de Contas a Receber -->
     <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
       <v-card-text class="pa-4">
         <!-- Busca Avançada -->
         <BuscaAvancadaBaixa
-          entidade="contaspagar"
+          entidade="contasreceber"
           @aplicar="aplicarFiltrosAvancados"
         />
 
-        <!-- Tabela de Contas a Pagar -->
+        <!-- Tabela de Contas a Receber -->
         <TabelaPadrao
           :headers="headers"
-          :items="contasPagarFiltradas"
+          :items="contasReceberFiltradas"
           :loading="loading"
           :search="search"
           @update:search="(value) => search = value"
-          search-label="Pesquisar contas a pagar"
+          search-label="Pesquisar contas a receber"
           item-key="id"
-          no-data-icon="mdi-cash-minus-outline"
-          no-data-text="Nenhuma conta a pagar encontrada para baixa"
+          no-data-icon="mdi-cash-plus-outline"
+          no-data-text="Nenhuma conta a receber encontrada para baixa"
           :hide-delete-action="true"
           :hide-edit-action="true"
           :show-custom-action="false"
@@ -114,7 +114,7 @@
               hide-details
               density="compact"
               color="var(--text-color-laranja)"
-              :indeterminate="contasSelecionadas.length > 0 && contasSelecionadas.length < contasPagarFiltradas.length"
+              :indeterminate="contasSelecionadas.length > 0 && contasSelecionadas.length < contasReceberFiltradas.length"
             />
           </template>
 
@@ -146,57 +146,57 @@
             />
           </template>
 
-            <!-- Edição inline de Multa (sempre editável) -->
-            <template v-slot:[`item.multa`]="{ item }">
-              <v-text-field
-                v-model="item.multa_display"
-                type="text"
-                variant="outlined"
-                density="compact"
-                hide-details
-                :class="{ 'campo-editavel-dark': themeStore.darkMode }"
-                class="campo-editavel-tabela multa-input"
-                style="min-width: 120px; width: 140px;"
-                @update:model-value="(val) => handleItemCurrencyInput(item, 'multa', val)"
-                @blur="() => handleItemCurrencyBlur(item, 'multa')"
-              />
-            </template>
+          <!-- Edição inline de Multa (sempre editável) -->
+          <template v-slot:[`item.multa`]="{ item }">
+            <v-text-field
+              v-model="item.multa_display"
+              type="text"
+              variant="outlined"
+              density="compact"
+              hide-details
+              :class="{ 'campo-editavel-dark': themeStore.darkMode }"
+              class="campo-editavel-tabela multa-input"
+              style="min-width: 120px; width: 140px;"
+              @update:model-value="(val) => handleItemCurrencyInput(item, 'multa', val)"
+              @blur="() => handleItemCurrencyBlur(item, 'multa')"
+            />
+          </template>
 
-            <!-- Edição inline de Desconto (sempre editável) -->
-            <template v-slot:[`item.desconto`]="{ item }">
-              <v-text-field
-                v-model="item.desconto_display"
-                type="text"
-                variant="outlined"
-                density="compact"
-                hide-details
-                class="campo-editavel-tabela desconto-input"
-                :class="{ 'campo-editavel-dark': themeStore.darkMode }"
-                style="min-width: 120px; width: 140px;"
-                @update:model-value="(val) => handleItemCurrencyInput(item, 'desconto', val)"
-                @blur="() => handleItemCurrencyBlur(item, 'desconto')"
-              />
-            </template>
+          <!-- Edição inline de Desconto (sempre editável) -->
+          <template v-slot:[`item.desconto`]="{ item }">
+            <v-text-field
+              v-model="item.desconto_display"
+              type="text"
+              variant="outlined"
+              density="compact"
+              hide-details
+              class="campo-editavel-tabela desconto-input"
+              :class="{ 'campo-editavel-dark': themeStore.darkMode }"
+              style="min-width: 120px; width: 140px;"
+              @update:model-value="(val) => handleItemCurrencyInput(item, 'desconto', val)"
+              @blur="() => handleItemCurrencyBlur(item, 'desconto')"
+            />
+          </template>
 
-            <!-- Formatação do saldo devedor (leitura) -->
+          <!-- Formatação do saldo devedor (leitura) -->
           <template v-slot:[`item.saldo_devedor`]="{ item }">
             {{ formatarMoeda(item.saldo_devedor) }}
           </template>
 
-          <!-- Edição inline de Vlr a Pagar (novo campo editável) -->
-          <template v-slot:[`item.vlrapagar`]="{ item }">
+          <!-- Edição inline de Vlr a Receber (novo campo editável) -->
+          <template v-slot:[`item.vlrareceber`]="{ item }">
             <v-text-field
-              v-model="item.vlrapagar_display"
+              v-model="item.vlrareceber_display"
               type="text"
               step="0.01"
               variant="outlined"
               density="compact"
               hide-details
-              class="campo-editavel-tabela vlr-a-pagar"
+              class="campo-editavel-tabela vlr-a-receber"
               :class="{ 'campo-editavel-dark': themeStore.darkMode }"
               style="width: 160px; min-width: 120px;"
-              @update:model-value="(val) => handleItemCurrencyInput(item, 'vlrapagar', val)"
-              @blur="() => handleItemCurrencyBlur(item, 'vlrapagar')"
+              @update:model-value="(val) => handleItemCurrencyInput(item, 'vlrareceber', val)"
+              @blur="() => handleItemCurrencyBlur(item, 'vlrareceber')"
             />
           </template>
 
@@ -263,13 +263,13 @@ const configParfinStore = useConfigParfinStore()
 const search = ref('')
 const loading = ref(false)
 const loadingBaixa = ref(false)
-const filtrosAvancados = ref({}) // Remover filtro inicial baixado='N'
+const filtrosAvancados = ref({})
 
 // Estado dos dados
-const contasPagar = ref([])
+const contasReceber = ref([])
 const contasSelecionadas = ref([])
 const todosSelecionados = ref(false)
-const tipoBaixa = ref('banco') // Tipo de baixa: banco ou caixa
+const tipoBaixa = ref('banco')
 
 // Dialog de confirmação de baixa
 const dialogBaixa = reactive({
@@ -283,11 +283,11 @@ const snackbar = reactive({
   color: 'success'
 })
 
-// ID da empresa (temporário - deve vir do contexto/autenticação)
+// ID da empresa
 const idEmpresa = ref(1)
 
-// Cache local dos parâmetros financeiros (Contas a Pagar)
-const parfinPagar = ref(null)
+// Cache local dos parâmetros financeiros (Contas a Receber)
+const parfinReceber = ref(null)
 
 const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100
 
@@ -298,15 +298,15 @@ const normalizarPrimeiroRegistro = (resp) => {
   return resp?.data || resp
 }
 
-const carregarParfinPagarSeNecessario = async () => {
-  if (parfinPagar.value) return parfinPagar.value
-  const resp = await configParfinStore.buscarParametrosFinanceirosPagar(idEmpresa.value)
-  parfinPagar.value = normalizarPrimeiroRegistro(resp)
-  return parfinPagar.value
+const carregarParfinReceberSeNecessario = async () => {
+  if (parfinReceber.value) return parfinReceber.value
+  const resp = await configParfinStore.buscarParametrosFinanceirosReceber(idEmpresa.value)
+  parfinReceber.value = normalizarPrimeiroRegistro(resp)
+  return parfinReceber.value
 }
 
 const montarPayloadBaixa = async (tipo, dadosBaixa) => {
-  const parfin = (await carregarParfinPagarSeNecessario()) || {}
+  const parfin = (await carregarParfinReceberSeNecessario()) || {}
   const local_lct = tipo === 'caixa' ? 'CAI' : 'BAN'
 
   const data = (contasSelecionadas.value || []).map((item) => {
@@ -315,16 +315,16 @@ const montarPayloadBaixa = async (tipo, dadosBaixa) => {
     const vlrmulta = round2(item?.multa ?? 0)
     const vlrdesconto = round2(item?.desconto ?? 0)
 
-    const vlrNormal = round2(item?.vlrapagar ?? vlrparcela)
+    const vlrNormal = round2(item?.vlrareceber ?? vlrparcela)
     const vlrbaixa = round2(vlrNormal + vlrjuros + vlrmulta - vlrdesconto)
 
     return {
-      // Identificadores (para a API saber qual parcela baixar)
+      // Identificadores
       id: item?.id ?? null,
-      id_parcela: item?.id_parcela ?? item?.id ?? null,  // ← ADICIONADO
+      id_parcela: item?.id_parcela ?? item?.id ?? null,
       nrparcela: item?.nrparcela ?? null,
 
-      // Campos do payload solicitado
+      // Campos do payload
       id_empresa: idEmpresa.value,
       local_lct,
       dt_baixa: dadosBaixa?.dtPagamento ?? null,
@@ -334,17 +334,18 @@ const montarPayloadBaixa = async (tipo, dadosBaixa) => {
       vlrmulta,
       vlrdesconto,
       id_lote_ccusto: item?.id_lote_ccusto ?? item?.id_lote_ccusto_previsto ?? null,
-      pag_id_red_ctb_juros_pago: parfin?.pag_id_red_ctb_juros_pago ?? null,
-      pag_id_red_ctb_multa_paga: parfin?.pag_id_red_ctb_multa_paga ?? null,
-      id_reduzido_for: parfin?.pag_id_red_ctb_for ?? parfin?.id_reduzido_for ?? null,
-      id_reduzido_ctb_caixa: dadosBaixa?.id_reduzido_ctb_caixa ?? parfin?.pag_id_red_ctb_caixa ?? null,
-      id_reduzido_ctb_banco: dadosBaixa?.id_reduzido_ctb_banco ?? parfin?.pag_id_red_ctb_banco ?? null,
+      rec_id_red_ctb_juros_recebido: parfin?.rec_id_red_ctb_juros_recebido ?? null,
+      rec_id_red_ctb_multa_recebida: parfin?.rec_id_red_ctb_multa_recebida ?? null,
+      rec_id_red_ctb_desc_concedido: parfin?.rec_id_red_ctb_desc_concedido ?? null,
+      id_reduzido_cli: parfin?.rec_id_red_ctb_cli ?? parfin?.id_reduzido_cli ?? null,
+      id_reduzido_ctb_caixa: dadosBaixa?.id_reduzido_ctb_caixa ?? parfin?.rec_id_red_ctb_caixa ?? null,
+      id_reduzido_ctb_banco: dadosBaixa?.id_reduzido_ctb_banco ?? parfin?.rec_id_red_ctb_banco ?? null,
       id_caixa: tipo === 'caixa' ? (dadosBaixa?.codigoCaixa ?? null) : null,
       id_ccorrente: tipo === 'banco' ? (dadosBaixa?.codigoBanco ?? null) : null,
-      pag_id_hist_bxa_caixa: local_lct === 'CAI' ? (parfin?.pag_id_hist_bxa_caixa ?? null) : null,
-      pag_id_hist_bxa_caixa_ctb: local_lct === 'CAI' ? (parfin?.pag_id_hist_bxa_caixa_ctb ?? null) : null,
-      pag_id_hist_bxa_banco: local_lct === 'BAN' ? (parfin?.pag_id_hist_bxa_banco ?? null) : null,
-      pag_id_hist_bxa_banco_ctb: local_lct === 'BAN' ? (parfin?.pag_id_hist_bxa_banco_ctb ?? null) : null,
+      rec_id_hist_bxa_caixa: local_lct === 'CAI' ? (parfin?.rec_id_hist_bxa_caixa ?? null) : null,
+      rec_id_hist_bxa_caixa_ctb: local_lct === 'CAI' ? (parfin?.rec_id_hist_bxa_caixa_ctb ?? null) : null,
+      rec_id_hist_bxa_banco: local_lct === 'BAN' ? (parfin?.rec_id_hist_bxa_banco ?? null) : null,
+      rec_id_hist_bxa_banco_ctb: local_lct === 'BAN' ? (parfin?.rec_id_hist_bxa_banco_ctb ?? null) : null,
       id_tipodocumento:
         dadosBaixa?.id_tipodocumento ??
         item?.id_tipodocumento ??
@@ -375,75 +376,67 @@ const montarPayloadBaixa = async (tipo, dadosBaixa) => {
   }
 }
 
-// Headers da tabela - incluindo checkbox e colunas conforme solicitado
+// Headers da tabela
 const headers = computed(() => {
-    const baseHeaders = [
-      { title: '', key: 'checkbox', sortable: false, width: '60px' },
-      { title: 'DT Vencimento', key: 'dtvencimento', sortable: true },
-      { title: 'Nr Documento', key: 'nrdocumento', sortable: true },
-      { title: 'Nr Parcela', key: 'nrparcela', sortable: true },
-      { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
-      { title: 'Juros', key: 'juros', sortable: true },
-      { title: 'Multa', key: 'multa', sortable: true },
-      { title: 'Desconto', key: 'desconto', sortable: true },
-      { title: 'Vlr Quitado', key: 'vlrquitado', sortable: true },
-      { title: 'Vlr Saldo', key: 'saldo_devedor', sortable: true },
-      { title: 'Vlr a Pagar', key: 'vlrapagar', sortable: true },
-      { title: 'Vlr Liberado', key: 'vlrliberado', sortable: true },
-      { title: 'Fornecedor', key: 'fornecedor', sortable: true }
-    ]
+  const baseHeaders = [
+    { title: '', key: 'checkbox', sortable: false, width: '60px' },
+    { title: 'DT Vencimento', key: 'dtvencimento', sortable: true },
+    { title: 'Nr Documento', key: 'nrdocumento', sortable: true },
+    { title: 'Nr Parcela', key: 'nrparcela', sortable: true },
+    { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
+    { title: 'Juros', key: 'juros', sortable: true },
+    { title: 'Multa', key: 'multa', sortable: true },
+    { title: 'Desconto', key: 'desconto', sortable: true },
+    { title: 'Vlr Quitado', key: 'vlrquitado', sortable: true },
+    { title: 'Vlr Saldo', key: 'saldo_devedor', sortable: true },
+    { title: 'Vlr a Receber', key: 'vlrareceber', sortable: true },
+    { title: 'Vlr Liberado', key: 'vlrliberado', sortable: true },
+    { title: 'Cliente', key: 'cliente', sortable: true }
+  ]
 
   return baseHeaders
 })
 
 // Computed
-const contasPagarFiltradas = computed(() => {
-  const dados = contasPagar.value || []
+const contasReceberFiltradas = computed(() => {
+  const dados = contasReceber.value || []
   if (!Array.isArray(dados)) return []
   
-  // Toda filtragem é feita pela API
   return dados
 })
 
-// Calcular o valor total das parcelas filtradas
 const totalParcelasFiltradas = computed(() => {
-  return contasPagarFiltradas.value.reduce((total, item) => {
+  return contasReceberFiltradas.value.reduce((total, item) => {
     const valor = parseFloat(item.vlrparcela || 0)
     return total + valor
   }, 0)
 })
 
-// Calcular valor total das contas selecionadas considerando campos editáveis
 const valorSelecionado = computed(() => {
   return contasSelecionadas.value.reduce((total, item) => {
-    const vlrAPagar = parseFloat(item.vlrapagar || item.saldo_devedor || 0)
+    const vlrAReceber = parseFloat(item.vlrareceber || item.saldo_devedor || 0)
     const juros = parseFloat(item.juros || 0)
     const multa = parseFloat(item.multa || 0)
     const desconto = parseFloat(item.desconto || 0)
-    const valorFinal = vlrAPagar + juros + multa - desconto
+    const valorFinal = vlrAReceber + juros + multa - desconto
     return total + (isNaN(valorFinal) ? 0 : valorFinal)
   }, 0)
 })
 
-// Função chamada quando usuário edita um dos campos na tabela
 function atualizarValorSelecionado() {
-  // O computed `valorSelecionado` depende dos campos reativos dos itens selecionados,
-  // então não precisamos fazer nada além de acessar os valores para forçar reatividade
-  // (manter função para ligação ao evento @input nos campos)
   void valorSelecionado.value
 }
 
 // Watchers
-
 watch(() => contasSelecionadas.value.length, (novaQtd) => {
   if (novaQtd === 0) {
     todosSelecionados.value = false
-  } else if (novaQtd === contasPagarFiltradas.value.length) {
+  } else if (novaQtd === contasReceberFiltradas.value.length) {
     todosSelecionados.value = true
   }
 })
 
-// Função para formatação monetária brasileira
+// Formatação monetária
 const formatarMoeda = (valor) => {
   if (!valor && valor !== 0) return 'R$ 0,00'
   
@@ -458,26 +451,21 @@ const formatarMoeda = (valor) => {
   }).format(numero)
 }
 
-// Formata número para moeda BRL (string)
 const formatCurrencyBR = (value) => {
   const numero = Number(value) || 0
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numero)
 }
 
-// Converte string formatada (ex: "1.234,56" ou "R$ 1.234,56") para número
 const parseCurrencyBR = (str) => {
   if (str === null || str === undefined) return 0
   if (typeof str === 'number') return str
   const s = String(str)
-  // Remove prefix R$, espaços, e pontos de milhar, substitui vírgula por ponto
   const cleaned = s.replace(/R\$|\s/g, '').replace(/\./g, '').replace(/,/g, '.')
   const n = parseFloat(cleaned.replace(/[^[0-9\-.]/g, ''))
   return isNaN(n) ? 0 : n
 }
 
-// Handlers para inputs em linhas da tabela
 const handleItemCurrencyInput = (item, field, val) => {
-  // val é a string exibida; atualiza o campo numérico e a string
   item[field + '_display'] = val
   item[field] = parseCurrencyBR(val)
   atualizarValorSelecionado()
@@ -487,9 +475,6 @@ const handleItemCurrencyBlur = (item, field) => {
   item[field + '_display'] = formatCurrencyBR(item[field])
 }
 
-
-
-// Verificar se uma conta está vencida
 const isVencido = (dataVencimento) => {
   if (!dataVencimento) return false
   const hoje = new Date()
@@ -498,50 +483,45 @@ const isVencido = (dataVencimento) => {
 }
 
 // Métodos
-const carregarContasPagar = async (filtrosApi = null) => {
+const carregarContasReceber = async (filtrosApi = null) => {
   try {
     loading.value = true
     
-    console.log('🔍 Carregando contas a pagar com filtros:', filtrosApi)
+    console.log('🔍 Carregando contas a receber com filtros:', filtrosApi)
     
-    // Verificar se há pelo menos um filtro válido
     const temFiltros = filtrosApi && Object.keys(filtrosApi).length > 0
     if (!temFiltros) {
       console.log('❌ Busca não executada: nenhum filtro aplicado')
-      contasPagar.value = []
+      contasReceber.value = []
       mostrarMensagem('Aplique pelo menos um filtro para buscar as contas', 'info')
       return
     }
 
-    // Verificar obrigatoriedade de datas (dtini/dtfim ou dt_inicio/dt_fim)
     const temDataInicio = filtrosApi.dtini || filtrosApi.dt_inicio
     const temDataFim = filtrosApi.dtfim || filtrosApi.dt_fim
     
     if (!temDataInicio || !temDataFim) {
       console.log('❌ Busca não executada: datas obrigatórias não informadas')
-      // mostrarMensagem('Informe o período para buscar as contas', 'info')
       return
     }
     
-    console.log('🚀 Chamando buscarContasPagarBaixa com filtros:', filtrosApi)
-    const dados = await financeiroStore.buscarContasPagarBaixa(
+    console.log('🚀 Chamando buscarContasReceberBaixa com filtros:', filtrosApi)
+    const dados = await financeiroStore.buscarContasReceberBaixa(
       idEmpresa.value,
       filtrosApi
     )
     
-    contasPagar.value = dados?.map(item => ({
+    contasReceber.value = dados?.map(item => ({
       ...item,
       vlrparcela: parseFloat(item.vlrparcela || 0),
       vlrquitado: parseFloat(item.vlrquitado || 0),
       saldo_devedor: parseFloat(item.saldo_devedor || 0),
-      // Inicializa o valor que será pago com o saldo_devedor quando não houver valor específico
-      vlrapagar: parseFloat(item.vlrapagar || item.saldo_devedor || 0),
+      vlrareceber: parseFloat(item.vlrareceber || item.saldo_devedor || 0),
       juros: parseFloat(item.juros || 0),
       multa: parseFloat(item.multa || 0),
       desconto: parseFloat(item.desconto || 0),
       vlrliberado: parseFloat(item.vlrliberado || 0),
-      // campos de display para edição com máscara
-      vlrapagar_display: formatCurrencyBR(item.vlrapagar || item.saldo_devedor || 0),
+      vlrareceber_display: formatCurrencyBR(item.vlrareceber || item.saldo_devedor || 0),
       juros_display: formatCurrencyBR(item.juros || 0),
       multa_display: formatCurrencyBR(item.multa || 0),
       desconto_display: formatCurrencyBR(item.desconto || 0),
@@ -549,20 +529,18 @@ const carregarContasPagar = async (filtrosApi = null) => {
     })) || []
     
   } catch (error) {
-    console.error('Erro ao carregar contas a pagar:', error)
-    mostrarMensagem('Erro ao carregar contas a pagar', 'error')
-    contasPagar.value = []
+    console.error('Erro ao carregar contas a receber:', error)
+    mostrarMensagem('Erro ao carregar contas a receber', 'error')
+    contasReceber.value = []
   } finally {
     loading.value = false
   }
 }
 
-// Função para aplicar filtros avançados
 const aplicarFiltrosAvancados = async (filtros) => {
   try {
     console.log('📋 Filtros recebidos do componente BuscaAvancada:', filtros)
 
-    // Usa os filtros exatamente como recebidos (dtini/dtfim)
     filtrosAvancados.value = { ...filtros };
 
     const filtrosApi = Object.entries(filtrosAvancados.value)
@@ -574,17 +552,16 @@ const aplicarFiltrosAvancados = async (filtros) => {
 
     console.log('🔧 Filtros processados para API:', filtrosApi);
 
-    await carregarContasPagar(filtrosApi);
+    await carregarContasReceber(filtrosApi);
   } catch (error) {
     console.error('Erro ao aplicar filtros:', error);
     mostrarMensagem('Erro ao aplicar filtros', 'error');
   }
 }
 
-// Controle de seleção
 const toggleTodosSelecionados = (selecionado) => {
   if (selecionado) {
-    contasSelecionadas.value = [...contasPagarFiltradas.value]
+    contasSelecionadas.value = [...contasReceberFiltradas.value]
   } else {
     contasSelecionadas.value = []
   }
@@ -595,8 +572,7 @@ const limparSelecoes = () => {
   todosSelecionados.value = false
 }
 
-// Confirmar baixa
-const confirmarBaixaPagamento = () => {
+const confirmarBaixaRecebimento = () => {
   if (contasSelecionadas.value.length === 0) {
     mostrarMensagem('Selecione pelo menos uma conta para baixar', 'warning')
     return
@@ -605,55 +581,49 @@ const confirmarBaixaPagamento = () => {
   dialogBaixa.aberto = true
 }
 
-// Executar baixa por caixa
 const executarBaixaCaixa = async (dadosBaixa) => {
   try {
     loadingBaixa.value = true
 
+    console.log('Dados da baixa por caixa:', dadosBaixa)
+
     const payload = await montarPayloadBaixa('caixa', dadosBaixa)
 
-    // Chamar API de baixa (local_lct = CAI)
-    await financeiroStore.baixarPagamentos(idEmpresa.value, payload)
+    await financeiroStore.baixarContasReceber(idEmpresa.value, payload)
     
-    mostrarMensagem(`${contasSelecionadas.value.length} pagamento(s) baixado(s) por caixa com sucesso!`, 'success')
+    mostrarMensagem(`${contasSelecionadas.value.length} recebimento(s) baixado(s) por caixa com sucesso!`, 'success')
     
-    // Limpar seleções e fechar dialog
     limparSelecoes()
     dialogBaixa.aberto = false
     
-    // Recarregar dados
-    await carregarContasPagar(filtrosAvancados.value)
+    await carregarContasReceber(filtrosAvancados.value)
     
   } catch (error) {
-    console.error('Erro ao baixar pagamentos por caixa:', error)
-    mostrarMensagem('Erro ao baixar pagamentos por caixa', 'error')
+    console.error('Erro ao baixar recebimentos por caixa:', error)
+    mostrarMensagem('Erro ao baixar recebimentos por caixa', 'error')
   } finally {
     loadingBaixa.value = false
   }
 }
 
-// Executar baixa por banco
 const executarBaixaBanco = async (dadosBaixa) => {
   try {
     loadingBaixa.value = true
 
     const payload = await montarPayloadBaixa('banco', dadosBaixa)
 
-    // Chamar API de baixa (local_lct = BAN)
-    await financeiroStore.baixarPagamentos(idEmpresa.value, payload)
+    await financeiroStore.baixarContasReceber(idEmpresa.value, payload)
     
-    mostrarMensagem(`${contasSelecionadas.value.length} pagamento(s) baixado(s) por banco com sucesso!`, 'success')
+    mostrarMensagem(`${contasSelecionadas.value.length} recebimento(s) baixado(s) por banco com sucesso!`, 'success')
     
-    // Limpar seleções e fechar dialog
     limparSelecoes()
     dialogBaixa.aberto = false
     
-    // Recarregar dados
-    await carregarContasPagar(filtrosAvancados.value)
+    await carregarContasReceber(filtrosAvancados.value)
     
   } catch (error) {
-    console.error('Erro ao baixar pagamentos por banco:', error)
-    mostrarMensagem('Erro ao baixar pagamentos por banco', 'error')
+    console.error('Erro ao baixar recebimentos por banco:', error)
+    mostrarMensagem('Erro ao baixar recebimentos por banco', 'error')
   } finally {
     loadingBaixa.value = false
   }
@@ -665,10 +635,8 @@ const mostrarMensagem = (mensagem, tipo) => {
   snackbar.show = true
 }
 
-// Ciclo de vida
 onMounted(async () => {
-  // Não carregar dados automaticamente - aguardar filtros com datas obrigatórias
-  console.log('Tela de baixa de pagamento carregada. Aguardando filtros com datas para buscar dados.')
+  console.log('Tela de baixa de recebimento carregada. Aguardando filtros com datas para buscar dados.')
 })
 </script>
 
@@ -683,7 +651,6 @@ onMounted(async () => {
   color: var(--text-color);
 }
 
-/* Forçar elementos internos do Vuetify (v-data-table etc.) a herdar o tema */
 .background-secondary :deep(.v-data-table),
 .background-secondary :deep(.v-data-table__wrapper),
 .background-secondary :deep(.v-simple-table),
@@ -709,7 +676,7 @@ onMounted(async () => {
   text-align: right;
 }
 
-.vlr-a-pagar input {
+.vlr-a-receber input {
   text-align: right;
 }
 

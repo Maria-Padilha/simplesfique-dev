@@ -43,6 +43,55 @@
             </v-card>
           </div>
 
+           <!-- Documento e Tipo Pagamento/Recebimento -->
+          <div class="mb-4">
+            <v-row>
+              <v-col cols="12" md="4">
+                <v-autocomplete
+                  v-model="formData.id_tipodocumento"
+                  :items="tiposDocumento"
+                  :loading="loadingTiposDoc"
+                  item-title="desctipodocumento"
+                  item-value="id"
+                  label="Tipo Documento *"
+                  :rules="[rules.required]"
+                  variant="outlined"
+                  density="compact"
+                  prepend-inner-icon="mdi-file-document-outline"
+                  no-data-text="Nenhum tipo disponível"
+                />
+              </v-col>
+
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="formData.nrdocumento"
+                  label="Número Documento"
+                  variant="outlined"
+                  density="compact"
+                  prepend-inner-icon="mdi-numeric"
+                  maxlength="20"
+                  counter="20"
+                />
+              </v-col>
+
+              <v-col cols="12" md="4">
+                <v-autocomplete
+                v-model="formData.id_tipopagrec"
+                :items="tiposPagRec"
+                :loading="loadingTiposPagRec"
+                item-title="desctipopagrec"
+                item-value="id"
+                label="Tipo Pagamento/Recebimento *"
+                :rules="[rules.required]"
+                variant="outlined"
+                density="compact"
+                prepend-inner-icon="mdi-credit-card"
+                no-data-text="Nenhum tipo disponível"
+                />
+              </v-col>
+            </v-row>
+          </div> 
+          
           <!-- Descrição -->
           <div class="mb-4">
             <v-textarea
@@ -54,6 +103,8 @@
               placeholder="Descrição da baixa no caixa..."
             />
           </div>
+
+         
 
           <!-- Valor a Pagar -->
           <div class="mb-4">
@@ -192,6 +243,7 @@
 import { ref, reactive, computed, watch, defineProps, defineEmits } from 'vue'
 import { useCaixaStore } from '@/stores/APIs/caixa'
 import { useThemeStore } from '@/stores/config-temas/theme'
+import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 
 // Props
 const props = defineProps({
@@ -223,17 +275,27 @@ const emit = defineEmits(['update:model-value', 'confirmar'])
 // Stores
 const caixaStore = useCaixaStore()
 const themeStore = useThemeStore()
+const financeiroStore = useFinanceiroStore()
 
 // Refs
 const formRef = ref(null)
 const formValido = ref(false)
 const listaCaixas = ref([])
 
+const tiposDocumento = ref([])
+const tiposPagRec = ref([])
+const loadingTiposDoc = ref(false)
+const loadingTiposPagRec = ref(false)
+
 // Form Data
 const formData = reactive({
   codigoCaixa: '',
+  id_reduzido_ctb_caixa: null,
   descricaoCaixa: '',
   descricao: '',
+  id_tipodocumento: null,
+  nrdocumento: '',
+  id_tipopagrec: null,
   vlrNormal: 0,
   vlrNormal_display: 'R$ 0,00',
   juros: 0,
@@ -270,17 +332,45 @@ const carregarCaixaAberto = async () => {
     if (Array.isArray(caixas)) {
       listaCaixas.value = caixas.map(c => ({
         id: c.id_caixa || c.id,
-        descricao: c.desccaixa || c.descricao
+        descricao: c.desccaixa || c.descricao,
+        id_reduzido_ctb_caixa: c.id_reduzido_ctb_caixa || c.id_reduzido || null
       }))
 
       if (listaCaixas.value.length > 0 && !formData.codigoCaixa) {
         const caixa = listaCaixas.value[0]
         formData.codigoCaixa = caixa.id
         formData.descricaoCaixa = caixa.descricao
+        formData.id_reduzido_ctb_caixa = caixa.id_reduzido_ctb_caixa|| null
       }
     }
   } catch (error) {
     console.error('Erro ao carregar caixas abertos do usuário:', error)
+  }
+}
+
+const carregarTiposDocumento = async () => {
+  loadingTiposDoc.value = true
+  try {
+    const dados = await financeiroStore.buscarTiposDocumento()
+    tiposDocumento.value = Array.isArray(dados) ? dados : []
+  } catch (error) {
+    console.error('Erro ao carregar tipos de documento:', error)
+    tiposDocumento.value = []
+  } finally {
+    loadingTiposDoc.value = false
+  }
+}
+
+const carregarTiposPagRec = async () => {
+  loadingTiposPagRec.value = true
+  try {
+    const dados = await financeiroStore.buscarTiposPagRec()
+    tiposPagRec.value = Array.isArray(dados) ? dados : (financeiroStore.tiposPagRec || [])
+  } catch (error) {
+    console.error('Erro ao carregar tipos de pagamento/recebimento:', error)
+    tiposPagRec.value = []
+  } finally {
+    loadingTiposPagRec.value = false
   }
 }
 
@@ -291,7 +381,11 @@ watch(() => props.modelValue, async (newVal) => {
     formData.vlrNormal = props.valorTotal
     formData.vlrNormal_display = formatCurrencyBR(props.valorTotal)
 
-    await carregarCaixaAberto()
+    await Promise.all([
+      carregarCaixaAberto(),
+      carregarTiposDocumento(),
+      carregarTiposPagRec()
+    ])
   }
 })
 
@@ -338,7 +432,11 @@ const confirmarBaixa = () => {
   const dadosBaixa = {
     tipo: 'caixa',
     codigoCaixa: formData.codigoCaixa,
+    id_reduzido_ctb_caixa: formData.id_reduzido_ctb_caixa,
     descricao: formData.descricao,
+    id_tipodocumento: formData.id_tipodocumento,
+    nrdocumento: formData.nrdocumento,
+    id_tipopagrc: formData.id_tipopagrec,
     vlrNormal: formData.vlrNormal,
     juros: formData.juros,
     multa: formData.multa,

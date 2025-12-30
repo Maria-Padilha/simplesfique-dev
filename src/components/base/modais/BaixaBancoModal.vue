@@ -18,7 +18,7 @@
             <h6 class="text-subtitle-1 mb-3">Informe o código da conta corrente:</h6>
             <v-card class="background-secondary pa-3" elevation="1">
               <v-row dense>
-                <v-col cols="6" md="2">
+                <v-col cols="6" md="4">
                   <v-autocomplete
                     v-model="formData.codReduzido"
                     :items="listaContas"
@@ -32,24 +32,6 @@
                     @update:model-value="selecionarConta"
                     :loading="financeiroStore.loading"
                     no-data-text="Nenhuma conta encontrada"
-                  />
-                </v-col>
-                <v-col cols="6" md="2">
-                  <v-text-field
-                    v-model="formData.banco"
-                    label="Banco"
-                    variant="outlined"
-                    density="compact"
-                    readonly
-                  />
-                </v-col>
-                <v-col cols="6" md="2">
-                  <v-text-field
-                    v-model="formData.agencia"
-                    label="Agência"
-                    variant="outlined"
-                    density="compact"
-                    readonly
                   />
                 </v-col>
                 <v-col cols="6" md="3">
@@ -262,8 +244,10 @@ const formValido = ref(false)
 
 // Form Data
 const formData = reactive({
+  codigoBanco: '',
   codReduzido: '',
   banco: '',
+  id_reduzido_ctb_banco: null,
   agencia: '',
   contaCorrente: '',
   titular: '',
@@ -311,7 +295,7 @@ watch(() => props.modelValue, (newVal) => {
 onMounted(async () => {
   try {
     const [contas, , agencias] = await Promise.all([
-      financeiroStore.buscarContas(),
+      financeiroStore.buscarContasUsuarioAtivo(),
       financeiroStore.buscarBancos(),
       financeiroStore.buscarAgencias()
     ])
@@ -321,7 +305,7 @@ onMounted(async () => {
     // Mapear contas para adicionar label de exibição
     listaContas.value = (contas || []).map(c => ({
       ...c,
-      displayLabel: `${c.descbanco || 'Banco'} - CC: ${c.numero_ccorrente}-${c.digito_cc} - ${c.titular}`
+      displayLabel: ` ${c.numero_ccorrente} - ${c.titular}`
     }))
   } catch (error) {
     console.error('Erro ao carregar dados bancários:', error)
@@ -331,11 +315,17 @@ onMounted(async () => {
 const selecionarConta = (id) => {
   const conta = listaContas.value.find(c => c.id === id)
   if (conta) {
+
+    // ID Banco
+    formData.codigoBanco = conta.id || ''
     // Banco
     formData.banco = conta.descbanco || ''
+
+    // ID reduzido CTB Banco
+    formData.id_reduzido_ctb_banco = conta.id_reduzido_ctb_banco || conta.id_reduzido || null
     
     // Conta Corrente
-    formData.contaCorrente = `${conta.numero_ccorrente}-${conta.digito_cc}`
+    formData.contaCorrente = `${conta.numero_ccorrente}`
     
     // Titular
     formData.titular = conta.titular || ''
@@ -398,7 +388,9 @@ const formatCurrencyField = (field) => {
 const confirmarBaixa = () => {
   const dadosBaixa = {
     tipo: 'banco',
+    codigoBanco: formData.codigoBanco,
     codReduzido: formData.codReduzido,
+    id_reduzido_ctb_banco: formData.id_reduzido_ctb_banco,
     banco: formData.banco,
     agencia: formData.agencia,
     contaCorrente: formData.contaCorrente,

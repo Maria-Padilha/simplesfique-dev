@@ -124,7 +124,7 @@ export const useCaixaStore = defineStore('caixa', {
             this.loading = true;
             
             try {
-                console.log('Store: Chamando API caixausuaberto/', idEmpresa);
+                console.log('Store: Chamando API caixausuaberto');
                 const response = await api.get(`caixausuaberto/${idEmpresa}`, {
                     headers: { Authorization: `Bearer ${this.token}` }
                 });
