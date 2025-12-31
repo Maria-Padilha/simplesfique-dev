@@ -1,11 +1,5 @@
 <template>
-  <v-card class="background-card" elevation="2">
-    <v-card-title class="text-h6 pa-4">
-      <v-icon icon="mdi-bank-transfer-out" class="mr-2"></v-icon>
-      Transferência Banco / Caixa
-    </v-card-title>
-    <v-card-text class="pa-4">
-      <v-form ref="formRef" v-model="formValido">
+  <v-form ref="formRef" v-model="formValido">
         <v-row>
           <!-- Banco Origem -->
           <v-col cols="12" md="4">
@@ -257,6 +251,136 @@
             </v-text-field>
           </v-col>
 
+          <!-- Histórico Contábil Banco -->
+          <v-col cols="12" md="4">
+            <v-text-field
+              label="Histórico Contábil Banco"
+              v-model="historicoContabilSelecionado"
+              variant="outlined"
+              density="compact"
+              hide-details="auto"
+              prepend-inner-icon="mdi-book-open-variant"
+              readonly
+              placeholder="Selecione um histórico contábil"
+            >
+              <template #append-inner>
+                <busca-padrao-menu
+                  v-model="menuHistoricoContabil"
+                  :pesquisar="pesquisarHistoricosContabil"
+                  :modelInput="termoHistoricoContabil"
+                  :resultados="historicoContabilResultados"
+                  @update:modelInput="termoHistoricoContabil = $event"
+                  @selecionar="selecionarHistoricoContabil"
+                >
+                  <template #resultados="{ selecionar }">
+                    <v-virtual-scroll
+                      :items="historicoContabilResultados"
+                      :height="120"
+                      item-height="42"
+                      class="mt-3"
+                    >
+                      <template #default="{ item }">
+                        <div
+                          class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                          @click="selecionar(item)"
+                        >
+                          <p class="text-body-1">{{ item.deschistorico || item.descricao }}</p>
+                        </div>
+                      </template>
+                    </v-virtual-scroll>
+                  </template>
+                </busca-padrao-menu>
+              </template>
+            </v-text-field>
+          </v-col>
+
+          <!-- Histórico Contábil Caixa -->
+          <v-col cols="12" md="4">
+            <v-text-field
+              label="Histórico Contábil Caixa"
+              v-model="historicoContabilCaixaSelecionado"
+              variant="outlined"
+              density="compact"
+              hide-details="auto"
+              prepend-inner-icon="mdi-book-open-variant"
+              readonly
+              placeholder="Selecione um histórico contábil"
+            >
+              <template #append-inner>
+                <busca-padrao-menu
+                  v-model="menuHistoricoContabilCaixa"
+                  :pesquisar="pesquisarHistoricosContabilCaixa"
+                  :modelInput="termoHistoricoContabilCaixa"
+                  :resultados="historicoContabilCaixaResultados"
+                  @update:modelInput="termoHistoricoContabilCaixa = $event"
+                  @selecionar="selecionarHistoricoContabilCaixa"
+                >
+                  <template #resultados="{ selecionar }">
+                    <v-virtual-scroll
+                      :items="historicoContabilCaixaResultados"
+                      :height="120"
+                      item-height="42"
+                      class="mt-3"
+                    >
+                      <template #default="{ item }">
+                        <div
+                          class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                          @click="selecionar(item)"
+                        >
+                          <p class="text-body-1">{{ item.deschistorico || item.descricao }}</p>
+                        </div>
+                      </template>
+                    </v-virtual-scroll>
+                  </template>
+                </busca-padrao-menu>
+              </template>
+            </v-text-field>
+          </v-col>
+
+          <!-- Tipo Pagamento -->
+          <v-col cols="12" md="4">
+            <v-text-field
+              label="Tipo Pagamento *"
+              v-model="tipoPagamentoSelecionado"
+              variant="outlined"
+              density="compact"
+              hide-details="auto"
+              :rules="[rules.required]"
+              prepend-inner-icon="mdi-cash-multiple"
+              readonly
+              placeholder="Selecione um tipo de pagamento"
+            >
+              <template #append-inner>
+                <busca-padrao-menu
+                  v-model="menuTipoPagamento"
+                  :pesquisar="pesquisarTipoPagamento"
+                  :modelInput="termoTipoPagamento"
+                  :resultados="tipoPagamentoResultados"
+                  @update:modelInput="termoTipoPagamento = $event"
+                  @selecionar="selecionarTipoPagamento"
+                >
+                  <template #resultados="{ selecionar }">
+                    <v-virtual-scroll
+                      :items="tipoPagamentoResultados"
+                      :height="120"
+                      item-height="42"
+                      class="mt-3"
+                    >
+                      <template #default="{ item }">
+                        <div
+                          class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                          @click="selecionar(item)"
+                        >
+                          <p class="text-body-1">{{ item.desctipopagrec || item.descricao }}</p>
+                        </div>
+                      </template>
+                    </v-virtual-scroll>
+                  </template>
+                </busca-padrao-menu>
+              </template>
+            </v-text-field>
+          </v-col>
+
           <!-- Observações -->
           <v-col cols="12">
             <v-textarea
@@ -267,14 +391,14 @@
               rows="2"
               prepend-inner-icon="mdi-text"
               hide-details
+              @focus="preencherObservacao"
             ></v-textarea>
           </v-col>
         </v-row>
-      </v-form>
-    </v-card-text>
+    </v-form>
 
-    <v-card-actions class="pa-4">
-      <v-spacer></v-spacer>
+    <!-- Botões de ação -->
+    <div class="d-flex justify-end ga-2 mt-4">
       <v-btn
         color="grey"
         variant="text"
@@ -293,27 +417,19 @@
         <v-icon icon="mdi-check" class="mr-1"></v-icon>
         Transferir
       </v-btn>
-    </v-card-actions>
-
-    <!-- Snackbar de Feedback -->
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      :timeout="3000"
-      location="top"
-    >
-      {{ snackbar.message }}
-    </v-snackbar>
-  </v-card>
+    </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
 import TipoDocumentoMenu from '@/components/base/menu/TipoDocumentoMenu.vue'
-import { useCaixaStore } from '@/stores/APIs/caixa'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
+import { useCaixaStore } from '@/stores/APIs/caixa'
 import { useConfigParfinStore } from '@/stores/APIs/config'
+
+// eslint-disable-next-line no-undef
+const emit = defineEmits(['sucesso'])
 
 const caixaStore = useCaixaStore()
 const financeiroStore = useFinanceiroStore()
@@ -346,8 +462,26 @@ const termoHistoricoCaixa = ref('')
 const historicoCaixaResultados = ref([])
 const historicoCaixaSelecionado = ref('')
 
+// Histórico Contábil Banco
+const menuHistoricoContabil = ref(false)
+const termoHistoricoContabil = ref('')
+const historicoContabilResultados = ref([])
+const historicoContabilSelecionado = ref('')
+
+// Histórico Contábil Caixa
+const menuHistoricoContabilCaixa = ref(false)
+const termoHistoricoContabilCaixa = ref('')
+const historicoContabilCaixaResultados = ref([])
+const historicoContabilCaixaSelecionado = ref('')
+
 // Tipo Documento
 const tipoDocumentoSelecionado = ref('')
+
+// Tipo Pagamento
+const menuTipoPagamento = ref(false)
+const termoTipoPagamento = ref('')
+const tipoPagamentoResultados = ref([])
+const tipoPagamentoSelecionado = ref('')
 
 const formData = reactive({
   id_conta_corrente: null,
@@ -359,18 +493,13 @@ const formData = reactive({
   numero_documento: null,
   id_historico_banco: null,
   id_historico_caixa: null,
+  id_tipopagrec: null,
   observacoes: null,
   // Campos contábeis
   id_reduzido_ctb_banco_origem: null,
   id_reduzido_ctb_caixa_destino: null,
   id_hist_contabil_banco: null,
   id_hist_contabil_caixa: null
-})
-
-const snackbar = reactive({
-  show: false,
-  message: '',
-  color: 'success'
 })
 
 const rules = {
@@ -425,9 +554,41 @@ const pesquisarHistoricosCaixa = async () => {
   }
 }
 
+const pesquisarHistoricosContabil = async () => {
+  try {
+    const historicos = await financeiroStore.buscarHistoricosContabil()
+    historicoContabilResultados.value = Array.isArray(historicos) ? historicos : (historicos?.data || [])
+  } catch (error) {
+    console.error('Erro ao pesquisar históricos contábeis:', error)
+    historicoContabilResultados.value = []
+  }
+}
+
+const pesquisarHistoricosContabilCaixa = async () => {
+  try {
+    const historicos = await financeiroStore.buscarHistoricosContabil()
+    historicoContabilCaixaResultados.value = Array.isArray(historicos) ? historicos : (historicos?.data || [])
+  } catch (error) {
+    console.error('Erro ao pesquisar históricos contábeis de caixa:', error)
+    historicoContabilCaixaResultados.value = []
+  }
+}
+
+const pesquisarTipoPagamento = async () => {
+  try {
+    const tipos = await financeiroStore.buscarTiposPagRec()
+    tipoPagamentoResultados.value = Array.isArray(tipos) ? tipos : (tipos?.data || [])
+  } catch (error) {
+    console.error('Erro ao pesquisar tipos de pagamento:', error)
+    tipoPagamentoResultados.value = []
+  }
+}
+
 const selecionarBanco = (banco) => {
   if (banco) {
     formData.id_conta_corrente = banco.id
+    formData.id_reduzido_ctb_banco_origem = banco.id_reduzido_ctb_banco || null
+    formData.id_hist_contabil_banco = banco.id_hist_contabil
     bancoSelecionado.value = `${banco.titular} - Conta: ${banco.numero_ccorrente}`
   }
 }
@@ -435,6 +596,8 @@ const selecionarBanco = (banco) => {
 const selecionarCaixa = (caixa) => {
   if (caixa) {
     formData.id_caixa = caixa.id_caixa || caixa.id
+    formData.id_reduzido_ctb_caixa_destino = caixa.id_reduzido_ctb_caixa || null
+    formData.id_hist_contabil_caixa = caixa.id_hist_contabil || null
     caixaSelecionado.value = caixa.desccaixa || caixa.nomecaixa || caixa.nome
   }
 }
@@ -453,10 +616,41 @@ const selecionarHistoricoCaixa = (historico) => {
   }
 }
 
+const selecionarHistoricoContabil = (historico) => {
+  if (historico) {
+    formData.id_hist_contabil_banco = historico.id
+    historicoContabilSelecionado.value = historico.deschistorico || historico.descricao
+  }
+}
+
+const selecionarHistoricoContabilCaixa = (historico) => {
+  if (historico) {
+    formData.id_hist_contabil_caixa = historico.id
+    historicoContabilCaixaSelecionado.value = historico.deschistorico || historico.descricao
+  }
+}
+
 const selecionarTipoDocumento = (tipoDoc) => {
   if (tipoDoc) {
     formData.tipo_documento = tipoDoc.id
     tipoDocumentoSelecionado.value = tipoDoc.desctipodocumento || tipoDoc.descricao
+  }
+}
+
+const selecionarTipoPagamento = (tipo) => {
+  if (tipo) {
+    formData.id_tipopagrec = tipo.id
+    tipoPagamentoSelecionado.value = tipo.desctipopagrec || tipo.descricao
+  }
+}
+
+const preencherObservacao = () => {
+  if (!formData.observacoes || formData.observacoes.trim() === '') {
+    const origem = bancoSelecionado.value || 'N/A'
+    const destino = caixaSelecionado.value || 'N/A'
+    const valor = formData.valor ? `R$ ${formData.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'R$ 0,00'
+    
+    formData.observacoes = `BANCO -> CAIXA "${origem}" para "${destino}": ${valor}`
   }
 }
 
@@ -480,7 +674,8 @@ const executarTransferencia = async () => {
         id_reduzido_ctb_banco_origem: formData.id_reduzido_ctb_banco_origem,
         id_reduzido_ctb_caixa_destino: formData.id_reduzido_ctb_caixa_destino,
         tipo_transf: 2, // Banco/Caixa
-        tipo: formData.tipo_documento,
+        tipo_documento: formData.tipo_documento,
+        id_tipopagrec: formData.id_tipopagrec,
         nrdocumento: formData.numero_documento,
         dtlancamento: formData.data_movimento,
         valor: formData.valor,
@@ -491,14 +686,10 @@ const executarTransferencia = async () => {
 
     await financeiroStore.realizarTransferencia(payload)
     
-    snackbar.message = 'Transferência realizada com sucesso!'
-    snackbar.color = 'success'
-    snackbar.show = true
     limparFormulario()
+    emit('sucesso')
   } catch (error) {
-    snackbar.message = error.message || 'Erro ao realizar transferência'
-    snackbar.color = 'error'
-    snackbar.show = true
+    console.error('Erro ao realizar transferência:', error)
   } finally {
     loading.value = false
   }
@@ -515,13 +706,22 @@ const limparFormulario = () => {
     numero_documento: null,
     id_historico_banco: null,
     id_historico_caixa: null,
-    observacoes: null
+    id_tipopagrec: null,
+    observacoes: null,
+    // Campos contábeis
+    id_reduzido_ctb_banco_origem: null,
+    id_reduzido_ctb_caixa_destino: null,
+    id_hist_contabil_banco: null,
+    id_hist_contabil_caixa: null
   })
   bancoSelecionado.value = ''
   caixaSelecionado.value = ''
   historicoBancoSelecionado.value = ''
   historicoCaixaSelecionado.value = ''
+  historicoContabilSelecionado.value = ''
+  historicoContabilCaixaSelecionado.value = ''
   tipoDocumentoSelecionado.value = ''
+  tipoPagamentoSelecionado.value = ''
   formRef.value?.resetValidation()
 }
 
@@ -531,6 +731,9 @@ onMounted(() => {
   pesquisarCaixas()
   pesquisarHistoricosBanco()
   pesquisarHistoricosCaixa()
+  pesquisarHistoricosContabil()
+  pesquisarHistoricosContabilCaixa()
+  pesquisarTipoPagamento()
 })
 </script>
 

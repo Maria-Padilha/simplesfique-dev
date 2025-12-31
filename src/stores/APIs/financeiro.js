@@ -1974,6 +1974,47 @@ export const useFinanceiroStore = defineStore('financeiro', {
         this.loading = false;
       }
     },
+
+    // Buscar histórico de transferências financeiras (GET /transffinanceiras/:idempresa/dtini/:dtini/dtfim/:dtfim)
+    async buscarTransferenciasFinanceiras(idEmpresa, dtini, dtfim, tipoTransf = null) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        let url = `/transffinanceiras/${idEmpresa}/dtini/${dtini}/dtfim/${dtfim}`;
+        
+        // Adicionar filtro de tipo se especificado
+        if (tipoTransf !== null && tipoTransf !== undefined) {
+          url += `?tipo_transf=${tipoTransf}`;
+        }
+
+        console.log('🔍 Buscando transferências financeiras:', url);
+        
+        const response = await api.get(url, {
+          headers: this.getAuthHeaders()
+        });
+
+        // Normalizar resposta
+        const resp = response.data;
+        let dados = [];
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data;
+        } else if (Array.isArray(resp)) {
+          dados = resp;
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp];
+        }
+
+        console.log('✅ Transferências encontradas:', dados.length);
+        return dados;
+      } catch (error) {
+        console.error('❌ Erro ao buscar transferências:', error.response?.data);
+        this.error = error.response?.data?.message || 'Erro ao buscar transferências';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
     
   },
 

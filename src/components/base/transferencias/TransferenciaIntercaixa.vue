@@ -1,11 +1,5 @@
 <template>
-  <v-card class="background-card" elevation="2">
-    <v-card-title class="text-h6 pa-4">
-      <v-icon icon="mdi-cash-sync" class="mr-2"></v-icon>
-      Transferência Intercaixa
-    </v-card-title>
-    <v-card-text class="pa-4">
-      <v-form ref="formRef" v-model="formValido">
+  <v-form ref="formRef" v-model="formValido">
         <v-row>
           <!-- Caixa Origem -->
           <v-col cols="12" md="4">
@@ -125,50 +119,6 @@
             ></v-text-field>
           </v-col>
 
-          <!-- Operador -->
-          <v-col cols="12" md="4">
-            <v-text-field
-              label="Operador *"
-              v-model="operadorSelecionado"
-              variant="outlined"
-              density="compact"
-              hide-details="auto"
-              :rules="[rules.required]"
-              prepend-inner-icon="mdi-account"
-              readonly
-              placeholder="Selecione um operador"
-            >
-              <template #append-inner>
-                <busca-padrao-menu
-                  v-model="menuOperador"
-                  :pesquisar="pesquisarOperadores"
-                  :modelInput="termoOperador"
-                  :resultados="operadorResultados"
-                  @update:modelInput="termoOperador = $event"
-                  @selecionar="selecionarOperador"
-                >
-                  <template #resultados="{ selecionar }">
-                    <v-virtual-scroll
-                      :items="operadorResultados"
-                      :height="120"
-                      item-height="42"
-                      class="mt-3"
-                    >
-                      <template #default="{ item }">
-                        <div
-                          class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
-                          @click="selecionar(item)"
-                        >
-                          <p class="text-body-1">{{ item.nome || item.login }}</p>
-                        </div>
-                      </template>
-                    </v-virtual-scroll>
-                  </template>
-                </busca-padrao-menu>
-              </template>
-            </v-text-field>
-          </v-col>
-
           <!-- Tipo Documento -->
           <v-col cols="12" md="4">
             <v-text-field
@@ -186,6 +136,18 @@
                 <TipoDocumentoMenu @selecionar="selecionarTipoDocumento" />
               </template>
             </v-text-field>
+          </v-col>
+
+          <!-- Número Documento -->
+          <v-col cols="12" md="4">
+            <v-text-field
+              v-model="formData.numero_documento"
+              label="Número Documento"
+              density="compact"
+              variant="outlined"
+              prepend-inner-icon="mdi-file-document-outline"
+              hide-details="auto"
+            ></v-text-field>
           </v-col>
 
           <!-- Histórico -->
@@ -232,6 +194,93 @@
             </v-text-field>
           </v-col>
 
+          <!-- Tipo Pagamento -->
+          <v-col cols="12" md="4">
+            <v-text-field
+              label="Tipo Pagamento *"
+              v-model="tipoPagamentoSelecionado"
+              variant="outlined"
+              density="compact"
+              hide-details="auto"
+              :rules="[rules.required]"
+              prepend-inner-icon="mdi-cash-multiple"
+              readonly
+              placeholder="Selecione um tipo de pagamento"
+            >
+              <template #append-inner>
+                <busca-padrao-menu
+                  v-model="menuTipoPagamento"
+                  :pesquisar="pesquisarTipoPagamento"
+                  :modelInput="termoTipoPagamento"
+                  :resultados="tipoPagamentoResultados"
+                  @update:modelInput="termoTipoPagamento = $event"
+                  @selecionar="selecionarTipoPagamento"
+                >
+                  <template #resultados="{ selecionar }">
+                    <v-virtual-scroll
+                      :items="tipoPagamentoResultados"
+                      :height="120"
+                      item-height="42"
+                      class="mt-3"
+                    >
+                      <template #default="{ item }">
+                        <div
+                          class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                          @click="selecionar(item)"
+                        >
+                          <p class="text-body-1">{{ item.desctipopagrec || item.descricao }}</p>
+                        </div>
+                      </template>
+                    </v-virtual-scroll>
+                  </template>
+                </busca-padrao-menu>
+              </template>
+            </v-text-field>
+          </v-col>
+
+          <!-- Histórico Contábil Caixa -->
+          <v-col cols="12" md="4">
+            <v-text-field
+              label="Histórico Contábil Caixa"
+              v-model="historicoContabilCaixaSelecionado"
+              variant="outlined"
+              density="compact"
+              hide-details="auto"
+              prepend-inner-icon="mdi-book-open-variant"
+              readonly
+              placeholder="Selecione um histórico contábil"
+            >
+              <template #append-inner>
+                <busca-padrao-menu
+                  v-model="menuHistoricoContabilCaixa"
+                  :pesquisar="pesquisarHistoricosContabilCaixa"
+                  :modelInput="termoHistoricoContabilCaixa"
+                  :resultados="historicoContabilCaixaResultados"
+                  @update:modelInput="termoHistoricoContabilCaixa = $event"
+                  @selecionar="selecionarHistoricoContabilCaixa"
+                >
+                  <template #resultados="{ selecionar }">
+                    <v-virtual-scroll
+                      :items="historicoContabilCaixaResultados"
+                      :height="120"
+                      item-height="42"
+                      class="mt-3"
+                    >
+                      <template #default="{ item }">
+                        <div
+                          class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                          @click="selecionar(item)"
+                        >
+                          <p class="text-body-1">{{ item.deschistorico || item.descricao }}</p>
+                        </div>
+                      </template>
+                    </v-virtual-scroll>
+                  </template>
+                </busca-padrao-menu>
+              </template>
+            </v-text-field>
+          </v-col>
+
           <!-- Observações -->
           <v-col cols="12">
             <v-textarea
@@ -242,14 +291,14 @@
               rows="2"
               prepend-inner-icon="mdi-text"
               hide-details
+              @focus="preencherObservacao"
             ></v-textarea>
           </v-col>
         </v-row>
       </v-form>
-    </v-card-text>
 
-    <v-card-actions class="pa-4">
-      <v-spacer></v-spacer>
+    <!-- Botões de ação -->
+    <div class="d-flex justify-end ga-2 mt-4">
       <v-btn
         color="grey"
         variant="text"
@@ -268,18 +317,7 @@
         <v-icon icon="mdi-check" class="mr-1"></v-icon>
         Transferir
       </v-btn>
-    </v-card-actions>
-
-    <!-- Snackbar de Feedback -->
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      :timeout="3000"
-      location="top"
-    >
-      {{ snackbar.message }}
-    </v-snackbar>
-  </v-card>
+    </div>
 </template>
 
 <script setup>
@@ -289,6 +327,9 @@ import TipoDocumentoMenu from '@/components/base/menu/TipoDocumentoMenu.vue'
 import { useCaixaStore } from '@/stores/APIs/caixa'
 import { useConfigParfinStore } from '@/stores/APIs/config'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
+
+// eslint-disable-next-line no-undef
+const emit = defineEmits(['sucesso'])
 
 const caixaStore = useCaixaStore()
 const configStore = useConfigParfinStore()
@@ -310,12 +351,6 @@ const caixaDestinoSelecionado = ref('')
 // Caixa Resultados (compartilhado)
 const caixaResultados = ref([])
 
-// Operador
-const menuOperador = ref(false)
-const termoOperador = ref('')
-const operadorResultados = ref([])
-const operadorSelecionado = ref('')
-
 // Histórico
 const menuHistorico = ref(false)
 const termoHistorico = ref('')
@@ -325,25 +360,32 @@ const historicoSelecionado = ref('')
 // Tipo Documento
 const tipoDocumentoSelecionado = ref('')
 
+// Tipo Pagamento
+const menuTipoPagamento = ref(false)
+const termoTipoPagamento = ref('')
+const tipoPagamentoResultados = ref([])
+const tipoPagamentoSelecionado = ref('')
+
+// Histórico Contábil Caixa
+const menuHistoricoContabilCaixa = ref(false)
+const termoHistoricoContabilCaixa = ref('')
+const historicoContabilCaixaResultados = ref([])
+const historicoContabilCaixaSelecionado = ref('')
+
 const formData = reactive({
   id_caixa_origem: null,
   id_caixa_destino: null,
   data_movimento: new Date().toISOString().split('T')[0],
   valor: null,
-  id_operador: null,
   tipo_documento: null,
+  numero_documento: null,
   id_historico: null,
+  id_tipopagrec: null,
   observacoes: null,
   // Campos contábeis
   id_reduzido_ctb_caixa_origem: null,
   id_reduzido_ctb_caixa_destino: null,
   id_hist_contabil_caixa: null
-})
-
-const snackbar = reactive({
-  show: false,
-  message: '',
-  color: 'success'
 })
 
 const rules = {
@@ -375,17 +417,6 @@ const pesquisarCaixas = async () => {
   }
 }
 
-const pesquisarOperadores = async () => {
-  try {
-    // TODO: Implementar busca de operadores/usuários
-    // const idEmpresa = localStorage.getItem('id_empresa')
-    operadorResultados.value = []
-  } catch (error) {
-    console.error('Erro ao pesquisar operadores:', error)
-    operadorResultados.value = []
-  }
-}
-
 const pesquisarHistoricos = async () => {
   try {
     const historicos = await configStore.buscarHistoricoCaixa()
@@ -399,6 +430,8 @@ const pesquisarHistoricos = async () => {
 const selecionarCaixaOrigem = (caixa) => {
   if (caixa) {
     formData.id_caixa_origem = caixa.id_caixa || caixa.id
+    formData.id_reduzido_ctb_caixa_origem = caixa.id_reduzido_ctb_caixa || null
+    formData.id_hist_contabil_caixa = caixa.id_hist_contabil
     caixaOrigemSelecionado.value = caixa.desccaixa || caixa.nomecaixa || caixa.nome
   }
 }
@@ -406,16 +439,14 @@ const selecionarCaixaOrigem = (caixa) => {
 const selecionarCaixaDestino = (caixa) => {
   if (caixa) {
     formData.id_caixa_destino = caixa.id_caixa || caixa.id
+    formData.id_reduzido_ctb_caixa_destino = caixa.id_reduzido_ctb_caixa || null
+    if (!formData.id_hist_contabil_caixa) {
+      formData.id_hist_contabil_caixa = caixa.id_hist_contabil
+    }
     caixaDestinoSelecionado.value = caixa.desccaixa || caixa.nomecaixa || caixa.nome
   }
 }
 
-const selecionarOperador = (operador) => {
-  if (operador) {
-    formData.id_operador = operador.id
-    operadorSelecionado.value = operador.nome || operador.login
-  }
-}
 
 const selecionarHistorico = (historico) => {
   if (historico) {
@@ -428,6 +459,50 @@ const selecionarTipoDocumento = (tipoDoc) => {
   if (tipoDoc) {
     formData.tipo_documento = tipoDoc.id
     tipoDocumentoSelecionado.value = tipoDoc.desctipodocumento || tipoDoc.descricao
+  }
+}
+
+const pesquisarTipoPagamento = async () => {
+  try {
+    const tipos = await financeiroStore.buscarTiposPagRec()
+    tipoPagamentoResultados.value = Array.isArray(tipos) ? tipos : (tipos?.data || [])
+  } catch (error) {
+    console.error('Erro ao pesquisar tipos de pagamento:', error)
+    tipoPagamentoResultados.value = []
+  }
+}
+
+const pesquisarHistoricosContabilCaixa = async () => {
+  try {
+    const historicos = await financeiroStore.buscarHistoricosContabil()
+    historicoContabilCaixaResultados.value = Array.isArray(historicos) ? historicos : (historicos?.data || [])
+  } catch (error) {
+    console.error('Erro ao pesquisar históricos contábeis de caixa:', error)
+    historicoContabilCaixaResultados.value = []
+  }
+}
+
+const selecionarTipoPagamento = (tipo) => {
+  if (tipo) {
+    formData.id_tipopagrec = tipo.id
+    tipoPagamentoSelecionado.value = tipo.desctipopagrec || tipo.descricao
+  }
+}
+
+const selecionarHistoricoContabilCaixa = (historico) => {
+  if (historico) {
+    formData.id_hist_contabil_caixa = historico.id
+    historicoContabilCaixaSelecionado.value = historico.deschistorico || historico.descricao
+  }
+}
+
+const preencherObservacao = () => {
+  if (!formData.observacoes || formData.observacoes.trim() === '') {
+    const origem = caixaOrigemSelecionado.value || 'N/A'
+    const destino = caixaDestinoSelecionado.value || 'N/A'
+    const valor = formData.valor ? `R$ ${formData.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'R$ 0,00'
+    
+    formData.observacoes = `CAIXA -> CAIXA "${origem}" para "${destino}": ${valor}`
   }
 }
 
@@ -449,7 +524,9 @@ const executarTransferencia = async () => {
         id_reduzido_ctb_caixa_origem: formData.id_reduzido_ctb_caixa_origem,
         id_reduzido_ctb_caixa_destino: formData.id_reduzido_ctb_caixa_destino,
         tipo_transf: 3, // Intercaixa
-        tipo: formData.tipo_documento,
+        tipo_documento: formData.tipo_documento,
+        nrdocumento: formData.numero_documento,
+        id_tipopagrec: formData.id_tipopagrec,
         dtlancamento: formData.data_movimento,
         valor: formData.valor,
         observacao: formData.observacoes || '',
@@ -459,14 +536,10 @@ const executarTransferencia = async () => {
 
     await financeiroStore.realizarTransferencia(payload)
     
-    snackbar.message = 'Transferência realizada com sucesso!'
-    snackbar.color = 'success'
-    snackbar.show = true
     limparFormulario()
+    emit('sucesso')
   } catch (error) {
-    snackbar.message = error.message || 'Erro ao realizar transferência'
-    snackbar.color = 'error'
-    snackbar.show = true
+    console.error('Erro ao realizar transferência:', error)
   } finally {
     loading.value = false
   }
@@ -478,16 +551,16 @@ const limparFormulario = () => {
     id_caixa_destino: null,
     data_movimento: new Date().toISOString().split('T')[0],
     valor: null,
-    id_operador: null,
     tipo_documento: null,
-    id_historico: null,
-    observacoes: null
+    numero_documento: null,
+    id_historico: null,    id_tipopagrec: null,    observacoes: null
   })
   caixaOrigemSelecionado.value = ''
   caixaDestinoSelecionado.value = ''
-  operadorSelecionado.value = ''
   historicoSelecionado.value = ''
   tipoDocumentoSelecionado.value = ''
+  tipoPagamentoSelecionado.value = ''
+  historicoContabilCaixaSelecionado.value = ''
   formRef.value?.resetValidation()
 }
 
@@ -495,6 +568,8 @@ const limparFormulario = () => {
 onMounted(() => {
   pesquisarCaixas()
   pesquisarHistoricos()
+  pesquisarTipoPagamento()
+  pesquisarHistoricosContabilCaixa()
 })
 </script>
 

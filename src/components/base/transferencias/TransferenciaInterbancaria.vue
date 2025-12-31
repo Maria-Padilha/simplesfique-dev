@@ -1,11 +1,5 @@
 <template>
-  <v-card class="background-card" elevation="2">
-    <v-card-title class="text-h6 pa-4">
-      <v-icon icon="mdi-bank-transfer" class="mr-2"></v-icon>
-      Transferência Interbancária
-    </v-card-title>
-    <v-card-text class="pa-4">
-      <v-form ref="formRef" v-model="formValido">
+  <v-form ref="formRef" v-model="formValido">
         <v-row>
           <!-- Banco Origem -->
           <v-col cols="12" md="4">
@@ -311,14 +305,14 @@
               rows="2"
               prepend-inner-icon="mdi-text"
               hide-details
+              @focus="preencherObservacao"
             ></v-textarea>
           </v-col>
         </v-row>
       </v-form>
-    </v-card-text>
 
-    <v-card-actions class="pa-4">
-      <v-spacer></v-spacer>
+    <!-- Botões de ação -->
+    <div class="d-flex justify-end ga-2 mt-4">
       <v-btn
         color="grey"
         variant="text"
@@ -337,18 +331,7 @@
         <v-icon icon="mdi-check" class="mr-1"></v-icon>
         Transferir
       </v-btn>
-    </v-card-actions>
-
-    <!-- Snackbar de Feedback -->
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      :timeout="3000"
-      location="top"
-    >
-      {{ snackbar.message }}
-    </v-snackbar>
-  </v-card>
+    </div>
 </template>
 
 <script setup>
@@ -356,6 +339,9 @@ import { ref, reactive, onMounted } from 'vue'
 import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
 import TipoDocumentoMenu from '@/components/base/menu/TipoDocumentoMenu.vue'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
+
+// eslint-disable-next-line no-undef
+const emit = defineEmits(['sucesso'])
 
 const financeiroStore = useFinanceiroStore()
 
@@ -415,12 +401,6 @@ const formData = reactive({
   id_hist_contabil_banco: null
 })
 
-const snackbar = reactive({
-  show: false,
-  message: '',
-  color: 'success'
-})
-
 const rules = {
   required: (value) => !!value || 'Campo obrigatório',
   valorPositivo: (value) => (value && parseFloat(value) > 0) || 'Valor deve ser maior que zero',
@@ -467,6 +447,7 @@ const selecionarBancoOrigem = (banco) => {
   if (banco) {
     formData.id_conta_origem = banco.id
     formData.id_reduzido_ctb_banco_origem = banco.id_reduzido_ctb_banco || null
+    formData.id_hist_contabil_banco = banco.id_hist_contabil
     bancoOrigemSelecionado.value = `${banco.titular} - Conta: ${banco.numero_ccorrente}`
   }
 }
@@ -475,6 +456,9 @@ const selecionarBancoDestino = (banco) => {
   if (banco) {
     formData.id_conta_destino = banco.id
     formData.id_reduzido_ctb_banco_destino = banco.id_reduzido_ctb_banco || null
+    if (!formData.id_hist_contabil_banco) {
+      formData.id_hist_contabil_banco = banco.id_hist_contabil
+    }
     bancoDestinoSelecionado.value = `${banco.titular} - Conta: ${banco.numero_ccorrente}`
   }
 }
@@ -507,6 +491,16 @@ const selecionarTipoDocumento = (tipoDoc) => {
   }
 }
 
+const preencherObservacao = () => {
+  if (!formData.observacoes || formData.observacoes.trim() === '') {
+    const origem = bancoOrigemSelecionado.value || 'N/A'
+    const destino = bancoDestinoSelecionado.value || 'N/A'
+    const valor = formData.valor ? `R$ ${formData.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'R$ 0,00'
+    
+    formData.observacoes = `BANCO -> BANCO "${origem}" para "${destino}": ${valor}`
+  }
+}
+
 const executarTransferencia = async () => {
   if (!formRef.value.validate()) return
 
@@ -525,7 +519,7 @@ const executarTransferencia = async () => {
         id_reduzido_ctb_banco_origem: formData.id_reduzido_ctb_banco_origem,
         id_reduzido_ctb_banco_destino: formData.id_reduzido_ctb_banco_destino,
         tipo_transf: 1, // Interbancária
-        tipo: formData.tipo_documento,
+        tipo_documento: formData.tipo_documento,
         nrdocumento: formData.numero_documento,
         dtlancamento: formData.data_movimento,
         valor: formData.valor,
@@ -536,14 +530,10 @@ const executarTransferencia = async () => {
 
     await financeiroStore.realizarTransferencia(payload)
     
-    snackbar.message = 'Transferência realizada com sucesso!'
-    snackbar.color = 'success'
-    snackbar.show = true
     limparFormulario()
+    emit('sucesso')
   } catch (error) {
-    snackbar.message = error.message || 'Erro ao realizar transferência'
-    snackbar.color = 'error'
-    snackbar.show = true
+    console.error('Erro ao realizar transferência:', error)
   } finally {
     loading.value = false
   }
