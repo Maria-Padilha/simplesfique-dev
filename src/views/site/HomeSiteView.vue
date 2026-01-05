@@ -460,12 +460,13 @@ const enviarForms = async () => {
           nome: nome.value,
           email: email.value,
           telefone: telefone.value,
+
         }
       ]
     };
 
     // Fazer a requisição POST para o webhook do n8n adicione aqui o link do webhook
-    const response = await fetch('http://192.168.10.5:9005/saas', {
+    const response = await fetch('https://backend.simplesfique.com.br//saas', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

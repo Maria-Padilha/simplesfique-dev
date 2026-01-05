@@ -104,7 +104,7 @@ const loginApi = async () => {
   loading.value = true;
   try {
     // POST vazio para API temporária
-    const response = await fetch('http://192.168.10.100:9005/vstsaaslogin', {
+    const response = await fetch('https://backend.simplesfique.com.br/vstsaaslogin', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

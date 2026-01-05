@@ -83,6 +83,47 @@ export const TEMPLATE_CENTRO_CUSTO = `<!DOCTYPE html>
             color: #666;
         }
 
+        /* Título do Centro de Custo */
+        .ccusto-titulo {
+            color: #F57C00;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 15px 0 8px 0;
+            padding: 5px 0;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* Quebra de página por centro de custo */
+        .ccusto-bloco {
+            margin-bottom: 20px;
+        }
+
+        /* Quebra de página ANTES do centro de custo */
+        .ccusto-bloco.quebra-pagina {
+            page-break-before: always;
+            break-before: page;
+        }
+
+        /* Indicador de parte da tabela (Parte 1/2, etc) */
+        .parte-indicador {
+            font-size: 8px;
+            font-weight: normal;
+            color: rgba(255,255,255,0.8);
+            margin-left: 5px;
+        }
+
+        /* Total do centro de custo quando múltiplas tabelas */
+        .total-ccusto {
+            background: #fff3e0;
+            color: #E65100;
+            padding: 8px 12px;
+            margin: 5px 0 20px 0;
+            border-radius: 4px;
+            font-size: 11px;
+            display: inline-block;
+        }
+
         /* Container da tabela */
         .table-container {
             width: 100%;
@@ -143,6 +184,25 @@ export const TEMPLATE_CENTRO_CUSTO = `<!DOCTYPE html>
 
         .table-ccusto tbody tr:hover {
             background-color: #fff8f3;
+        }
+
+        /* Linha de centro de custo (agrupador) - destaque */
+        .table-ccusto .row-ccusto {
+            background-color: #fff3e0 !important;
+        }
+
+        .table-ccusto .row-ccusto td:first-child {
+            font-weight: 700;
+            font-size: 10px;
+            color: #E65100;
+            text-transform: uppercase;
+        }
+
+        /* Linha de despesa (detalhe) */
+        .table-ccusto .row-despesa td:first-child {
+            padding-left: 16px;
+            font-size: 8px;
+            color: #666;
         }
 
         /* Linha de totais */
@@ -290,48 +350,28 @@ export const TEMPLATE_CENTRO_CUSTO = `<!DOCTYPE html>
 
     <h2 class="section-title">Previsão de Débitos por Centro de Custo <span>({{dataInicio}} a {{dataFim}})</span></h2>
 
-    <div class="table-container">
-        <table class="table-ccusto">
-            <thead>
-                <tr>
-                    <th class="text-left" style="min-width: 150px;">Centro de Custo</th>
-                    {{HEADERS_DIAS}}
-                    <th style="min-width: 80px;">Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{LINHAS_CCUSTO}}
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td class="text-left"><strong>TOTAL GERAL</strong></td>
-                    {{TOTAIS_DIAS}}
-                    <td><strong>{{totalGeral}}</strong></td>
-                </tr>
-            </tfoot>
+    {{TABELAS_CCUSTO}}
+
+    <div class="resumo-geral">
+        <h2 class="section-title">Resumo Geral</h2>
+
+        <table class="table-resumo">
+            <tr>
+                <td>Total de Centros de Custo</td>
+                <td>{{totalCentrosCusto}}</td>
+            </tr>
+            <tr>
+                <td>Total de Despesas</td>
+                <td>{{totalDespesas}}</td>
+            </tr>
+            <tr class="destaque">
+                <td><strong>Valor Total Previsto</strong></td>
+                <td>{{totalGeral}}</td>
+            </tr>
         </table>
     </div>
 
-    <h2 class="section-title">Resumo</h2>
-
-    <table class="table-resumo">
-        <tr>
-            <td>Total de Centros de Custo</td>
-            <td>{{totalCentrosCusto}}</td>
-        </tr>
-        <tr>
-            <td>Total de Despesas</td>
-            <td>{{totalDespesas}}</td>
-        </tr>
-        <tr>
-            <td>Dias com Cobrança</td>
-            <td>{{totalDias}}</td>
-        </tr>
-        <tr class="destaque">
-            <td><strong>Valor Total Previsto</strong></td>
-            <td>{{totalGeral}}</td>
-        </tr>
-    </table>
+    {{SECAO_GRAFICO}}
 
     <div class="footer-note">
         Documento gerado automaticamente pelo sistema.

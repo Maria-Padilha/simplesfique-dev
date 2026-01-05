@@ -1,0 +1,357 @@
+// Template HTML para impressão de Débitos Realizados por Centro de Custo
+export const TEMPLATE_DEBITOS_REALIZADOS = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Débitos Realizados por Centro de Custo - SimplesFique</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            font-size: 10px;
+            color: #2b2b2b;
+            padding: 10px;
+            background: #fff;
+            width: 100%;
+        }
+
+        .header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #F57C00;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: bold;
+            color: #F57C00;
+        }
+
+        .logo-text span {
+            color: #de7e3e;
+        }
+
+        .info-relatorio {
+            font-size: 10px;
+            line-height: 1.4;
+            text-align: right;
+        }
+
+        .info-relatorio strong {
+            color: #F57C00;
+        }
+
+        .section-title {
+            color: #F57C00;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .section-title span {
+            font-size: 10px;
+            font-weight: normal;
+            color: #666;
+        }
+
+        /* Título do Centro de Custo */
+        .ccusto-titulo {
+            color: #F57C00;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 15px 0 8px 0;
+            padding: 5px 0;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* Quebra de página por centro de custo */
+        .ccusto-bloco {
+            margin-bottom: 20px;
+        }
+
+        /* Quebra de página ANTES do centro de custo */
+        .ccusto-bloco.quebra-pagina {
+            page-break-before: always;
+            break-before: page;
+        }
+
+        /* Indicador de parte da tabela (Parte 1/2, etc) */
+        .parte-indicador {
+            font-size: 8px;
+            font-weight: normal;
+            color: rgba(255,255,255,0.8);
+            margin-left: 5px;
+        }
+
+        /* Container da tabela */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        /* Tabela Principal - Centro de Custo */
+        .table-ccusto {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            table-layout: fixed;
+        }
+
+        .table-ccusto thead {
+            background: linear-gradient(135deg, #F57C00 0%, #de7e3e 100%);
+            color: white;
+        }
+
+        .table-ccusto th {
+            padding: 8px 4px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .table-ccusto th.text-left {
+            text-align: left;
+            padding-left: 8px;
+        }
+
+        .table-ccusto td {
+            padding: 6px 4px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 9px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .table-ccusto td.text-left {
+            text-align: left;
+            padding-left: 8px;
+        }
+
+        .table-ccusto tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        .table-ccusto tbody tr:hover {
+            background-color: #fff8f3;
+        }
+
+        /* Linha de subtotal */
+        .row-subtotal {
+            background-color: #fff3e0 !important;
+            font-weight: bold;
+        }
+
+        .row-subtotal td {
+            border-top: 2px solid #F57C00;
+        }
+
+        /* Coluna de total */
+        .col-total {
+            font-weight: bold;
+            color: #E65100;
+        }
+
+        /* Linha de totais */
+        .table-ccusto tfoot {
+            background: linear-gradient(135deg, #F57C00 0%, #de7e3e 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        .table-ccusto tfoot td {
+            padding: 8px 4px;
+            border-bottom: none;
+            font-size: 9px;
+        }
+
+        .valor-positivo {
+            color: #2e7d32;
+            font-weight: 500;
+        }
+
+        .valor-total {
+            font-weight: bold;
+            color: #1565c0;
+        }
+
+        /* Classes responsivas baseadas no número de colunas */
+        .cols-small .table-ccusto th,
+        .cols-small .table-ccusto td {
+            font-size: 10px;
+            padding: 8px 6px;
+        }
+
+        .cols-medium .table-ccusto th,
+        .cols-medium .table-ccusto td {
+            font-size: 9px;
+            padding: 6px 4px;
+        }
+
+        .cols-large .table-ccusto th,
+        .cols-large .table-ccusto td {
+            font-size: 8px;
+            padding: 5px 3px;
+        }
+
+        .cols-xlarge .table-ccusto th,
+        .cols-xlarge .table-ccusto td {
+            font-size: 7px;
+            padding: 4px 2px;
+        }
+
+        /* Tabela de Resumo */
+        .resumo-geral {
+            margin-top: 20px;
+        }
+
+        .table-resumo {
+            width: 350px;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            background: #fafafa;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .table-resumo tr {
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .table-resumo tr:last-child {
+            border-bottom: none;
+        }
+
+        .table-resumo td {
+            padding: 8px 10px;
+            font-size: 10px;
+        }
+
+        .table-resumo td:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .table-resumo .destaque {
+            background-color: #fff3e0;
+        }
+
+        .table-resumo .destaque td:last-child {
+            color: #F57C00;
+            font-size: 11px;
+        }
+
+        .footer-note {
+            font-size: 9px;
+            color: #888;
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .footer-brand {
+            margin-top: 5px;
+            color: #F57C00;
+            font-weight: 500;
+        }
+
+        .info-impressao {
+            font-size: 8px;
+            color: #aaa;
+            margin-top: 3px;
+        }
+
+        @media print {
+            body {
+                padding: 5px;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .no-print {
+                display: none;
+            }
+
+            .table-ccusto tbody tr:hover {
+                background-color: transparent;
+            }
+
+            .table-ccusto thead,
+            .table-ccusto tfoot {
+                background: #F57C00 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body class="{{colsClass}}">
+    <div class="header">
+        <div class="logo-text">Simples<span>Fique</span></div>
+        <div class="info-relatorio">
+            <strong>Relatório:</strong> Débitos Realizados por Centro de Custo<br>
+            <strong>Empresa:</strong> {{empresa}}<br>
+            <strong>Operador:</strong> {{operador}}
+        </div>
+    </div>
+
+    <h2 class="section-title">Débitos Realizados por Centro de Custo <span>({{dataInicio}} a {{dataFim}})</span></h2>
+
+    {{TABELAS_CCUSTO}}
+
+    <div class="resumo-geral">
+        <h2 class="section-title">Resumo Geral</h2>
+
+        <table class="table-resumo">
+            <tr>
+                <td>Total de Centros de Custo</td>
+                <td>{{totalCentrosCusto}}</td>
+            </tr>
+            <tr>
+                <td>Total de Despesas</td>
+                <td>{{totalDespesas}}</td>
+            </tr>
+            <tr class="destaque">
+                <td><strong>Valor Total Realizado</strong></td>
+                <td>{{totalGeral}}</td>
+            </tr>
+        </table>
+    </div>
+
+    {{SECAO_GRAFICO}}
+
+    <div class="footer-note">
+        Documento gerado automaticamente pelo sistema.
+        <div class="footer-brand">SimplesFique - Sistema de Gestão Empresarial</div>
+        <div class="info-impressao">Impresso em: {{dataImpressao}}</div>
+    </div>
+</body>
+</html>`
