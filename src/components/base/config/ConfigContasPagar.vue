@@ -1113,7 +1113,6 @@ const salvarConfiguracoes = async () => {
     
     if (response) {
       await carregarParametrosFinanceiros()
-      console.log('Configurações de Contas a Pagar salvas com sucesso!')
     }
   } catch (error) {
     console.error('Erro ao salvar configurações:', error)

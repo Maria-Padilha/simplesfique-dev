@@ -57,12 +57,21 @@ export const useSidebarStore = defineStore('sidebar', () => {
                         }
                     ]
                 },
+
                 {
                     text: 'Adiantamento',
                     icon: 'mdi-account-cash',
                     submenus: [
                         { text: 'Cliente', icon: 'mdi-account-multiple', route: '/paginas/adiantamento/cliente' },
                         { text: 'Fornecedor', icon: 'mdi-account-tie', route: '/paginas/adiantamento/fornecedor' },
+                    ]
+                },
+                {
+                    text: 'Estorno',
+                    icon: 'mdi-backspace-outline',
+                    submenus: [
+                        { text: 'Estorno a Pagar', icon: 'mdi-credit-card-refund', route: '/paginas/estorno/pagar' },
+                        { text: 'Estorno a Receber', icon: 'mdi-cash-refund', route: '/paginas/estorno/receber' },
                     ]
                 },
                 { text: 'Pagar', icon: 'mdi-credit-card-outline', route: '/paginas/financeiro/pagar' },

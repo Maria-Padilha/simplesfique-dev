@@ -950,6 +950,108 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
     // ========== CONTAS A PAGAR ==========
 
+    // Buscar baixas de contas a pagar por período (GET /pagarbaixados/:idempresa/dtini/:dtini/dtfim/:dtfim)
+    async buscarBaixasPagar({ data_inicio, data_fim }) {
+      this.loading = true
+      this.error = null
+      try {
+        const idEmpresa = localStorage.getItem('empresa') || localStorage.getItem('id_empresa') || '1'
+        
+        const response = await api.get(`/pagarbaixados/${idEmpresa}/dtini/${data_inicio}/dtfim/${data_fim}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        // Normalizar resposta
+        const resposta = response.data
+        let dados = []
+        
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data
+        } else if (Array.isArray(resposta)) {
+          dados = resposta
+        } else if (resposta && resposta !== '' && typeof resposta === 'object') {
+          dados = [resposta]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar baixas'
+        console.error('Erro ao buscar baixas a pagar:', error)
+        return []
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Estornar baixa de conta a pagar
+    async estornarBaixaPagar(id) {
+      this.loading = true
+      this.error = null
+      try {
+        const idEmpresa = localStorage.getItem('empresa') || localStorage.getItem('id_empresa') || '1'
+        
+        const response = await api.delete(`/estornopagar/${idEmpresa}/id/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao estornar baixa'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar baixas de contas a receber por período (GET /receberbaixados/:idempresa/dtini/:dtini/dtfim/:dtfim)
+    async buscarBaixasReceber({ data_inicio, data_fim }) {
+      this.loading = true
+      this.error = null
+      try {
+        const idEmpresa = localStorage.getItem('empresa') || localStorage.getItem('id_empresa') || '1'
+        
+        const response = await api.get(`/receberbaixados/${idEmpresa}/dtini/${data_inicio}/dtfim/${data_fim}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        // Normalizar resposta
+        const resposta = response.data
+        let dados = []
+        
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data
+        } else if (Array.isArray(resposta)) {
+          dados = resposta
+        } else if (resposta && resposta !== '' && typeof resposta === 'object') {
+          dados = [resposta]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar baixas'
+        console.error('Erro ao buscar baixas a receber:', error)
+        return []
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Estornar baixa de conta a receber
+    async estornarBaixaReceber(id) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.delete(`/receberbaixados/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao estornar baixa'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     // Calcular parcelas para conta a pagar (POST /contaspagarcalcparc)
     async calcularParcelasContaPagar(dadosCalculo) {
       this.loading = true

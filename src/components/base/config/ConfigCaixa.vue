@@ -497,9 +497,6 @@ const salvarConfiguracoes = async () => {
       }]
     }
     
-    console.log('Valor de id_tipo_pagrec_suprimento no config:', config.id_tipo_pagrec_suprimento)
-    console.log('Payload completo:', JSON.stringify(dadosParaEnvio, null, 2))
-    
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
     
     if (!idEmpresa) {
@@ -511,7 +508,6 @@ const salvarConfiguracoes = async () => {
     
     if (response) {
       await carregarParametrosCaixa()
-      console.log('Configurações do caixa salvas com sucesso!')
     }
   } catch (error) {
     console.error('Erro ao salvar configurações:', error)

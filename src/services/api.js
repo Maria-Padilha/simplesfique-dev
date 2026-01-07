@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "https://backend.simplesfique.com.br/"
+    baseURL: "http://192.168.10.100:9005/"
 });
 
 export default api;

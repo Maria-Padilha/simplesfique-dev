@@ -215,9 +215,6 @@ const savePermissions = async () => {
       })
     })
 
-    // TODO: Integrar com a API para salvar as permissões
-    console.log('Permissões a serem salvas:', permissions)
-
     showSnackbar('Permissões salvas com sucesso')
   } catch (error) {
     showSnackbar('Erro ao salvar permissões', 'error')
