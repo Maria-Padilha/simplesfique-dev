@@ -7,6 +7,13 @@
           <v-icon icon="mdi-bank-transfer" class="mr-3"></v-icon>
           Movimentações Bancárias
         </div>
+        <v-btn
+          icon="mdi-printer"
+          variant="text"
+          color="var(--text-color-laranja)"
+          @click="abrirModalExportacao"
+          title="Exportar/Imprimir relatório"
+        ></v-btn>
       </v-card-title>
     </v-card>
 

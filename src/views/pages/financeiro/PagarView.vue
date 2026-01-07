@@ -7,6 +7,13 @@
           <v-icon icon="mdi-credit-card-outline" class="mr-3"></v-icon>
           Contas a Pagar
         </div>
+        <v-btn
+          icon="mdi-printer"
+          variant="text"
+          color="var(--text-color-laranja)"
+          @click="abrirModalExportacao"
+          title="Exportar/Imprimir relatório"
+        ></v-btn>
       </v-card-title>
     </v-card>
 
@@ -952,6 +959,25 @@
       </v-card>
     </v-dialog>
 
+    <!-- Modal de Exportação/Impressão -->
+    <ExportacaoModal
+      v-model="modalExportacaoAberto"
+      :dados="contasPagarFiltradas"
+      :filtros="filtrosAvancados"
+      nome-relatorio="Contas a Pagar"
+      @exportar-pdf="handleExportarPDF"
+      @exportar-csv="handleExportarCSV"
+      @exportar-excel="handleExportarExcel"
+      @imprimir="handleImprimir"
+    ></ExportacaoModal>
+
+    <!-- Modal de Preview do PDF -->
+    <PdfPreviewModal
+      v-model="modalPreviewPDF"
+      :html-content="previewHTMLContent"
+      :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Contas_a_Pagar'"
+    />
+
     <!-- Snackbar para feedback -->
     <v-snackbar
       v-model="snackbar.show"
@@ -968,6 +994,10 @@ import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
+import { toast } from 'vue3-toastify'
+import { abrirImpressaoTitulos, gerarHTMLTitulos } from '@/components/impressos/titulos'
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import BuscaAvancada from '@/components/base/padrao-paginas/BuscaAvancada.vue'
@@ -1032,7 +1062,13 @@ const snackbar = reactive({
   color: 'success'
 })
 
+// Modal de Exportação/Impressão
+const modalExportacaoAberto = ref(false)
 
+// Modal de Preview do PDF
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
 
 // Dialog de confirmação de exclusão
 const dialogExclusao = reactive({
@@ -2336,6 +2372,211 @@ const gerarParcelasTemporario = () => {
   }
 }
 
+// ========== EXPORTAÇÃO E IMPRESSÃO ==========
+
+const abrirModalExportacao = () => {
+  if (contasPagarFiltradas.value.length === 0) {
+    toast.warning('Nenhuma conta a pagar para exportar. Aplique filtros primeiro.')
+    return
+  }
+  modalExportacaoAberto.value = true
+}
+
+// Função para exportar CSV
+const handleExportarCSV = ({ dados, nomeRelatorio }) => {
+  try {
+    if (!dados || dados.length === 0) {
+      toast.warning('Nenhum dado para exportar')
+      return
+    }
+
+    console.log('📊 Exportando CSV:', dados.length, 'registros')
+
+
+    // Cabeçalhos em português
+    const cabecalhos = [
+      'Documento',
+      'Série',
+      'Espécie',
+      'Fornecedor',
+      'Data Emissão',
+      'Vencimento',
+      'Valor Parcela',
+      'Valor Quitado',
+      'Saldo Devedor'
+    ]
+
+    // Criar CSV
+    const linhas = [cabecalhos.map(h => `"${h}"`).join(',')]
+
+    dados.forEach(item => {
+      const valores = [
+        `"${item.nrdocumento || ''}"`,
+        `"${item.serie || ''}"`,
+        `"${item.especie || ''}"`,
+        `"${item.fornecedor || ''}"`,
+        `"${item.dtemissao ? new Date(item.dtemissao).toLocaleDateString('pt-BR') : ''}"`,
+        `"${item.dtvencimento ? new Date(item.dtvencimento).toLocaleDateString('pt-BR') : ''}"`,
+        `"${formatarMoeda(item.vlrparcela) || '0,00'}"`,
+        `"${formatarMoeda(item.vlrquitado) || '0,00'}"`,
+        `"${formatarMoeda(item.saldo_devedor) || '0,00'}"`
+      ]
+      linhas.push(valores.join(','))
+    })
+
+    const csv = linhas.join('\n')
+
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+
+    link.setAttribute('href', url)
+    link.setAttribute('download', `${nomeRelatorio}_${new Date().toISOString().slice(0, 10)}.csv`)
+    link.style.visibility = 'hidden'
+
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    toast.success('CSV exportado com sucesso!')
+  } catch (err) {
+    console.error('❌ Erro ao exportar CSV:', err)
+    toast.error('Erro ao exportar CSV')
+  }
+}
+
+// Função para exportar Excel
+const handleExportarExcel = ({ dados, nomeRelatorio }) => {
+  try {
+    if (!dados || dados.length === 0) {
+      toast.warning('Nenhum dado para exportar')
+      return
+    }
+
+    console.log('📊 Exportando Excel:', dados.length, 'registros')
+
+    // Definir colunas
+    const colunas = [
+      'Documento',
+      'Série',
+      'Espécie',
+      'Fornecedor',
+      'Data Emissão',
+      'Vencimento',
+      'Valor Parcela',
+      'Valor Quitado',
+      'Saldo Devedor'
+    ]
+
+    // Criar linhas
+    const linhas = [colunas.join('\t')]
+
+    dados.forEach(item => {
+      const valores = [
+        item.nrdocumento || '',
+        item.serie || '',
+        item.especie || '',
+        item.fornecedor || '',
+        item.dtemissao ? new Date(item.dtemissao).toLocaleDateString('pt-BR') : '',
+        item.dtvencimento ? new Date(item.dtvencimento).toLocaleDateString('pt-BR') : '',
+        formatarMoeda(item.vlrparcela) || '0,00',
+        formatarMoeda(item.vlrquitado) || '0,00',
+        formatarMoeda(item.saldo_devedor) || '0,00'
+      ]
+      linhas.push(valores.join('\t'))
+    })
+
+    const html = linhas.join('\n')
+
+    // Criar blob com BOM para UTF-8
+    const BOM = '\uFEFF'
+    const blob = new Blob([BOM + html], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+
+    link.setAttribute('href', url)
+    link.setAttribute('download', `${nomeRelatorio}_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    link.style.visibility = 'hidden'
+
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    toast.success('Excel exportado com sucesso!')
+  } catch (err) {
+    console.error('❌ Erro ao exportar Excel:', err)
+    toast.error('Erro ao exportar Excel')
+  }
+}
+
+// Função para exportar PDF (abre preview primeiro)
+const handleExportarPDF = async ({ dados, filtros, nomeRelatorio }) => {
+  try {
+    if (!dados || dados.length === 0) {
+      toast.warning('Nenhum dado para exportar')
+      return
+    }
+
+    console.log('📄 Preparando preview do PDF:', dados.length, 'registros')
+
+    // Gerar HTML com os dados
+    const htmlContent = gerarHTMLTitulos(nomeRelatorio, dados, filtros)
+
+    if (!htmlContent) {
+      toast.error('Erro ao gerar conteúdo do PDF')
+      return
+    }
+
+    console.log('📝 htmlContent contém "Fornecedor"?', htmlContent.includes('Fornecedor'))
+    console.log('📝 htmlContent contém "Cliente"?', htmlContent.includes('Cliente'))
+
+    // Extrair o conteúdo do body e os estilos para o preview
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(htmlContent, 'text/html')
+
+    // Pegar os estilos
+    const styleContent = doc.querySelector('style')?.textContent || ''
+    const bodyContent = doc.body.innerHTML
+
+    console.log('📝 bodyContent contém "Fornecedor"?', bodyContent.includes('Fornecedor'))
+    console.log('📝 bodyContent contém "Cliente"?', bodyContent.includes('Cliente'))
+
+    // Montar HTML para o preview com estilos
+    previewHTMLContent.value = `<style>${styleContent}</style>${bodyContent}`
+
+    console.log('📝 previewHTMLContent contém "Fornecedor"?', previewHTMLContent.value.includes('Fornecedor'))
+
+    // Guardar dados para baixar depois
+    dadosPDFAtual.value = { dados, filtros, nomeRelatorio }
+
+    // Abrir modal de preview
+    modalPreviewPDF.value = true
+
+  } catch (err) {
+    console.error('❌ Erro ao preparar PDF:', err)
+    toast.error('Erro ao preparar PDF')
+  }
+}
+
+
+// Função para imprimir
+const handleImprimir = ({ dados, filtros, nomeRelatorio }) => {
+  try {
+    if (!dados || dados.length === 0) {
+      toast.warning('Nenhum dado para imprimir')
+      return
+    }
+
+    console.log('🖨️ Imprimindo:', dados.length, 'registros')
+
+    // Chamar função de impressão do template
+    abrirImpressaoTitulos(nomeRelatorio, dados, filtros)
+  } catch (err) {
+    console.error('❌ Erro ao imprimir:', err)
+    toast.error('Erro ao imprimir')
+  }
+}
 
 </script>
 

@@ -330,7 +330,6 @@ import { useCCustoStore } from '@/stores/APIs/ccusto'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { toast } from 'vue3-toastify'
 import { TEMPLATE_CENTRO_CUSTO } from '@/components/impressos/centrodecusto.js'
-import { TEMPLATE_DEBITOS_REALIZADOS } from '@/components/impressos/debitosrealizados.js'
 
 const themeStore = useThemeStore()
 const ccustoStore = useCCustoStore()
@@ -1363,8 +1362,8 @@ const abrirImpressaoDebitosRealizados = (debitosResponse, filtros) => {
     }
     
     // Usar template importado
-    let html = TEMPLATE_DEBITOS_REALIZADOS
-    
+    let html = TEMPLATE_CENTRO_CUSTO
+
     // Dados padrão
     const dataAtual = new Date()
     const empresa = localStorage.getItem('empresa_nome') || 'Empresa'

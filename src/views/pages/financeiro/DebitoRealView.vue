@@ -7,6 +7,14 @@
           <v-icon icon="mdi-cash-check" class="mr-3"></v-icon>
           Débitos Realizados por Centro de Custo
         </div>
+        <v-btn
+          icon="mdi-printer"
+          variant="text"
+          color="var(--text-color-laranja)"
+          @click="abrirModalExportacao"
+          title="Exportar/Imprimir relatório"
+          :disabled="debitosPorCentroCusto.length === 0"
+        ></v-btn>
       </v-card-title>
     </v-card>
 
@@ -248,6 +256,25 @@
         />
       </v-card-text>
     </v-card>
+
+    <!-- Modal de Exportação/Impressão -->
+    <ExportacaoModal
+      v-model="modalExportacaoAberto"
+      :dados="debitosPorCentroCusto"
+      :filtros="filtros"
+      nome-relatorio="Débitos Realizados"
+      @exportar-pdf="handleExportarPDF"
+      @exportar-csv="handleExportarCSV"
+      @exportar-excel="handleExportarExcel"
+      @imprimir="handleImprimir"
+    ></ExportacaoModal>
+
+    <!-- Modal de Preview do PDF -->
+    <PdfPreviewModal
+      v-model="modalPreviewPDF"
+      :html-content="previewHTMLContent"
+      :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Debitos_Realizados'"
+    />
   </div>
 </template>
 
@@ -256,6 +283,10 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
 import { useEmpresaStore } from '@/stores/APIs/empresa'
+import { toast } from 'vue3-toastify'
+import { gerarHTMLCentroCusto, abrirImpressaoCentroCusto } from '@/components/impressos/centrodecusto'
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
 import VueApexCharts from 'vue3-apexcharts'
 
 const apexchart = VueApexCharts
@@ -579,6 +610,180 @@ const calcularTotalPorData = (despesas, data) => {
   return despesas
     .filter(d => d.dtvencimento === data)
     .reduce((sum, d) => sum + d.valor, 0)
+}
+
+// ========== EXPORTAÇÃO E IMPRESSÃO ==========
+
+// Modal de Exportação/Impressão
+const modalExportacaoAberto = ref(false)
+
+// Modal de Preview do PDF
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
+
+const abrirModalExportacao = () => {
+  if (debitosPorCentroCusto.value.length === 0) {
+    toast.warning('Nenhum débito para exportar. Aplique filtros primeiro.')
+    return
+  }
+  modalExportacaoAberto.value = true
+}
+
+// Preparar dados para o template de impressão
+const prepararDadosParaImpressao = () => {
+  return debitosPorCentroCusto.value.map(ccusto => ({
+    centroCusto: ccusto.centroCusto,
+    total: ccusto.total,
+    despesas: agruparDespesasPorConta(ccusto.despesas).map(d => ({
+      descricao: d.conta,
+      total: d.total,
+      ...Object.fromEntries(
+        datasUnicas.value.map(data => [`data_${data}`, d[`data_${data}`] || 0])
+      )
+    }))
+  }))
+}
+
+// Função para exportar PDF (abre preview primeiro)
+const handleExportarPDF = async ({ nomeRelatorio }) => {
+  try {
+    const dadosFormatados = prepararDadosParaImpressao()
+
+    if (!dadosFormatados || dadosFormatados.length === 0) {
+      toast.warning('Nenhum dado para exportar')
+      return
+    }
+
+    console.log('📄 Preparando preview do PDF:', dadosFormatados.length, 'centros de custo')
+
+    // Gerar HTML com os dados
+    const htmlContent = gerarHTMLCentroCusto('Débitos Realizados', dadosFormatados, filtros, datasUnicas.value)
+
+    if (!htmlContent) {
+      toast.error('Erro ao gerar conteúdo do PDF')
+      return
+    }
+
+    // Extrair o conteúdo do body e os estilos para o preview
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(htmlContent, 'text/html')
+
+    const styleContent = doc.querySelector('style')?.textContent || ''
+    const bodyContent = doc.body.innerHTML
+
+    previewHTMLContent.value = `<style>${styleContent}</style>${bodyContent}`
+    dadosPDFAtual.value = { nomeRelatorio: nomeRelatorio || 'Débitos_Realizados' }
+
+    modalPreviewPDF.value = true
+
+  } catch (err) {
+    console.error('❌ Erro ao preparar PDF:', err)
+    toast.error('Erro ao preparar PDF')
+  }
+}
+
+// Função para exportar CSV
+const handleExportarCSV = ({ nomeRelatorio }) => {
+  try {
+    if (debitosPorCentroCusto.value.length === 0) {
+      toast.warning('Nenhum dado para exportar')
+      return
+    }
+
+    // Cabeçalhos
+    const cabecalhos = ['Centro de Custo', ...datasUnicas.value.map(d => formatarDataCurta(d)), 'Total']
+    const linhas = [cabecalhos.map(h => `"${h}"`).join(',')]
+
+    debitosPorCentroCusto.value.forEach(item => {
+      const valores = [
+        `"${item.centroCusto}"`,
+        ...datasUnicas.value.map(d => `"${formatarMoeda(item[`data_${d}`] || 0)}"`),
+        `"${formatarMoeda(item.total)}"`
+      ]
+      linhas.push(valores.join(','))
+    })
+
+    // Linha de totais
+    linhas.push([
+      '"TOTAL GERAL"',
+      ...datasUnicas.value.map(d => `"${formatarMoeda(totaisPorData.value[`data_${d}`] || 0)}"`),
+      `"${formatarMoeda(totalDebitos.value)}"`
+    ].join(','))
+
+    const csv = linhas.join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `${nomeRelatorio.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    toast.success('CSV exportado com sucesso!')
+  } catch (err) {
+    console.error('❌ Erro ao exportar CSV:', err)
+    toast.error('Erro ao exportar CSV')
+  }
+}
+
+// Função para exportar Excel
+const handleExportarExcel = ({ nomeRelatorio }) => {
+  try {
+    if (debitosPorCentroCusto.value.length === 0) {
+      toast.warning('Nenhum dado para exportar')
+      return
+    }
+
+    const cabecalhos = ['Centro de Custo', ...datasUnicas.value.map(d => formatarDataCurta(d)), 'Total']
+    const linhas = [cabecalhos.join('\t')]
+
+    debitosPorCentroCusto.value.forEach(item => {
+      const valores = [
+        item.centroCusto,
+        ...datasUnicas.value.map(d => formatarMoeda(item[`data_${d}`] || 0)),
+        formatarMoeda(item.total)
+      ]
+      linhas.push(valores.join('\t'))
+    })
+
+    // Linha de totais
+    linhas.push([
+      'TOTAL GERAL',
+      ...datasUnicas.value.map(d => formatarMoeda(totaisPorData.value[`data_${d}`] || 0)),
+      formatarMoeda(totalDebitos.value)
+    ].join('\t'))
+
+    const BOM = '\uFEFF'
+    const blob = new Blob([BOM + linhas.join('\n')], { type: 'application/vnd.ms-excel;charset=utf-8;' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `${nomeRelatorio.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    toast.success('Excel exportado com sucesso!')
+  } catch (err) {
+    console.error('❌ Erro ao exportar Excel:', err)
+    toast.error('Erro ao exportar Excel')
+  }
+}
+
+// Função para imprimir
+const handleImprimir = ({ nomeRelatorio }) => {
+  try {
+    // Usar dados RAW da API
+    if (!debitosRealizados.value || debitosRealizados.value.length === 0) {
+      toast.warning('Nenhum dado para imprimir')
+      return
+    }
+
+    abrirImpressaoCentroCusto(nomeRelatorio || 'Débitos Realizados', debitosRealizados.value, filtros)
+  } catch (err) {
+    console.error('❌ Erro ao imprimir:', err)
+    toast.error('Erro ao imprimir')
+  }
 }
 
 // Aplicar período selecionado
