@@ -16,17 +16,29 @@
     <!-- Cards Resumo -->
     <v-row class="mb-4">
       <v-col cols="12" sm="6" md="3">
-        <v-card class="background-card pa-4" elevation="2">
+        <v-card class="background-card pa-4" elevation="2" style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;">
           <div class="d-flex align-center justify-space-between">
-            <div>
-              <p class="text-caption mb-1" style="color: var(--text-color)">Contas a Pagar</p>
+            <div style="width: 100%">
+              <p class="text-caption mb-1" style="color: var(--text-color)">Contas a Pagar do dia</p>
               <h3 class="text-h5 font-weight-bold" style="color: var(--text-color-laranja)">
-                R$ {{ formatarMoeda(resumo.contasPagar) }}
+                R$ {{ formatarMoeda(detalhesPagar.doDia) }}
               </h3>
-              <p class="text-caption mt-1" :class="resumo.contasPagarVariacao >= 0 ? 'text-success' : 'text-error'">
-                <v-icon size="x-small" :icon="resumo.contasPagarVariacao >= 0 ? 'mdi-arrow-up' : 'mdi-arrow-down'"></v-icon>
-                {{ Math.abs(resumo.contasPagarVariacao) }}% vs mês anterior
-              </p>
+              <div class="d-flex gap-2 mt-1">
+                <div style="flex: 1">
+                  <p class="text-caption" :class="detalhesPagar.vencido > 0 ? 'text-error' : 'text-success'">
+                    <v-icon size="x-small" :icon="detalhesPagar.vencido > 0 ? 'mdi-alert-circle' : 'mdi-check-circle'"></v-icon>
+                    {{ detalhesPagar.qtdVencido }} vencidos
+                  </p>
+                  <p class="text-caption font-weight-bold">R$ {{ formatarMoeda(detalhesPagar.vencido) }}</p>
+                </div>
+                <div style="flex: 1">
+                  <p  class="text-caption" :class="detalhesPagar.vencido > 0 ? 'text-error' : 'text-success'">
+                    <v-icon size="x-small" :icon="detalhesPagar.vencido > 0 ? 'mdi-alert-circle' : 'mdi-check-circle'"></v-icon>
+                    {{ detalhesPagar.qtdRestante }} restante
+                  </p>
+                  <p class="text-caption font-weight-bold">R$ {{ formatarMoeda(detalhesPagar.restante) }}</p>
+                </div>
+              </div>
             </div>
             <v-avatar color="rgba(245, 124, 0, 0.15)" size="48">
               <v-icon icon="mdi-cash-minus" color="var(--text-color-laranja)"></v-icon>
@@ -36,17 +48,29 @@
       </v-col>
 
       <v-col cols="12" sm="6" md="3">
-        <v-card class="background-card pa-4" elevation="2">
+        <v-card class="background-card pa-4" elevation="2" style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;">
           <div class="d-flex align-center justify-space-between">
-            <div>
-              <p class="text-caption mb-1" style="color: var(--text-color)">Contas a Receber</p>
+            <div style="width: 100%">
+              <p class="text-caption mb-1" style="color: var(--text-color)">Contas a Receber do dia</p>
               <h3 class="text-h5 font-weight-bold color-verde">
-                R$ {{ formatarMoeda(resumo.contasReceber) }}
+                R$ {{ formatarMoeda(detalhesReceber.doDia) }}
               </h3>
-              <p class="text-caption mt-1" :class="resumo.contasReceberVariacao >= 0 ? 'text-success' : 'text-error'">
-                <v-icon size="x-small" :icon="resumo.contasReceberVariacao >= 0 ? 'mdi-arrow-up' : 'mdi-arrow-down'"></v-icon>
-                {{ Math.abs(resumo.contasReceberVariacao) }}% vs mês anterior
-              </p>
+              <div class="d-flex gap-2 mt-1">
+                <div style="flex: 1">
+                  <p class="text-caption" :class="detalhesReceber.vencido > 0 ? 'text-error' : 'text-success'">
+                    <v-icon size="x-small" :icon="detalhesReceber.vencido > 0 ? 'mdi-alert-circle' : 'mdi-check-circle'"></v-icon>
+                    {{ detalhesReceber.qtdVencido }} vencidos
+                  </p>
+                  <p class="text-caption font-weight-bold">R$ {{ formatarMoeda(detalhesReceber.vencido) }}</p>
+                </div>
+                <div style="flex: 1">
+                  <p class="text-caption" :class="detalhesReceber.vencido > 0 ? 'text-error' : 'text-success'">
+                    <v-icon size="x-small" :icon="detalhesReceber.vencido > 0 ? 'mdi-alert-circle' : 'mdi-check-circle'"></v-icon>
+                    {{ detalhesReceber.qtdRestante }} restante
+                  </p>
+                  <p class="text-caption font-weight-bold">R$ {{ formatarMoeda(detalhesReceber.restante) }}</p>
+                </div>
+              </div>
             </div>
             <v-avatar color="rgba(76, 175, 80, 0.15)" size="48">
               <v-icon icon="mdi-cash-plus" color="#4CAF50"></v-icon>
@@ -56,29 +80,29 @@
       </v-col>
 
       <v-col cols="12" sm="6" md="3">
-        <v-card class="background-card pa-4" elevation="2">
+        <v-card class="background-card pa-4" elevation="2" style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;">
           <div class="d-flex align-center justify-space-between">
-            <div>
-              <p class="text-caption mb-1" style="color: var(--text-color)">Saldo em Caixa</p>
-              <h3 class="text-h5 font-weight-bold color-azul">
-                R$ {{ formatarMoeda(resumo.saldoCaixa) }}
+            <div style="width: 100%">
+              <p class="text-caption mb-1" style="color: var(--text-color)">Saldo Total</p>
+              <h3 class="text-h5 font-weight-bold" :style="{ color: saldoTotal.saldototal >= 0 ? '#2196F3' : '#F44336' }">
+                R$ {{ formatarMoeda(saldoTotal.saldototal) }}
               </h3>
               <p class="text-caption mt-1" style="color: var(--text-color)">
-                <v-icon size="x-small" icon="mdi-clock-outline"></v-icon>
-                Atualizado agora
+                <v-icon size="x-small" icon="mdi-bank"></v-icon>
+                {{ saldoTotal.saldosbancario?.length || 0 }} banco(s)
               </p>
             </div>
-            <v-avatar color="rgba(33, 150, 243, 0.15)" size="48">
-              <v-icon icon="mdi-cash-register" color="#2196F3"></v-icon>
+            <v-avatar :color="saldoTotal.saldototal >= 0 ? 'rgba(33, 150, 243, 0.15)' : 'rgba(244, 67, 54, 0.15)'" size="48">
+              <v-icon :icon="saldoTotal.saldototal >= 0 ? 'mdi-cash-register' : 'mdi-alert-circle'" :color="saldoTotal.saldototal >= 0 ? '#2196F3' : '#F44336'"></v-icon>
             </v-avatar>
           </div>
         </v-card>
       </v-col>
 
       <v-col cols="12" sm="6" md="3">
-        <v-card class="background-card pa-4" elevation="2">
+        <v-card class="background-card pa-4" elevation="2" style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;">
           <div class="d-flex align-center justify-space-between">
-            <div>
+            <div style="width: 100%">
               <p class="text-caption mb-1" style="color: var(--text-color)">Produtos em Estoque</p>
               <h3 class="text-h5 font-weight-bold color-roxo">
                 {{ resumo.produtosEstoque }}
@@ -116,19 +140,19 @@
         </v-card>
       </v-col>
 
-      <!-- Distribuição por Centro de Custo -->
+      <!-- Distribuição por Banco -->
       <v-col cols="12" lg="4">
         <v-card class="background-secondary" elevation="2">
           <v-card-title class="pa-4 d-flex align-center">
             <v-icon icon="mdi-chart-donut" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-            Gastos por Centro de Custo
+            Distribuição Bancária
           </v-card-title>
           <v-card-text class="pa-4">
             <apexchart
               type="donut"
               height="320"
-              :options="centroCustoOptions"
-              :series="centroCustoSeries"
+              :options="distribuicaoBancariaOptions"
+              :series="distribuicaoBancariaSeries"
             ></apexchart>
           </v-card-text>
         </v-card>
@@ -300,10 +324,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
+import { useDashboardStore } from '@/stores/APIs/dashboard'
 
 const themeStore = useThemeStore()
+const dashboardStore = useDashboardStore()
 
 // Data atual formatada
 const dataAtual = computed(() => {
@@ -314,6 +340,38 @@ const dataAtual = computed(() => {
     month: 'long',
     day: 'numeric'
   })
+})
+
+// Carregar dados do dashboard ao montar o componente
+onMounted(async () => {
+  console.log('🏠 HomeView montada - Iniciando carregamento do dashboard')
+
+  try {
+    // Obter ID da empresa do localStorage (setado no login)
+    const empresaData = localStorage.getItem('empresaSelecionada')
+    console.log('📦 Dados de empresa no localStorage:', empresaData)
+
+    if (!empresaData) {
+      console.warn('⚠️ Nenhuma empresa encontrada no localStorage')
+      return
+    }
+
+    const empresa = JSON.parse(empresaData)
+    const idempresa = empresa.id
+
+    console.log('🔍 ID da empresa extraído:', idempresa)
+    console.log('⏳ Carregando dados do dashboard...')
+
+    // Carregar todos os dados do dashboard
+    await dashboardStore.carregarDadosDashboard(idempresa)
+
+    console.log('✅ Dashboard carregado com sucesso!', {
+      pagarReceber: dashboardStore.pagarReceber,
+      saldosBancarios: dashboardStore.saldosBancarios
+    })
+  } catch (error) {
+    console.error('❌ Erro ao carregar dashboard:', error)
+  }
 })
 
 // Cores do tema
@@ -331,15 +389,125 @@ const coresGrafico = computed(() => ({
   grid: themeStore.darkMode ? '#3a3a3a' : '#e0e0e0'
 }))
 
-// Dados do resumo
-const resumo = ref({
-  contasPagar: 45780.50,
-  contasPagarVariacao: -12,
-  contasReceber: 78950.00,
-  contasReceberVariacao: 8,
-  saldoCaixa: 125430.75,
-  produtosEstoque: 1847,
-  produtosBaixoEstoque: 23
+// Dados do resumo - Computed a partir dos dados do dashboard (apenas pagarReceber)
+const resumo = computed(() => {
+  // Extrair dados do pagarReceber
+  const pagarData = dashboardStore.pagarReceber[0] || {}
+
+  // Calcular totais de pagar
+  const totalPagarVencido = pagarData.pagarvencido?.[0]?.saldo || 0
+  const totalPagarDoDia = pagarData.pagardodia?.[0]?.saldo || 0
+  const totalPagarRestante = pagarData.pagarrestantemes?.[0]?.saldo || 0
+  const totalAPagar = totalPagarVencido + totalPagarDoDia + totalPagarRestante
+
+  // Calcular totais de receber
+  const totalReceberVencido = pagarData.recebervencido?.[0]?.saldo || 0
+  const totalReceberDoDia = pagarData.receberdodia?.[0]?.saldo || 0
+  const totalReceberRestante = pagarData.receberrestantemes?.[0]?.saldo || 0
+  const totalAReceber = totalReceberVencido + totalReceberDoDia + totalReceberRestante
+
+  return {
+    contasPagar: totalAPagar,
+    contasPagarVariacao: totalPagarVencido > 0 ? -15 : 5,
+    contasReceber: totalAReceber,
+    contasReceberVariacao: totalReceberVencido > 0 ? -10 : 8,
+    saldoCaixa: totalAReceber - totalAPagar, // Saldo = Receber - Pagar
+    produtosEstoque: 1847,
+    produtosBaixoEstoque: 23
+  }
+})
+
+// Detalhes de Pagar
+const detalhesPagar = computed(() => {
+  const pagarData = dashboardStore.pagarReceber[0] || {}
+  return {
+    vencido: pagarData.pagarvencido?.[0]?.saldo || 0,
+    qtdVencido: pagarData.pagarvencido?.[0]?.qtd_titulos || 0,
+    doDia: pagarData.pagardodia?.[0]?.saldo || 0,
+    qtdDoDia: pagarData.pagardodia?.[0]?.qtd_titulos || 0,
+    restante: pagarData.pagarrestantemes?.[0]?.saldo || 0,
+    qtdRestante: pagarData.pagarrestantemes?.[0]?.qtd_titulos || 0
+  }
+})
+
+// Detalhes de Receber
+const detalhesReceber = computed(() => {
+  const pagarData = dashboardStore.pagarReceber[0] || {}
+  return {
+    vencido: pagarData.recebervencido?.[0]?.saldo || 0,
+    qtdVencido: pagarData.recebervencido?.[0]?.qtd_titulos || 0,
+    doDia: pagarData.receberdodia?.[0]?.saldo || 0,
+    qtdDoDia: pagarData.receberdodia?.[0]?.qtd_titulos || 0,
+    restante: pagarData.receberrestantemes?.[0]?.saldo || 0,
+    qtdRestante: pagarData.receberrestantemes?.[0]?.qtd_titulos || 0
+  }
+})
+
+// Saldo Total
+const saldoTotal = computed(() => {
+  const saldoData = dashboardStore.saldosBancarios[0] || {}
+  return {
+    saldototal: saldoData.saldototal || 0,
+    saldosbancario: saldoData.saldosbancario || []
+  }
+})
+
+// Distribuição Bancária - Opções do gráfico
+const distribuicaoBancariaOptions = computed(() => {
+  const bancos = saldoTotal.value.saldosbancario || []
+
+  return {
+    chart: {
+      type: 'donut',
+      background: 'transparent',
+      fontFamily: 'Roboto, sans-serif'
+    },
+    colors: [
+      coresGrafico.value.laranja,
+      coresGrafico.value.azul,
+      coresGrafico.value.verde,
+      coresGrafico.value.roxo,
+      coresGrafico.value.amarelo
+    ],
+    labels: bancos.map(b => b.descbanco || 'Banco Desconhecido'),
+    legend: {
+      position: 'bottom',
+      labels: { colors: coresGrafico.value.texto }
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: (val) => `${val.toFixed(1)}%`
+    },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: '65%',
+          labels: {
+            show: true,
+            name: {
+              color: coresGrafico.value.texto
+            },
+            value: {
+              color: coresGrafico.value.texto
+            },
+            total: {
+              show: true,
+              label: 'Total',
+              color: coresGrafico.value.texto,
+              formatter: () => `R$ ${formatarMoeda(saldoTotal.value.saldototal)}`
+            }
+          }
+        }
+      }
+    },
+    tooltip: { theme: themeStore.darkMode ? 'dark' : 'light' }
+  }
+})
+
+// Distribuição Bancária - Séries (percentuais)
+const distribuicaoBancariaSeries = computed(() => {
+  const bancos = saldoTotal.value.saldosbancario || []
+  return bancos.map(b => parseFloat(b.percentual) || 0)
 })
 
 // Configurações do gráfico de Fluxo de Caixa
@@ -389,54 +557,7 @@ const fluxoCaixaSeries = ref([
 ])
 
 // Configurações do gráfico de Centro de Custo
-const centroCustoOptions = computed(() => ({
-  chart: {
-    type: 'donut',
-    background: 'transparent',
-    fontFamily: 'Roboto, sans-serif'
-  },
-  colors: [
-    coresGrafico.value.laranja,
-    coresGrafico.value.azul,
-    coresGrafico.value.verde,
-    coresGrafico.value.roxo,
-    coresGrafico.value.amarelo
-  ],
-  labels: ['Administrativo', 'Operacional', 'Comercial', 'TI', 'Outros'],
-  legend: {
-    position: 'bottom',
-    labels: { colors: coresGrafico.value.texto }
-  },
-  dataLabels: {
-    enabled: true,
-    formatter: (val) => `${val.toFixed(1)}%`
-  },
-  plotOptions: {
-    pie: {
-      donut: {
-        size: '65%',
-        labels: {
-          show: true,
-          name: {
-            color: coresGrafico.value.texto
-          },
-          value: {
-            color: coresGrafico.value.texto
-          },
-          total: {
-            show: true,
-            label: 'Total',
-            color: coresGrafico.value.texto,
-            formatter: () => 'R$ 45.7k'
-          }
-        }
-      }
-    }
-  },
-  tooltip: { theme: themeStore.darkMode ? 'dark' : 'light' }
-}))
 
-const centroCustoSeries = ref([12500, 15800, 8500, 5200, 3780])
 
 // Configurações do gráfico Pagar vs Receber
 const pagarReceberOptions = computed(() => ({
