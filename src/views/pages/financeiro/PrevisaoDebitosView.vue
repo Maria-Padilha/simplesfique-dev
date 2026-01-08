@@ -1,137 +1,131 @@
 <template>
-  <div class="pa-4">
-    <!-- Cabeçalho -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-chart-timeline-variant" class="mr-3"></v-icon>
-          Previsão de Débitos por Centro de Custo
-        </div>
-      </v-card-title>
-    </v-card>
+  <top-all-pages icon="mdi-chart-timeline-variant">
+    <template #titulo>Previsão de Débitos por Centro de Custo</template>
+    <template #section>
+      <!-- Filtros -->
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4">
+        <v-card-text class="pa-4">
+          <v-row>
+            <!-- Select Centro de Custo -->
+            <v-col cols="12" md="4" class="d-flex align-center">
+              <v-select
+                  v-model="filtros.centroCustoSelecionado"
+                  :items="centrosCustoOptions"
+                  label="Centro de Custo"
+                  variant="outlined"
+                  density="compact"
+                  prepend-inner-icon="mdi-file-tree"
+                  hide-details
+                  :loading="loadingCentroCusto"
+              ></v-select>
+            </v-col>
 
-    <!-- Filtros -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4">
-      <v-card-text class="pa-4">
-        <v-row>
-          <!-- Select Centro de Custo -->
-          <v-col cols="12" md="4" class="d-flex align-center">
-            <v-select
-              v-model="filtros.centroCustoSelecionado"
-              :items="centrosCustoOptions"
-              label="Centro de Custo"
-              variant="outlined"
-              density="compact"
-              prepend-inner-icon="mdi-file-tree"
-              hide-details
-              :loading="loadingCentroCusto"
-            ></v-select>
-          </v-col>
+            <!-- Data Inicial -->
+            <v-col cols="12" md="3" class="d-flex align-center">
+              <v-text-field
+                  v-model="filtros.dataInicial"
+                  label="Data Inicial"
+                  type="date"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  @change="validarPeriodo"
+                  :theme="themeStore.darkMode ? 'dark' : 'light'"
+              ></v-text-field>
+            </v-col>
 
-          <!-- Data Inicial -->
-          <v-col cols="12" md="2" class="d-flex align-center">
-            <v-text-field
-              v-model="filtros.dataInicial"
-              label="Data Inicial"
-              type="date"
-              variant="outlined"
-              density="compact"
-              hide-details
-              @change="validarPeriodo"
-            ></v-text-field>
-          </v-col>
+            <!-- Data Final -->
+            <v-col cols="12" md="3" class="d-flex align-center">
+              <v-text-field
+                  v-model="filtros.dataFinal"
+                  label="Data Final"
+                  type="date"
+                  variant="outlined"
+                  density="compact"
+                  :error-messages="erroData"
+                  @change="validarPeriodo"
+                  :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  hide-details
+              ></v-text-field>
+            </v-col>
 
-          <!-- Data Final -->
-          <v-col cols="12" md="2" class="d-flex align-center">
-            <v-text-field
-              v-model="filtros.dataFinal"
-              label="Data Final"
-              type="date"
-              variant="outlined"
-              density="compact"
-              :error-messages="erroData"
-              @change="validarPeriodo"
-              hide-details
-            ></v-text-field>
-          </v-col>
+            <!-- Botão Buscar -->
+            <v-col cols="12" md="2" class="d-flex align-center">
+              <v-btn
+                  color="var(--text-color-laranja)"
+                  variant="flat"
+                  class="text-white"
+                  prepend-icon="mdi-magnify"
+                  @click="buscarPrevisao"
+                  :loading="loading"
+                  block
+              >
+                Buscar
+              </v-btn>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
 
-          <!-- Botão Buscar -->
-          <v-col cols="12" md="2" class="d-flex align-center">
-            <v-btn
-              color="var(--text-color-laranja)"
-              variant="flat"
-              class="text-white"
-              prepend-icon="mdi-magnify"
-              @click="buscarPrevisao"
+      <!-- Tabela de Resultados -->
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4">
+        <v-card-text class="pa-4">
+          <v-data-table
+              :headers="headers"
+              :items="centrosCustoAgrupados"
               :loading="loading"
-              block
-            >
-              Buscar
-            </v-btn>
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
+              class="elevation-1 background-card"
+              density="compact"
+              :items-per-page="10"
+              :items-per-page-options="[10, 25, 50, 100]"
+              :theme="themeStore.darkMode ? 'dark' : 'light'"
+              show-expand
+              item-value="centroCusto"
+          >
+            <template v-slot:top>
+              <v-toolbar flat>
+                <v-toolbar-title>Resultado da Previsão</v-toolbar-title>
+              </v-toolbar>
+            </template>
 
-    <!-- Tabela de Resultados -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4">
-      <v-card-text class="pa-4">
-        <v-data-table
-          :headers="headers"
-          :items="centrosCustoAgrupados"
-          :loading="loading"
-          class="elevation-1 background-card"
-          density="compact"
-          :items-per-page="10"
-          :items-per-page-options="[10, 25, 50, 100]"
-          :theme="themeStore.darkMode ? 'dark' : 'light'"
-          show-expand
-          item-value="centroCusto"
-        >
-          <template v-slot:top>
-            <v-toolbar flat>
-              <v-toolbar-title>Resultado da Previsão</v-toolbar-title>
-            </v-toolbar>
-          </template>
+            <template v-slot:loading>
+              <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
+            </template>
 
-          <template v-slot:loading>
-            <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
-          </template>
+            <template v-slot:no-data>
+              <div class="text-center pa-4">
+                <v-icon size="64" color="grey">mdi-chart-timeline-variant-shimmer</v-icon>
+                <p class="text-body-1 mt-2">Nenhuma previsão encontrada</p>
+                <p class="text-caption">Configure os filtros e clique em Buscar</p>
+              </div>
+            </template>
 
-          <template v-slot:no-data>
-            <div class="text-center pa-4">
-              <v-icon size="64" color="grey">mdi-chart-timeline-variant-shimmer</v-icon>
-              <p class="text-body-1 mt-2">Nenhuma previsão encontrada</p>
-              <p class="text-caption">Configure os filtros e clique em Buscar</p>
-            </div>
-          </template>
-
-          <!-- Formatação dos valores das colunas de dias -->
-          <template v-for="dia in diasComCobranca" :key="dia.key" #[`item.${dia.key}`]="{ item }">
+            <!-- Formatação dos valores das colunas de dias -->
+            <template v-for="dia in diasComCobranca" :key="dia.key" #[`item.${dia.key}`]="{ item }">
             <span class="font-weight-medium">
               {{ item[dia.key] ? formatarMoeda(item[dia.key]) : '-' }}
             </span>
-          </template>
+            </template>
 
-          <!-- Formatação da coluna total -->
-          <template #[`item.total`]="{ item }">
+            <!-- Formatação da coluna total -->
+            <template #[`item.total`]="{ item }">
             <span class="font-weight-bold" style="color: var(--text-color-laranja)">
               {{ formatarMoeda(item.total) }}
             </span>
-          </template>
+            </template>
 
-          <!-- Linha expandida com detalhes das despesas -->
-          <template v-slot:expanded-row="{ columns, item }">
-            <tr>
-              <td :colspan="columns.length" class="pa-0">
-                <v-card flat class="ma-2" color="rgba(var(--v-theme-primary), 0.05)">
-                  <v-card-title class="text-subtitle-2 pa-3">
-                    <v-icon size="small" class="mr-2">mdi-text-box-multiple-outline</v-icon>
-                    Despesas de {{ item.centroCusto }}
-                  </v-card-title>
-                  <v-card-text class="pa-3">
-                    <v-table density="compact" class="background-transparent">
-                      <thead>
+            <!-- Linha expandida com detalhes das despesas -->
+            <template v-slot:expanded-row="{ columns, item }">
+              <tr>
+                <td :colspan="columns.length" class="pa-0">
+                  <v-card flat class="ma-2" color="rgba(var(--v-theme-primary), 0.05)">
+                    <v-card-title class="text-subtitle-2 pa-3">
+                      <v-icon size="small" class="mr-2">mdi-text-box-multiple-outline</v-icon>
+                      Despesas de {{ item.centroCusto }}
+                    </v-card-title>
+                    <v-card-text class="pa-3">
+                      <v-table density="compact" class="background-transparent">
+                        <thead>
                         <tr>
                           <th class="text-left">Descrição</th>
                           <th v-for="dia in diasComCobranca" :key="dia.key" class="text-center">
@@ -139,8 +133,8 @@
                           </th>
                           <th class="text-center">Total</th>
                         </tr>
-                      </thead>
-                      <tbody>
+                        </thead>
+                        <tbody>
                         <tr v-for="(despesa, index) in item.despesas" :key="index">
                           <td class="text-left">{{ despesa.descricao }}</td>
                           <td v-for="dia in diasComCobranca" :key="dia.key" class="text-center">
@@ -150,47 +144,48 @@
                             {{ formatarMoeda(despesa.total) }}
                           </td>
                         </tr>
-                      </tbody>
-                    </v-table>
-                  </v-card-text>
-                </v-card>
-              </td>
-            </tr>
-          </template>
+                        </tbody>
+                      </v-table>
+                    </v-card-text>
+                  </v-card>
+                </td>
+              </tr>
+            </template>
 
-          <!-- Totais -->
-          <template #[`body.append`]>
-            <tr v-if="centrosCustoAgrupados.length > 0" class="font-weight-bold total-row">
-              <td></td>
-              <td class="text-right">TOTAL GERAL:</td>
-              <td v-for="(total, index) in totaisPorDia" :key="index" class="text-center">
-                {{ formatarMoeda(total) }}
-              </td>
-              <td class="text-center" style="color: var(--text-color-laranja)">
-                {{ formatarMoeda(totalGeral) }}
-              </td>
-            </tr>
-          </template>
-        </v-data-table>
-      </v-card-text>
-    </v-card>
+            <!-- Totais -->
+            <template #[`body.append`]>
+              <tr v-if="centrosCustoAgrupados.length > 0" class="font-weight-bold total-row">
+                <td></td>
+                <td class="text-right">TOTAL GERAL:</td>
+                <td v-for="(total, index) in totaisPorDia" :key="index" class="text-center">
+                  {{ formatarMoeda(total) }}
+                </td>
+                <td class="text-center" style="color: var(--text-color-laranja)">
+                  {{ formatarMoeda(totalGeral) }}
+                </td>
+              </tr>
+            </template>
+          </v-data-table>
+        </v-card-text>
+      </v-card>
 
-    <!-- Gráfico de Pizza -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mt-4" v-if="previsoes.length > 0">
-      <v-card-title class="text-h6 pa-4">
-        <v-icon icon="mdi-chart-pie" class="mr-2"></v-icon>
-        Distribuição por Centro de Custo
-      </v-card-title>
-      <v-card-text class="pa-4">
-        <apexchart
-          type="pie"
-          :options="chartOptions"
-          :series="chartSeries"
-          height="350"
-        />
-      </v-card-text>
-    </v-card>
-  </div>
+      <!-- Gráfico de Pizza -->
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mt-4" v-if="previsoes.length > 0">
+        <v-card-title class="text-h6 pa-4">
+          <v-icon icon="mdi-chart-pie" class="mr-2"></v-icon>
+          Distribuição por Centro de Custo
+        </v-card-title>
+        <v-card-text class="pa-4">
+          <apexchart
+              type="pie"
+              :options="chartOptions"
+              :series="chartSeries"
+              height="350"
+          />
+        </v-card-text>
+      </v-card>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
@@ -198,6 +193,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
 import VueApexCharts from 'vue3-apexcharts'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const apexchart = VueApexCharts
 

@@ -128,9 +128,19 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     route: '/paginas/produtos'
                 },
                 {
+                    text: 'Local Produtos',
+                    icon: 'mdi-map-marker',
+                    route: '/paginas/produtos/local'
+                },
+                {
                     text: 'Entrada Nota Fiscal',
                     icon: 'mdi-file-document-outline',
                     route: '/paginas/entradadfe'
+                },
+                {
+                    text: 'Certificados',
+                    icon: 'mdi-certificate',
+                    route: '/paginas/certificados'
                 },
             ]
         },

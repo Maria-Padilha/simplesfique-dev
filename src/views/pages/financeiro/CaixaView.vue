@@ -1,276 +1,268 @@
 <template>
-  <div class="pa-4">
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-cash-register" class="mr-3"></v-icon>
-          Caixa
-        </div>
-      </v-card-title>
-    </v-card>
-
-     <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
-      <v-card-text class="pa-4">
-        <BotaoExpandTransition
-          :formulario-aberto="formularioAberto"
-          texto-abrir="Nova Caixa"
-          texto-fechar="Cancelar"
-          size="default"
-          @toggle="toggleFormulario"
-        />
-
-        <!-- Formulário Expansível -->
-        <v-expand-transition>
-          <div v-if="formularioAberto">
-            <v-card class="background-card mb-7" elevation="2">
-              <v-card-title class="text-h6 pa-4">
-                <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-                {{ editando ? 'Editar Caixa' : 'Novo Caixa' }}
-              </v-card-title>
-              <v-card-text class="pa-4">
-                <v-form ref="novoCaixaRef" v-model="formValido">
-                  <v-row>
-                    <v-col cols="12" md="4">
-                      <v-text-field v-model="novoCaixa.desccaixa" label="Descrição *" :rules="[rules.required]" maxlength="120" variant="outlined" density="compact" class="custom-text-field" prepend-inner-icon="mdi-text" />
-                    </v-col>
-
-                    <v-col cols="12" md="4">
-                      <v-select v-model="novoCaixa.participa_fluxo" :items="['S','N']" label="Participa Fluxo" variant="outlined" density="compact" />
-                    </v-col>
-
-                    <!-- Plano de Conta -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        label="Plano de Conta *"
-                        v-model="planoContaSelecionado"
-                        variant="outlined"
-                        density="compact"
-                        hide-details="auto"
-                        :rules="[rules.required]"
-                        prepend-inner-icon="mdi-chart-tree"
-                      >
-                        <template #append-inner>
-                          <PlanoContaMenu @selecionar="selecionarPlanoConta"/>
-                        </template>
-                      </v-text-field>
-                    </v-col>
-                  </v-row>
-                </v-form>
-              </v-card-text>
-              <v-card-actions class="pa-4">
-                <v-spacer></v-spacer>
-                <v-btn
-                  color="grey"
-                  variant="text"
-                  @click="cancelarFormulario"
-                >
-                  Cancelar
-                </v-btn>
-                <v-btn
-                  color="var(--text-color-laranja)"
-                  :loading="savingNovo"
-                  :disabled="!formValido"
-                  @click="salvarNovoCaixa"
-                  variant="flat"
-                  class="text-white"
-                >
-                  Salvar
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </div>
-        </v-expand-transition>
-
-        <!-- Tabela de Caixas -->
-        <TabelaPadrao
-          :formulario-aberto="formularioAberto"
-          :headers="headers"
-          :items="filteredCaixas"
-          :loading="loading"
-          :search="search"
-          @update:search="(value) => search = value"
-          search-label="Pesquisar Caixa"
-          item-key="id"
-          no-data-icon="mdi-cash-register"
-          no-data-text="Nenhum caixa encontrado"
-          :show-custom-action="true"
-          custom-action-icon="mdi-account-multiple"
-          custom-action-title="Gerenciar Usuários"
-          :custom-action-loading="loadingUsuarios"
-          delete-dialog-message="Esta ação não pode ser desfeita."
-          delete-item-display-field="desccaixa"
-          @edit-item="editarCaixa"
-          @custom-action="abrirModalUsuarios"
-          @confirm-delete="excluirCaixa"
-        >
-          <!-- Slots para formatação customizada -->
-          <template v-slot:[`item.dhinc`]="{ item }">
-            {{ item.dhinc ? formatarDataHora(item.dhinc) : '-' }}
-          </template>
-
-          <template v-slot:[`item.ativo`]="{ item }">
-            <v-chip 
-              size="small" 
-              :color="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'success' : 'default'" 
-              :variant="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'flat' : 'outlined'"
-            >
-              <v-icon 
-                :icon="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'mdi-check-circle' : 'mdi-close-circle'" 
-                size="16" 
-                class="mr-1"
-              ></v-icon>
-              {{ (item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'Ativo' : 'Inativo' }}
-            </v-chip>
-          </template>
-        </TabelaPadrao>
-      </v-card-text>
-    </v-card>
-
-
-
-    <!-- Modal de Gerenciamento de Usuários -->
-    <v-dialog v-model="openUsuariosModal" persistent max-width="900px">
-      <v-card class="background-secondary">
-        <v-card-title class="text-h6 pa-4 d-flex justify-space-between align-center">
-          <div class="d-flex align-center">
-            <v-icon icon="mdi-account-multiple" class="mr-3"></v-icon>
-            Gerenciar Usuários - Caixa {{ caixaParaUsuarios?.desccaixa || caixaParaUsuarios?.id || caixaParaUsuarios?.ID }}
-          </div>
-          <v-btn
-            icon="mdi-close"
-            variant="text"
-            size="small"
-            @click="openUsuariosModal = false"
-          ></v-btn>
-        </v-card-title>
-
-        <v-divider></v-divider>
-
+  <top-all-pages icon="mdi-cash-register">
+    <template #titulo>Caixa</template>
+    <template #section>
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
         <v-card-text class="pa-4">
-          <!-- Loading interno enquanto carrega dados -->
-          <div v-if="loadingUsuarios" class="text-center pa-8">
-            <v-progress-circular
-              indeterminate
-              color="var(--text-color-laranja)"
-              size="48"
-              class="mb-4"
-            ></v-progress-circular>
-            <p class="text-body-1">Carregando usuários...</p>
-          </div>
+          <BotaoExpandTransition
+              :formulario-aberto="formularioAberto"
+              texto-abrir="Nova Caixa"
+              texto-fechar="Cancelar"
+              size="default"
+              @toggle="toggleFormulario"
+          />
 
-          <!-- Tabela de usuários -->
-          <div v-else>
-            <v-alert
-              v-if="usuariosList.length === 0"
-              type="info"
-              variant="tonal"
-              class="mb-4"
-            >
-              <template v-slot:prepend>
-                <v-icon icon="mdi-information"></v-icon>
-              </template>
-              Nenhum usuário vinculado a este caixa encontrado.
-            </v-alert>
+          <!-- Formulário Expansível -->
+          <v-expand-transition>
+            <div v-if="formularioAberto">
+              <v-card class="background-card mb-7" elevation="2">
+                <v-card-title class="text-h6 pa-4">
+                  <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
+                  {{ editando ? 'Editar Caixa' : 'Novo Caixa' }}
+                </v-card-title>
+                <v-card-text class="pa-4">
+                  <v-form ref="novoCaixaRef" v-model="formValido">
+                    <v-row>
+                      <v-col cols="12" md="4">
+                        <v-text-field v-model="novoCaixa.desccaixa" label="Descrição *" :rules="[rules.required]" maxlength="120" variant="outlined" density="compact" class="custom-text-field" prepend-inner-icon="mdi-text" />
+                      </v-col>
 
-            <v-data-table
-              v-else
-              :headers="headersUsuarios"
-              :items="usuariosList"
-              item-key="ID"
-              class="elevation-1 background-secondary"
-              :theme="themeStore.darkMode ? 'dark' : 'light'"
-            >
-              <template v-slot:[`item.nome`]="{ item }">
-                <div class="d-flex align-center">
-                  <v-avatar size="32" class="mr-3" :color="themeStore.darkMode ? 'grey-darken-3' : 'grey-lighten-2'">
-                    <v-icon icon="mdi-account" :color="themeStore.darkMode ? 'grey-lighten-1' : 'grey-darken-2'"></v-icon>
-                  </v-avatar>
-                  <span>{{ item.nome }}</span>
-                </div>
-              </template>
-              
-              <template v-slot:[`item.email`]="{ item }">
-                <div class="d-flex align-center">
-                  <v-icon icon="mdi-email-outline" size="18" class="mr-2 opacity-60"></v-icon>
-                  <span>{{ item.email }}</span>
-                
-                </div>
-              </template>
-              
-              <template v-slot:[`item.ativo`]="{ item }">
-                <v-chip 
-                  :color="item.ativo === 'S' ? 'green' : 'grey'" 
-                  text-color="white"
+                      <v-col cols="12" md="4">
+                        <v-select v-model="novoCaixa.participa_fluxo" :items="['S','N']" label="Participa Fluxo" variant="outlined" density="compact" />
+                      </v-col>
+
+                      <!-- Plano de Conta -->
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            label="Plano de Conta *"
+                            v-model="planoContaSelecionado"
+                            variant="outlined"
+                            density="compact"
+                            hide-details="auto"
+                            :rules="[rules.required]"
+                            prepend-inner-icon="mdi-chart-tree"
+                        >
+                          <template #append-inner>
+                            <PlanoContaMenu @selecionar="selecionarPlanoConta"/>
+                          </template>
+                        </v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-form>
+                </v-card-text>
+                <v-card-actions class="pa-4">
+                  <v-spacer></v-spacer>
+                  <v-btn
+                      color="grey"
+                      variant="text"
+                      @click="cancelarFormulario"
+                  >
+                    Cancelar
+                  </v-btn>
+                  <v-btn
+                      color="var(--text-color-laranja)"
+                      :loading="savingNovo"
+                      :disabled="!formValido"
+                      @click="salvarNovoCaixa"
+                      variant="flat"
+                      class="text-white"
+                  >
+                    Salvar
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </div>
+          </v-expand-transition>
+
+          <!-- Tabela de Caixas -->
+          <TabelaPadrao
+              :formulario-aberto="formularioAberto"
+              :headers="headers"
+              :items="filteredCaixas"
+              :loading="loading"
+              :search="search"
+              @update:search="(value) => search = value"
+              search-label="Pesquisar Caixa"
+              item-key="id"
+              no-data-icon="mdi-cash-register"
+              no-data-text="Nenhum caixa encontrado"
+              :show-custom-action="true"
+              custom-action-icon="mdi-account-multiple"
+              custom-action-title="Gerenciar Usuários"
+              :custom-action-loading="loadingUsuarios"
+              delete-dialog-message="Esta ação não pode ser desfeita."
+              delete-item-display-field="desccaixa"
+              @edit-item="editarCaixa"
+              @custom-action="abrirModalUsuarios"
+              @confirm-delete="excluirCaixa"
+          >
+            <!-- Slots para formatação customizada -->
+            <template v-slot:[`item.dhinc`]="{ item }">
+              {{ item.dhinc ? formatarDataHora(item.dhinc) : '-' }}
+            </template>
+
+            <template v-slot:[`item.ativo`]="{ item }">
+              <v-chip
                   size="small"
-                  :variant="item.ativo === 'S' ? 'flat' : 'outlined'"
-                >
-                  <template v-slot:prepend>
-                    <v-icon 
-                      :icon="item.ativo === 'S' ? 'mdi-check-circle' : 'mdi-close-circle'" 
-                      size="16"
-                    ></v-icon>
-                  </template>
-                  {{ item.ativo === 'S' ? 'Ativo' : 'Inativo' }}
-                </v-chip>
-              </template>
-              
-              <template v-slot:[`item.permissao`]="{ item }">
-                <v-checkbox
-                  :model-value="userAccessMap[String(item.ID)] || false"
-                  @update:model-value="val => userAccessMap[String(item.ID)] = val"
-                  density="compact"
-                  color="var(--text-color-laranja)"
-                  :theme="themeStore.darkMode ? 'dark' : 'light'"
-                ></v-checkbox>
-              </template>
-              
-              <template v-slot:no-data>
-                <div class="pa-8 text-center">
-                  <v-icon icon="mdi-account-off" size="64" class="mb-2 opacity-60"></v-icon>
-                  <p class="text-body-1">Nenhum usuário disponível</p>
-                </div>
-              </template>
-            </v-data-table>
-          </div>
+                  :color="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'success' : 'default'"
+                  :variant="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'flat' : 'outlined'"
+              >
+                <v-icon
+                    :icon="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'mdi-check-circle' : 'mdi-close-circle'"
+                    size="16"
+                    class="mr-1"
+                ></v-icon>
+                {{ (item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'Ativo' : 'Inativo' }}
+              </v-chip>
+            </template>
+          </TabelaPadrao>
         </v-card-text>
-
-        <v-divider></v-divider>
-
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn 
-            color="grey" 
-            variant="text" 
-            @click="openUsuariosModal = false"
-            :disabled="loadingUsuarios"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn 
-            color="var(--text-color-laranja)" 
-            :loading="financeiroStore.loading" 
-            :disabled="loadingUsuarios || usuariosList.length === 0"
-            @click="salvarUsuariosAcesso" 
-            variant="flat" 
-            class="text-white"
-          >
-            <v-icon icon="mdi-content-save" class="mr-2"></v-icon>
-            Salvar Permissões
-          </v-btn>
-        </v-card-actions>
       </v-card>
-    </v-dialog>
 
-    <!-- Snackbar para mensagens -->
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      timeout="3000"
-      top
-    >
-      {{ snackbar.message }}
-    </v-snackbar>
-  </div>
+      <!-- Modal de Gerenciamento de Usuários -->
+      <v-dialog v-model="openUsuariosModal" persistent max-width="900px">
+        <v-card class="background-secondary">
+          <v-card-title class="text-h6 pa-4 d-flex justify-space-between align-center">
+            <div class="d-flex align-center">
+              <v-icon icon="mdi-account-multiple" class="mr-3"></v-icon>
+              Gerenciar Usuários - Caixa {{ caixaParaUsuarios?.desccaixa || caixaParaUsuarios?.id || caixaParaUsuarios?.ID }}
+            </div>
+            <v-btn
+                icon="mdi-close"
+                variant="text"
+                size="small"
+                @click="openUsuariosModal = false"
+            ></v-btn>
+          </v-card-title>
+
+          <v-divider></v-divider>
+
+          <v-card-text class="pa-4">
+            <!-- Loading interno enquanto carrega dados -->
+            <div v-if="loadingUsuarios" class="text-center pa-8">
+              <v-progress-circular
+                  indeterminate
+                  color="var(--text-color-laranja)"
+                  size="48"
+                  class="mb-4"
+              ></v-progress-circular>
+              <p class="text-body-1">Carregando usuários...</p>
+            </div>
+
+            <!-- Tabela de usuários -->
+            <div v-else>
+              <v-alert
+                  v-if="usuariosList.length === 0"
+                  type="info"
+                  variant="tonal"
+                  class="mb-4"
+              >
+                <template v-slot:prepend>
+                  <v-icon icon="mdi-information"></v-icon>
+                </template>
+                Nenhum usuário vinculado a este caixa encontrado.
+              </v-alert>
+
+              <v-data-table
+                  v-else
+                  :headers="headersUsuarios"
+                  :items="usuariosList"
+                  item-key="ID"
+                  class="elevation-1 background-secondary"
+                  :theme="themeStore.darkMode ? 'dark' : 'light'"
+              >
+                <template v-slot:[`item.nome`]="{ item }">
+                  <div class="d-flex align-center">
+                    <v-avatar size="32" class="mr-3" :color="themeStore.darkMode ? 'grey-darken-3' : 'grey-lighten-2'">
+                      <v-icon icon="mdi-account" :color="themeStore.darkMode ? 'grey-lighten-1' : 'grey-darken-2'"></v-icon>
+                    </v-avatar>
+                    <span>{{ item.nome }}</span>
+                  </div>
+                </template>
+
+                <template v-slot:[`item.email`]="{ item }">
+                  <div class="d-flex align-center">
+                    <v-icon icon="mdi-email-outline" size="18" class="mr-2 opacity-60"></v-icon>
+                    <span>{{ item.email }}</span>
+
+                  </div>
+                </template>
+
+                <template v-slot:[`item.ativo`]="{ item }">
+                  <v-chip
+                      :color="item.ativo === 'S' ? 'green' : 'grey'"
+                      text-color="white"
+                      size="small"
+                      :variant="item.ativo === 'S' ? 'flat' : 'outlined'"
+                  >
+                    <template v-slot:prepend>
+                      <v-icon
+                          :icon="item.ativo === 'S' ? 'mdi-check-circle' : 'mdi-close-circle'"
+                          size="16"
+                      ></v-icon>
+                    </template>
+                    {{ item.ativo === 'S' ? 'Ativo' : 'Inativo' }}
+                  </v-chip>
+                </template>
+
+                <template v-slot:[`item.permissao`]="{ item }">
+                  <v-checkbox
+                      :model-value="userAccessMap[String(item.ID)] || false"
+                      @update:model-value="val => userAccessMap[String(item.ID)] = val"
+                      density="compact"
+                      color="var(--text-color-laranja)"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  ></v-checkbox>
+                </template>
+
+                <template v-slot:no-data>
+                  <div class="pa-8 text-center">
+                    <v-icon icon="mdi-account-off" size="64" class="mb-2 opacity-60"></v-icon>
+                    <p class="text-body-1">Nenhum usuário disponível</p>
+                  </div>
+                </template>
+              </v-data-table>
+            </div>
+          </v-card-text>
+
+          <v-divider></v-divider>
+
+          <v-card-actions class="pa-4">
+            <v-spacer></v-spacer>
+            <v-btn
+                color="grey"
+                variant="text"
+                @click="openUsuariosModal = false"
+                :disabled="loadingUsuarios"
+            >
+              Cancelar
+            </v-btn>
+            <v-btn
+                color="var(--text-color-laranja)"
+                :loading="financeiroStore.loading"
+                :disabled="loadingUsuarios || usuariosList.length === 0"
+                @click="salvarUsuariosAcesso"
+                variant="flat"
+                class="text-white"
+            >
+              <v-icon icon="mdi-content-save" class="mr-2"></v-icon>
+              Salvar Permissões
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+      <!-- Snackbar para mensagens -->
+      <v-snackbar
+          v-model="snackbar.show"
+          :color="snackbar.color"
+          timeout="3000"
+          top
+      >
+        {{ snackbar.message }}
+      </v-snackbar>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
@@ -280,6 +272,7 @@ import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import PlanoContaMenu from '@/components/base/menu/PlanoContaMenu.vue'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
