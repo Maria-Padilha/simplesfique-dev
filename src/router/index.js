@@ -227,6 +227,11 @@ const routes = [
         component: () => import('@/views/pages/produtos/ProdutosDetalhesView.vue')
     },
     {
+        path: '/paginas/produtos/local',
+        name: 'produtos-local',
+        component: () => import('@/views/pages/produtos/LocalView.vue')
+    },
+    {
         path: '/paginas/entradadfe',
         name: 'entradadfe',
         component: () => import('@/views/pages/produtos/EntradaDfeView.vue')
@@ -235,6 +240,16 @@ const routes = [
         path: '/paginas/entradadfe/nova',
         name: 'entradadfe-nova',
         component: () => import('@/views/pages/produtos/EntradaDfeNovaView.vue')
+    },
+    {
+        path: '/paginas/entradadfe/visualizar/:id',
+        name: 'visualizar-entradadfe',
+        component: () => import('@/views/pages/produtos/VisualizarNotaView.vue')
+    },
+    {
+        path: '/paginas/certificados',
+        name: 'certificados',
+        component: () => import('@/views/pages/produtos/CertificadosView.vue')
     },
 
     // páginas do pdv

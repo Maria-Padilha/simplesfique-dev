@@ -1,129 +1,120 @@
 <template>
-  <div class="pa-4">
-    <!-- Cabeçalho -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-file-tree" class="mr-3"></v-icon>
-          Centro de Custo
-        </div>
-      </v-card-title>
-    </v-card>
+  <top-all-pages icon="mdi-file-tree">
+    <template #titulo>Centro de Custo</template>
+    <template #section>
+      <!-- Lista de Centros de Custo -->
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card-text class="pa-4">
+          <BotaoExpandTransition
+              :formulario-aberto="formularioAberto"
+              texto-abrir="Novo Centro de Custo"
+              texto-fechar="Cancelar"
+              @toggle="toggleFormulario"
+          />
 
-    <!-- Lista de Centros de Custo -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
-      <v-card-text class="pa-4">
-        <BotaoExpandTransition
-          :formulario-aberto="formularioAberto"
-          texto-abrir="Novo Centro de Custo"
-          texto-fechar="Cancelar"
-          @toggle="toggleFormulario"
-        />
+          <!-- Formulário Expansível -->
+          <v-expand-transition>
+            <div v-if="formularioAberto">
+              <v-card class="background-card mb-7" elevation="2">
+                <v-card-title class="text-h6 pa-4">
+                  <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
+                  {{ editando ? 'Editar Centro de Custo' : 'Novo Centro de Custo' }}
+                </v-card-title>
 
-        <!-- Formulário Expansível -->
-        <v-expand-transition>
-          <div v-if="formularioAberto">
-            <v-card class="background-card mb-7" elevation="2">
-              <v-card-title class="text-h6 pa-4">
-                <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-                {{ editando ? 'Editar Centro de Custo' : 'Novo Centro de Custo' }}
-              </v-card-title>
+                <v-card-text class="pa-4">
+                  <v-form ref="formRef" v-model="formValido">
+                    <v-row>
+                      <!-- Classificação (Obrigatório) -->
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                            v-model="formData.id_classificador"
+                            label="Classificação *"
+                            :rules="[rules.required]"
+                            maxlength="10"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-barcode"
+                            @blur="validarClassificador"
+                            :loading="classificadorValidando"
+                            :error-messages="classificadorValido === false ? [mensagemClassificador] : []"
+                        ></v-text-field>
+                      </v-col>
 
-              <v-card-text class="pa-4">
-                <v-form ref="formRef" v-model="formValido">
-                  <v-row>
-                    <!-- Classificação (Obrigatório) -->
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="formData.id_classificador"
-                        label="Classificação *"
-                        :rules="[rules.required]"
-                        maxlength="10"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-barcode"
-                        @blur="validarClassificador"
-                        :loading="classificadorValidando"
-                        :error-messages="classificadorValido === false ? [mensagemClassificador] : []"
-                      ></v-text-field>
-                    </v-col>
+                      <!-- Descrição (Obrigatório) -->
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                            v-model="formData.desccentrocusto"
+                            label="Descrição *"
+                            :rules="[rules.required]"
+                            maxlength="60"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-text"
+                            :disabled="classificadorValido !== true"
+                            :hint="classificadorValido !== true ? 'Valide a classificação primeiro' : ''"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-form>
+                </v-card-text>
 
-                    <!-- Descrição (Obrigatório) -->
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="formData.desccentrocusto"
-                        label="Descrição *"
-                        :rules="[rules.required]"
-                        maxlength="60"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-text"
-                        :disabled="classificadorValido !== true"
-                        :hint="classificadorValido !== true ? 'Valide a classificação primeiro' : ''"
-                      ></v-text-field>
-                    </v-col>
-                  </v-row>
-                </v-form>
-              </v-card-text>
+                <v-card-actions class="pa-4">
+                  <v-spacer></v-spacer>
+                  <v-btn
+                      color="grey"
+                      variant="text"
+                      @click="cancelarFormulario"
+                  >
+                    Cancelar
+                  </v-btn>
+                  <v-btn
+                      color="var(--text-color-laranja)"
+                      :loading="loading"
+                      :disabled="!formValido"
+                      @click="salvarCentroCusto"
+                      variant="flat"
+                      class="text-white"
+                  >
+                    {{ editando ? 'Atualizar' : 'Salvar' }}
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </div>
+          </v-expand-transition>
 
-              <v-card-actions class="pa-4">
-                <v-spacer></v-spacer>
-                <v-btn
-                  color="grey"
-                  variant="text"
-                  @click="cancelarFormulario"
-                >
-                  Cancelar
-                </v-btn>
-                <v-btn
-                  color="var(--text-color-laranja)"
-                  :loading="loading"
-                  :disabled="!formValido"
-                  @click="salvarCentroCusto"
-                  variant="flat"
-                  class="text-white"
-                >
-                  {{ editando ? 'Atualizar' : 'Salvar' }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </div>
-        </v-expand-transition>
+          <!-- Tabela de Centros de Custo -->
+          <TabelaPadrao
+              :formulario-aberto="formularioAberto"
+              :headers="headers"
+              :items="centrosCustoFiltrados"
+              :loading="loading"
+              :search="search"
+              @update:search="(value) => search = value"
+              search-label="Pesquisar Centro de Custo"
+              item-key="id"
+              no-data-icon="mdi-file-tree-outline"
+              no-data-text="Nenhum centro de custo cadastrado"
+              :show-custom-action="false"
+              delete-dialog-message="Esta ação não pode ser desfeita."
+              delete-item-display-field="desccentrocusto"
+              @edit-item="editarCentroCusto"
+              @confirm-delete="excluirCentroCusto"
+          ></TabelaPadrao>
+        </v-card-text>
+      </v-card>
 
-        <!-- Tabela de Centros de Custo -->
-        <TabelaPadrao
-          :formulario-aberto="formularioAberto"
-          :headers="headers"
-          :items="centrosCustoFiltrados"
-          :loading="loading"
-          :search="search"
-          @update:search="(value) => search = value"
-          search-label="Pesquisar Centro de Custo"
-          item-key="id"
-          no-data-icon="mdi-file-tree-outline"
-          no-data-text="Nenhum centro de custo cadastrado"
-          :show-custom-action="false"
-          delete-dialog-message="Esta ação não pode ser desfeita."
-          delete-item-display-field="desccentrocusto"
-          @edit-item="editarCentroCusto"
-          @confirm-delete="excluirCentroCusto"
-        ></TabelaPadrao>
-      </v-card-text>
-    </v-card>
-
-
-
-    <!-- Snackbar para feedback -->
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      :timeout="3000"
-    >
-      {{ snackbar.message }}
-    </v-snackbar>
-  </div>
+      <!-- Snackbar para feedback -->
+      <v-snackbar
+          v-model="snackbar.show"
+          :color="snackbar.color"
+          :timeout="3000"
+      >
+        {{ snackbar.message }}
+      </v-snackbar>
+    </template>
+  </top-all-pages>
 </template>
 
 
@@ -133,6 +124,7 @@ import { useThemeStore } from '@/stores/config-temas/theme'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 const ccustoStore = useCCustoStore()

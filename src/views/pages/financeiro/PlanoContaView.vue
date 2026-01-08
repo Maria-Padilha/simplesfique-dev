@@ -1,175 +1,168 @@
 <template>
-  <div class="pa-4">
-    <!-- Cabeçalho -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-file-tree" class="mr-3"></v-icon>
-          Plano de Conta
-        </div>
-      </v-card-title>
-    </v-card>
+  <top-all-pages icon="mdi-file-tree">
+    <template #titulo>Plano de Conta</template>
+    <template #section>
+      <!-- Lista de Planos de Conta -->
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card-text class="pa-4">
+          <BotaoExpandTransition
+              :formulario-aberto="formularioAberto"
+              texto-abrir="Novo Plano de Conta"
+              texto-fechar="Cancelar"
+              @toggle="toggleFormulario"
+          />
 
-    <!-- Lista de Planos de Conta -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
-      <v-card-text class="pa-4">
-        <BotaoExpandTransition
-          :formulario-aberto="formularioAberto"
-          texto-abrir="Novo Plano de Conta"
-          texto-fechar="Cancelar"
-          @toggle="toggleFormulario"
-        />
+          <!-- Formulário Expansível -->
+          <v-expand-transition>
+            <div v-if="formularioAberto">
+              <v-card class="background-card mb-7" elevation="2">
+                <v-card-title class="text-h6 pa-4">
+                  <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
+                  {{ editando ? 'Editar Plano de Conta' : 'Novo Plano de Conta' }}
+                </v-card-title>
 
-        <!-- Formulário Expansível -->
-        <v-expand-transition>
-          <div v-if="formularioAberto">
-            <v-card class="background-card mb-7" elevation="2">
-              <v-card-title class="text-h6 pa-4">
-                <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-                {{ editando ? 'Editar Plano de Conta' : 'Novo Plano de Conta' }}
-              </v-card-title>
+                <v-card-text class="pa-4">
+                  <v-form ref="formRef" v-model="formValido">
+                    <v-row>
+                      <!-- ID Classificador (Obrigatório) -->
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                            v-model="formData.id_classificador"
+                            label="ID Classificador *"
+                            :rules="[rules.required]"
+                            maxlength="20"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-barcode"
+                            hint="Código único do plano de conta"
+                        ></v-text-field>
+                      </v-col>
 
-              <v-card-text class="pa-4">
-                <v-form ref="formRef" v-model="formValido">
-                  <v-row>
-                    <!-- ID Classificador (Obrigatório) -->
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="formData.id_classificador"
-                        label="ID Classificador *"
-                        :rules="[rules.required]"
-                        maxlength="20"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-barcode"
-                        hint="Código único do plano de conta"
-                      ></v-text-field>
-                    </v-col>
+                      <!-- Descrição da Conta (Obrigatório) -->
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                            v-model="formData.descconta"
+                            label="Descrição da Conta *"
+                            :rules="[rules.required]"
+                            maxlength="60"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-text"
+                        ></v-text-field>
+                      </v-col>
 
-                    <!-- Descrição da Conta (Obrigatório) -->
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="formData.descconta"
-                        label="Descrição da Conta *"
-                        :rules="[rules.required]"
-                        maxlength="60"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-text"
-                      ></v-text-field>
-                    </v-col>
+                      <!-- Tipo da Conta -->
+                      <v-col cols="12" md="6">
+                        <v-select
+                            v-model="formData.tipo_conta"
+                            :items="tiposPlano"
+                            label="Tipo da Conta"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-format-list-bulleted-type"
+                        ></v-select>
+                      </v-col>
 
-                    <!-- Tipo da Conta -->
-                    <v-col cols="12" md="6">
-                      <v-select
-                        v-model="formData.tipo_conta"
-                        :items="tiposPlano"
-                        label="Tipo da Conta"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-format-list-bulleted-type"
-                      ></v-select>
-                    </v-col>
+                      <!-- Natureza -->
+                      <v-col cols="12" md="6">
+                        <v-select
+                            v-model="formData.natureza"
+                            :items="naturezasPlano"
+                            label="Natureza"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-nature"
+                        ></v-select>
+                      </v-col>
 
-                    <!-- Natureza -->
-                    <v-col cols="12" md="6">
-                      <v-select
-                        v-model="formData.natureza"
-                        :items="naturezasPlano"
-                        label="Natureza"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-nature"
-                      ></v-select>
-                    </v-col>
+                      <!-- Nível -->
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                            v-model="formData.nivel"
+                            label="Nível"
+                            type="number"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-format-list-numbered"
+                            hint="Nível hierárquico do plano de conta"
+                        ></v-text-field>
+                      </v-col>
 
-                    <!-- Nível -->
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="formData.nivel"
-                        label="Nível"
-                        type="number"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-format-list-numbered"
-                        hint="Nível hierárquico do plano de conta"
-                      ></v-text-field>
-                    </v-col>
+                      <!-- Ativo -->
+                      <v-col cols="12" md="6">
+                        <v-switch
+                            v-model="formData.ativo"
+                            label="Ativo"
+                            color="var(--text-color-laranja)"
+                            true-value="S"
+                            false-value="N"
+                            class="custom-switch"
+                        ></v-switch>
+                      </v-col>
+                    </v-row>
+                  </v-form>
+                </v-card-text>
 
-                    <!-- Ativo -->
-                    <v-col cols="12" md="6">
-                      <v-switch
-                        v-model="formData.ativo"
-                        label="Ativo"
-                        color="var(--text-color-laranja)"
-                        true-value="S"
-                        false-value="N"
-                        class="custom-switch"
-                      ></v-switch>
-                    </v-col>
-                  </v-row>
-                </v-form>
-              </v-card-text>
+                <v-card-actions class="pa-4">
+                  <v-spacer></v-spacer>
+                  <v-btn
+                      color="grey"
+                      variant="text"
+                      @click="cancelarFormulario"
+                  >
+                    Cancelar
+                  </v-btn>
+                  <v-btn
+                      color="var(--text-color-laranja)"
+                      :loading="loading"
+                      :disabled="!formValido"
+                      @click="salvarPlanoConta"
+                      variant="flat"
+                      class="text-white"
+                  >
+                    {{ editando ? 'Atualizar' : 'Salvar' }}
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </div>
+          </v-expand-transition>
 
-              <v-card-actions class="pa-4">
-                <v-spacer></v-spacer>
-                <v-btn
-                  color="grey"
-                  variant="text"
-                  @click="cancelarFormulario"
-                >
-                  Cancelar
-                </v-btn>
-                <v-btn
-                  color="var(--text-color-laranja)"
-                  :loading="loading"
-                  :disabled="!formValido"
-                  @click="salvarPlanoConta"
-                  variant="flat"
-                  class="text-white"
-                >
-                  {{ editando ? 'Atualizar' : 'Salvar' }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </div>
-        </v-expand-transition>
+          <!-- Tabela de Planos de Conta -->
+          <TabelaPadrao
+              :formulario-aberto="formularioAberto"
+              :headers="headers"
+              :items="planosContaFiltrados"
+              :loading="loading"
+              :search="search"
+              @update:search="(value) => search = value"
+              search-label="Pesquisar Plano de Conta"
+              item-key="id"
+              no-data-icon="mdi-file-tree-outline"
+              no-data-text="Nenhum plano de conta cadastrado"
+              :show-custom-action="false"
+              delete-dialog-message="Esta ação não pode ser desfeita."
+              delete-item-display-field="descconta"
+              @edit-item="editarPlanoConta"
+              @confirm-delete="excluirPlanoConta"
+          ></TabelaPadrao>
+        </v-card-text>
+      </v-card>
 
-        <!-- Tabela de Planos de Conta -->
-        <TabelaPadrao
-          :formulario-aberto="formularioAberto"
-          :headers="headers"
-          :items="planosContaFiltrados"
-          :loading="loading"
-          :search="search"
-          @update:search="(value) => search = value"
-          search-label="Pesquisar Plano de Conta"
-          item-key="id"
-          no-data-icon="mdi-file-tree-outline"
-          no-data-text="Nenhum plano de conta cadastrado"
-          :show-custom-action="false"
-          delete-dialog-message="Esta ação não pode ser desfeita."
-          delete-item-display-field="descconta"
-          @edit-item="editarPlanoConta"
-          @confirm-delete="excluirPlanoConta"
-        ></TabelaPadrao>
-      </v-card-text>
-    </v-card>
-
-    <!-- Snackbar para feedback -->
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      :timeout="3000"
-    >
-      {{ snackbar.message }}
-    </v-snackbar>
-  </div>
+      <!-- Snackbar para feedback -->
+      <v-snackbar
+          v-model="snackbar.show"
+          :color="snackbar.color"
+          :timeout="3000"
+      >
+        {{ snackbar.message }}
+      </v-snackbar>
+    </template>
+  </top-all-pages>>
 </template>
 
 <script setup>
@@ -178,6 +171,7 @@ import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -329,11 +323,11 @@ const salvarPlanoConta = async () => {
     if (!['S', 'A'].includes(dadosParaSalvar.tipo_conta)) {
       dadosParaSalvar.tipo_conta = 'A' // Default para Analítico
     }
-    
+
     if (!['C', 'D'].includes(dadosParaSalvar.natureza)) {
       dadosParaSalvar.natureza = 'C' // Default para Credora
     }
-    
+
     if (!['S', 'N'].includes(dadosParaSalvar.ativo)) {
       dadosParaSalvar.ativo = 'S' // Default para Ativo
     }
@@ -345,7 +339,7 @@ const salvarPlanoConta = async () => {
       await financeiroStore.criarPlanoConta(dadosParaSalvar)
       mostrarMensagem('Plano de conta cadastrado com sucesso!', 'success')
     }
-    
+
     await carregarPlanosConta()
     cancelarFormulario()
   } catch (error) {

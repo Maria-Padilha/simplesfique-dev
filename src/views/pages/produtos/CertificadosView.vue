@@ -2,7 +2,7 @@
   <top-all-pages icon="mdi-certificate">
     <template #titulo>Certificados</template>
     <template #section>
-      <v-container class="pa-6 max-w-[80%] bg-white rounded-md shadow">
+      <v-container class="pa-6 max-w-[80%] background-card rounded-md shadow">
         <!-- Botão de extrair -->
         <div class="flex justify-between mt-2 mb-6">
           <h2 class="text-xl font-semibold mb-6">Importar Certificado</h2>

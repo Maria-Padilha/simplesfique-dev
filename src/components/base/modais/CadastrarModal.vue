@@ -1,6 +1,6 @@
 <template>
-  <v-dialog v-model="cadastrar" max-width="400">
-    <v-card color="var(--bg-card)" class="texto-color-primary">
+  <v-dialog v-model="cadastrar" :max-width="props.width || 400">
+    <v-card color="var(--bg-card)" class="texto-color-primary" min-height="auto">
       <v-card-title class="pa-0">
         <div class="background-laranja d-flex align-center justify-between py-0 pl-2">
           <p class="text-lg text-capitalize">Cadastrar <slot name="titulo" /></p>
@@ -48,6 +48,7 @@ const props = defineProps({
   cadastrarModal: Boolean,
   clearInput: Function,
   cadastrarcidade: Function,
+  width: Number,
 });
 
 const cadastrar = computed(() => props.cadastrarModal);

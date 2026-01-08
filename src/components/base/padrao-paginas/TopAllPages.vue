@@ -3,10 +3,12 @@
     <template v-slot:default>
       <main class="my-10 mx-3">
         <v-card elevation="0" class="background-secondary mb-4">
-          <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-            <div class="d-flex align-center">
+          <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center w-100">
+            <div class="d-flex align-center w-100">
               <v-icon :icon="props.icon" class="mr-3"></v-icon>
-              <slot name="titulo" />
+              <div class="w-100">
+                <slot name="titulo" />
+              </div>
             </div>
           </v-card-title>
         </v-card>

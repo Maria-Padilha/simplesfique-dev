@@ -1,307 +1,306 @@
 <template>
-  <main class="pa-4">
-    <!-- Header -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-view-dashboard" class="mr-3" color="var(--text-color-laranja)"></v-icon>
-          Dashboard
-        </div>
-        <div class="text-subtitle-2" style="color: var(--text-color)">
-          {{ dataAtual }}
-        </div>
-      </v-card-title>
-    </v-card>
+  <top-all-pages icon="mdi-view-dashboard">
+    <template #titulo>
+      <div class="text-h5 flex justify-between items-center w-100">
+        <p>Dashboard</p>
+        <p class="text-subtitle-2 ml-3" style="color: var(--text-color)">{{ dataAtual }}</p>
+      </div>
+    </template>
 
-    <!-- Cards Resumo -->
-    <v-row class="mb-4">
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="background-card pa-4" elevation="2">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <p class="text-caption mb-1" style="color: var(--text-color)">Contas a Pagar</p>
-              <h3 class="text-h5 font-weight-bold" style="color: var(--text-color-laranja)">
-                R$ {{ formatarMoeda(resumo.contasPagar) }}
-              </h3>
-              <p class="text-caption mt-1" :class="resumo.contasPagarVariacao >= 0 ? 'text-success' : 'text-error'">
-                <v-icon size="x-small" :icon="resumo.contasPagarVariacao >= 0 ? 'mdi-arrow-up' : 'mdi-arrow-down'"></v-icon>
-                {{ Math.abs(resumo.contasPagarVariacao) }}% vs mês anterior
-              </p>
-            </div>
-            <v-avatar color="rgba(245, 124, 0, 0.15)" size="48">
-              <v-icon icon="mdi-cash-minus" color="var(--text-color-laranja)"></v-icon>
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
+    <template #section>
+      <main class="pa-4">
+        <!-- Cards Resumo -->
+        <v-row class="mb-4">
+          <v-col cols="12" sm="6" md="3">
+            <v-card class="background-card pa-4" elevation="2">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <p class="text-caption mb-1" style="color: var(--text-color)">Contas a Pagar</p>
+                  <h3 class="text-h5 font-weight-bold" style="color: var(--text-color-laranja)">
+                    R$ {{ formatarMoeda(resumo.contasPagar) }}
+                  </h3>
+                  <p class="text-caption mt-1" :class="resumo.contasPagarVariacao >= 0 ? 'text-success' : 'text-error'">
+                    <v-icon size="x-small" :icon="resumo.contasPagarVariacao >= 0 ? 'mdi-arrow-up' : 'mdi-arrow-down'"></v-icon>
+                    {{ Math.abs(resumo.contasPagarVariacao) }}% vs mês anterior
+                  </p>
+                </div>
+                <v-avatar color="rgba(245, 124, 0, 0.15)" size="48">
+                  <v-icon icon="mdi-cash-minus" color="var(--text-color-laranja)"></v-icon>
+                </v-avatar>
+              </div>
+            </v-card>
+          </v-col>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="background-card pa-4" elevation="2">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <p class="text-caption mb-1" style="color: var(--text-color)">Contas a Receber</p>
-              <h3 class="text-h5 font-weight-bold color-verde">
-                R$ {{ formatarMoeda(resumo.contasReceber) }}
-              </h3>
-              <p class="text-caption mt-1" :class="resumo.contasReceberVariacao >= 0 ? 'text-success' : 'text-error'">
-                <v-icon size="x-small" :icon="resumo.contasReceberVariacao >= 0 ? 'mdi-arrow-up' : 'mdi-arrow-down'"></v-icon>
-                {{ Math.abs(resumo.contasReceberVariacao) }}% vs mês anterior
-              </p>
-            </div>
-            <v-avatar color="rgba(76, 175, 80, 0.15)" size="48">
-              <v-icon icon="mdi-cash-plus" color="#4CAF50"></v-icon>
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <v-card class="background-card pa-4" elevation="2">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <p class="text-caption mb-1" style="color: var(--text-color)">Contas a Receber</p>
+                  <h3 class="text-h5 font-weight-bold color-verde">
+                    R$ {{ formatarMoeda(resumo.contasReceber) }}
+                  </h3>
+                  <p class="text-caption mt-1" :class="resumo.contasReceberVariacao >= 0 ? 'text-success' : 'text-error'">
+                    <v-icon size="x-small" :icon="resumo.contasReceberVariacao >= 0 ? 'mdi-arrow-up' : 'mdi-arrow-down'"></v-icon>
+                    {{ Math.abs(resumo.contasReceberVariacao) }}% vs mês anterior
+                  </p>
+                </div>
+                <v-avatar color="rgba(76, 175, 80, 0.15)" size="48">
+                  <v-icon icon="mdi-cash-plus" color="#4CAF50"></v-icon>
+                </v-avatar>
+              </div>
+            </v-card>
+          </v-col>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="background-card pa-4" elevation="2">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <p class="text-caption mb-1" style="color: var(--text-color)">Saldo em Caixa</p>
-              <h3 class="text-h5 font-weight-bold color-azul">
-                R$ {{ formatarMoeda(resumo.saldoCaixa) }}
-              </h3>
-              <p class="text-caption mt-1" style="color: var(--text-color)">
-                <v-icon size="x-small" icon="mdi-clock-outline"></v-icon>
-                Atualizado agora
-              </p>
-            </div>
-            <v-avatar color="rgba(33, 150, 243, 0.15)" size="48">
-              <v-icon icon="mdi-cash-register" color="#2196F3"></v-icon>
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <v-card class="background-card pa-4" elevation="2">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <p class="text-caption mb-1" style="color: var(--text-color)">Saldo em Caixa</p>
+                  <h3 class="text-h5 font-weight-bold color-azul">
+                    R$ {{ formatarMoeda(resumo.saldoCaixa) }}
+                  </h3>
+                  <p class="text-caption mt-1" style="color: var(--text-color)">
+                    <v-icon size="x-small" icon="mdi-clock-outline"></v-icon>
+                    Atualizado agora
+                  </p>
+                </div>
+                <v-avatar color="rgba(33, 150, 243, 0.15)" size="48">
+                  <v-icon icon="mdi-cash-register" color="#2196F3"></v-icon>
+                </v-avatar>
+              </div>
+            </v-card>
+          </v-col>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="background-card pa-4" elevation="2">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <p class="text-caption mb-1" style="color: var(--text-color)">Produtos em Estoque</p>
-              <h3 class="text-h5 font-weight-bold color-roxo">
-                {{ resumo.produtosEstoque }}
-              </h3>
-              <p class="text-caption mt-1" style="color: var(--text-color)">
-                <v-icon size="x-small" icon="mdi-alert" color="#FFC107"></v-icon>
-                {{ resumo.produtosBaixoEstoque }} em baixo estoque
-              </p>
-            </div>
-            <v-avatar color="rgba(156, 39, 176, 0.15)" size="48">
-              <v-icon icon="mdi-package-variant" color="#9C27B0"></v-icon>
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
+          <v-col cols="12" sm="6" md="3">
+            <v-card class="background-card pa-4" elevation="2">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <p class="text-caption mb-1" style="color: var(--text-color)">Produtos em Estoque</p>
+                  <h3 class="text-h5 font-weight-bold color-roxo">
+                    {{ resumo.produtosEstoque }}
+                  </h3>
+                  <p class="text-caption mt-1" style="color: var(--text-color)">
+                    <v-icon size="x-small" icon="mdi-alert" color="#FFC107"></v-icon>
+                    {{ resumo.produtosBaixoEstoque }} em baixo estoque
+                  </p>
+                </div>
+                <v-avatar color="rgba(156, 39, 176, 0.15)" size="48">
+                  <v-icon icon="mdi-package-variant" color="#9C27B0"></v-icon>
+                </v-avatar>
+              </div>
+            </v-card>
+          </v-col>
+        </v-row>
 
-    <!-- Gráficos Principais -->
-    <v-row class="mb-4">
-      <!-- Fluxo de Caixa -->
-      <v-col cols="12" lg="8">
-        <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center">
-            <v-icon icon="mdi-chart-line" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-            Fluxo de Caixa - Últimos 6 Meses
-          </v-card-title>
-          <v-card-text class="pa-4">
-            <apexchart
-              type="area"
-              height="320"
-              :options="fluxoCaixaOptions"
-              :series="fluxoCaixaSeries"
-            ></apexchart>
-          </v-card-text>
-        </v-card>
-      </v-col>
+        <!-- Gráficos Principais -->
+        <v-row class="mb-4">
+          <!-- Fluxo de Caixa -->
+          <v-col cols="12" lg="8">
+            <v-card class="background-secondary" elevation="2">
+              <v-card-title class="pa-4 d-flex align-center">
+                <v-icon icon="mdi-chart-line" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                Fluxo de Caixa - Últimos 6 Meses
+              </v-card-title>
+              <v-card-text class="pa-4">
+                <apexchart
+                    type="area"
+                    height="320"
+                    :options="fluxoCaixaOptions"
+                    :series="fluxoCaixaSeries"
+                ></apexchart>
+              </v-card-text>
+            </v-card>
+          </v-col>
 
-      <!-- Distribuição por Centro de Custo -->
-      <v-col cols="12" lg="4">
-        <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center">
-            <v-icon icon="mdi-chart-donut" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-            Gastos por Centro de Custo
-          </v-card-title>
-          <v-card-text class="pa-4">
-            <apexchart
-              type="donut"
-              height="320"
-              :options="centroCustoOptions"
-              :series="centroCustoSeries"
-            ></apexchart>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+          <!-- Distribuição por Centro de Custo -->
+          <v-col cols="12" lg="4">
+            <v-card class="background-secondary" elevation="2">
+              <v-card-title class="pa-4 d-flex align-center">
+                <v-icon icon="mdi-chart-donut" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                Gastos por Centro de Custo
+              </v-card-title>
+              <v-card-text class="pa-4">
+                <apexchart
+                    type="donut"
+                    height="320"
+                    :options="centroCustoOptions"
+                    :series="centroCustoSeries"
+                ></apexchart>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
 
-    <!-- Segunda linha de gráficos -->
-    <v-row class="mb-4">
-      <!-- Contas a Pagar vs Receber -->
-      <v-col cols="12" md="6">
-        <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center">
-            <v-icon icon="mdi-chart-bar" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-            Contas a Pagar vs Receber
-          </v-card-title>
-          <v-card-text class="pa-4">
-            <apexchart
-              type="bar"
-              height="280"
-              :options="pagarReceberOptions"
-              :series="pagarReceberSeries"
-            ></apexchart>
-          </v-card-text>
-        </v-card>
-      </v-col>
+        <!-- Segunda linha de gráficos -->
+        <v-row class="mb-4">
+          <!-- Contas a Pagar vs Receber -->
+          <v-col cols="12" md="6">
+            <v-card class="background-secondary" elevation="2">
+              <v-card-title class="pa-4 d-flex align-center">
+                <v-icon icon="mdi-chart-bar" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                Contas a Pagar vs Receber
+              </v-card-title>
+              <v-card-text class="pa-4">
+                <apexchart
+                    type="bar"
+                    height="280"
+                    :options="pagarReceberOptions"
+                    :series="pagarReceberSeries"
+                ></apexchart>
+              </v-card-text>
+            </v-card>
+          </v-col>
 
-      <!-- Movimentação do Caixa -->
-      <v-col cols="12" md="6">
-        <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center">
-            <v-icon icon="mdi-cash-multiple" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-            Movimentação do Caixa
-          </v-card-title>
-          <v-card-text class="pa-4">
-            <apexchart
-              type="bar"
-              height="280"
-              :options="movimentacaoCaixaOptions"
-              :series="movimentacaoCaixaSeries"
-            ></apexchart>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+          <!-- Movimentação do Caixa -->
+          <v-col cols="12" md="6">
+            <v-card class="background-secondary" elevation="2">
+              <v-card-title class="pa-4 d-flex align-center">
+                <v-icon icon="mdi-cash-multiple" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                Movimentação do Caixa
+              </v-card-title>
+              <v-card-text class="pa-4">
+                <apexchart
+                    type="bar"
+                    height="280"
+                    :options="movimentacaoCaixaOptions"
+                    :series="movimentacaoCaixaSeries"
+                ></apexchart>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
 
-    <!-- Terceira linha -->
-    <v-row class="mb-4">
-      <!-- Estoque por Grupo -->
-      <v-col cols="12" md="4">
-        <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center">
-            <v-icon icon="mdi-chart-pie" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-            Estoque por Grupo
-          </v-card-title>
-          <v-card-text class="pa-4">
-            <apexchart
-              type="pie"
-              height="280"
-              :options="estoqueGrupoOptions"
-              :series="estoqueGrupoSeries"
-            ></apexchart>
-          </v-card-text>
-        </v-card>
-      </v-col>
+        <!-- Terceira linha -->
+        <v-row class="mb-4">
+          <!-- Estoque por Grupo -->
+          <v-col cols="12" md="4">
+            <v-card class="background-secondary" elevation="2">
+              <v-card-title class="pa-4 d-flex align-center">
+                <v-icon icon="mdi-chart-pie" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                Estoque por Grupo
+              </v-card-title>
+              <v-card-text class="pa-4">
+                <apexchart
+                    type="pie"
+                    height="280"
+                    :options="estoqueGrupoOptions"
+                    :series="estoqueGrupoSeries"
+                ></apexchart>
+              </v-card-text>
+            </v-card>
+          </v-col>
 
-      <!-- Adiantamentos -->
-      <v-col cols="12" md="4">
-        <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center">
-            <v-icon icon="mdi-account-cash" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-            Adiantamentos de Clientes
-          </v-card-title>
-          <v-card-text class="pa-4">
-            <apexchart
-              type="radialBar"
-              height="280"
-              :options="adiantamentoOptions"
-              :series="adiantamentoSeries"
-            ></apexchart>
-          </v-card-text>
-        </v-card>
-      </v-col>
+          <!-- Adiantamentos -->
+          <v-col cols="12" md="4">
+            <v-card class="background-secondary" elevation="2">
+              <v-card-title class="pa-4 d-flex align-center">
+                <v-icon icon="mdi-account-cash" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                Adiantamentos de Clientes
+              </v-card-title>
+              <v-card-text class="pa-4">
+                <apexchart
+                    type="radialBar"
+                    height="280"
+                    :options="adiantamentoOptions"
+                    :series="adiantamentoSeries"
+                ></apexchart>
+              </v-card-text>
+            </v-card>
+          </v-col>
 
-      <!-- Top Clientes/Fornecedores -->
-      <v-col cols="12" md="4">
-        <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center">
-            <v-icon icon="mdi-account-group" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-            Top 5 Clientes
-          </v-card-title>
-          <v-card-text class="pa-4">
-            <v-list density="compact" class="bg-transparent">
-              <v-list-item
-                v-for="(cliente, index) in topClientes"
-                :key="index"
-                class="px-0"
-              >
-                <template v-slot:prepend>
-                  <v-avatar size="32" :color="getAvatarColor(index)">
-                    <span class="text-white text-caption">{{ index + 1 }}º</span>
-                  </v-avatar>
-                </template>
-                <v-list-item-title class="text-body-2">{{ cliente.nome }}</v-list-item-title>
-                <v-list-item-subtitle class="text-caption">
-                  R$ {{ formatarMoeda(cliente.valor) }}
-                </v-list-item-subtitle>
-                <template v-slot:append>
-                  <v-chip size="x-small" :color="getAvatarColor(index)" variant="tonal">
-                    {{ cliente.percentual }}%
-                  </v-chip>
-                </template>
-              </v-list-item>
-            </v-list>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+          <!-- Top Clientes/Fornecedores -->
+          <v-col cols="12" md="4">
+            <v-card class="background-secondary" elevation="2">
+              <v-card-title class="pa-4 d-flex align-center">
+                <v-icon icon="mdi-account-group" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                Top 5 Clientes
+              </v-card-title>
+              <v-card-text class="pa-4">
+                <v-list density="compact" class="bg-transparent">
+                  <v-list-item
+                      v-for="(cliente, index) in topClientes"
+                      :key="index"
+                      class="px-0"
+                  >
+                    <template v-slot:prepend>
+                      <v-avatar size="32" :color="getAvatarColor(index)">
+                        <span class="text-white text-caption">{{ index + 1 }}º</span>
+                      </v-avatar>
+                    </template>
+                    <v-list-item-title class="text-body-2">{{ cliente.nome }}</v-list-item-title>
+                    <v-list-item-subtitle class="text-caption">
+                      R$ {{ formatarMoeda(cliente.valor) }}
+                    </v-list-item-subtitle>
+                    <template v-slot:append>
+                      <v-chip size="x-small" :color="getAvatarColor(index)" variant="tonal">
+                        {{ cliente.percentual }}%
+                      </v-chip>
+                    </template>
+                  </v-list-item>
+                </v-list>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
 
-    <!-- Últimas Movimentações -->
-    <v-row>
-      <v-col cols="12">
-        <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center justify-space-between">
-            <div class="d-flex align-center">
-              <v-icon icon="mdi-history" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-              Últimas Movimentações
-            </div>
-            <v-btn variant="text" color="var(--text-color-laranja)" size="small">
-              Ver todas
-              <v-icon icon="mdi-chevron-right" end></v-icon>
-            </v-btn>
-          </v-card-title>
-          <v-card-text class="pa-0">
-            <v-data-table
-              :headers="headersMovimentacoes"
-              :items="ultimasMovimentacoes"
-              density="comfortable"
-              :items-per-page="5"
-              class="bg-transparent"
-            >
-              <template #[`item.tipo`]="{ item }">
-                <v-chip
-                  size="small"
-                  :color="item.tipo === 'entrada' ? 'success' : 'error'"
-                  variant="tonal"
+        <!-- Últimas Movimentações -->
+        <v-row>
+          <v-col cols="12">
+            <v-card class="background-secondary" elevation="2">
+              <v-card-title class="pa-4 d-flex align-center justify-space-between">
+                <div class="d-flex align-center">
+                  <v-icon icon="mdi-history" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                  Últimas Movimentações
+                </div>
+                <v-btn variant="text" color="var(--text-color-laranja)" size="small">
+                  Ver todas
+                  <v-icon icon="mdi-chevron-right" end></v-icon>
+                </v-btn>
+              </v-card-title>
+              <v-card-text class="pa-0">
+                <v-data-table
+                    :headers="headersMovimentacoes"
+                    :items="ultimasMovimentacoes"
+                    density="comfortable"
+                    :items-per-page="5"
+                    class="bg-transparent"
                 >
-                  <v-icon
-                    size="x-small"
-                    :icon="item.tipo === 'entrada' ? 'mdi-arrow-down' : 'mdi-arrow-up'"
-                    class="mr-1"
-                  ></v-icon>
-                  {{ item.tipo === 'entrada' ? 'Entrada' : 'Saída' }}
-                </v-chip>
-              </template>
-              <template #[`item.valor`]="{ item }">
+                  <template #[`item.tipo`]="{ item }">
+                    <v-chip
+                        size="small"
+                        :color="item.tipo === 'entrada' ? 'success' : 'error'"
+                        variant="tonal"
+                    >
+                      <v-icon
+                          size="x-small"
+                          :icon="item.tipo === 'entrada' ? 'mdi-arrow-down' : 'mdi-arrow-up'"
+                          class="mr-1"
+                      ></v-icon>
+                      {{ item.tipo === 'entrada' ? 'Entrada' : 'Saída' }}
+                    </v-chip>
+                  </template>
+                  <template #[`item.valor`]="{ item }">
                 <span :class="item.tipo === 'entrada' ? 'text-success' : 'text-error'">
                   {{ item.tipo === 'entrada' ? '+' : '-' }} R$ {{ formatarMoeda(item.valor) }}
                 </span>
-              </template>
-              <template #[`item.data`]="{ item }">
-                {{ formatarData(item.data) }}
-              </template>
-            </v-data-table>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </main>
+                  </template>
+                  <template #[`item.data`]="{ item }">
+                    {{ formatarData(item.data) }}
+                  </template>
+                </v-data-table>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </main>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 

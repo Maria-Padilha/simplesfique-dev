@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 
@@ -828,391 +829,383 @@ const imprimirNota = () => {
 </script>
 
 <template>
-  <div class="pa-4">
-    <!-- Cabeçalho -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-file-document-outline" class="mr-3"></v-icon>
-          Nota Fiscal de Serviço (NFSe)
-        </div>
-      </v-card-title>
-    </v-card>
-
-    <!-- Área de Import -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4">
-      <v-card-text class="pa-4">
-        <v-row>
-          <v-col cols="12">
-            <div
-              class="upload-area pa-8 text-center rounded-lg"
-              :class="{ 'dragging': isDragging }"
-              @dragover.prevent="isDragging = true"
-              @dragleave.prevent="isDragging = false"
-              @drop.prevent="handleDrop"
-            >
-              <v-icon icon="mdi-file-xml-box" size="64" class="mb-4 opacity-60"></v-icon>
-              <p class="text-h6 mb-2">Arraste o arquivo XML aqui</p>
-              <p class="text-body-2 mb-4 opacity-70">ou clique para selecionar</p>
-              <v-btn
-                color="var(--text-color-laranja)"
-                variant="flat"
-                class="text-white"
-                prepend-icon="mdi-upload"
-                @click="triggerFileInput"
+  <top-all-pages icon="mdi-file-document-outline">
+    <template #titulo>Nota Fiscal de Serviço (NFSe)</template>
+    <template #section>
+      <!-- Área de Import -->
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4">
+        <v-card-text class="pa-4">
+          <v-row>
+            <v-col cols="12">
+              <div
+                  class="upload-area pa-8 text-center rounded-lg"
+                  :class="{ 'dragging': isDragging }"
+                  @dragover.prevent="isDragging = true"
+                  @dragleave.prevent="isDragging = false"
+                  @drop.prevent="handleDrop"
               >
-                Selecionar Arquivo XML
-              </v-btn>
-              <input
-                ref="fileInputRef"
-                type="file"
-                accept=".xml"
-                class="d-none"
-                @change="handleFileSelect"
-              />
-            </div>
-          </v-col>
-        </v-row>
-
-        <!-- Arquivo selecionado -->
-        <v-row v-if="arquivoSelecionado">
-          <v-col cols="12">
-            <v-chip
-              color="var(--text-color-laranja)"
-              class="text-white"
-              closable
-              @click:close="limparArquivo"
-            >
-              <v-icon start icon="mdi-file-xml-box"></v-icon>
-              {{ arquivoSelecionado.name }}
-            </v-chip>
-          </v-col>
-        </v-row>
-
-        <!-- Erro de parse -->
-        <v-row v-if="erroParser">
-          <v-col cols="12">
-            <v-alert type="error" variant="tonal" closable @click:close="erroParser = null">
-              {{ erroParser }}
-            </v-alert>
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
-
-    <!-- Visualização da Nota -->
-    <v-expand-transition>
-      <div v-if="notaFiscal">
-        <!-- Botões de Ação -->
-        <v-card class="background-secondary mb-4">
-          <v-card-text class="pa-4 d-flex justify-end gap-2">
-            <v-btn
-              color="grey"
-              variant="outlined"
-              prepend-icon="mdi-close"
-              @click="limparNota"
-            >
-              Limpar
-            </v-btn>
-            <v-btn
-              color="var(--text-color-laranja)"
-              variant="flat"
-              class="text-white"
-              prepend-icon="mdi-printer"
-              @click="imprimirNota"
-            >
-              Imprimir Nota
-            </v-btn>
-          </v-card-text>
-        </v-card>
-
-        <!-- Conteúdo da Nota para Impressão -->
-        <div ref="notaParaImpressao" class="nota-impressao">
-          <!-- Header da Nota -->
-          <v-card class="background-secondary mb-4">
-            <v-card-title class="pa-4 d-flex justify-space-between align-center flex-wrap">
-              <div class="d-flex align-center">
-                <v-icon icon="mdi-receipt-text" class="mr-3" size="32"></v-icon>
-                <div>
-                  <div class="text-h5">NOTA FISCAL DE SERVIÇO ELETRÔNICA</div>
-                  <div class="text-body-2 opacity-70">NFSe Nº {{ notaFiscal.numero }}</div>
-                </div>
+                <v-icon icon="mdi-file-xml-box" size="64" class="mb-4 opacity-60"></v-icon>
+                <p class="text-h6 mb-2">Arraste o arquivo XML aqui</p>
+                <p class="text-body-2 mb-4 opacity-70">ou clique para selecionar</p>
+                <v-btn
+                    color="var(--text-color-laranja)"
+                    variant="flat"
+                    class="text-white"
+                    prepend-icon="mdi-upload"
+                    @click="triggerFileInput"
+                >
+                  Selecionar Arquivo XML
+                </v-btn>
+                <input
+                    ref="fileInputRef"
+                    type="file"
+                    accept=".xml"
+                    class="d-none"
+                    @change="handleFileSelect"
+                />
               </div>
+            </v-col>
+          </v-row>
+
+          <!-- Arquivo selecionado -->
+          <v-row v-if="arquivoSelecionado">
+            <v-col cols="12">
               <v-chip
-                :color="notaFiscal.status === '100' ? 'success' : 'warning'"
-                variant="flat"
-                class="text-white"
+                  color="var(--text-color-laranja)"
+                  class="text-white"
+                  closable
+                  @click:close="limparArquivo"
               >
-                {{ notaFiscal.status === '100' ? 'Autorizada' : 'Processando' }}
+                <v-icon start icon="mdi-file-xml-box"></v-icon>
+                {{ arquivoSelecionado.name }}
               </v-chip>
-            </v-card-title>
+            </v-col>
+          </v-row>
+
+          <!-- Erro de parse -->
+          <v-row v-if="erroParser">
+            <v-col cols="12">
+              <v-alert type="error" variant="tonal" closable @click:close="erroParser = null">
+                {{ erroParser }}
+              </v-alert>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+
+      <!-- Visualização da Nota -->
+      <v-expand-transition>
+        <div v-if="notaFiscal">
+          <!-- Botões de Ação -->
+          <v-card class="background-secondary mb-4">
+            <v-card-text class="pa-4 d-flex justify-end gap-2">
+              <v-btn
+                  color="grey"
+                  variant="outlined"
+                  prepend-icon="mdi-close"
+                  @click="limparNota"
+              >
+                Limpar
+              </v-btn>
+              <v-btn
+                  color="var(--text-color-laranja)"
+                  variant="flat"
+                  class="text-white"
+                  prepend-icon="mdi-printer"
+                  @click="imprimirNota"
+              >
+                Imprimir Nota
+              </v-btn>
+            </v-card-text>
           </v-card>
 
-          <!-- Dados Gerais -->
-          <v-card class="background-secondary mb-4">
-            <v-card-title class="pa-4 pb-2">
-              <v-icon icon="mdi-information-outline" class="mr-2"></v-icon>
-              Dados Gerais
-              <v-chip v-if="notaFiscal.tipoXml" size="small" class="ml-2" variant="outlined">
-                {{ notaFiscal.tipoXml }}
-              </v-chip>
-            </v-card-title>
-            <v-card-text class="pa-4 pt-0">
-              <v-row>
-                <v-col cols="12" md="3">
-                  <div class="campo-label">Número {{ notaFiscal.tipoXml === 'ABRASF' ? 'RPS' : 'NFSe' }}</div>
-                  <div class="campo-valor">{{ notaFiscal.numero }}</div>
-                </v-col>
-                <v-col cols="12" md="3">
-                  <div class="campo-label">Série</div>
-                  <div class="campo-valor">{{ notaFiscal.serie || '-' }}</div>
-                </v-col>
-                <v-col cols="12" md="3">
-                  <div class="campo-label">Data de Emissão</div>
-                  <div class="campo-valor">{{ formatarData(notaFiscal.dataEmissao) }}</div>
-                </v-col>
-                <v-col cols="12" md="3">
-                  <div class="campo-label">Data de Competência</div>
-                  <div class="campo-valor">{{ formatarData(notaFiscal.dataCompetencia) }}</div>
-                </v-col>
+          <!-- Conteúdo da Nota para Impressão -->
+          <div ref="notaParaImpressao" class="nota-impressao">
+            <!-- Header da Nota -->
+            <v-card class="background-secondary mb-4">
+              <v-card-title class="pa-4 d-flex justify-space-between align-center flex-wrap">
+                <div class="d-flex align-center">
+                  <v-icon icon="mdi-receipt-text" class="mr-3" size="32"></v-icon>
+                  <div>
+                    <div class="text-h5">NOTA FISCAL DE SERVIÇO ELETRÔNICA</div>
+                    <div class="text-body-2 opacity-70">NFSe Nº {{ notaFiscal.numero }}</div>
+                  </div>
+                </div>
+                <v-chip
+                    :color="notaFiscal.status === '100' ? 'success' : 'warning'"
+                    variant="flat"
+                    class="text-white"
+                >
+                  {{ notaFiscal.status === '100' ? 'Autorizada' : 'Processando' }}
+                </v-chip>
+              </v-card-title>
+            </v-card>
 
-                <!-- Campos ABRASF específicos -->
-                <template v-if="notaFiscal.tipoXml === 'ABRASF'">
-                  <v-col cols="12" md="4">
-                    <div class="campo-label">Natureza da Operação</div>
-                    <div class="campo-valor">{{ notaFiscal.naturezaOperacaoDesc || notaFiscal.naturezaOperacao || '-' }}</div>
+            <!-- Dados Gerais -->
+            <v-card class="background-secondary mb-4">
+              <v-card-title class="pa-4 pb-2">
+                <v-icon icon="mdi-information-outline" class="mr-2"></v-icon>
+                Dados Gerais
+                <v-chip v-if="notaFiscal.tipoXml" size="small" class="ml-2" variant="outlined">
+                  {{ notaFiscal.tipoXml }}
+                </v-chip>
+              </v-card-title>
+              <v-card-text class="pa-4 pt-0">
+                <v-row>
+                  <v-col cols="12" md="3">
+                    <div class="campo-label">Número {{ notaFiscal.tipoXml === 'ABRASF' ? 'RPS' : 'NFSe' }}</div>
+                    <div class="campo-valor">{{ notaFiscal.numero }}</div>
+                  </v-col>
+                  <v-col cols="12" md="3">
+                    <div class="campo-label">Série</div>
+                    <div class="campo-valor">{{ notaFiscal.serie || '-' }}</div>
+                  </v-col>
+                  <v-col cols="12" md="3">
+                    <div class="campo-label">Data de Emissão</div>
+                    <div class="campo-valor">{{ formatarData(notaFiscal.dataEmissao) }}</div>
+                  </v-col>
+                  <v-col cols="12" md="3">
+                    <div class="campo-label">Data de Competência</div>
+                    <div class="campo-valor">{{ formatarData(notaFiscal.dataCompetencia) }}</div>
+                  </v-col>
+
+                  <!-- Campos ABRASF específicos -->
+                  <template v-if="notaFiscal.tipoXml === 'ABRASF'">
+                    <v-col cols="12" md="4">
+                      <div class="campo-label">Natureza da Operação</div>
+                      <div class="campo-valor">{{ notaFiscal.naturezaOperacaoDesc || notaFiscal.naturezaOperacao || '-' }}</div>
+                    </v-col>
+                    <v-col cols="12" md="4">
+                      <div class="campo-label">Regime Especial Tributação</div>
+                      <div class="campo-valor">{{ notaFiscal.regimeEspecialTributacaoDesc || notaFiscal.regimeEspecialTributacao || '-' }}</div>
+                    </v-col>
+                    <v-col cols="12" md="4">
+                      <div class="campo-label">Opções</div>
+                      <div class="campo-valor d-flex gap-2 flex-wrap">
+                        <v-chip v-if="notaFiscal.optanteSimplesNacional" size="small" color="primary" variant="tonal">
+                          Simples Nacional
+                        </v-chip>
+                        <v-chip v-if="notaFiscal.incentivadorCultural" size="small" color="purple" variant="tonal">
+                          Incentivador Cultural
+                        </v-chip>
+                        <span v-if="!notaFiscal.optanteSimplesNacional && !notaFiscal.incentivadorCultural">-</span>
+                      </div>
+                    </v-col>
+                  </template>
+
+                  <v-col cols="12" md="6">
+                    <div class="campo-label">Local de Emissão</div>
+                    <div class="campo-valor">{{ notaFiscal.localEmissao || '-' }}</div>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <div class="campo-label">Local de Prestação</div>
+                    <div class="campo-valor">{{ notaFiscal.localPrestacao || '-' }}</div>
+                  </v-col>
+                  <v-col cols="12" v-if="notaFiscal.tribNacional">
+                    <div class="campo-label">Tributação Nacional</div>
+                    <div class="campo-valor">{{ notaFiscal.tribNacional }}</div>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+
+            <!-- Prestador de Serviço -->
+            <v-card class="background-secondary mb-4">
+              <v-card-title class="pa-4 pb-2">
+                <v-icon icon="mdi-domain" class="mr-2"></v-icon>
+                Prestador de Serviço
+              </v-card-title>
+              <v-card-text class="pa-4 pt-0">
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <div class="campo-label">Razão Social</div>
+                    <div class="campo-valor font-weight-bold">{{ notaFiscal.prestador?.razaoSocial }}</div>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <div class="campo-label">Nome Fantasia</div>
+                    <div class="campo-valor">{{ notaFiscal.prestador?.nomeFantasia || '-' }}</div>
                   </v-col>
                   <v-col cols="12" md="4">
-                    <div class="campo-label">Regime Especial Tributação</div>
-                    <div class="campo-valor">{{ notaFiscal.regimeEspecialTributacaoDesc || notaFiscal.regimeEspecialTributacao || '-' }}</div>
+                    <div class="campo-label">CNPJ</div>
+                    <div class="campo-valor">{{ formatarCNPJ(notaFiscal.prestador?.cnpj) }}</div>
                   </v-col>
                   <v-col cols="12" md="4">
-                    <div class="campo-label">Opções</div>
-                    <div class="campo-valor d-flex gap-2 flex-wrap">
-                      <v-chip v-if="notaFiscal.optanteSimplesNacional" size="small" color="primary" variant="tonal">
-                        Simples Nacional
-                      </v-chip>
-                      <v-chip v-if="notaFiscal.incentivadorCultural" size="small" color="purple" variant="tonal">
-                        Incentivador Cultural
-                      </v-chip>
-                      <span v-if="!notaFiscal.optanteSimplesNacional && !notaFiscal.incentivadorCultural">-</span>
+                    <div class="campo-label">Inscrição Municipal</div>
+                    <div class="campo-valor">{{ notaFiscal.prestador?.inscricaoMunicipal || '-' }}</div>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <div class="campo-label">Telefone</div>
+                    <div class="campo-valor">{{ formatarTelefone(notaFiscal.prestador?.telefone) }}</div>
+                  </v-col>
+                  <v-col cols="12">
+                    <div class="campo-label">Endereço</div>
+                    <div class="campo-valor">
+                      {{ notaFiscal.prestador?.endereco?.logradouro }},
+                      {{ notaFiscal.prestador?.endereco?.numero }}
+                      {{ notaFiscal.prestador?.endereco?.complemento ? ' - ' + notaFiscal.prestador?.endereco?.complemento : '' }}
+                      <br>
+                      {{ notaFiscal.prestador?.endereco?.bairro }} -
+                      {{ notaFiscal.prestador?.endereco?.uf }} -
+                      CEP: {{ formatarCEP(notaFiscal.prestador?.endereco?.cep) }}
                     </div>
                   </v-col>
-                </template>
-
-                <v-col cols="12" md="6">
-                  <div class="campo-label">Local de Emissão</div>
-                  <div class="campo-valor">{{ notaFiscal.localEmissao || '-' }}</div>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <div class="campo-label">Local de Prestação</div>
-                  <div class="campo-valor">{{ notaFiscal.localPrestacao || '-' }}</div>
-                </v-col>
-                <v-col cols="12" v-if="notaFiscal.tribNacional">
-                  <div class="campo-label">Tributação Nacional</div>
-                  <div class="campo-valor">{{ notaFiscal.tribNacional }}</div>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-
-          <!-- Prestador de Serviço -->
-          <v-card class="background-secondary mb-4">
-            <v-card-title class="pa-4 pb-2">
-              <v-icon icon="mdi-domain" class="mr-2"></v-icon>
-              Prestador de Serviço
-            </v-card-title>
-            <v-card-text class="pa-4 pt-0">
-              <v-row>
-                <v-col cols="12" md="6">
-                  <div class="campo-label">Razão Social</div>
-                  <div class="campo-valor font-weight-bold">{{ notaFiscal.prestador?.razaoSocial }}</div>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <div class="campo-label">Nome Fantasia</div>
-                  <div class="campo-valor">{{ notaFiscal.prestador?.nomeFantasia || '-' }}</div>
-                </v-col>
-                <v-col cols="12" md="4">
-                  <div class="campo-label">CNPJ</div>
-                  <div class="campo-valor">{{ formatarCNPJ(notaFiscal.prestador?.cnpj) }}</div>
-                </v-col>
-                <v-col cols="12" md="4">
-                  <div class="campo-label">Inscrição Municipal</div>
-                  <div class="campo-valor">{{ notaFiscal.prestador?.inscricaoMunicipal || '-' }}</div>
-                </v-col>
-                <v-col cols="12" md="4">
-                  <div class="campo-label">Telefone</div>
-                  <div class="campo-valor">{{ formatarTelefone(notaFiscal.prestador?.telefone) }}</div>
-                </v-col>
-                <v-col cols="12">
-                  <div class="campo-label">Endereço</div>
-                  <div class="campo-valor">
-                    {{ notaFiscal.prestador?.endereco?.logradouro }},
-                    {{ notaFiscal.prestador?.endereco?.numero }}
-                    {{ notaFiscal.prestador?.endereco?.complemento ? ' - ' + notaFiscal.prestador?.endereco?.complemento : '' }}
-                    <br>
-                    {{ notaFiscal.prestador?.endereco?.bairro }} -
-                    {{ notaFiscal.prestador?.endereco?.uf }} -
-                    CEP: {{ formatarCEP(notaFiscal.prestador?.endereco?.cep) }}
-                  </div>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <div class="campo-label">E-mail</div>
-                  <div class="campo-valor">{{ notaFiscal.prestador?.email || '-' }}</div>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-
-          <!-- Tomador de Serviço -->
-          <v-card class="background-secondary mb-4">
-            <v-card-title class="pa-4 pb-2">
-              <v-icon icon="mdi-account-tie" class="mr-2"></v-icon>
-              Tomador de Serviço
-            </v-card-title>
-            <v-card-text class="pa-4 pt-0">
-              <v-row>
-                <v-col cols="12" md="6">
-                  <div class="campo-label">Razão Social</div>
-                  <div class="campo-valor font-weight-bold">{{ notaFiscal.tomador?.razaoSocial || '-' }}</div>
-                </v-col>
-                <v-col cols="12" md="3">
-                  <div class="campo-label">{{ notaFiscal.tomador?.cpf ? 'CPF' : 'CNPJ' }}</div>
-                  <div class="campo-valor">{{ formatarCNPJ(notaFiscal.tomador?.cnpj || notaFiscal.tomador?.cpf) }}</div>
-                </v-col>
-                <v-col cols="12" md="3" v-if="notaFiscal.tomador?.inscricaoMunicipal">
-                  <div class="campo-label">Inscrição Municipal</div>
-                  <div class="campo-valor">{{ notaFiscal.tomador?.inscricaoMunicipal }}</div>
-                </v-col>
-                <v-col cols="12" v-if="notaFiscal.tomador?.endereco">
-                  <div class="campo-label">Endereço</div>
-                  <div class="campo-valor">
-                    {{ notaFiscal.tomador?.endereco?.logradouro }},
-                    {{ notaFiscal.tomador?.endereco?.numero }}
-                    {{ notaFiscal.tomador?.endereco?.complemento ? ' - ' + notaFiscal.tomador?.endereco?.complemento : '' }}
-                    <br>
-                    {{ notaFiscal.tomador?.endereco?.bairro }}
-                    {{ notaFiscal.tomador?.endereco?.uf ? ' - ' + notaFiscal.tomador?.endereco?.uf : '' }} -
-                    CEP: {{ formatarCEP(notaFiscal.tomador?.endereco?.cep) }}
-                  </div>
-                </v-col>
-                <v-col cols="12" md="6" v-if="notaFiscal.tomador?.telefone">
-                  <div class="campo-label">Telefone</div>
-                  <div class="campo-valor">{{ formatarTelefone(notaFiscal.tomador?.telefone) }}</div>
-                </v-col>
-                <v-col cols="12" :md="notaFiscal.tomador?.telefone ? 6 : 12">
-                  <div class="campo-label">E-mail</div>
-                  <div class="campo-valor">{{ notaFiscal.tomador?.email || '-' }}</div>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-
-          <!-- Intermediário do Serviço (ABRASF) -->
-          <v-card v-if="notaFiscal.intermediario" class="background-secondary mb-4">
-            <v-card-title class="pa-4 pb-2">
-              <v-icon icon="mdi-handshake" class="mr-2"></v-icon>
-              Intermediário do Serviço
-            </v-card-title>
-            <v-card-text class="pa-4 pt-0">
-              <v-row>
-                <v-col cols="12" md="6">
-                  <div class="campo-label">Razão Social</div>
-                  <div class="campo-valor font-weight-bold">{{ notaFiscal.intermediario?.razaoSocial }}</div>
-                </v-col>
-                <v-col cols="12" md="3">
-                  <div class="campo-label">CNPJ</div>
-                  <div class="campo-valor">{{ formatarCNPJ(notaFiscal.intermediario?.cnpj) }}</div>
-                </v-col>
-                <v-col cols="12" md="3" v-if="notaFiscal.intermediario?.inscricaoMunicipal">
-                  <div class="campo-label">Inscrição Municipal</div>
-                  <div class="campo-valor">{{ notaFiscal.intermediario?.inscricaoMunicipal }}</div>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-
-          <!-- Construção Civil (ABRASF) -->
-          <v-card v-if="notaFiscal.construcaoCivil" class="background-secondary mb-4">
-            <v-card-title class="pa-4 pb-2">
-              <v-icon icon="mdi-office-building" class="mr-2"></v-icon>
-              Construção Civil
-            </v-card-title>
-            <v-card-text class="pa-4 pt-0">
-              <v-row>
-                <v-col cols="12" md="6">
-                  <div class="campo-label">Código da Obra</div>
-                  <div class="campo-valor">{{ notaFiscal.construcaoCivil?.codigoObra }}</div>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <div class="campo-label">ART</div>
-                  <div class="campo-valor">{{ notaFiscal.construcaoCivil?.art }}</div>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-
-          <!-- Descrição do Serviço -->
-          <v-card class="background-secondary mb-4">
-            <v-card-title class="pa-4 pb-2">
-              <v-icon icon="mdi-clipboard-text" class="mr-2"></v-icon>
-              Serviço Prestado
-            </v-card-title>
-            <v-card-text class="pa-4 pt-0">
-              <v-row>
-                <!-- Campos ABRASF específicos -->
-                <template v-if="notaFiscal.tipoXml === 'ABRASF'">
-                  <v-col cols="12" md="4" v-if="notaFiscal.servico?.itemListaServico">
-                    <div class="campo-label">Item Lista Serviço</div>
-                    <div class="campo-valor">{{ notaFiscal.servico?.itemListaServico }}</div>
+                  <v-col cols="12" md="6">
+                    <div class="campo-label">E-mail</div>
+                    <div class="campo-valor">{{ notaFiscal.prestador?.email || '-' }}</div>
                   </v-col>
-                  <v-col cols="12" md="4" v-if="notaFiscal.servico?.codigoCnae">
-                    <div class="campo-label">Código CNAE</div>
-                    <div class="campo-valor">{{ notaFiscal.servico?.codigoCnae }}</div>
+                </v-row>
+              </v-card-text>
+            </v-card>
+
+            <!-- Tomador de Serviço -->
+            <v-card class="background-secondary mb-4">
+              <v-card-title class="pa-4 pb-2">
+                <v-icon icon="mdi-account-tie" class="mr-2"></v-icon>
+                Tomador de Serviço
+              </v-card-title>
+              <v-card-text class="pa-4 pt-0">
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <div class="campo-label">Razão Social</div>
+                    <div class="campo-valor font-weight-bold">{{ notaFiscal.tomador?.razaoSocial || '-' }}</div>
                   </v-col>
-                </template>
+                  <v-col cols="12" md="3">
+                    <div class="campo-label">{{ notaFiscal.tomador?.cpf ? 'CPF' : 'CNPJ' }}</div>
+                    <div class="campo-valor">{{ formatarCNPJ(notaFiscal.tomador?.cnpj || notaFiscal.tomador?.cpf) }}</div>
+                  </v-col>
+                  <v-col cols="12" md="3" v-if="notaFiscal.tomador?.inscricaoMunicipal">
+                    <div class="campo-label">Inscrição Municipal</div>
+                    <div class="campo-valor">{{ notaFiscal.tomador?.inscricaoMunicipal }}</div>
+                  </v-col>
+                  <v-col cols="12" v-if="notaFiscal.tomador?.endereco">
+                    <div class="campo-label">Endereço</div>
+                    <div class="campo-valor">
+                      {{ notaFiscal.tomador?.endereco?.logradouro }},
+                      {{ notaFiscal.tomador?.endereco?.numero }}
+                      {{ notaFiscal.tomador?.endereco?.complemento ? ' - ' + notaFiscal.tomador?.endereco?.complemento : '' }}
+                      <br>
+                      {{ notaFiscal.tomador?.endereco?.bairro }}
+                      {{ notaFiscal.tomador?.endereco?.uf ? ' - ' + notaFiscal.tomador?.endereco?.uf : '' }} -
+                      CEP: {{ formatarCEP(notaFiscal.tomador?.endereco?.cep) }}
+                    </div>
+                  </v-col>
+                  <v-col cols="12" md="6" v-if="notaFiscal.tomador?.telefone">
+                    <div class="campo-label">Telefone</div>
+                    <div class="campo-valor">{{ formatarTelefone(notaFiscal.tomador?.telefone) }}</div>
+                  </v-col>
+                  <v-col cols="12" :md="notaFiscal.tomador?.telefone ? 6 : 12">
+                    <div class="campo-label">E-mail</div>
+                    <div class="campo-valor">{{ notaFiscal.tomador?.email || '-' }}</div>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
 
-                <v-col cols="12" md="4">
-                  <div class="campo-label">Código Tributação {{ notaFiscal.tipoXml === 'ABRASF' ? 'Municipal' : 'Nacional' }}</div>
-                  <div class="campo-valor">{{ notaFiscal.servico?.codigoTribNacional || notaFiscal.servico?.codigoTribMunicipal || '-' }}</div>
-                </v-col>
-                <v-col cols="12" md="4" v-if="notaFiscal.tipoXml !== 'ABRASF' || !notaFiscal.servico?.codigoCnae">
-                  <div class="campo-label">Código Tributação Municipal</div>
-                  <div class="campo-valor">{{ notaFiscal.servico?.codigoTribMunicipal || '-' }}</div>
-                </v-col>
-                <v-col cols="12" md="4">
-                  <div class="campo-label">Local de Prestação</div>
-                  <div class="campo-valor">{{ notaFiscal.servico?.localPrestacao || '-' }}</div>
-                </v-col>
-                <v-col cols="12">
-                  <div class="campo-label">Descrição do Serviço</div>
-                  <div class="campo-valor descricao-servico">{{ notaFiscal.servico?.descricao || '-' }}</div>
-                </v-col>
-                <v-col cols="12" v-if="notaFiscal.servico?.infoComplementar">
-                  <div class="campo-label">Informações Complementares</div>
-                  <div class="campo-valor descricao-servico">{{ notaFiscal.servico?.infoComplementar }}</div>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
+            <!-- Intermediário do Serviço (ABRASF) -->
+            <v-card v-if="notaFiscal.intermediario" class="background-secondary mb-4">
+              <v-card-title class="pa-4 pb-2">
+                <v-icon icon="mdi-handshake" class="mr-2"></v-icon>
+                Intermediário do Serviço
+              </v-card-title>
+              <v-card-text class="pa-4 pt-0">
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <div class="campo-label">Razão Social</div>
+                    <div class="campo-valor font-weight-bold">{{ notaFiscal.intermediario?.razaoSocial }}</div>
+                  </v-col>
+                  <v-col cols="12" md="3">
+                    <div class="campo-label">CNPJ</div>
+                    <div class="campo-valor">{{ formatarCNPJ(notaFiscal.intermediario?.cnpj) }}</div>
+                  </v-col>
+                  <v-col cols="12" md="3" v-if="notaFiscal.intermediario?.inscricaoMunicipal">
+                    <div class="campo-label">Inscrição Municipal</div>
+                    <div class="campo-valor">{{ notaFiscal.intermediario?.inscricaoMunicipal }}</div>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
 
-          <!-- Valores -->
-          <v-card class="background-secondary mb-4">
-            <v-card-title class="pa-4 pb-2">
-              <v-icon icon="mdi-currency-brl" class="mr-2"></v-icon>
-              Valores
-            </v-card-title>
-            <v-card-text class="pa-4 pt-0">
-              <v-row>
-                <v-col cols="12">
-                  <v-table class="background-card" density="compact">
-                    <thead>
+            <!-- Construção Civil (ABRASF) -->
+            <v-card v-if="notaFiscal.construcaoCivil" class="background-secondary mb-4">
+              <v-card-title class="pa-4 pb-2">
+                <v-icon icon="mdi-office-building" class="mr-2"></v-icon>
+                Construção Civil
+              </v-card-title>
+              <v-card-text class="pa-4 pt-0">
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <div class="campo-label">Código da Obra</div>
+                    <div class="campo-valor">{{ notaFiscal.construcaoCivil?.codigoObra }}</div>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <div class="campo-label">ART</div>
+                    <div class="campo-valor">{{ notaFiscal.construcaoCivil?.art }}</div>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+
+            <!-- Descrição do Serviço -->
+            <v-card class="background-secondary mb-4">
+              <v-card-title class="pa-4 pb-2">
+                <v-icon icon="mdi-clipboard-text" class="mr-2"></v-icon>
+                Serviço Prestado
+              </v-card-title>
+              <v-card-text class="pa-4 pt-0">
+                <v-row>
+                  <!-- Campos ABRASF específicos -->
+                  <template v-if="notaFiscal.tipoXml === 'ABRASF'">
+                    <v-col cols="12" md="4" v-if="notaFiscal.servico?.itemListaServico">
+                      <div class="campo-label">Item Lista Serviço</div>
+                      <div class="campo-valor">{{ notaFiscal.servico?.itemListaServico }}</div>
+                    </v-col>
+                    <v-col cols="12" md="4" v-if="notaFiscal.servico?.codigoCnae">
+                      <div class="campo-label">Código CNAE</div>
+                      <div class="campo-valor">{{ notaFiscal.servico?.codigoCnae }}</div>
+                    </v-col>
+                  </template>
+
+                  <v-col cols="12" md="4">
+                    <div class="campo-label">Código Tributação {{ notaFiscal.tipoXml === 'ABRASF' ? 'Municipal' : 'Nacional' }}</div>
+                    <div class="campo-valor">{{ notaFiscal.servico?.codigoTribNacional || notaFiscal.servico?.codigoTribMunicipal || '-' }}</div>
+                  </v-col>
+                  <v-col cols="12" md="4" v-if="notaFiscal.tipoXml !== 'ABRASF' || !notaFiscal.servico?.codigoCnae">
+                    <div class="campo-label">Código Tributação Municipal</div>
+                    <div class="campo-valor">{{ notaFiscal.servico?.codigoTribMunicipal || '-' }}</div>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <div class="campo-label">Local de Prestação</div>
+                    <div class="campo-valor">{{ notaFiscal.servico?.localPrestacao || '-' }}</div>
+                  </v-col>
+                  <v-col cols="12">
+                    <div class="campo-label">Descrição do Serviço</div>
+                    <div class="campo-valor descricao-servico">{{ notaFiscal.servico?.descricao || '-' }}</div>
+                  </v-col>
+                  <v-col cols="12" v-if="notaFiscal.servico?.infoComplementar">
+                    <div class="campo-label">Informações Complementares</div>
+                    <div class="campo-valor descricao-servico">{{ notaFiscal.servico?.infoComplementar }}</div>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+
+            <!-- Valores -->
+            <v-card class="background-secondary mb-4">
+              <v-card-title class="pa-4 pb-2">
+                <v-icon icon="mdi-currency-brl" class="mr-2"></v-icon>
+                Valores
+              </v-card-title>
+              <v-card-text class="pa-4 pt-0">
+                <v-row>
+                  <v-col cols="12">
+                    <v-table class="background-card" density="compact">
+                      <thead>
                       <tr>
                         <th class="text-left">Descrição</th>
                         <th class="text-right">Valor</th>
                       </tr>
-                    </thead>
-                    <tbody>
+                      </thead>
+                      <tbody>
                       <tr>
                         <td>Valor do Serviço</td>
                         <td class="text-right">{{ formatarMoeda(notaFiscal.valores?.valorServico) }}</td>
@@ -1225,157 +1218,158 @@ const imprimirNota = () => {
                         <td>Valor Líquido</td>
                         <td class="text-right text-success">{{ formatarMoeda(notaFiscal.valores?.valorLiquido) }}</td>
                       </tr>
-                    </tbody>
-                  </v-table>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
+                      </tbody>
+                    </v-table>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
 
-          <!-- Tributos -->
-          <v-card class="background-secondary mb-4">
-            <v-card-title class="pa-4 pb-2">
-              <v-icon icon="mdi-calculator" class="mr-2"></v-icon>
-              Tributos
-            </v-card-title>
-            <v-card-text class="pa-4 pt-0">
-              <v-row>
-                <!-- ISSQN -->
-                <v-col cols="12" md="6">
-                  <v-card class="background-card" variant="outlined">
-                    <v-card-title class="text-subtitle-1 pa-3 pb-1">
-                      <v-icon icon="mdi-city" size="small" class="mr-2"></v-icon>
-                      ISSQN (Municipal)
-                      <v-chip v-if="notaFiscal.tributos?.issqn?.retido" size="x-small" color="warning" class="ml-2">
-                        RETIDO
-                      </v-chip>
-                    </v-card-title>
-                    <v-card-text class="pa-3 pt-0">
-                      <div class="d-flex justify-space-between mb-1">
-                        <span class="opacity-70">Alíquota:</span>
-                        <span>{{ notaFiscal.tributos?.issqn?.aliquota || 0 }}%</span>
-                      </div>
-                      <div class="d-flex justify-space-between mb-1">
-                        <span class="opacity-70">Valor:</span>
-                        <span class="font-weight-bold">{{ formatarMoeda(notaFiscal.tributos?.issqn?.valor) }}</span>
-                      </div>
-                      <div v-if="notaFiscal.tributos?.issqn?.valorRetido" class="d-flex justify-space-between">
-                        <span class="opacity-70">Valor Retido:</span>
-                        <span class="text-warning">{{ formatarMoeda(notaFiscal.tributos?.issqn?.valorRetido) }}</span>
-                      </div>
-                    </v-card-text>
-                  </v-card>
-                </v-col>
+            <!-- Tributos -->
+            <v-card class="background-secondary mb-4">
+              <v-card-title class="pa-4 pb-2">
+                <v-icon icon="mdi-calculator" class="mr-2"></v-icon>
+                Tributos
+              </v-card-title>
+              <v-card-text class="pa-4 pt-0">
+                <v-row>
+                  <!-- ISSQN -->
+                  <v-col cols="12" md="6">
+                    <v-card class="background-card" variant="outlined">
+                      <v-card-title class="text-subtitle-1 pa-3 pb-1">
+                        <v-icon icon="mdi-city" size="small" class="mr-2"></v-icon>
+                        ISSQN (Municipal)
+                        <v-chip v-if="notaFiscal.tributos?.issqn?.retido" size="x-small" color="warning" class="ml-2">
+                          RETIDO
+                        </v-chip>
+                      </v-card-title>
+                      <v-card-text class="pa-3 pt-0">
+                        <div class="d-flex justify-space-between mb-1">
+                          <span class="opacity-70">Alíquota:</span>
+                          <span>{{ notaFiscal.tributos?.issqn?.aliquota || 0 }}%</span>
+                        </div>
+                        <div class="d-flex justify-space-between mb-1">
+                          <span class="opacity-70">Valor:</span>
+                          <span class="font-weight-bold">{{ formatarMoeda(notaFiscal.tributos?.issqn?.valor) }}</span>
+                        </div>
+                        <div v-if="notaFiscal.tributos?.issqn?.valorRetido" class="d-flex justify-space-between">
+                          <span class="opacity-70">Valor Retido:</span>
+                          <span class="text-warning">{{ formatarMoeda(notaFiscal.tributos?.issqn?.valorRetido) }}</span>
+                        </div>
+                      </v-card-text>
+                    </v-card>
+                  </v-col>
 
-                <!-- Tributos Federais -->
-                <v-col cols="12" md="6">
-                  <v-card class="background-card" variant="outlined">
-                    <v-card-title class="text-subtitle-1 pa-3 pb-1">
-                      <v-icon icon="mdi-bank" size="small" class="mr-2"></v-icon>
-                      Tributos Federais
-                    </v-card-title>
-                    <v-card-text class="pa-3 pt-0">
-                      <div class="d-flex justify-space-between mb-1">
-                        <span class="opacity-70">PIS{{ notaFiscal.tributos?.pis?.aliquota ? ` (${notaFiscal.tributos?.pis?.aliquota}%)` : '' }}:</span>
-                        <span>{{ formatarMoeda(notaFiscal.tributos?.pis?.valor) }}</span>
-                      </div>
-                      <div class="d-flex justify-space-between mb-1">
-                        <span class="opacity-70">COFINS{{ notaFiscal.tributos?.cofins?.aliquota ? ` (${notaFiscal.tributos?.cofins?.aliquota}%)` : '' }}:</span>
-                        <span>{{ formatarMoeda(notaFiscal.tributos?.cofins?.valor) }}</span>
-                      </div>
-                      <div v-if="notaFiscal.tributos?.inss" class="d-flex justify-space-between mb-1">
-                        <span class="opacity-70">INSS:</span>
-                        <span>{{ formatarMoeda(notaFiscal.tributos?.inss) }}</span>
-                      </div>
-                      <div v-if="notaFiscal.tributos?.ir" class="d-flex justify-space-between mb-1">
-                        <span class="opacity-70">IR:</span>
-                        <span>{{ formatarMoeda(notaFiscal.tributos?.ir) }}</span>
-                      </div>
-                      <div class="d-flex justify-space-between mb-1">
-                        <span class="opacity-70">CSLL:</span>
-                        <span>{{ formatarMoeda(notaFiscal.tributos?.csll) }}</span>
-                      </div>
-                      <div v-if="notaFiscal.tributos?.outrasRetencoes" class="d-flex justify-space-between mb-1">
-                        <span class="opacity-70">Outras Retenções:</span>
-                        <span>{{ formatarMoeda(notaFiscal.tributos?.outrasRetencoes) }}</span>
-                      </div>
-                      <v-divider class="my-2"></v-divider>
-                      <div class="d-flex justify-space-between">
-                        <span class="opacity-70">Total Retido:</span>
-                        <span class="font-weight-bold text-error">{{ formatarMoeda(notaFiscal.valores?.totalRetido) }}</span>
-                      </div>
-                    </v-card-text>
-                  </v-card>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
+                  <!-- Tributos Federais -->
+                  <v-col cols="12" md="6">
+                    <v-card class="background-card" variant="outlined">
+                      <v-card-title class="text-subtitle-1 pa-3 pb-1">
+                        <v-icon icon="mdi-bank" size="small" class="mr-2"></v-icon>
+                        Tributos Federais
+                      </v-card-title>
+                      <v-card-text class="pa-3 pt-0">
+                        <div class="d-flex justify-space-between mb-1">
+                          <span class="opacity-70">PIS{{ notaFiscal.tributos?.pis?.aliquota ? ` (${notaFiscal.tributos?.pis?.aliquota}%)` : '' }}:</span>
+                          <span>{{ formatarMoeda(notaFiscal.tributos?.pis?.valor) }}</span>
+                        </div>
+                        <div class="d-flex justify-space-between mb-1">
+                          <span class="opacity-70">COFINS{{ notaFiscal.tributos?.cofins?.aliquota ? ` (${notaFiscal.tributos?.cofins?.aliquota}%)` : '' }}:</span>
+                          <span>{{ formatarMoeda(notaFiscal.tributos?.cofins?.valor) }}</span>
+                        </div>
+                        <div v-if="notaFiscal.tributos?.inss" class="d-flex justify-space-between mb-1">
+                          <span class="opacity-70">INSS:</span>
+                          <span>{{ formatarMoeda(notaFiscal.tributos?.inss) }}</span>
+                        </div>
+                        <div v-if="notaFiscal.tributos?.ir" class="d-flex justify-space-between mb-1">
+                          <span class="opacity-70">IR:</span>
+                          <span>{{ formatarMoeda(notaFiscal.tributos?.ir) }}</span>
+                        </div>
+                        <div class="d-flex justify-space-between mb-1">
+                          <span class="opacity-70">CSLL:</span>
+                          <span>{{ formatarMoeda(notaFiscal.tributos?.csll) }}</span>
+                        </div>
+                        <div v-if="notaFiscal.tributos?.outrasRetencoes" class="d-flex justify-space-between mb-1">
+                          <span class="opacity-70">Outras Retenções:</span>
+                          <span>{{ formatarMoeda(notaFiscal.tributos?.outrasRetencoes) }}</span>
+                        </div>
+                        <v-divider class="my-2"></v-divider>
+                        <div class="d-flex justify-space-between">
+                          <span class="opacity-70">Total Retido:</span>
+                          <span class="font-weight-bold text-error">{{ formatarMoeda(notaFiscal.valores?.totalRetido) }}</span>
+                        </div>
+                      </v-card-text>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
 
-          <!-- Resumo Final -->
-          <v-card class="background-secondary">
-            <v-card-text class="pa-4">
-              <v-row align="center" justify="space-between">
-                <v-col cols="12" md="4">
-                  <div class="text-center">
-                    <div class="text-body-2 opacity-70">Valor Bruto</div>
-                    <div class="text-h5">{{ formatarMoeda(notaFiscal.valores?.valorServico) }}</div>
-                  </div>
-                </v-col>
-                <v-col cols="12" md="4">
-                  <div class="text-center">
-                    <div class="text-body-2 opacity-70">(-) Retenções</div>
-                    <div class="text-h5 text-error">{{ formatarMoeda(notaFiscal.valores?.totalRetido) }}</div>
-                  </div>
-                </v-col>
-                <v-col cols="12" md="4">
-                  <div class="text-center pa-3 rounded-lg" style="background-color: rgba(76, 175, 80, 0.15);">
-                    <div class="text-body-2 opacity-70">Valor Líquido</div>
-                    <div class="text-h4 text-success font-weight-bold">{{ formatarMoeda(notaFiscal.valores?.valorLiquido) }}</div>
-                  </div>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
+            <!-- Resumo Final -->
+            <v-card class="background-secondary">
+              <v-card-text class="pa-4">
+                <v-row align="center" justify="space-between">
+                  <v-col cols="12" md="4">
+                    <div class="text-center">
+                      <div class="text-body-2 opacity-70">Valor Bruto</div>
+                      <div class="text-h5">{{ formatarMoeda(notaFiscal.valores?.valorServico) }}</div>
+                    </div>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <div class="text-center">
+                      <div class="text-body-2 opacity-70">(-) Retenções</div>
+                      <div class="text-h5 text-error">{{ formatarMoeda(notaFiscal.valores?.totalRetido) }}</div>
+                    </div>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <div class="text-center pa-3 rounded-lg" style="background-color: rgba(76, 175, 80, 0.15);">
+                      <div class="text-body-2 opacity-70">Valor Líquido</div>
+                      <div class="text-h4 text-success font-weight-bold">{{ formatarMoeda(notaFiscal.valores?.valorLiquido) }}</div>
+                    </div>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </div>
         </div>
-      </div>
-    </v-expand-transition>
+      </v-expand-transition>
 
-    <!-- Lista de Notas Importadas -->
-    <v-card v-if="notasImportadas.length > 0" class="background-secondary mt-4">
-      <v-card-title class="pa-4 pb-2">
-        <v-icon icon="mdi-history" class="mr-2"></v-icon>
-        Notas Importadas na Sessão
-      </v-card-title>
-      <v-card-text class="pa-4 pt-0">
-        <v-data-table
-          :headers="headersNotas"
-          :items="notasImportadas"
-          density="compact"
-          class="elevation-1 background-card"
-        >
-          <!-- eslint-disable-next-line vue/valid-v-slot -->
-          <template #[`item.dataEmissao`]="{ item }">
-            {{ formatarData(item.dataEmissao) }}
-          </template>
-          <!-- eslint-disable-next-line vue/valid-v-slot -->
-          <template #[`item.valores.valorLiquido`]="{ item }">
-            {{ formatarMoeda(item.valores?.valorLiquido) }}
-          </template>
-          <!-- eslint-disable-next-line vue/valid-v-slot -->
-          <template #[`item.actions`]="{ item }">
-            <v-btn
-              icon="mdi-eye"
-              size="small"
-              color="primary"
-              variant="text"
-              title="Visualizar"
-              @click="visualizarNota(item)"
-            ></v-btn>
-          </template>
-        </v-data-table>
-      </v-card-text>
-    </v-card>
-  </div>
+      <!-- Lista de Notas Importadas -->
+      <v-card v-if="notasImportadas.length > 0" class="background-secondary mt-4">
+        <v-card-title class="pa-4 pb-2">
+          <v-icon icon="mdi-history" class="mr-2"></v-icon>
+          Notas Importadas na Sessão
+        </v-card-title>
+        <v-card-text class="pa-4 pt-0">
+          <v-data-table
+              :headers="headersNotas"
+              :items="notasImportadas"
+              density="compact"
+              class="elevation-1 background-card"
+          >
+            <!-- eslint-disable-next-line vue/valid-v-slot -->
+            <template #[`item.dataEmissao`]="{ item }">
+              {{ formatarData(item.dataEmissao) }}
+            </template>
+            <!-- eslint-disable-next-line vue/valid-v-slot -->
+            <template #[`item.valores.valorLiquido`]="{ item }">
+              {{ formatarMoeda(item.valores?.valorLiquido) }}
+            </template>
+            <!-- eslint-disable-next-line vue/valid-v-slot -->
+            <template #[`item.actions`]="{ item }">
+              <v-btn
+                  icon="mdi-eye"
+                  size="small"
+                  color="primary"
+                  variant="text"
+                  title="Visualizar"
+                  @click="visualizarNota(item)"
+              ></v-btn>
+            </template>
+          </v-data-table>
+        </v-card-text>
+      </v-card>
+    </template>
+  </top-all-pages>
 </template>
 
 <style scoped>

@@ -698,7 +698,7 @@ const validacao = [(v) => !!v || 'Campo obrigatório'];
 // const loading = computed(() => produtosStore.loading);
 const forms = computed(() => produtosStore.produto || {});
 const descgrupo = computed(() => {
-  const grupo = estoqueStore.grupos.find(g => g.id === forms.value.id_grupo);
+  const grupo = estoqueStore.grupos.find(g => g.id === forms.value?.id_grupo);
   return grupo ? grupo.descgrupo : '';
 });
 
@@ -1139,7 +1139,7 @@ watchEffect(async () => {
   if (id) {
     await produtosStore.buscarProdutoPorId(id);
     if (subgrupos.value.length === 0)
-      await buscarSubgrupos(produtosStore.produto.id_grupo);
+      await buscarSubgrupos(produtosStore.produto?.id_grupo);
 
     if (embalagens.value.length === 0)
       await produtosStore.buscarEmbalagens(id);

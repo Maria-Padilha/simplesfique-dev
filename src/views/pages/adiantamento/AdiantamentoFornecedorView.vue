@@ -1,766 +1,761 @@
 <template>
-  <div class="pa-4">
-    <!-- Header Card -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-account-cash" class="mr-3"></v-icon>
-          Adiantamento de Fornecedores
-        </div>
-      </v-card-title>
-    </v-card>
+   <top-all-pages icon="mdi-account-cash">
+    <template #titulo>Adiantamento de Fornecedores</template>
+     <template #section>
+       <div>
+         <!-- Content Card -->
+         <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+           <v-card-text class="pa-4">
+             <BotaoExpandTransition
+                 :formulario-aberto="formularioAberto"
+                 texto-abrir="Novo Adiantamento"
+                 texto-fechar="Cancelar"
+                 @toggle="toggleFormulario"
+             />
 
-    <!-- Content Card -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
-      <v-card-text class="pa-4">
-        <BotaoExpandTransition
-          :formulario-aberto="formularioAberto"
-          texto-abrir="Novo Adiantamento"
-          texto-fechar="Cancelar"
-          @toggle="toggleFormulario"
-        />
+             <!-- Expandable Form -->
+             <v-expand-transition>
+               <div v-if="formularioAberto">
+                 <v-card class="background-card mb-7" elevation="2">
+                   <v-card-title class="text-h6 pa-4">
+                     <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
+                     {{ editando ? 'Editar Adiantamento' : (modoPagamento ? 'Pagar Adiantamento' : (utilizaAprovacaoAdiantamento === 'S' ? 'Nova Aprovação de Adiantamento' : 'Novo Adiantamento')) }}
+                   </v-card-title>
+                   <v-card-text class="pa-4">
+                     <!-- Aviso modo aprovação -->
+                     <v-alert
+                         v-if="utilizaAprovacaoAdiantamento === 'S'"
+                         type="info"
+                         variant="tonal"
+                         class="mb-4"
+                         icon="mdi-information"
+                     >
+                       <v-alert-title>Modo de Aprovação de Adiantamento</v-alert-title>
+                       Campos disponíveis para aprovação: Fornecedor, Conta Contábil, Histórico Contábil, Data de Lançamento, Valor Documento, Valor Solicitado e Observação.
+                     </v-alert>
 
-        <!-- Expandable Form -->
-        <v-expand-transition>
-          <div v-if="formularioAberto">
-            <v-card class="background-card mb-7" elevation="2">
-              <v-card-title class="text-h6 pa-4">
-                <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-                {{ editando ? 'Editar Adiantamento' : (modoPagamento ? 'Pagar Adiantamento' : (utilizaAprovacaoAdiantamento === 'S' ? 'Nova Aprovação de Adiantamento' : 'Novo Adiantamento')) }}
-              </v-card-title>
-              <v-card-text class="pa-4">
-                <!-- Aviso modo aprovação -->
-                <v-alert 
-                  v-if="utilizaAprovacaoAdiantamento === 'S'" 
-                  type="info" 
-                  variant="tonal" 
-                  class="mb-4"
-                  icon="mdi-information"
-                >
-                  <v-alert-title>Modo de Aprovação de Adiantamento</v-alert-title>
-                  Campos disponíveis para aprovação: Fornecedor, Conta Contábil, Histórico Contábil, Data de Lançamento, Valor Documento, Valor Solicitado e Observação.
-                </v-alert>
-                
-                <v-form ref="formRef" v-model="formValido">
-                  <v-row>
-                    <!-- Fornecedor -->
-                    <v-col cols="12" md="4">
-                      <v-autocomplete
-                        v-model="formData.id_pessoa"
-                        :items="fornecedores"
-                        :loading="loadingFornecedores"
-                        item-title="nome_razao"
-                        item-value="id"
-                        label="Fornecedor *"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-account"
-                        no-data-text="Nenhum fornecedor disponível"
-                        @update:search="buscarFornecedores"
-                      >
-                        <template v-slot:item="{ props, item }">
-                          <v-list-item v-bind="props">
-                            <v-list-item-subtitle>
-                              {{ item.raw.cpf_cnpj }}
-                            </v-list-item-subtitle>
-                          </v-list-item>
-                        </template>
-                      </v-autocomplete>
-                    </v-col>
+                     <v-form ref="formRef" v-model="formValido">
+                       <v-row>
+                         <!-- Fornecedor -->
+                         <v-col cols="12" md="4">
+                           <v-autocomplete
+                               v-model="formData.id_pessoa"
+                               :items="fornecedores"
+                               :loading="loadingFornecedores"
+                               item-title="nome_razao"
+                               item-value="id"
+                               label="Fornecedor *"
+                               :rules="[rules.required]"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-account"
+                               no-data-text="Nenhum fornecedor disponível"
+                               @update:search="buscarFornecedores"
+                           >
+                             <template v-slot:item="{ props, item }">
+                               <v-list-item v-bind="props">
+                                 <v-list-item-subtitle>
+                                   {{ item.raw.cpf_cnpj }}
+                                 </v-list-item-subtitle>
+                               </v-list-item>
+                             </template>
+                           </v-autocomplete>
+                         </v-col>
 
-                    <!-- Conta Contábil de Adiantamento -->
-                    <v-col cols="12" :md="utilizaAprovacaoAdiantamento === 'S' ? '4' : '4'">
-                      <v-autocomplete
-                        v-model="formData.id_planoconta"
-                        :items="planosConta"
-                        :loading="loadingPlanosConta"
-                        item-title="descconta"
-                        item-value="id"
-                        label="Conta Contábil de Adiantamento *"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-chart-tree"
-                        no-data-text="Nenhuma conta disponível"
-                      >
-                        <template v-slot:item="{ props, item }">
-                          <v-list-item v-bind="props">
-                            <v-list-item-subtitle>
-                              Classificador: {{ item.raw.id_classificador }} | Natureza: {{ item.raw.natureza }}
-                            </v-list-item-subtitle>
-                          </v-list-item>
-                        </template>
-                      </v-autocomplete>
-                    </v-col>
+                         <!-- Conta Contábil de Adiantamento -->
+                         <v-col cols="12" :md="utilizaAprovacaoAdiantamento === 'S' ? '4' : '4'">
+                           <v-autocomplete
+                               v-model="formData.id_planoconta"
+                               :items="planosConta"
+                               :loading="loadingPlanosConta"
+                               item-title="descconta"
+                               item-value="id"
+                               label="Conta Contábil de Adiantamento *"
+                               :rules="[rules.required]"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-chart-tree"
+                               no-data-text="Nenhuma conta disponível"
+                           >
+                             <template v-slot:item="{ props, item }">
+                               <v-list-item v-bind="props">
+                                 <v-list-item-subtitle>
+                                   Classificador: {{ item.raw.id_classificador }} | Natureza: {{ item.raw.natureza }}
+                                 </v-list-item-subtitle>
+                               </v-list-item>
+                             </template>
+                           </v-autocomplete>
+                         </v-col>
 
-                    <!-- Histórico Contábil -->
-                    <v-col cols="12" md="4">
-                      <v-autocomplete
-                        v-model="formData.id_hist_contabil"
-                        :items="historicosContabil"
-                        :loading="loadingHistContabil"
-                        item-title="deschistorico"
-                        item-value="id"
-                        label="Histórico Contábil"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-book-open"
-                        clearable
-                      ></v-autocomplete>
-                    </v-col>
+                         <!-- Histórico Contábil -->
+                         <v-col cols="12" md="4">
+                           <v-autocomplete
+                               v-model="formData.id_hist_contabil"
+                               :items="historicosContabil"
+                               :loading="loadingHistContabil"
+                               item-title="deschistorico"
+                               item-value="id"
+                               label="Histórico Contábil"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-book-open"
+                               clearable
+                           ></v-autocomplete>
+                         </v-col>
 
-                    <!-- Local de lançamento -->
-                    <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'N'">
-                      <v-select
-                        v-model="formData.local_lct"
-                        :items="[{ title: 'Caixa', value: 'CAI' }, { title: 'Banco', value: 'BAN' }]"
-                        label="Local de Lançamento *"
-                        :rules="[rules.requiredConditional]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-map-marker"
-                      ></v-select>
-                    </v-col>
+                         <!-- Local de lançamento -->
+                         <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'N'">
+                           <v-select
+                               v-model="formData.local_lct"
+                               :items="[{ title: 'Caixa', value: 'CAI' }, { title: 'Banco', value: 'BAN' }]"
+                               label="Local de Lançamento *"
+                               :rules="[rules.requiredConditional]"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-map-marker"
+                           ></v-select>
+                         </v-col>
 
-                    <!-- Caixa (se local_lct = CAI) -->
-                    <v-col cols="12" md="4" v-if="formData.local_lct === 'CAI' && utilizaAprovacaoAdiantamento === 'N'">
-                      <v-autocomplete
-                        v-model="formData.id_caixa"
-                        :items="caixasDisponiveis"
-                        :loading="loadingCaixas"
-                        item-title="desccaixa"
-                        item-value="id_caixa"
-                        label="Caixa *"
-                        :rules="[rules.requiredConditional]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-cash-register"
-                        no-data-text="Nenhum caixa disponível"
-                      ></v-autocomplete>
-                    </v-col>
+                         <!-- Caixa (se local_lct = CAI) -->
+                         <v-col cols="12" md="4" v-if="formData.local_lct === 'CAI' && utilizaAprovacaoAdiantamento === 'N'">
+                           <v-autocomplete
+                               v-model="formData.id_caixa"
+                               :items="caixasDisponiveis"
+                               :loading="loadingCaixas"
+                               item-title="desccaixa"
+                               item-value="id_caixa"
+                               label="Caixa *"
+                               :rules="[rules.requiredConditional]"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-cash-register"
+                               no-data-text="Nenhum caixa disponível"
+                           ></v-autocomplete>
+                         </v-col>
 
-                    <!-- Conta Corrente (se local_lct = BAN) -->
-                    <v-col cols="12" md="4" v-if="formData.local_lct === 'BAN' && utilizaAprovacaoAdiantamento === 'N'">
-                      <v-autocomplete
-                        v-model="formData.id_ccorrente"
-                        :items="contasCorrentes"
-                        :loading="loadingContaCorrente"
-                        item-title="titular"
-                        item-value="id"
-                        label="Conta Corrente *"
-                        :rules="[rules.requiredConditional]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-bank"
-                        no-data-text="Nenhuma conta disponível"
-                      >
-                        <template v-slot:item="{ props, item }">
-                          <v-list-item v-bind="props">
-                            <v-list-item-title>{{ item.raw.titular }}</v-list-item-title>
-                            <v-list-item-subtitle>
-                              Agência: {{ item.raw.agencia }} | Conta: {{ item.raw.numero_ccorrente }}
-                            </v-list-item-subtitle>
-                          </v-list-item>
-                        </template>
-                      </v-autocomplete>
-                    </v-col>
+                         <!-- Conta Corrente (se local_lct = BAN) -->
+                         <v-col cols="12" md="4" v-if="formData.local_lct === 'BAN' && utilizaAprovacaoAdiantamento === 'N'">
+                           <v-autocomplete
+                               v-model="formData.id_ccorrente"
+                               :items="contasCorrentes"
+                               :loading="loadingContaCorrente"
+                               item-title="titular"
+                               item-value="id"
+                               label="Conta Corrente *"
+                               :rules="[rules.requiredConditional]"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-bank"
+                               no-data-text="Nenhuma conta disponível"
+                           >
+                             <template v-slot:item="{ props, item }">
+                               <v-list-item v-bind="props">
+                                 <v-list-item-title>{{ item.raw.titular }}</v-list-item-title>
+                                 <v-list-item-subtitle>
+                                   Agência: {{ item.raw.agencia }} | Conta: {{ item.raw.numero_ccorrente }}
+                                 </v-list-item-subtitle>
+                               </v-list-item>
+                             </template>
+                           </v-autocomplete>
+                         </v-col>
 
-                    <!-- Histórico Bancário (se local_lct = BAN) -->
-                    <v-col cols="12" md="4" v-if="formData.local_lct === 'BAN' && utilizaAprovacaoAdiantamento === 'N'">
-                      <v-autocomplete
-                        v-model="formData.id_historico"
-                        :items="historicosBancarios"
-                        :loading="loadingHistBancario"
-                        item-title="deschistorico"
-                        item-value="id"
-                        label="Histórico Bancário"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-bank-transfer"
-                        clearable
-                      ></v-autocomplete>
-                    </v-col>
+                         <!-- Histórico Bancário (se local_lct = BAN) -->
+                         <v-col cols="12" md="4" v-if="formData.local_lct === 'BAN' && utilizaAprovacaoAdiantamento === 'N'">
+                           <v-autocomplete
+                               v-model="formData.id_historico"
+                               :items="historicosBancarios"
+                               :loading="loadingHistBancario"
+                               item-title="deschistorico"
+                               item-value="id"
+                               label="Histórico Bancário"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-bank-transfer"
+                               clearable
+                           ></v-autocomplete>
+                         </v-col>
 
-                    <!-- Histórico Contábil do Caixa (se local_lct = CAI) -->
-                    <v-col cols="12" md="4" v-if="formData.local_lct === 'CAI' && utilizaAprovacaoAdiantamento === 'N'">
-                      <v-autocomplete
-                        v-model="formData.id_hist_contabil_caixa"
-                        :items="historicosContabil"
-                        :loading="loadingHistContabil"
-                        item-title="deschistorico"
-                        item-value="id"
-                        label="Histórico Contábil do Caixa"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-cash-register"
-                        clearable
-                      ></v-autocomplete>
-                    </v-col>
+                         <!-- Histórico Contábil do Caixa (se local_lct = CAI) -->
+                         <v-col cols="12" md="4" v-if="formData.local_lct === 'CAI' && utilizaAprovacaoAdiantamento === 'N'">
+                           <v-autocomplete
+                               v-model="formData.id_hist_contabil_caixa"
+                               :items="historicosContabil"
+                               :loading="loadingHistContabil"
+                               item-title="deschistorico"
+                               item-value="id"
+                               label="Histórico Contábil do Caixa"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-cash-register"
+                               clearable
+                           ></v-autocomplete>
+                         </v-col>
 
-                    <!-- Tipo Pagamento/Recebimento (se local_lct = CAI) -->
-                    <v-col cols="12" md="4" v-if="formData.local_lct === 'CAI' && utilizaAprovacaoAdiantamento === 'N'">
-                      <v-autocomplete
-                        v-model="formData.id_tipopagrec"
-                        :items="tiposPagRec"
-                        :loading="loadingTiposPagRec"
-                        item-title="desctipopagrec"
-                        item-value="id"
-                        label="Tipo Pagamento/Recebimento"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-credit-card"
-                        clearable
-                      ></v-autocomplete>
-                    </v-col>
+                         <!-- Tipo Pagamento/Recebimento (se local_lct = CAI) -->
+                         <v-col cols="12" md="4" v-if="formData.local_lct === 'CAI' && utilizaAprovacaoAdiantamento === 'N'">
+                           <v-autocomplete
+                               v-model="formData.id_tipopagrec"
+                               :items="tiposPagRec"
+                               :loading="loadingTiposPagRec"
+                               item-title="desctipopagrec"
+                               item-value="id"
+                               label="Tipo Pagamento/Recebimento"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-credit-card"
+                               clearable
+                           ></v-autocomplete>
+                         </v-col>
 
-                    <!-- Data de Lançamento -->
-                    <v-col cols="12" :md="utilizaAprovacaoAdiantamento === 'S' ? '4' : '4'">
-                      <v-text-field
-                        v-model="formData.dtlancamento"
-                        label="Data de Lançamento *"
-                        type="date"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-calendar"
-                      />
-                    </v-col>
+                         <!-- Data de Lançamento -->
+                         <v-col cols="12" :md="utilizaAprovacaoAdiantamento === 'S' ? '4' : '4'">
+                           <v-text-field
+                               v-model="formData.dtlancamento"
+                               label="Data de Lançamento *"
+                               type="date"
+                               :rules="[rules.required]"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-calendar"
+                           />
+                         </v-col>
 
-                    <!-- Valor Documento (modo aprovação) -->
-                    <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'S'">
-                      <v-text-field
-                        v-model="formData.valor_documento"
-                        label="Valor Documento *"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-file-document"
-                      />
-                    </v-col>
+                         <!-- Valor Documento (modo aprovação) -->
+                         <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'S'">
+                           <v-text-field
+                               v-model="formData.valor_documento"
+                               label="Valor Documento *"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               :rules="[rules.required]"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-file-document"
+                           />
+                         </v-col>
 
-                    <!-- Valor Solicitado (modo aprovação) -->
-                    <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'S'">
-                      <v-text-field
-                        v-model="formData.valor_solicitado"
-                        label="Valor Solicitado *"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-cash-multiple"
-                      />
-                    </v-col>
+                         <!-- Valor Solicitado (modo aprovação) -->
+                         <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'S'">
+                           <v-text-field
+                               v-model="formData.valor_solicitado"
+                               label="Valor Solicitado *"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               :rules="[rules.required]"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-cash-multiple"
+                           />
+                         </v-col>
 
-                    <!-- Data Previsão Pagamento -->
-                    <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'S'">
-                      <v-text-field
-                        v-model="formData.dtprevisao_pagto"
-                        label="Data Previsão Pagamento"
-                        type="date"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-calendar-clock"
-                      />
-                    </v-col>
+                         <!-- Data Previsão Pagamento -->
+                         <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'S'">
+                           <v-text-field
+                               v-model="formData.dtprevisao_pagto"
+                               label="Data Previsão Pagamento"
+                               type="date"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-calendar-clock"
+                           />
+                         </v-col>
 
-                    <!-- Número de Documento (para Banco e Caixa) -->
-                    <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'N'">
-                      <v-text-field
-                        v-model="formData.nrdocumento"
-                        label="Número do Documento"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-file-document-outline"
-                        placeholder="Ex: 123456"
-                      />
-                    </v-col>
+                         <!-- Número de Documento (para Banco e Caixa) -->
+                         <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'N'">
+                           <v-text-field
+                               v-model="formData.nrdocumento"
+                               label="Número do Documento"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-file-document-outline"
+                               placeholder="Ex: 123456"
+                           />
+                         </v-col>
 
-                    <!-- Tipo Documento (não para Banco) -->
-                    <v-col cols="12" md="4" v-if="formData.local_lct !== 'BAN' && utilizaAprovacaoAdiantamento === 'N'">
-                      <v-autocomplete
-                        v-model="formData.id_tipodocumento"
-                        :items="tiposDocumento"
-                        :loading="loadingTiposDoc"
-                        item-title="desctipodocumento"
-                        item-value="id"
-                        label="Tipo de Documento"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-file-document"
-                        clearable
-                      ></v-autocomplete>
-                    </v-col>
+                         <!-- Tipo Documento (não para Banco) -->
+                         <v-col cols="12" md="4" v-if="formData.local_lct !== 'BAN' && utilizaAprovacaoAdiantamento === 'N'">
+                           <v-autocomplete
+                               v-model="formData.id_tipodocumento"
+                               :items="tiposDocumento"
+                               :loading="loadingTiposDoc"
+                               item-title="desctipodocumento"
+                               item-value="id"
+                               label="Tipo de Documento"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-file-document"
+                               clearable
+                           ></v-autocomplete>
+                         </v-col>
 
-                    <!-- Valor Documento -->
-                    <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'N'">
-                      <v-text-field
-                        v-model="formData.valor_documento"
-                        label="Valor Documento *"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        :rules="[rules.valorPositivo]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-file-document"
-                        @input="calcularValorSolicitado"
-                      />
-                    </v-col>
+                         <!-- Valor Documento -->
+                         <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'N'">
+                           <v-text-field
+                               v-model="formData.valor_documento"
+                               label="Valor Documento *"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               :rules="[rules.valorPositivo]"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-file-document"
+                               @input="calcularValorSolicitado"
+                           />
+                         </v-col>
 
-                    <!-- Valor Solicitado -->
-                    <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'N'">
-                      <v-text-field
-                        v-model="formData.valor_solicitado"
-                        label="Valor Solicitado *"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        :rules="[rules.valorPositivo]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-cash-multiple"
-                        @input="calcularValorDocumento"
-                      />
-                    </v-col>
+                         <!-- Valor Solicitado -->
+                         <v-col cols="12" md="4" v-if="utilizaAprovacaoAdiantamento === 'N'">
+                           <v-text-field
+                               v-model="formData.valor_solicitado"
+                               label="Valor Solicitado *"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               :rules="[rules.valorPositivo]"
+                               variant="outlined"
+                               density="compact"
+                               prepend-inner-icon="mdi-cash-multiple"
+                               @input="calcularValorDocumento"
+                           />
+                         </v-col>
 
 
 
-                    <!-- Observação -->
-                    <v-col cols="12" :md="utilizaAprovacaoAdiantamento === 'S' ? '12' : '12'">
-                      <v-textarea
-                        v-model="formData.observacao"
-                        label="Observação"
-                        variant="outlined"
-                        density="compact"
-                        rows="3"
-                        prepend-inner-icon="mdi-text"
-                      />
-                    </v-col>
-                  </v-row>
-                </v-form>
-              </v-card-text>
-              <v-card-actions class="pa-4">
-                <v-spacer></v-spacer>
-                <v-btn color="grey" variant="text" @click="cancelarFormulario">Cancelar</v-btn>
-                <v-btn
-                  color="var(--text-color-laranja)"
-                  :loading="loading"
-                  :disabled="!formValido"
-                  @click="salvarAdiantamento"
-                  variant="flat"
-                  class="text-white"
-                >
-                  {{ editando ? 'Atualizar' : (modoPagamento ? 'Processar Pagamento' : 'Salvar') }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </div>
-        </v-expand-transition>
+                         <!-- Observação -->
+                         <v-col cols="12" :md="utilizaAprovacaoAdiantamento === 'S' ? '12' : '12'">
+                           <v-textarea
+                               v-model="formData.observacao"
+                               label="Observação"
+                               variant="outlined"
+                               density="compact"
+                               rows="3"
+                               prepend-inner-icon="mdi-text"
+                           />
+                         </v-col>
+                       </v-row>
+                     </v-form>
+                   </v-card-text>
+                   <v-card-actions class="pa-4">
+                     <v-spacer></v-spacer>
+                     <v-btn color="grey" variant="text" @click="cancelarFormulario">Cancelar</v-btn>
+                     <v-btn
+                         color="var(--text-color-laranja)"
+                         :loading="loading"
+                         :disabled="!formValido"
+                         @click="salvarAdiantamento"
+                         variant="flat"
+                         class="text-white"
+                     >
+                       {{ editando ? 'Atualizar' : (modoPagamento ? 'Processar Pagamento' : 'Salvar') }}
+                     </v-btn>
+                   </v-card-actions>
+                 </v-card>
+               </div>
+             </v-expand-transition>
 
-        <!-- Filtros de Busca -->
-        <v-card class="mb-4 background-card" elevation="1">
-          <v-card-title class="text-h6 pa-4">
-            <v-icon icon="mdi-filter" class="mr-2"></v-icon>
-            Filtros de Período e Fornecedor
-          </v-card-title>
-          <v-card-text class="pa-4">
-            <v-row>
-              <!-- Fornecedor -->
-              <v-col cols="12" md="3">
-                <v-autocomplete
-                  v-model="filtros.id_fornecedor"
-                  :items="fornecedores"
-                  :loading="loadingFornecedores"
-                  item-title="nome_razao"
-                  item-value="id"
-                  label="Fornecedor"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-account"
-                  no-data-text="Nenhum fornecedor disponível"
-                >
-                </v-autocomplete>
-              </v-col>
+             <!-- Filtros de Busca -->
+             <v-card class="mb-4 background-card" elevation="1">
+               <v-card-title class="text-h6 pa-4">
+                 <v-icon icon="mdi-filter" class="mr-2"></v-icon>
+                 Filtros de Período e Fornecedor
+               </v-card-title>
+               <v-card-text class="pa-4">
+                 <v-row>
+                   <!-- Fornecedor -->
+                   <v-col cols="12" md="3">
+                     <v-autocomplete
+                         v-model="filtros.id_fornecedor"
+                         :items="fornecedores"
+                         :loading="loadingFornecedores"
+                         item-title="nome_razao"
+                         item-value="id"
+                         label="Fornecedor"
+                         variant="outlined"
+                         density="compact"
+                         prepend-inner-icon="mdi-account"
+                         no-data-text="Nenhum fornecedor disponível"
+                     >
+                     </v-autocomplete>
+                   </v-col>
 
-              <!-- Atalho de Período -->
-              <v-col cols="12" md="2">
-                <v-select
-                  v-model="periodoSelecionado"
-                  :items="periodos"
-                  label="Período"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-calendar-clock"
-                  @update:model-value="aplicarPeriodo"
-                ></v-select>
-              </v-col>
+                   <!-- Atalho de Período -->
+                   <v-col cols="12" md="2">
+                     <v-select
+                         v-model="periodoSelecionado"
+                         :items="periodos"
+                         label="Período"
+                         variant="outlined"
+                         density="compact"
+                         prepend-inner-icon="mdi-calendar-clock"
+                         @update:model-value="aplicarPeriodo"
+                     ></v-select>
+                   </v-col>
 
-              <!-- Data Inicial -->
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="filtros.dtini"
-                  label="Data Inicial *"
-                  type="date"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-calendar"
-                ></v-text-field>
-              </v-col>
+                   <!-- Data Inicial -->
+                   <v-col cols="12" md="3">
+                     <v-text-field
+                         v-model="filtros.dtini"
+                         label="Data Inicial *"
+                         type="date"
+                         variant="outlined"
+                         density="compact"
+                         prepend-inner-icon="mdi-calendar"
+                     ></v-text-field>
+                   </v-col>
 
-              <!-- Data Final -->
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="filtros.dtfim"
-                  label="Data Final *"
-                  type="date"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-calendar"
-                ></v-text-field>
-              </v-col>
+                   <!-- Data Final -->
+                   <v-col cols="12" md="3">
+                     <v-text-field
+                         v-model="filtros.dtfim"
+                         label="Data Final *"
+                         type="date"
+                         variant="outlined"
+                         density="compact"
+                         prepend-inner-icon="mdi-calendar"
+                     ></v-text-field>
+                   </v-col>
 
-              <!-- Botão Buscar -->
-              <v-col cols="12" md="1" class="d-flex">
-                <v-btn
-                  color="var(--text-color-laranja)"
-                  :loading="loading"
-                  :disabled="!filtros.dtini || !filtros.dtfim"
-                  @click="carregarLancamentos"
-                  variant="flat"
-                  class="text-white"
-                  block
-                >
-                  <v-icon start>mdi-magnify</v-icon>
-                  Buscar
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
+                   <!-- Botão Buscar -->
+                   <v-col cols="12" md="1" class="d-flex">
+                     <v-btn
+                         color="var(--text-color-laranja)"
+                         :loading="loading"
+                         :disabled="!filtros.dtini || !filtros.dtfim"
+                         @click="carregarLancamentos"
+                         variant="flat"
+                         class="text-white"
+                         block
+                     >
+                       <v-icon start>mdi-magnify</v-icon>
+                       Buscar
+                     </v-btn>
+                   </v-col>
+                 </v-row>
+               </v-card-text>
+             </v-card>
 
-        <!-- Tabela de Lançamentos -->
-        <v-card class="background-card" elevation="1">
-          <v-card-text class="pa-0">
-            <!-- Saldo Anterior -->
-            <v-card class="ma-4 mb-0 background-card" elevation="2">
-              <v-card-text class="d-flex justify-space-between align-center pa-3">
-                <span class="text-subtitle-1 font-weight-bold">Saldo Anterior</span>
-                <span class="text-h6 font-weight-bold" :class="saldoAnterior >= 0 ? 'text-success' : 'text-error'">
+             <!-- Tabela de Lançamentos -->
+             <v-card class="background-card" elevation="1">
+               <v-card-text class="pa-0">
+                 <!-- Saldo Anterior -->
+                 <v-card class="ma-4 mb-0 background-card" elevation="2">
+                   <v-card-text class="d-flex justify-space-between align-center pa-3">
+                     <span class="text-subtitle-1 font-weight-bold">Saldo Anterior</span>
+                     <span class="text-h6 font-weight-bold" :class="saldoAnterior >= 0 ? 'text-success' : 'text-error'">
                   {{ formatarMoeda(saldoAnterior) }}
                 </span>
-              </v-card-text>
-            </v-card>
+                   </v-card-text>
+                 </v-card>
 
-            <v-data-table
-              :headers="headers"
-              :items="lancamentosFiltrados"
-              :loading="loading"
-              item-key="id"
-              class="elevation-1 background-secondary"
-              :items-per-page="15"
-              density="compact"
-            >
-              <!-- Coluna Fornecedor -->
-              <template v-slot:[`item.nome_razao`]="{ item }">
-                {{ item.nome_razao || '--' }}
-              </template>
+                 <v-data-table
+                     :headers="headers"
+                     :items="lancamentosFiltrados"
+                     :loading="loading"
+                     item-key="id"
+                     class="elevation-1 background-secondary"
+                     :items-per-page="15"
+                     density="compact"
+                 >
+                   <!-- Coluna Fornecedor -->
+                   <template v-slot:[`item.nome_razao`]="{ item }">
+                     {{ item.nome_razao || '--' }}
+                   </template>
 
-              <!-- Coluna Data -->
-              <template v-slot:[`item.dtlancamento`]="{ item }">
-                {{ formatarData(item.dtlancamento) }}
-              </template>
+                   <!-- Coluna Data -->
+                   <template v-slot:[`item.dtlancamento`]="{ item }">
+                     {{ formatarData(item.dtlancamento) }}
+                   </template>
 
-              <!-- Coluna Nr Documento -->
-              <template v-slot:[`item.nrdocumento`]="{ item }">
-                {{ item.nrdocumento || '--' }}
-              </template>
+                   <!-- Coluna Nr Documento -->
+                   <template v-slot:[`item.nrdocumento`]="{ item }">
+                     {{ item.nrdocumento || '--' }}
+                   </template>
 
-              <!-- Coluna Valor Documento -->
-              <template v-slot:[`item.valor_documento`]="{ item }">
+                   <!-- Coluna Valor Documento -->
+                   <template v-slot:[`item.valor_documento`]="{ item }">
                 <span class="font-weight-medium" style="color: var(--text-secondary-laranja)">
                   {{ formatarMoeda(item.valor_documento) }}
                 </span>
-              </template>
+                   </template>
 
-              <!-- Coluna Valor Solicitado -->
-              <template v-slot:[`item.valor_solicitado`]="{ item }">
+                   <!-- Coluna Valor Solicitado -->
+                   <template v-slot:[`item.valor_solicitado`]="{ item }">
                 <span class="font-weight-bold" style="color: var(--text-color-preto);">
                   {{ formatarMoeda(item.valor_solicitado) }}
                 </span>
-              </template>
+                   </template>
 
-              <!-- Coluna Valor Autorizado -->
-              <template v-slot:[`item.valor_autorizado`]="{ item }">
-                <span 
-                  class="font-weight-bold" 
-                  :class="item.valor_autorizado >= 0 ? 'text-success' : 'text-error'"
+                   <!-- Coluna Valor Autorizado -->
+                   <template v-slot:[`item.valor_autorizado`]="{ item }">
+                <span
+                    class="font-weight-bold"
+                    :class="item.valor_autorizado >= 0 ? 'text-success' : 'text-error'"
                 >
                   {{ formatarMoeda(item.valor_autorizado) }}
                 </span>
-              </template>
+                   </template>
 
-              <!-- Coluna Situação -->
-              <template v-slot:[`item.situacao`]="{ item }">
-                <v-chip 
-                  :color="getCorSituacao(item.situacao)" 
-                  size="small" 
-                  variant="tonal"
-                >
-                  {{ item.descsituacao || getSituacaoTexto(item.situacao) }}
-                </v-chip>
-              </template>
+                   <!-- Coluna Situação -->
+                   <template v-slot:[`item.situacao`]="{ item }">
+                     <v-chip
+                         :color="getCorSituacao(item.situacao)"
+                         size="small"
+                         variant="tonal"
+                     >
+                       {{ item.descsituacao || getSituacaoTexto(item.situacao) }}
+                     </v-chip>
+                   </template>
 
-              <!-- Coluna Tipo -->
-              <template v-slot:[`item.tipo`]="{ item }">
-                <v-chip 
-                  :color="item.tipo === 'Saida' ? 'var(--text-color-laranja)' : 'var(--text-secondary-laranja)'" 
-                  size="small" 
-                  variant="tonal"
-                >
-                  {{ item.tipo }}
-                </v-chip>
-              </template>
+                   <!-- Coluna Tipo -->
+                   <template v-slot:[`item.tipo`]="{ item }">
+                     <v-chip
+                         :color="item.tipo === 'Saida' ? 'var(--text-color-laranja)' : 'var(--text-secondary-laranja)'"
+                         size="small"
+                         variant="tonal"
+                     >
+                       {{ item.tipo }}
+                     </v-chip>
+                   </template>
 
-              <!-- Coluna Origem -->
-              <template v-slot:[`item.origem`]="{ item }">
-                <v-chip 
-                  :color="item.origem === 'CAI' ? 'var(--text-color-laranja)' : 'var(--text-secondary-laranja)'" 
-                  size="small" 
-                  variant="outlined"
-                >
-                  {{ item.origem }}
-                </v-chip>
-              </template>
+                   <!-- Coluna Origem -->
+                   <template v-slot:[`item.origem`]="{ item }">
+                     <v-chip
+                         :color="item.origem === 'CAI' ? 'var(--text-color-laranja)' : 'var(--text-secondary-laranja)'"
+                         size="small"
+                         variant="outlined"
+                     >
+                       {{ item.origem }}
+                     </v-chip>
+                   </template>
 
-              <!-- Coluna Data Inclusão -->
-              <template v-slot:[`item.dhinc`]="{ item }">
-                {{ formatarDataHora(item.dhinc) }}
-              </template>
+                   <!-- Coluna Data Inclusão -->
+                   <template v-slot:[`item.dhinc`]="{ item }">
+                     {{ formatarDataHora(item.dhinc) }}
+                   </template>
 
-              <!-- Coluna Observação -->
-              <template v-slot:[`item.observacao`]="{ item }">
-                {{ item.observacao || '--' }}
-              </template>
+                   <!-- Coluna Observação -->
+                   <template v-slot:[`item.observacao`]="{ item }">
+                     {{ item.observacao || '--' }}
+                   </template>
 
-              <!-- Coluna Ações -->
-              <template v-slot:[`item.actions`]="{ item }">
-                <div class="d-flex justify-center">
-                  <v-btn
-                    icon="mdi-dots-vertical"
-                    size="small"
-                    variant="text"
-                    color="var(--text-color-laranja)"
-                    @click="abrirModalAcoes(item)"
-                  >
-                    <v-icon size="20">mdi-dots-vertical</v-icon>
-                    <v-tooltip activator="parent" location="top">Ações</v-tooltip>
-                  </v-btn>
-                </div>
-              </template>
+                   <!-- Coluna Ações -->
+                   <template v-slot:[`item.actions`]="{ item }">
+                     <div class="d-flex justify-center">
+                       <v-btn
+                           icon="mdi-dots-vertical"
+                           size="small"
+                           variant="text"
+                           color="var(--text-color-laranja)"
+                           @click="abrirModalAcoes(item)"
+                       >
+                         <v-icon size="20">mdi-dots-vertical</v-icon>
+                         <v-tooltip activator="parent" location="top">Ações</v-tooltip>
+                       </v-btn>
+                     </div>
+                   </template>
 
-              <!-- Loading -->
-              <template v-slot:loading>
-                <v-skeleton-loader type="table-row@5"></v-skeleton-loader>
-              </template>
+                   <!-- Loading -->
+                   <template v-slot:loading>
+                     <v-skeleton-loader type="table-row@5"></v-skeleton-loader>
+                   </template>
 
-              <!-- Sem dados -->
-              <template v-slot:no-data>
-                <div class="text-center py-8">
-                  <v-icon icon="mdi-account-cash" size="64" color="grey" class="mb-4"></v-icon>
-                  <p class="text-h6 text-grey">Nenhum lançamento encontrado</p>
-                </div>
-              </template>
-            </v-data-table>
-          </v-card-text>
-        </v-card>
+                   <!-- Sem dados -->
+                   <template v-slot:no-data>
+                     <div class="text-center py-8">
+                       <v-icon icon="mdi-account-cash" size="64" color="grey" class="mb-4"></v-icon>
+                       <p class="text-h6 text-grey">Nenhum lançamento encontrado</p>
+                     </div>
+                   </template>
+                 </v-data-table>
+               </v-card-text>
+             </v-card>
 
-        <!-- Card de Totais -->
-        <v-card class="mt-4 background-card" elevation="1">
-          <v-card-text class="pa-4">
-            <v-row>
-              <v-col cols="12" md="3">
-                <div class="text-caption text-grey">Entrada</div>
-                <div class="text-h6 text-success font-weight-bold">{{ formatarMoeda(totalEntradas) }}</div>
-              </v-col>
-              <v-col cols="12" md="3">
-                <div class="text-caption text-grey">Saída</div>
-                <div class="text-h6 text-error font-weight-bold">{{ formatarMoeda(totalSaidas) }}</div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <div class="text-caption text-grey">TOTAL DO PERÍODO:</div>
-                <div class="text-h5 font-weight-bold" :class="saldoFinal >= 0 ? 'text-success' : 'text-error'">
-                  {{ formatarMoeda(saldoFinal) }}
-                </div>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-      </v-card-text>
-    </v-card>
+             <!-- Card de Totais -->
+             <v-card class="mt-4 background-card" elevation="1">
+               <v-card-text class="pa-4">
+                 <v-row>
+                   <v-col cols="12" md="3">
+                     <div class="text-caption text-grey">Entrada</div>
+                     <div class="text-h6 text-success font-weight-bold">{{ formatarMoeda(totalEntradas) }}</div>
+                   </v-col>
+                   <v-col cols="12" md="3">
+                     <div class="text-caption text-grey">Saída</div>
+                     <div class="text-h6 text-error font-weight-bold">{{ formatarMoeda(totalSaidas) }}</div>
+                   </v-col>
+                   <v-col cols="12" md="6">
+                     <div class="text-caption text-grey">TOTAL DO PERÍODO:</div>
+                     <div class="text-h5 font-weight-bold" :class="saldoFinal >= 0 ? 'text-success' : 'text-error'">
+                       {{ formatarMoeda(saldoFinal) }}
+                     </div>
+                   </v-col>
+                 </v-row>
+               </v-card-text>
+             </v-card>
+           </v-card-text>
+         </v-card>
 
-    <!-- Modal de Ações -->
-    <v-dialog v-model="modalAcoes" max-width="500px">
-      <v-card class="background-secondary">
-        <v-card-title class="text-h6 pa-4">
-          <v-icon icon="mdi-cog" class="mr-2"></v-icon>
-          Ações do Adiantamento
-        </v-card-title>
-        
-        <v-card-text class="pa-4">
-          <div v-if="itemSelecionado" class="mb-4">
-            <div class="text-subtitle-1 font-weight-bold mb-2">{{ itemSelecionado.nome_razao }}</div>
-            <div class="text-body-2 text-grey mb-1">
-              <strong>Valor Solicitado:</strong> {{ formatarMoeda(itemSelecionado.valor_solicitado) }}
-            </div>
-            <div class="text-body-2 text-grey mb-1">
-              <strong>Valor Autorizado:</strong> {{ formatarMoeda(itemSelecionado.valor_autorizado) }}
-            </div>
-            <div class="text-body-2 text-grey">
-              <strong>Situação:</strong> 
-              <v-chip 
-                :color="getCorSituacao(itemSelecionado.situacao)" 
-                size="small" 
-                variant="tonal"
-                class="ml-2"
-              >
-                {{ itemSelecionado.descsituacao || getSituacaoTexto(itemSelecionado.situacao) }}
-              </v-chip>
-            </div>
-          </div>
+         <!-- Modal de Ações -->
+         <v-dialog v-model="modalAcoes" max-width="500px">
+           <v-card class="background-secondary">
+             <v-card-title class="text-h6 pa-4">
+               <v-icon icon="mdi-cog" class="mr-2"></v-icon>
+               Ações do Adiantamento
+             </v-card-title>
 
-          <v-divider class="mb-4"></v-divider>
+             <v-card-text class="pa-4">
+               <div v-if="itemSelecionado" class="mb-4">
+                 <div class="text-subtitle-1 font-weight-bold mb-2">{{ itemSelecionado.nome_razao }}</div>
+                 <div class="text-body-2 text-grey mb-1">
+                   <strong>Valor Solicitado:</strong> {{ formatarMoeda(itemSelecionado.valor_solicitado) }}
+                 </div>
+                 <div class="text-body-2 text-grey mb-1">
+                   <strong>Valor Autorizado:</strong> {{ formatarMoeda(itemSelecionado.valor_autorizado) }}
+                 </div>
+                 <div class="text-body-2 text-grey">
+                   <strong>Situação:</strong>
+                   <v-chip
+                       :color="getCorSituacao(itemSelecionado.situacao)"
+                       size="small"
+                       variant="tonal"
+                       class="ml-2"
+                   >
+                     {{ itemSelecionado.descsituacao || getSituacaoTexto(itemSelecionado.situacao) }}
+                   </v-chip>
+                 </div>
+               </div>
 
-          <div class="d-flex flex-column gap-3">
-            <!-- Ações para situação Pendente (1) -->
-            <template v-if="itemSelecionado?.situacao === '1'">
-              <v-btn
-                color="var(--text-color-laranja)"
-                variant="flat"
-                size="large"
-                prepend-icon="mdi-check"
-                @click="confirmarAprovar(itemSelecionado)"
-                class="text-white"
-                block
-              >
-                Aprovar Adiantamento
-              </v-btn>
-              <v-btn
-                color="var(--text-secondary-laranja)"
-                variant="flat"
-                size="large"
-                prepend-icon="mdi-cash"
-                @click="confirmarPagar(itemSelecionado)"
-                class="text-white"
-                block
-              >
-                Pagar Diretamente
-              </v-btn>
-              <v-btn
-                color="var(--text-color-laranja)"
-                variant="outlined"
-                size="large"
-                prepend-icon="mdi-close"
-                @click="confirmarRecusar(itemSelecionado)"
-                block
-              >
-                Recusar Adiantamento
-              </v-btn>
-              
-              <v-divider class="my-2"></v-divider>
-              
-              <v-btn
-                color="var(--text-secondary-laranja)"
-                variant="outlined"
-                size="large"
-                prepend-icon="mdi-pencil"
-                @click="editarLancamento(itemSelecionado)"
-                block
-              >
-                Editar
-              </v-btn>
-              <v-btn
-                color="var(--text-color-laranja)"
-                variant="text"
-                size="large"
-                prepend-icon="mdi-delete"
-                @click="confirmarExclusao(itemSelecionado)"
-                block
-              >
-                Excluir
-              </v-btn>
-            </template>
+               <v-divider class="mb-4"></v-divider>
 
-            <!-- Ações para situação Aprovado (2) -->
-            <template v-if="itemSelecionado?.situacao === '2'">
-              <v-btn
-                color="var(--text-color-laranja)"
-                variant="flat"
-                size="large"
-                prepend-icon="mdi-cash"
-                @click="confirmarPagar(itemSelecionado)"
-                class="text-white"
-                block
-              >
-                Pagar Adiantamento
-              </v-btn>
-            </template>
+               <div class="d-flex flex-column gap-3">
+                 <!-- Ações para situação Pendente (1) -->
+                 <template v-if="itemSelecionado?.situacao === '1'">
+                   <v-btn
+                       color="var(--text-color-laranja)"
+                       variant="flat"
+                       size="large"
+                       prepend-icon="mdi-check"
+                       @click="confirmarAprovar(itemSelecionado)"
+                       class="text-white"
+                       block
+                   >
+                     Aprovar Adiantamento
+                   </v-btn>
+                   <v-btn
+                       color="var(--text-secondary-laranja)"
+                       variant="flat"
+                       size="large"
+                       prepend-icon="mdi-cash"
+                       @click="confirmarPagar(itemSelecionado)"
+                       class="text-white"
+                       block
+                   >
+                     Pagar Diretamente
+                   </v-btn>
+                   <v-btn
+                       color="var(--text-color-laranja)"
+                       variant="outlined"
+                       size="large"
+                       prepend-icon="mdi-close"
+                       @click="confirmarRecusar(itemSelecionado)"
+                       block
+                   >
+                     Recusar Adiantamento
+                   </v-btn>
 
-            <!-- Ações para situação Recusado (3) -->
-            <template v-if="itemSelecionado?.situacao === '3'">
-              <v-btn
-                color="var(--text-secondary-laranja)"
-                variant="outlined"
-                size="large"
-                prepend-icon="mdi-pencil"
-                @click="editarLancamento(itemSelecionado)"
-                block
-              >
-                Editar
-              </v-btn>
-              <v-btn
-                color="var(--text-color-laranja)"
-                variant="text"
-                size="large"
-                prepend-icon="mdi-delete"
-                @click="confirmarExclusao(itemSelecionado)"
-                block
-              >
-                Excluir
-              </v-btn>
-            </template>
+                   <v-divider class="my-2"></v-divider>
 
-            <!-- Situação Pago (9) - Apenas visualização -->
-            <template v-if="itemSelecionado?.situacao === '9'">
-              <v-alert
-                color="var(--text-secondary-laranja)"
-                variant="tonal"
-                icon="mdi-check-circle"
-              >
-                Este adiantamento já foi pago. Nenhuma ação adicional disponível.
-              </v-alert>
-            </template>
-          </div>
-        </v-card-text>
+                   <v-btn
+                       color="var(--text-secondary-laranja)"
+                       variant="outlined"
+                       size="large"
+                       prepend-icon="mdi-pencil"
+                       @click="editarLancamento(itemSelecionado)"
+                       block
+                   >
+                     Editar
+                   </v-btn>
+                   <v-btn
+                       color="var(--text-color-laranja)"
+                       variant="text"
+                       size="large"
+                       prepend-icon="mdi-delete"
+                       @click="confirmarExclusao(itemSelecionado)"
+                       block
+                   >
+                     Excluir
+                   </v-btn>
+                 </template>
 
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="fecharModalAcoes"
-          >
-            Fechar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </div>
+                 <!-- Ações para situação Aprovado (2) -->
+                 <template v-if="itemSelecionado?.situacao === '2'">
+                   <v-btn
+                       color="var(--text-color-laranja)"
+                       variant="flat"
+                       size="large"
+                       prepend-icon="mdi-cash"
+                       @click="confirmarPagar(itemSelecionado)"
+                       class="text-white"
+                       block
+                   >
+                     Pagar Adiantamento
+                   </v-btn>
+                 </template>
+
+                 <!-- Ações para situação Recusado (3) -->
+                 <template v-if="itemSelecionado?.situacao === '3'">
+                   <v-btn
+                       color="var(--text-secondary-laranja)"
+                       variant="outlined"
+                       size="large"
+                       prepend-icon="mdi-pencil"
+                       @click="editarLancamento(itemSelecionado)"
+                       block
+                   >
+                     Editar
+                   </v-btn>
+                   <v-btn
+                       color="var(--text-color-laranja)"
+                       variant="text"
+                       size="large"
+                       prepend-icon="mdi-delete"
+                       @click="confirmarExclusao(itemSelecionado)"
+                       block
+                   >
+                     Excluir
+                   </v-btn>
+                 </template>
+
+                 <!-- Situação Pago (9) - Apenas visualização -->
+                 <template v-if="itemSelecionado?.situacao === '9'">
+                   <v-alert
+                       color="var(--text-secondary-laranja)"
+                       variant="tonal"
+                       icon="mdi-check-circle"
+                   >
+                     Este adiantamento já foi pago. Nenhuma ação adicional disponível.
+                   </v-alert>
+                 </template>
+               </div>
+             </v-card-text>
+
+             <v-card-actions class="pa-4">
+               <v-spacer></v-spacer>
+               <v-btn
+                   color="grey"
+                   variant="text"
+                   @click="fecharModalAcoes"
+               >
+                 Fechar
+               </v-btn>
+             </v-card-actions>
+           </v-card>
+         </v-dialog>
+       </div>
+     </template>
+   </top-all-pages>
 </template>
 
 <script setup>
@@ -771,6 +766,7 @@ import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useCaixaStore } from '@/stores/APIs/caixa'
 import { useEmpresaStore } from '@/stores/APIs/empresa'
 import { useAdiantamentoStore } from '@/stores/APIs/adiantamento'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 
 const themeStore = useThemeStore()
@@ -1563,3 +1559,5 @@ onMounted(async () => {
 <style scoped>
 /* Estilos específicos se necessário */
 </style>
+<script setup lang="ts">
+</script>

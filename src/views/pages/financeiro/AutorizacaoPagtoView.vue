@@ -1,306 +1,301 @@
 <template>
-  <div class="pa-4">
-    <!-- Cabeçalho -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-shield-check" class="mr-3"></v-icon>
-          Autorização de Pagamentos
-        </div>
-      </v-card-title>
-    </v-card>
-
-    <!-- Card com Total das Autorizações -->
-    <v-card class="background-secondary mb-4" elevation="2">
-      <v-card-text class="pa-4">
-        <div class="d-flex align-center justify-space-between">
-          <div class="d-flex align-center">
-            <v-icon icon="mdi-cash-multiple" size="32" color="var(--text-color-laranja)" class="mr-3"></v-icon>
-            <div>
-              <div class="text-caption text-grey">Total a Autorizar</div>
-              <div class="text-h5 font-weight-bold" style="color: var(--text-color-laranja)">
-                {{ formatarMoeda(totalAutorizacoesFiltradas) }}
+  <top-all-pages icon="mdi-shield-check">
+    <template #titulo>Autorização de Pagamentos</template>
+    <template #section>
+      <div>
+        <!-- Card com Total das Autorizações -->
+        <v-card class="background-secondary mb-4" elevation="2">
+          <v-card-text class="pa-4">
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center">
+                <v-icon icon="mdi-cash-multiple" size="32" color="var(--text-color-laranja)" class="mr-3"></v-icon>
+                <div>
+                  <div class="text-caption text-grey">Total a Autorizar</div>
+                  <div class="text-h5 font-weight-bold" style="color: var(--text-color-laranja)">
+                    {{ formatarMoeda(totalAutorizacoesFiltradas) }}
+                  </div>
+                </div>
               </div>
+              <v-chip color="var(--text-color-laranja)" variant="tonal">
+                {{ autorizacoesFiltradas.length }} {{ autorizacoesFiltradas.length === 1 ? 'conta' : 'contas' }}
+              </v-chip>
             </div>
-          </div>
-          <v-chip color="var(--text-color-laranja)" variant="tonal">
-            {{ autorizacoesFiltradas.length }} {{ autorizacoesFiltradas.length === 1 ? 'conta' : 'contas' }}
-          </v-chip>
-        </div>
-      </v-card-text>
-    </v-card>
+          </v-card-text>
+        </v-card>
 
-    <!-- Lista de Autorizações -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
-      <v-card-text class="pa-4">
-        <!-- Busca Avançada -->
-        <div class="my-4">
-          <BuscaAvancadaAutorizacao
-            v-model="filtrosAvancados"
-            @aplicar="aplicarFiltrosAvancados"
-          />
-        </div>
-
-        <!-- Ações em Lote -->
-        <v-row class="mb-4">
-          <v-col cols="12">
-            <div class="d-flex align-center gap-3">
-              <v-btn
-                :disabled="itensSelecionados.length === 0"
-                color="var(--text-color-laranja)"
-                variant="flat"
-                prepend-icon="mdi-check-all"
-                @click="autorizarSelecionados"
-                class="text-white"
-              >
-                Autorizar Selecionados ({{ itensSelecionados.length }})
-              </v-btn>
-              
-              <v-btn
-                :disabled="itensSelecionados.length === 0"
-                color="var(--text-color-laranja)"
-                variant="outlined"
-                prepend-icon="mdi-close-circle"
-                @click="rejeitarSelecionados"
-              >
-                Rejeitar Selecionados ({{ itensSelecionados.length }})
-              </v-btn>
-              
-              <v-btn
-                v-if="itensSelecionados.length > 0"
-                variant="text"
-                prepend-icon="mdi-close"
-                @click="limparSelecao"
-                color="grey"
-              >
-                Limpar Seleção
-              </v-btn>
-              
-              <v-spacer></v-spacer>
-              
-              <v-btn
-                variant="text"
-                prepend-icon="mdi-select-all"
-                @click="selecionarTodos"
-                color="var(--text-color-laranja)"
-              >
-                Selecionar Todos
-              </v-btn>
+        <!-- Lista de Autorizações -->
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+          <v-card-text class="pa-4">
+            <!-- Busca Avançada -->
+            <div class="my-4">
+              <BuscaAvancadaAutorizacao
+                  v-model="filtrosAvancados"
+                  @aplicar="aplicarFiltrosAvancados"
+              />
             </div>
-          </v-col>
-        </v-row>
 
-        <!-- Tabela de Autorizações -->
-        <TabelaPadrao
-          :formulario-aberto="false"
-          :headers="headers"
-          :items="autorizacoesFiltradas"
-          :loading="loading"
-          :search="search"
-          @update:search="(value) => search = value"
-          search-label="Pesquisar Autorizações"
-          item-key="id_parcela"
-          no-data-icon="mdi-shield-check"
-          no-data-text="Nenhuma autorização encontrada."
-          :show-custom-action="false"
-          :show-delete="false"
-          :show-edit="false"
-        >
-          <!-- Coluna de Seleção -->
-          <template v-slot:[`item.selecionar`]="{ item }">
-            <v-checkbox
-              :model-value="itensSelecionados.includes(item.id_parcela)"
-              @update:model-value="toggleSelecao(item.id_parcela)"
-              hide-details
-              density="compact"
-              color="var(--text-color-laranja)"
-            ></v-checkbox>
-          </template>
+            <!-- Ações em Lote -->
+            <v-row class="mb-4">
+              <v-col cols="12">
+                <div class="d-flex align-center gap-3">
+                  <v-btn
+                      :disabled="itensSelecionados.length === 0"
+                      color="var(--text-color-laranja)"
+                      variant="flat"
+                      prepend-icon="mdi-check-all"
+                      @click="autorizarSelecionados"
+                      class="text-white"
+                  >
+                    Autorizar Selecionados ({{ itensSelecionados.length }})
+                  </v-btn>
 
-          <!-- Coluna de Data de Emissão -->
-          <template v-slot:[`item.dtemissao`]="{ item }">
+                  <v-btn
+                      :disabled="itensSelecionados.length === 0"
+                      color="var(--text-color-laranja)"
+                      variant="outlined"
+                      prepend-icon="mdi-close-circle"
+                      @click="rejeitarSelecionados"
+                  >
+                    Rejeitar Selecionados ({{ itensSelecionados.length }})
+                  </v-btn>
+
+                  <v-btn
+                      v-if="itensSelecionados.length > 0"
+                      variant="text"
+                      prepend-icon="mdi-close"
+                      @click="limparSelecao"
+                      color="grey"
+                  >
+                    Limpar Seleção
+                  </v-btn>
+
+                  <v-spacer></v-spacer>
+
+                  <v-btn
+                      variant="text"
+                      prepend-icon="mdi-select-all"
+                      @click="selecionarTodos"
+                      color="var(--text-color-laranja)"
+                  >
+                    Selecionar Todos
+                  </v-btn>
+                </div>
+              </v-col>
+            </v-row>
+
+            <!-- Tabela de Autorizações -->
+            <TabelaPadrao
+                :formulario-aberto="false"
+                :headers="headers"
+                :items="autorizacoesFiltradas"
+                :loading="loading"
+                :search="search"
+                @update:search="(value) => search = value"
+                search-label="Pesquisar Autorizações"
+                item-key="id_parcela"
+                no-data-icon="mdi-shield-check"
+                no-data-text="Nenhuma autorização encontrada."
+                :show-custom-action="false"
+                :show-delete="false"
+                :show-edit="false"
+            >
+              <!-- Coluna de Seleção -->
+              <template v-slot:[`item.selecionar`]="{ item }">
+                <v-checkbox
+                    :model-value="itensSelecionados.includes(item.id_parcela)"
+                    @update:model-value="toggleSelecao(item.id_parcela)"
+                    hide-details
+                    density="compact"
+                    color="var(--text-color-laranja)"
+                ></v-checkbox>
+              </template>
+
+              <!-- Coluna de Data de Emissão -->
+              <template v-slot:[`item.dtemissao`]="{ item }">
             <span v-if="item.dtemissao">
               {{ formatarData(item.dtemissao) }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Coluna de Data de Vencimento -->
-          <template v-slot:[`item.dtvencimento`]="{ item }">
+              <!-- Coluna de Data de Vencimento -->
+              <template v-slot:[`item.dtvencimento`]="{ item }">
             <span v-if="item.dtvencimento">
               {{ formatarData(item.dtvencimento) }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Coluna Valor Documento -->
-          <template v-slot:[`item.vlrdocumento`]="{ item }">
-            <span class="font-weight-medium">{{ formatarMoeda(item.vlrdocumento) }}</span>
-          </template>
+              <!-- Coluna Valor Documento -->
+              <template v-slot:[`item.vlrdocumento`]="{ item }">
+                <span class="font-weight-medium">{{ formatarMoeda(item.vlrdocumento) }}</span>
+              </template>
 
-          <!-- Coluna Valor Parcela -->
-          <template v-slot:[`item.vlrparcela`]="{ item }">
-            <span class="font-weight-medium">{{ formatarMoeda(item.vlrparcela) }}</span>
-          </template>
+              <!-- Coluna Valor Parcela -->
+              <template v-slot:[`item.vlrparcela`]="{ item }">
+                <span class="font-weight-medium">{{ formatarMoeda(item.vlrparcela) }}</span>
+              </template>
 
-          <!-- Ações personalizadas -->
-          <template v-slot:[`item.actions`]="{ item }">
-            <div class="d-flex gap-1">
-              <!-- Visualizar -->
+              <!-- Ações personalizadas -->
+              <template v-slot:[`item.actions`]="{ item }">
+                <div class="d-flex gap-1">
+                  <!-- Visualizar -->
+                  <v-btn
+                      icon="mdi-eye"
+                      size="small"
+                      color="var(--text-secondary-laranja)"
+                      variant="text"
+                      title="Visualizar"
+                      @click="visualizarAutorizacao(item)"
+                  ></v-btn>
+                </div>
+              </template>
+            </TabelaPadrao>
+          </v-card-text>
+        </v-card>
+
+        <!-- Dialog de Confirmação de Autorização -->
+        <v-dialog
+            v-model="dialogAutorizacao.aberto"
+            max-width="500px"
+            persistent
+        >
+          <v-card>
+            <v-card-title class="text-h6">
+              <v-icon icon="mdi-shield-check" color="var(--text-color-laranja)" class="mr-2"></v-icon>
+              Confirmar Autorização
+            </v-card-title>
+            <v-card-text>
+              <div class="mb-4">
+                <p class="mb-2">
+                  {{ Array.isArray(dialogAutorizacao.item) ?
+                    `Deseja autorizar ${dialogAutorizacao.item.length} pagamentos?` :
+                    'Deseja autorizar o pagamento?' }}
+                </p>
+                <div v-if="Array.isArray(dialogAutorizacao.item)" class="text-body-2 text-grey mb-2">
+                  <strong>Itens selecionados:</strong> {{ dialogAutorizacao.item.length }}
+                  <br>
+                  <strong>Valor total:</strong> {{ formatarMoeda(dialogAutorizacao.item.reduce((total, item) => total + parseFloat(item.vlrparcela || 0), 0)) }}
+                </div>
+                <div v-else class="text-body-2 text-grey">
+                  <strong>Documento:</strong> {{ dialogAutorizacao.item?.nrdocumento }}
+                  <br>
+                  <strong>Fornecedor:</strong> {{ dialogAutorizacao.item?.fornecedor }}
+                  <br>
+                  <strong>Valor:</strong> {{ formatarMoeda(dialogAutorizacao.item?.vlrparcela) }}
+                </div>
+              </div>
+
+              <v-textarea
+                  v-model="observacaoAutorizacao"
+                  label="Observação (opcional)"
+                  variant="outlined"
+                  density="compact"
+                  rows="3"
+                  placeholder="Adicione uma observação para esta autorização..."
+              ></v-textarea>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
               <v-btn
-                icon="mdi-eye"
-                size="small"
-                color="var(--text-secondary-laranja)"
-                variant="text"
-                title="Visualizar"
-                @click="visualizarAutorizacao(item)"
-              ></v-btn>
-            </div>
-          </template>
-        </TabelaPadrao>
-      </v-card-text>
-    </v-card>
+                  color="grey"
+                  variant="text"
+                  @click="dialogAutorizacao.aberto = false"
+              >
+                Cancelar
+              </v-btn>
+              <v-btn
+                  color="var(--text-color-laranja)"
+                  variant="flat"
+                  @click="confirmarAutorizacao"
+                  :loading="loading"
+                  class="text-white"
+              >
+                {{ Array.isArray(dialogAutorizacao.item) ?
+                  `Autorizar ${dialogAutorizacao.item.length} itens` :
+                  'Autorizar' }}
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
 
-    <!-- Dialog de Confirmação de Autorização -->
-    <v-dialog 
-      v-model="dialogAutorizacao.aberto" 
-      max-width="500px"
-      persistent
-    >
-      <v-card>
-        <v-card-title class="text-h6">
-          <v-icon icon="mdi-shield-check" color="var(--text-color-laranja)" class="mr-2"></v-icon>
-          Confirmar Autorização
-        </v-card-title>
-        <v-card-text>
-          <div class="mb-4">
-            <p class="mb-2">
-              {{ Array.isArray(dialogAutorizacao.item) ? 
-                 `Deseja autorizar ${dialogAutorizacao.item.length} pagamentos?` : 
-                 'Deseja autorizar o pagamento?' }}
-            </p>
-            <div v-if="Array.isArray(dialogAutorizacao.item)" class="text-body-2 text-grey mb-2">
-              <strong>Itens selecionados:</strong> {{ dialogAutorizacao.item.length }}
-              <br>
-              <strong>Valor total:</strong> {{ formatarMoeda(dialogAutorizacao.item.reduce((total, item) => total + parseFloat(item.vlrparcela || 0), 0)) }}
-            </div>
-            <div v-else class="text-body-2 text-grey">
-              <strong>Documento:</strong> {{ dialogAutorizacao.item?.nrdocumento }}
-              <br>
-              <strong>Fornecedor:</strong> {{ dialogAutorizacao.item?.fornecedor }}
-              <br>
-              <strong>Valor:</strong> {{ formatarMoeda(dialogAutorizacao.item?.vlrparcela) }}
-            </div>
-          </div>
-          
-          <v-textarea
-            v-model="observacaoAutorizacao"
-            label="Observação (opcional)"
-            variant="outlined"
-            density="compact"
-            rows="3"
-            placeholder="Adicione uma observação para esta autorização..."
-          ></v-textarea>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="dialogAutorizacao.aberto = false"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            color="var(--text-color-laranja)"
-            variant="flat"
-            @click="confirmarAutorizacao"
-            :loading="loading"
-            class="text-white"
-          >
-            {{ Array.isArray(dialogAutorizacao.item) ? 
-               `Autorizar ${dialogAutorizacao.item.length} itens` : 
-               'Autorizar' }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        <!-- Dialog de Confirmação de Rejeição -->
+        <v-dialog
+            v-model="dialogRejeicao.aberto"
+            max-width="500px"
+            persistent
+        >
+          <v-card>
+            <v-card-title class="text-h6">
+              <v-icon icon="mdi-close-circle" color="var(--text-color-laranja)" class="mr-2"></v-icon>
+              Confirmar Rejeição
+            </v-card-title>
+            <v-card-text>
+              <div class="mb-4">
+                <p class="mb-2">
+                  {{ Array.isArray(dialogRejeicao.item) ?
+                    `Deseja rejeitar ${dialogRejeicao.item.length} pagamentos?` :
+                    'Deseja rejeitar o pagamento?' }}
+                </p>
+                <div v-if="Array.isArray(dialogRejeicao.item)" class="text-body-2 text-grey mb-2">
+                  <strong>Itens selecionados:</strong> {{ dialogRejeicao.item.length }}
+                  <br>
+                  <strong>Valor total:</strong> {{ formatarMoeda(dialogRejeicao.item.reduce((total, item) => total + parseFloat(item.vlrparcela || 0), 0)) }}
+                </div>
+                <div v-else class="text-body-2 text-grey">
+                  <strong>Documento:</strong> {{ dialogRejeicao.item?.nrdocumento }}
+                  <br>
+                  <strong>Fornecedor:</strong> {{ dialogRejeicao.item?.fornecedor }}
+                  <br>
+                  <strong>Valor:</strong> {{ formatarMoeda(dialogRejeicao.item?.vlrparcela) }}
+                </div>
+              </div>
 
-    <!-- Dialog de Confirmação de Rejeição -->
-    <v-dialog 
-      v-model="dialogRejeicao.aberto" 
-      max-width="500px"
-      persistent
-    >
-      <v-card>
-        <v-card-title class="text-h6">
-          <v-icon icon="mdi-close-circle" color="var(--text-color-laranja)" class="mr-2"></v-icon>
-          Confirmar Rejeição
-        </v-card-title>
-        <v-card-text>
-          <div class="mb-4">
-            <p class="mb-2">
-              {{ Array.isArray(dialogRejeicao.item) ? 
-                 `Deseja rejeitar ${dialogRejeicao.item.length} pagamentos?` : 
-                 'Deseja rejeitar o pagamento?' }}
-            </p>
-            <div v-if="Array.isArray(dialogRejeicao.item)" class="text-body-2 text-grey mb-2">
-              <strong>Itens selecionados:</strong> {{ dialogRejeicao.item.length }}
-              <br>
-              <strong>Valor total:</strong> {{ formatarMoeda(dialogRejeicao.item.reduce((total, item) => total + parseFloat(item.vlrparcela || 0), 0)) }}
-            </div>
-            <div v-else class="text-body-2 text-grey">
-              <strong>Documento:</strong> {{ dialogRejeicao.item?.nrdocumento }}
-              <br>
-              <strong>Fornecedor:</strong> {{ dialogRejeicao.item?.fornecedor }}
-              <br>
-              <strong>Valor:</strong> {{ formatarMoeda(dialogRejeicao.item?.vlrparcela) }}
-            </div>
-          </div>
-          
-          <v-textarea
-            v-model="observacaoRejeicao"
-            label="Motivo da rejeição *"
-            variant="outlined"
-            density="compact"
-            rows="3"
-            :rules="[v => !!v || 'Motivo é obrigatório']"
-            placeholder="Informe o motivo da rejeição..."
-          ></v-textarea>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="dialogRejeicao.aberto = false"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            color="var(--text-color-laranja)"
-            variant="flat"
-            @click="confirmarRejeicao"
-            :loading="loading"
-            class="text-white"
-          >
-            {{ Array.isArray(dialogRejeicao.item) ? 
-               `Rejeitar ${dialogRejeicao.item.length} itens` : 
-               'Rejeitar' }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+              <v-textarea
+                  v-model="observacaoRejeicao"
+                  label="Motivo da rejeição *"
+                  variant="outlined"
+                  density="compact"
+                  rows="3"
+                  :rules="[v => !!v || 'Motivo é obrigatório']"
+                  placeholder="Informe o motivo da rejeição..."
+              ></v-textarea>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn
+                  color="grey"
+                  variant="text"
+                  @click="dialogRejeicao.aberto = false"
+              >
+                Cancelar
+              </v-btn>
+              <v-btn
+                  color="var(--text-color-laranja)"
+                  variant="flat"
+                  @click="confirmarRejeicao"
+                  :loading="loading"
+                  class="text-white"
+              >
+                {{ Array.isArray(dialogRejeicao.item) ?
+                  `Rejeitar ${dialogRejeicao.item.length} itens` :
+                  'Rejeitar' }}
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
 
-    <!-- Snackbar para feedback -->
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      :timeout="3000"
-    >
-      {{ snackbar.message }}
-    </v-snackbar>
-  </div>
+        <!-- Snackbar para feedback -->
+        <v-snackbar
+            v-model="snackbar.show"
+            :color="snackbar.color"
+            :timeout="3000"
+        >
+          {{ snackbar.message }}
+        </v-snackbar>
+      </div>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
@@ -310,6 +305,7 @@ import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useEmpresaStore } from '@/stores/APIs/empresa'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import BuscaAvancadaAutorizacao from '@/components/base/padrao-paginas/BuscaAvancadaAutorizacao.vue'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()

@@ -1,326 +1,324 @@
 <template>
-  <div class="pa-4">
-    <v-card class="background-secondary my-4" elevation="1">
-      <v-card-title class="text-h5 pa-4 d-flex align-center">
-        <v-icon icon="mdi-chart-line" class="mr-3"></v-icon>
-        Relatório Financeiro
-      </v-card-title>
-    </v-card>
+  <top-all-pages icon="mdi-chart-line">
+    <template #titulo>Relatório Financeiro</template>
+    <template #section>
+      <div>
+        <v-row class="mb-4">
+          <v-col cols="12" md="4">
+            <v-card class="background-card pa-6 d-flex flex-column align-center justify-center" style="min-height: 200px; cursor: pointer;" @click="abrirModalCentroCusto">
+              <v-icon icon="mdi-warehouse" size="64" color="var(--text-color-laranja)" class="mb-3"></v-icon>
+              <h3 class="text-h6 text-center">Previsão Centro de Custo</h3>
+              <p class="text-caption text-center mt-2">Débitos previstos por dia</p>
+            </v-card>
+          </v-col>
 
-    <v-row class="mb-4">
-      <v-col cols="12" md="4">
-        <v-card class="background-card pa-6 d-flex flex-column align-center justify-center" style="min-height: 200px; cursor: pointer;" @click="abrirModalCentroCusto">
-          <v-icon icon="mdi-warehouse" size="64" color="var(--text-color-laranja)" class="mb-3"></v-icon>
-          <h3 class="text-h6 text-center">Previsão Centro de Custo</h3>
-          <p class="text-caption text-center mt-2">Débitos previstos por dia</p>
-        </v-card>
-      </v-col>
+          <v-col cols="12" md="4">
+            <v-card class="background-card pa-6 d-flex flex-column align-center justify-center" style="min-height: 200px; cursor: pointer;" @click="abrirModalPagar">
+              <v-icon icon="mdi-credit-card-outline" size="64" color="var(--text-color-laranja)" class="mb-3"></v-icon>
+              <h3 class="text-h6 text-center">Títulos a Pagar</h3>
+              <p class="text-caption text-center mt-2">Lançamentos para conferência</p>
+            </v-card>
+          </v-col>
 
-      <v-col cols="12" md="4">
-        <v-card class="background-card pa-6 d-flex flex-column align-center justify-center" style="min-height: 200px; cursor: pointer;" @click="abrirModalPagar">
-          <v-icon icon="mdi-credit-card-outline" size="64" color="var(--text-color-laranja)" class="mb-3"></v-icon>
-          <h3 class="text-h6 text-center">Títulos a Pagar</h3>
-          <p class="text-caption text-center mt-2">Lançamentos para conferência</p>
-        </v-card>
-      </v-col>
+          <v-col cols="12" md="4">
+            <v-card class="background-card pa-6 d-flex flex-column align-center justify-center" style="min-height: 200px; cursor: pointer;" @click="abrirModalReceber">
+              <v-icon icon="mdi-cash-plus" size="64" color="var(--text-color-laranja)" class="mb-3"></v-icon>
+              <h3 class="text-h6 text-center">Títulos a Receber</h3>
+              <p class="text-caption text-center mt-2">Lançamentos para conferência</p>
+            </v-card>
+          </v-col>
 
-      <v-col cols="12" md="4">
-        <v-card class="background-card pa-6 d-flex flex-column align-center justify-center" style="min-height: 200px; cursor: pointer;" @click="abrirModalReceber">
-          <v-icon icon="mdi-cash-plus" size="64" color="var(--text-color-laranja)" class="mb-3"></v-icon>
-          <h3 class="text-h6 text-center">Títulos a Receber</h3>
-          <p class="text-caption text-center mt-2">Lançamentos para conferência</p>
-        </v-card>
-      </v-col>
+          <v-col cols="12" md="4">
+            <v-card class="background-card pa-6 d-flex flex-column align-center justify-center" style="min-height: 200px; cursor: pointer;" @click="abrirModalDebitosRealizados">
+              <v-icon icon="mdi-cash-check" size="64" color="error" class="mb-3"></v-icon>
+              <h3 class="text-h6 text-center">Débitos Realizados</h3>
+              <p class="text-caption text-center mt-2">Débitos realizados por centro de custo</p>
+            </v-card>
+          </v-col>
+        </v-row>
 
-      <v-col cols="12" md="4">
-        <v-card class="background-card pa-6 d-flex flex-column align-center justify-center" style="min-height: 200px; cursor: pointer;" @click="abrirModalDebitosRealizados">
-          <v-icon icon="mdi-cash-check" size="64" color="error" class="mb-3"></v-icon>
-          <h3 class="text-h6 text-center">Débitos Realizados</h3>
-          <p class="text-caption text-center mt-2">Débitos realizados por centro de custo</p>
-        </v-card>
-      </v-col>
-    </v-row>
+        <!-- Modal Centro de Custo -->
+        <v-dialog v-model="modalCentroCustoAberto" max-width="500px">
+          <v-card class="background-card">
+            <v-card-title class="text-h6 pa-4">
+              <v-icon icon="mdi-warehouse" class="mr-2"></v-icon>
+              Previsão de Débitos por Centro de Custo
+            </v-card-title>
 
-    <!-- Modal Centro de Custo -->
-    <v-dialog v-model="modalCentroCustoAberto" max-width="500px">
-      <v-card class="background-card">
-        <v-card-title class="text-h6 pa-4">
-          <v-icon icon="mdi-warehouse" class="mr-2"></v-icon>
-          Previsão de Débitos por Centro de Custo
-        </v-card-title>
+            <v-card-text class="pa-4">
+              <v-row>
+                <v-col cols="12">
+                  <v-text-field
+                      v-model="filtrosCentroCusto.dtini"
+                      label="Data Início *"
+                      type="date"
+                      variant="outlined"
+                      density="compact"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  ></v-text-field>
+                </v-col>
 
-        <v-card-text class="pa-4">
-          <v-row>
-            <v-col cols="12">
-              <v-text-field
-                v-model="filtrosCentroCusto.dtini"
-                label="Data Início *"
-                type="date"
-                variant="outlined"
-                density="compact"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-              ></v-text-field>
-            </v-col>
+                <v-col cols="12">
+                  <v-text-field
+                      v-model="filtrosCentroCusto.dtfim"
+                      label="Data Fim *"
+                      type="date"
+                      variant="outlined"
+                      density="compact"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  ></v-text-field>
+                </v-col>
 
-            <v-col cols="12">
-              <v-text-field
-                v-model="filtrosCentroCusto.dtfim"
-                label="Data Fim *"
-                type="date"
-                variant="outlined"
-                density="compact"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-              ></v-text-field>
-            </v-col>
+                <v-col cols="12">
+                  <v-checkbox
+                      v-model="filtrosCentroCusto.quebraPagina"
+                      label="1 Centro de Custo por página"
+                      density="compact"
+                      color="var(--text-color-laranja)"
+                      hide-details
+                  ></v-checkbox>
+                </v-col>
 
-            <v-col cols="12">
-              <v-checkbox
-                v-model="filtrosCentroCusto.quebraPagina"
-                label="1 Centro de Custo por página"
-                density="compact"
-                color="var(--text-color-laranja)"
-                hide-details
-              ></v-checkbox>
-            </v-col>
+                <v-col cols="12">
+                  <v-checkbox
+                      v-model="filtrosCentroCusto.exibirGrafico"
+                      label="Exibir gráfico de distribuição"
+                      density="compact"
+                      color="var(--text-color-laranja)"
+                      hide-details
+                  ></v-checkbox>
+                </v-col>
+              </v-row>
+            </v-card-text>
 
-            <v-col cols="12">
-              <v-checkbox
-                v-model="filtrosCentroCusto.exibirGrafico"
-                label="Exibir gráfico de distribuição"
-                density="compact"
-                color="var(--text-color-laranja)"
-                hide-details
-              ></v-checkbox>
-            </v-col>
-          </v-row>
-        </v-card-text>
+            <v-card-actions class="pa-4">
+              <v-spacer></v-spacer>
+              <v-btn color="grey" variant="text" @click="modalCentroCustoAberto = false" size="small">Cancelar</v-btn>
+              <v-btn color="var(--text-color-laranja)" variant="flat" class="text-white" @click="gerarRelatorioCentroCusto" :loading="gerando" size="small">Gerar Relatório</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
 
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn color="grey" variant="text" @click="modalCentroCustoAberto = false" size="small">Cancelar</v-btn>
-          <v-btn color="var(--text-color-laranja)" variant="flat" class="text-white" @click="gerarRelatorioCentroCusto" :loading="gerando" size="small">Gerar Relatório</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        <!-- Modal Títulos a Pagar -->
+        <v-dialog v-model="modalPagarAberto" max-width="600px">
+          <v-card class="background-card">
+            <v-card-title class="text-h6 pa-4">
+              <v-icon icon="mdi-credit-card-outline" class="mr-2"></v-icon>
+              Relatório Títulos a Pagar
+            </v-card-title>
 
-    <!-- Modal Títulos a Pagar -->
-    <v-dialog v-model="modalPagarAberto" max-width="600px">
-      <v-card class="background-card">
-        <v-card-title class="text-h6 pa-4">
-          <v-icon icon="mdi-credit-card-outline" class="mr-2"></v-icon>
-          Relatório Títulos a Pagar
-        </v-card-title>
+            <v-card-text class="pa-4">
+              <v-row>
+                <v-col cols="12">
+                  <v-select
+                      v-model="filtrosPagar.idfornecedor"
+                      :items="fornecedores"
+                      item-title="label"
+                      item-value="value"
+                      label="Fornecedor"
+                      variant="outlined"
+                      density="compact"
+                      clearable
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  ></v-select>
+                </v-col>
 
-        <v-card-text class="pa-4">
-          <v-row>
-            <v-col cols="12">
-              <v-select
-                v-model="filtrosPagar.idfornecedor"
-                :items="fornecedores"
-                item-title="label"
-                item-value="value"
-                label="Fornecedor"
-                variant="outlined"
-                density="compact"
-                clearable
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-              ></v-select>
-            </v-col>
+                <v-col cols="6">
+                  <v-label class="text-subtitle-2 mb-2">Período?</v-label>
+                  <v-radio-group v-model="filtrosPagar.tpperiodo">
+                    <v-radio label="Cadastro" value="1"></v-radio>
+                    <v-radio label="Vencimento" value="2"></v-radio>
+                  </v-radio-group>
+                </v-col>
 
-            <v-col cols="6">
-              <v-label class="text-subtitle-2 mb-2">Período?</v-label>
-              <v-radio-group v-model="filtrosPagar.tpperiodo">
-                <v-radio label="Cadastro" value="1"></v-radio>
-                <v-radio label="Vencimento" value="2"></v-radio>
-              </v-radio-group>
-            </v-col>
+                <v-col cols="6">
+                  <v-select
+                      v-model="filtrosPagar.idlocalcobranca"
+                      :items="locaisCobranca"
+                      item-title="label"
+                      item-value="value"
+                      label="Local de Cobrança"
+                      variant="outlined"
+                      density="compact"
+                      clearable
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  ></v-select>
+                </v-col>
 
-            <v-col cols="6">
-              <v-select
-                v-model="filtrosPagar.idlocalcobranca"
-                :items="locaisCobranca"
-                item-title="label"
-                item-value="value"
-                label="Local de Cobrança"
-                variant="outlined"
-                density="compact"
-                clearable
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-              ></v-select>
-            </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                      v-model="filtrosPagar.dtini"
+                      label="Data Início"
+                      type="date"
+                      variant="outlined"
+                      density="compact"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  ></v-text-field>
+                </v-col>
 
-            <v-col cols="6">
-              <v-text-field
-                v-model="filtrosPagar.dtini"
-                label="Data Início"
-                type="date"
-                variant="outlined"
-                density="compact"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-              ></v-text-field>
-            </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                      v-model="filtrosPagar.dtfim"
+                      label="Data Fim"
+                      type="date"
+                      variant="outlined"
+                      density="compact"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+            </v-card-text>
 
-            <v-col cols="6">
-              <v-text-field
-                v-model="filtrosPagar.dtfim"
-                label="Data Fim"
-                type="date"
-                variant="outlined"
-                density="compact"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-              ></v-text-field>
-            </v-col>
-          </v-row>
-        </v-card-text>
+            <v-card-actions class="pa-4">
+              <v-spacer></v-spacer>
+              <v-btn color="grey" variant="text" @click="modalPagarAberto = false" size="small">Cancelar</v-btn>
+              <v-btn color="var(--text-color-laranja)" variant="flat" class="text-white" @click="gerarRelatorioTitulosPagar" :loading="gerando" size="small">Gerar Relatório</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
 
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn color="grey" variant="text" @click="modalPagarAberto = false" size="small">Cancelar</v-btn>
-          <v-btn color="var(--text-color-laranja)" variant="flat" class="text-white" @click="gerarRelatorioTitulosPagar" :loading="gerando" size="small">Gerar Relatório</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        <!-- Modal Títulos a Receber -->
+        <v-dialog v-model="modalReceberAberto" max-width="600px">
+          <v-card class="background-card">
+            <v-card-title class="text-h6 pa-4">
+              <v-icon icon="mdi-cash-plus" class="mr-2"></v-icon>
+              Relatório Títulos a Receber
+            </v-card-title>
 
-    <!-- Modal Títulos a Receber -->
-    <v-dialog v-model="modalReceberAberto" max-width="600px">
-      <v-card class="background-card">
-        <v-card-title class="text-h6 pa-4">
-          <v-icon icon="mdi-cash-plus" class="mr-2"></v-icon>
-          Relatório Títulos a Receber
-        </v-card-title>
+            <v-card-text class="pa-4">
+              <v-row>
+                <v-col cols="12">
+                  <v-select
+                      v-model="filtrosReceber.idCliente"
+                      :items="clientes"
+                      item-title="label"
+                      item-value="value"
+                      label="Cliente"
+                      variant="outlined"
+                      density="compact"
+                      clearable
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  ></v-select>
+                </v-col>
 
-        <v-card-text class="pa-4">
-          <v-row>
-            <v-col cols="12">
-              <v-select
-                v-model="filtrosReceber.idCliente"
-                :items="clientes"
-                item-title="label"
-                item-value="value"
-                label="Cliente"
-                variant="outlined"
-                density="compact"
-                clearable
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-              ></v-select>
-            </v-col>
+                <v-col cols="6">
+                  <v-label class="text-subtitle-2 mb-2">Período?</v-label>
+                  <v-radio-group v-model="filtrosReceber.tpperiodo">
+                    <v-radio label="Cadastro" value="1"></v-radio>
+                    <v-radio label="Vencimento" value="2"></v-radio>
+                  </v-radio-group>
+                </v-col>
 
-            <v-col cols="6">
-              <v-label class="text-subtitle-2 mb-2">Período?</v-label>
-              <v-radio-group v-model="filtrosReceber.tpperiodo">
-                <v-radio label="Cadastro" value="1"></v-radio>
-                <v-radio label="Vencimento" value="2"></v-radio>
-              </v-radio-group>
-            </v-col>
+                <v-col cols="6">
+                  <v-select
+                      v-model="filtrosReceber.idlocalcobranca"
+                      :items="locaisCobranca"
+                      item-title="label"
+                      item-value="value"
+                      label="Local de Cobrança"
+                      variant="outlined"
+                      density="compact"
+                      clearable
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  ></v-select>
+                </v-col>
 
-            <v-col cols="6">
-              <v-select
-                v-model="filtrosReceber.idlocalcobranca"
-                :items="locaisCobranca"
-                item-title="label"
-                item-value="value"
-                label="Local de Cobrança"
-                variant="outlined"
-                density="compact"
-                clearable
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-              ></v-select>
-            </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                      v-model="filtrosReceber.dtini"
+                      label="Data Início"
+                      type="date"
+                      variant="outlined"
+                      density="compact"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  ></v-text-field>
+                </v-col>
 
-            <v-col cols="6">
-              <v-text-field
-                v-model="filtrosReceber.dtini"
-                label="Data Início"
-                type="date"
-                variant="outlined"
-                density="compact"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-              ></v-text-field>
-            </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                      v-model="filtrosReceber.dtfim"
+                      label="Data Fim"
+                      type="date"
+                      variant="outlined"
+                      density="compact"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+            </v-card-text>
 
-            <v-col cols="6">
-              <v-text-field
-                v-model="filtrosReceber.dtfim"
-                label="Data Fim"
-                type="date"
-                variant="outlined"
-                density="compact"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-              ></v-text-field>
-            </v-col>
-          </v-row>
-        </v-card-text>
+            <v-card-actions class="pa-4">
+              <v-spacer></v-spacer>
+              <v-btn color="grey" variant="text" @click="modalReceberAberto = false" size="small">Cancelar</v-btn>
+              <v-btn color="var(--text-color-laranja)" variant="flat" class="text-white" @click="gerarRelatorioTitulosReceber" :loading="gerando" size="small">Gerar Relatório</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
 
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn color="grey" variant="text" @click="modalReceberAberto = false" size="small">Cancelar</v-btn>
-          <v-btn color="var(--text-color-laranja)" variant="flat" class="text-white" @click="gerarRelatorioTitulosReceber" :loading="gerando" size="small">Gerar Relatório</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        <!-- Modal Débitos Realizados -->
+        <v-dialog v-model="modalDebitosRealizadosAberto" max-width="500px">
+          <v-card class="background-card">
+            <v-card-title class="text-h6 pa-4">
+              <v-icon icon="mdi-cash-check" class="mr-2" color="error"></v-icon>
+              Débitos Realizados por Centro de Custo
+            </v-card-title>
 
-    <!-- Modal Débitos Realizados -->
-    <v-dialog v-model="modalDebitosRealizadosAberto" max-width="500px">
-      <v-card class="background-card">
-        <v-card-title class="text-h6 pa-4">
-          <v-icon icon="mdi-cash-check" class="mr-2" color="error"></v-icon>
-          Débitos Realizados por Centro de Custo
-        </v-card-title>
+            <v-card-text class="pa-4">
+              <v-row>
+                <v-col cols="12">
+                  <v-text-field
+                      v-model="filtrosDebitosRealizados.dtini"
+                      label="Data Início *"
+                      type="date"
+                      variant="outlined"
+                      density="compact"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  ></v-text-field>
+                </v-col>
 
-        <v-card-text class="pa-4">
-          <v-row>
-            <v-col cols="12">
-              <v-text-field
-                v-model="filtrosDebitosRealizados.dtini"
-                label="Data Início *"
-                type="date"
-                variant="outlined"
-                density="compact"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-              ></v-text-field>
-            </v-col>
+                <v-col cols="12">
+                  <v-text-field
+                      v-model="filtrosDebitosRealizados.dtfim"
+                      label="Data Fim *"
+                      type="date"
+                      variant="outlined"
+                      density="compact"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  ></v-text-field>
+                </v-col>
 
-            <v-col cols="12">
-              <v-text-field
-                v-model="filtrosDebitosRealizados.dtfim"
-                label="Data Fim *"
-                type="date"
-                variant="outlined"
-                density="compact"
-                :theme="themeStore.darkMode ? 'dark' : 'light'"
-              ></v-text-field>
-            </v-col>
+                <v-col cols="12">
+                  <v-checkbox
+                      v-model="filtrosDebitosRealizados.quebraPagina"
+                      label="1 Centro de Custo por página"
+                      density="compact"
+                      color="var(--text-color-laranja)"
+                      hide-details
+                  ></v-checkbox>
+                </v-col>
 
-            <v-col cols="12">
-              <v-checkbox
-                v-model="filtrosDebitosRealizados.quebraPagina"
-                label="1 Centro de Custo por página"
-                density="compact"
-                color="var(--text-color-laranja)"
-                hide-details
-              ></v-checkbox>
-            </v-col>
+                <v-col cols="12">
+                  <v-checkbox
+                      v-model="filtrosDebitosRealizados.exibirGrafico"
+                      label="Exibir gráfico de distribuição"
+                      density="compact"
+                      color="var(--text-color-laranja)"
+                      hide-details
+                  ></v-checkbox>
+                </v-col>
+              </v-row>
+            </v-card-text>
 
-            <v-col cols="12">
-              <v-checkbox
-                v-model="filtrosDebitosRealizados.exibirGrafico"
-                label="Exibir gráfico de distribuição"
-                density="compact"
-                color="var(--text-color-laranja)"
-                hide-details
-              ></v-checkbox>
-            </v-col>
-          </v-row>
-        </v-card-text>
-
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn color="grey" variant="text" @click="modalDebitosRealizadosAberto = false" size="small">Cancelar</v-btn>
-          <v-btn color="error" variant="flat" class="text-white" @click="gerarRelatorioDebitosRealizados" :loading="gerando" size="small">Gerar Relatório</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </div>
+            <v-card-actions class="pa-4">
+              <v-spacer></v-spacer>
+              <v-btn color="grey" variant="text" @click="modalDebitosRealizadosAberto = false" size="small">Cancelar</v-btn>
+              <v-btn color="error" variant="flat" class="text-white" @click="gerarRelatorioDebitosRealizados" :loading="gerando" size="small">Gerar Relatório</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </div>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
@@ -330,6 +328,7 @@ import { useCCustoStore } from '@/stores/APIs/ccusto'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { toast } from 'vue3-toastify'
 import { TEMPLATE_CENTRO_CUSTO } from '@/components/impressos/centrodecusto.js'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 const ccustoStore = useCCustoStore()
