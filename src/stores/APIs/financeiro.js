@@ -89,6 +89,50 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
+    // Alias semântico para buscarContas
+    async buscarContasCorrentes() {
+      return await this.buscarContas();
+    },
+
+    // Buscar históricos bancários
+    async buscarHistoricosBancarios() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get('/histbancario', {
+          headers: this.getAuthHeaders()
+        });
+        
+        // Garantir que response.data seja um array válido
+        const resposta = response.data;
+        
+        // Verificar se a resposta tem a estrutura {data: [...], records: X}
+        let dados;
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data;
+        } 
+        // Se é array diretamente
+        else if (Array.isArray(resposta)) {
+          dados = resposta;
+        }
+        // Se é objeto válido (não null, não undefined, não string vazia), transformar em array
+        else if (resposta && resposta !== '' && typeof resposta === 'object' && !resposta.data) {
+          dados = [resposta];
+        }
+        // Qualquer outro caso (null, undefined, string vazia, etc), usar array vazio
+        else {
+          dados = [];
+        }
+        
+        return dados;
+      } catch (error) {
+        this.error = error.message;
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     // Buscar contas correntes ativas do usuário logado (GET /ccorrenteusuativo)
     async buscarContasUsuarioAtivo() {
       this.loading = true;
@@ -252,6 +296,24 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return response.data;
       } catch (error) {
         this.error = error.response?.data?.message || 'Erro ao buscar movimentações';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Buscar movimentação específica de conta corrente
+    async buscarMovimentacaoContaCorrente(idEmpresa, idCcorrente, id) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get(`/ccorrentemov/${idEmpresa}/idccorrente/${idCcorrente}/id/${id}`, {
+          headers: this.getAuthHeaders()
+        });
+        
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar movimentação';
         throw error;
       } finally {
         this.loading = false;
@@ -888,6 +950,108 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
     // ========== CONTAS A PAGAR ==========
 
+    // Buscar baixas de contas a pagar por período (GET /pagarbaixados/:idempresa/dtini/:dtini/dtfim/:dtfim)
+    async buscarBaixasPagar({ data_inicio, data_fim }) {
+      this.loading = true
+      this.error = null
+      try {
+        const idEmpresa = localStorage.getItem('empresa') || localStorage.getItem('id_empresa') || '1'
+        
+        const response = await api.get(`/pagarbaixados/${idEmpresa}/dtini/${data_inicio}/dtfim/${data_fim}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        // Normalizar resposta
+        const resposta = response.data
+        let dados = []
+        
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data
+        } else if (Array.isArray(resposta)) {
+          dados = resposta
+        } else if (resposta && resposta !== '' && typeof resposta === 'object') {
+          dados = [resposta]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar baixas'
+        console.error('Erro ao buscar baixas a pagar:', error)
+        return []
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Estornar baixa de conta a pagar
+    async estornarBaixaPagar(id) {
+      this.loading = true
+      this.error = null
+      try {
+        const idEmpresa = localStorage.getItem('empresa') || localStorage.getItem('id_empresa') || '1'
+        
+        const response = await api.delete(`/estornopagar/${idEmpresa}/id/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao estornar baixa'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar baixas de contas a receber por período (GET /receberbaixados/:idempresa/dtini/:dtini/dtfim/:dtfim)
+    async buscarBaixasReceber({ data_inicio, data_fim }) {
+      this.loading = true
+      this.error = null
+      try {
+        const idEmpresa = localStorage.getItem('empresa') || localStorage.getItem('id_empresa') || '1'
+        
+        const response = await api.get(`/receberbaixados/${idEmpresa}/dtini/${data_inicio}/dtfim/${data_fim}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        // Normalizar resposta
+        const resposta = response.data
+        let dados = []
+        
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data
+        } else if (Array.isArray(resposta)) {
+          dados = resposta
+        } else if (resposta && resposta !== '' && typeof resposta === 'object') {
+          dados = [resposta]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar baixas'
+        console.error('Erro ao buscar baixas a receber:', error)
+        return []
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Estornar baixa de conta a receber
+    async estornarBaixaReceber(id) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.delete(`/receberbaixados/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao estornar baixa'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     // Calcular parcelas para conta a pagar (POST /contaspagarcalcparc)
     async calcularParcelasContaPagar(dadosCalculo) {
       this.loading = true
@@ -958,33 +1122,6 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar históricos bancários (GET /histbancario)
-    async buscarHistoricosBancarios() {
-      this.loading = true
-      this.error = null
-      try {
-        const response = await api.get('/histbancario', {
-          headers: this.getAuthHeaders()
-        })
-        const resp = response.data
-        let dados = []
-        if (resp && resp.data && Array.isArray(resp.data)) {
-          dados = resp.data
-        } else if (Array.isArray(resp)) {
-          dados = resp
-        } else if (resp && typeof resp === 'object') {
-          dados = [resp]
-        }
-        return dados
-      }
-      catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar históricos bancários'
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
-
     // Criar histórico contábil (POST /historicocontabil)
     async criarHistoricoContabil(historicoData) {
       this.loading = true
@@ -1024,12 +1161,15 @@ export const useFinanceiroStore = defineStore('financeiro', {
         if (filtros.tpperiodo !== undefined) params.append('tpperiodo', filtros.tpperiodo)
         if (filtros.dtini) params.append('dtini', filtros.dtini)
         if (filtros.dtfim) params.append('dtfim', filtros.dtfim)
+        if (filtros.dt_inicio) params.append('dt_inicio', filtros.dt_inicio)
+        if (filtros.dt_fim) params.append('dt_fim', filtros.dt_fim)
         if (filtros.idfornecedor) params.append('idfornecedor', filtros.idfornecedor)
         if (filtros.cnpj_cpf) params.append('cnpj_cpf', filtros.cnpj_cpf)
         if (filtros.nrdocumento) params.append('nrdocumento', filtros.nrdocumento)
         if (filtros.idtpdocumento) params.append('idtpdocumento', filtros.idtpdocumento)
         if (filtros.idlocalcobranca) params.append('idlocalcobranca', filtros.idlocalcobranca)
         if (filtros.baixado) params.append('baixado', filtros.baixado)
+        if (filtros.liberadopagto) params.append('liberadopagto', filtros.liberadopagto)
         
         const queryString = params.toString()
         const url = queryString ? `/contaspagar/${idEmpresa}?${queryString}` : `/contaspagar/${idEmpresa}`
@@ -1052,6 +1192,54 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return dados
       } catch (error) {
         this.error = error.response?.data?.message || 'Erro ao buscar contas a pagar'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar contas a pagar para baixa (GET /contaspagarbxa/:idempresa)
+    async buscarContasPagarBaixa(idEmpresa, filtros = {}) {
+      this.loading = true
+      this.error = null
+      try {
+        // Construir query params
+        const params = new URLSearchParams()
+        
+        if (filtros.tpperiodo !== undefined) params.append('tpperiodo', filtros.tpperiodo)
+        if (filtros.dtini) params.append('dtini', filtros.dtini)
+        if (filtros.dtfim) params.append('dtfim', filtros.dtfim)
+        if (filtros.dt_inicio) params.append('dt_inicio', filtros.dt_inicio)
+        if (filtros.dt_fim) params.append('dt_fim', filtros.dt_fim)
+        if (filtros.idfornecedor) params.append('idfornecedor', filtros.idfornecedor)
+        if (filtros.cnpj_cpf) params.append('cnpj_cpf', filtros.cnpj_cpf)
+        if (filtros.nrdocumento) params.append('nrdocumento', filtros.nrdocumento)
+        if (filtros.idtpdocumento) params.append('idtpdocumento', filtros.idtpdocumento)
+        if (filtros.idlocalcobranca) params.append('idlocalcobranca', filtros.idlocalcobranca)
+        if (filtros.baixado) params.append('baixado', filtros.baixado)
+        if (filtros.liberadopagto) params.append('liberadopagto', filtros.liberadopagto)
+        
+        const queryString = params.toString()
+        const url = queryString ? `/contaspagarbxa/${idEmpresa}?${queryString}` : `/contaspagarbxa/${idEmpresa}`
+        
+        console.log('🔍 Buscando contas a pagar para baixa:', url)
+        
+        const response = await api.get(url, {
+          headers: this.getAuthHeaders()
+        })
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+        } else if (Array.isArray(resp)) {
+          dados = resp
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar contas a pagar para baixa'
         throw error
       } finally {
         this.loading = false
@@ -1164,6 +1352,29 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return true
       } catch (error) {
         this.error = error.response?.data?.message || 'Erro ao deletar conta a pagar'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Autorizar contas a pagar (POST /contaspagarautorizar)
+    async autorizarContasPagar(payload) {
+      this.loading = true
+      this.error = null
+      try {
+        console.log('🔒 Autorizando contas a pagar:', payload)
+        
+        // Garantir que o payload seja um objeto e não um array
+        const payloadFinal = Array.isArray(payload) ? { data: payload } : payload
+        
+        const response = await api.post('/contaspagarautorizar', payloadFinal, {
+          headers: this.getAuthHeaders()
+        })
+        
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao autorizar contas a pagar'
         throw error
       } finally {
         this.loading = false
@@ -1735,8 +1946,177 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.error = null;
       this.loading = false;
       this.search = '';
-    }
-,
+    },
+
+    // ========== BAIXA DE PAGAMENTOS ==========
+    
+    // Baixar pagamentos em lote
+    async baixarPagamentos(idEmpresa, dadosBaixa) {
+      this.loading = true;
+      this.error = null;
+      
+      try {
+        // Endpoint alvo: /contaspagarbxa
+        // Mantém idEmpresa na assinatura por compatibilidade com chamadas existentes,
+        // mas garante que o payload carregue o id_empresa quando necessário.
+        const payload = { ...(dadosBaixa || {}) }
+
+        if (Array.isArray(payload.data)) {
+          payload.data = payload.data.map((item) => ({
+            ...(item || {}),
+            id_empresa: (item && item.id_empresa != null) ? item.id_empresa : idEmpresa
+          }))
+        }
+
+        // Não adicionar `id_empresa` no objeto raiz do payload.
+        // Garantir apenas que cada item em payload.data tenha `id_empresa`.
+
+        const response = await api.post(`/contaspagarbxa`, payload, {
+          headers: this.getAuthHeaders()
+        });
+        
+        return response.data;
+      } catch (error) {
+        console.error('Erro ao baixar pagamentos:', error);
+        this.error = error.response?.data?.message || 'Erro ao baixar pagamentos';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Buscar contas a receber para baixa
+    async buscarContasReceberBaixa(idEmpresa, filtros ={}) {
+      this.loading = true;
+      this.error = null;
+
+      try{
+        const params = new URLSearchParams();
+
+        Object.entries(filtros).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            params.append(key, value);
+          }
+        });
+        const queryString = params.toString();
+        const url = `/contasreceberbxa/${idEmpresa}${queryString ? `?${queryString}` : ''}`;
+
+        const response = await api.get(url, {
+          headers: this.getAuthHeaders()
+        });
+
+        const resposta = response.data;
+        let dados;
+
+        if(resposta && resposta.data && Array.isArray(resposta.data)){
+          dados = resposta.data;
+        } else if (Array.isArray(resposta)) {
+          dados = resposta;
+        } else {
+          dados = [];
+        }
+
+        return dados;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar contas a receber para baixa';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Baixar recebimentos em lote (POST /contasreceberbxa)
+    async baixarContasReceber(idEmpresa, dadosBaixa) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        console.log('Baixando contas a receber - payload recebido:', dadosBaixa);
+        const payload = { ...(dadosBaixa || {}) }
+
+        if (Array.isArray(payload.data)) {
+          payload.data = payload.data.map((item) => ({
+            ...(item || {}),
+            id_empresa: (item && item.id_empresa != null) ? item.id_empresa : idEmpresa
+          }))
+        }
+        const response = await api.post(`/contasreceberbxa`, payload, {
+          headers: this.getAuthHeaders()
+        });
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao baixar contas a receber';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // ========== TRANSFERÊNCIAS ==========
+
+    // Realizar transferência entre contas/caixas (POST /ccorrentetransf)
+    async realizarTransferencia(payload) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        console.log('Realizando transferência - payload:', payload);
+        
+        const response = await api.post('/ccorrentetransf', payload, {
+          headers: this.getAuthHeaders()
+        });
+        
+        console.log('✅ Transferência realizada com sucesso:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('❌ Erro ao realizar transferência:', error.response?.data);
+        this.error = error.response?.data?.message || 'Erro ao realizar transferência';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Buscar histórico de transferências financeiras (GET /transffinanceiras/:idempresa/dtini/:dtini/dtfim/:dtfim)
+    async buscarTransferenciasFinanceiras(idEmpresa, dtini, dtfim, tipoTransf = null) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        let url = `/transffinanceiras/${idEmpresa}/dtini/${dtini}/dtfim/${dtfim}`;
+        
+        // Adicionar filtro de tipo se especificado
+        if (tipoTransf !== null && tipoTransf !== undefined) {
+          url += `?tipo_transf=${tipoTransf}`;
+        }
+
+        console.log('🔍 Buscando transferências financeiras:', url);
+        
+        const response = await api.get(url, {
+          headers: this.getAuthHeaders()
+        });
+
+        // Normalizar resposta
+        const resp = response.data;
+        let dados = [];
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data;
+        } else if (Array.isArray(resp)) {
+          dados = resp;
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp];
+        }
+
+        console.log('✅ Transferências encontradas:', dados.length);
+        return dados;
+      } catch (error) {
+        console.error('❌ Erro ao buscar transferências:', error.response?.data);
+        this.error = error.response?.data?.message || 'Erro ao buscar transferências';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
     
   },
 

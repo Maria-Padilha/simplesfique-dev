@@ -134,16 +134,11 @@ const carregarParametrosCentroCusto = async () => {
   try {
     const response = await useConfig.buscarparfin()
     
-    console.log('Resposta completa da API:', response)
-    
     if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
       const dados = response.data[0]
       
-      console.log('Dados extraídos:', dados)
-      
       // Verifica se tem dados válidos
       if (dados && Object.keys(dados).length > 0) {
-        console.log('utiliza_ccusto recebido:', dados.utiliza_ccusto, 'Tipo:', typeof dados.utiliza_ccusto)
         
         config.possui_centro_custo = dados.utiliza_ccusto === 'S' || dados.utiliza_ccusto === 1 || dados.utiliza_ccusto === true
         config.nivel1 = dados.ccusto_nivel1 || 1
@@ -151,14 +146,13 @@ const carregarParametrosCentroCusto = async () => {
         config.nivel3 = dados.ccusto_nivel3 || 1
         config.separador = dados.separador || '.'
         
-        console.log('Switch marcado como:', config.possui_centro_custo)
+        
         
         dadosExistem.value = true
       } else {
         dadosExistem.value = false
       }
     } else {
-      console.log('Resposta não tem dados válidos')
       dadosExistem.value = false
     }
   } catch (error) {
@@ -187,7 +181,6 @@ const salvarConfiguracoes = async () => {
       await useConfig.cadastrarParfin(dadosParaEnvio)
     }
     
-    console.log('Configurações de Centro de Custo salvas com sucesso!')
   } catch (error) {
     console.error('Erro ao salvar configurações:', error)
   }

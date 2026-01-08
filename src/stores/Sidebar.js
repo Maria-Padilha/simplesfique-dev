@@ -57,9 +57,30 @@ export const useSidebarStore = defineStore('sidebar', () => {
                         }
                     ]
                 },
+
+                {
+                    text: 'Adiantamento',
+                    icon: 'mdi-account-cash',
+                    submenus: [
+                        { text: 'Cliente', icon: 'mdi-account-multiple', route: '/paginas/adiantamento/cliente' },
+                        { text: 'Fornecedor', icon: 'mdi-account-tie', route: '/paginas/adiantamento/fornecedor' },
+                    ]
+                },
+                {
+                    text: 'Estorno',
+                    icon: 'mdi-backspace-outline',
+                    submenus: [
+                        { text: 'Estorno a Pagar', icon: 'mdi-credit-card-refund', route: '/paginas/estorno/pagar' },
+                        { text: 'Estorno a Receber', icon: 'mdi-cash-refund', route: '/paginas/estorno/receber' },
+                    ]
+                },
                 { text: 'Pagar', icon: 'mdi-credit-card-outline', route: '/paginas/financeiro/pagar' },
                 { text: 'Receber', icon: 'mdi-cash-plus', route: '/paginas/financeiro/receber' },
-                { text: 'Plano de Conta', icon: 'mdi-format-list-bulleted-type', route: '/paginas/financeiro/planoconta' }
+                { text: 'Autorização de Pagamento', icon: 'mdi-shield-check', route: '/paginas/financeiro/autorizacao' },
+                { text: 'Baixa de Pagamento', icon: 'mdi-cash-minus', route: '/paginas/financeiro/baixa' },
+                { text: 'Baixa de Recebimento', icon: 'mdi-cash-plus', route: '/paginas/financeiro/baixareceb' },
+                { text: 'Transferencia entre Contas', icon: 'mdi-swap-horizontal', route: '/paginas/financeiro/transferencia' },
+                { text: 'Plano de Conta', icon: 'mdi-format-list-bulleted-type', route: '/paginas/financeiro/planoconta' },
             ]
         },
         

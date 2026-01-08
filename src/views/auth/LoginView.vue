@@ -58,6 +58,7 @@ import {useThemeStore} from "@/stores/config-temas/theme";
 import ParticleBackground from '@/components/particle/ParticleBackground.vue';
 import { useRouter } from "vue-router";
 import {toast} from "vue3-toastify";
+import api from "@/services/api";
 
 
 const themeStore = useThemeStore();
@@ -103,18 +104,12 @@ const loading = ref(false);
 const loginApi = async () => {
   loading.value = true;
   try {
-    // POST vazio para API temporária
-    const response = await fetch('http://192.168.10.100:9005/vstsaaslogin', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-      // Sem body - POST vazio conforme solicitado
-    });
-    
-    const data = await response.json();
-    
-    if (response.ok && data.token) {
+    // POST vazio via axios - usando service API
+    const response = await api.post('vstsaaslogin');
+
+    const data = response.data;
+
+    if (response.status === 200 && data.token) {
       // Salvar token no localStorage
       localStorage.setItem('token', data.token);
       localStorage.setItem('login_timestamp', new Date().toISOString());

@@ -124,7 +124,7 @@ export const useCaixaStore = defineStore('caixa', {
             this.loading = true;
             
             try {
-                console.log('Store: Chamando API caixausuaberto/', idEmpresa);
+                console.log('Store: Chamando API caixausuaberto');
                 const response = await api.get(`caixausuaberto/${idEmpresa}`, {
                     headers: { Authorization: `Bearer ${this.token}` }
                 });
@@ -324,6 +324,33 @@ export const useCaixaStore = defineStore('caixa', {
         },
 
         /**
+         * BUSCAR LANÇAMENTO ESPECÍFICO DO CAIXA
+         * 
+         * @param {number} idEmpresa - ID da empresa
+         * @param {number} idCaixa - ID do caixa
+         * @param {number} idLancamento - ID do lançamento
+         * @return {Promise<Object|null>}
+         */
+        async buscarLancamentoCaixa(idEmpresa, idCaixa, idLancamento) {
+            this.loading = true;
+            
+            try {
+                const response = await api.get(`caixalct/${idEmpresa}/idcaixa/${idCaixa}/id/${idLancamento}`, {
+                    headers: { Authorization: `Bearer ${this.token}` }
+                });
+                
+                return response.data;
+                
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || 'Erro ao buscar lançamento';
+                console.error('Erro ao buscar lançamento:', error);
+                throw error;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
          * ATUALIZAR LANÇAMENTO DO CAIXA
          * 
          * @param {number} idEmpresa - ID da empresa
@@ -355,15 +382,40 @@ export const useCaixaStore = defineStore('caixa', {
         /**
          * DELETAR LANÇAMENTO DO CAIXA
          * 
-         * @param {number} idEmpresa - ID da empresa
-         * @param {number} idLancamento - ID do lançamento
+         * @param {number} idCaixa - ID do caixa
          * @return {Promise<boolean>}
          */
-        async deletarLancamentoCaixa(idEmpresa, idLancamento) {
+        async deletarLancamentoCaixa(idCaixa) {
             this.loading = true;
             
             try {
-                await api.delete(`caixalct/${idEmpresa}/id/${idLancamento}`, {
+                await api.delete(`caixalct/${idCaixa}`, {
+                    headers: { Authorization: `Bearer ${this.token}` }
+                });
+                
+                this.successMessage = 'Lançamento deletado com sucesso!';
+                return true;
+                
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || 'Erro ao deletar lançamento';
+                console.error('Erro ao deletar lançamento:', error);
+                throw error;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * DELETAR LANÇAMENTO DO CAIXA POR ID DO DOCUMENTO
+         * 
+         * @param {number} idLancamento - ID do lançamento/documento
+         * @return {Promise<boolean>}
+         */
+        async deletarLancamentoCaixaPorId(idLancamento) {
+            this.loading = true;
+            
+            try {
+                await api.delete(`caixalct/${idLancamento}`, {
                     headers: { Authorization: `Bearer ${this.token}` }
                 });
                 

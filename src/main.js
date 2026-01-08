@@ -17,6 +17,8 @@ import 'aos/dist/aos.css';
 import Vue3Toastify from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 
+import VueApexCharts from 'vue3-apexcharts'
+
 const pinia = createPinia();
 pinia.use(piniaPersistedstate);
 AOS.init();
@@ -45,6 +47,7 @@ createApp(App)
     .use(router)
     .use(VueMask)
     .use(vuetify)
+    .use(VueApexCharts)
     .use(Vue3Toastify, {
         autoClose: 3000,
         position: "top-right",

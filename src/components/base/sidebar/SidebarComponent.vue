@@ -120,8 +120,11 @@
           <v-list-item
               v-bind="props"
               :prepend-icon="modulo.icon"
-              :title="modulo.titulo"
-          ></v-list-item>
+          >
+            <template #title>
+              <span class="grupo-primario">{{ modulo.titulo }}</span>
+            </template>
+          </v-list-item>
         </template>
 
         <!-- RENDERIZAR TODOS OS SUBMENUS DO MÓDULO -->
@@ -341,5 +344,10 @@ onBeforeUnmount(() => {
 .span-small {
   font-size: 11px !important;
   opacity: .85;
+}
+
+.grupo-primario {
+  font-weight: 700 !important;
+  font-size: 14px !important;
 }
 </style>

@@ -21,7 +21,15 @@ import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
 import PdvView from '@/views/pages/pdv/PdvView.vue';
 import PagamentoView from '@/views/pages/pdv/PagamentoView.vue';
 import MovimentacaoView from '@/views/pages/banco/MovimentacaoView.vue';
+import AdiantamentoClienteView from '@/views/pages/adiantamento/AdiantamentoClienteView.vue';
+import AdiantamentoFornecedorView from '@/views/pages/adiantamento/AdiantamentoFornecedorView.vue';
+import AutorizacaoPagtoView from '@/views/pages/financeiro/AutorizacaoPagtoView.vue';
+import BaixaPagtoView from '@/views/pages/financeiro/BaixaPagtoView.vue';
+import BaixaRecebView from '@/views/pages/financeiro/BaixaRecebView.vue';
 import FinanceiroRelatorioView from '@/views/pages/relatorios/FinanceiroRelatorioView.vue';
+import TransferenciasView from '@/views/pages/financeiro/TransferenciasView.vue';
+import EstornoPagarView from '@/views/pages/estorno/EstornoPagarView.vue';
+import EstornoReceberView from '@/views/pages/estorno/EstornoReceberView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
@@ -139,6 +147,36 @@ const routes = [
         name: 'financeiro_planoconta',
         component: PlanoContaView
     },
+    {
+        path: '/paginas/financeiro/autorizacao',
+        name: 'financeiro_autorizacao',
+        component: AutorizacaoPagtoView
+    },
+    {
+        path: '/paginas/financeiro/baixa',
+        name: 'financeiro_baixa',
+        component: BaixaPagtoView
+    },
+    {
+        path: '/paginas/financeiro/baixareceb',
+        name: 'financeiro_baixareceb',
+        component: BaixaRecebView
+    },
+    {
+        path: '/paginas/financeiro/transferencia',
+        name: 'financeiro_transferencia',
+        component: TransferenciasView
+    },
+    {
+        path: '/paginas/estorno/pagar',
+        name: 'estorno_pagar',
+        component: EstornoPagarView
+    },
+    {
+        path: '/paginas/estorno/receber',
+        name: 'estorno_receber',
+        component: EstornoReceberView
+    },
 
     // Paginas de banco
     {
@@ -162,6 +200,18 @@ const routes = [
         path: '/paginas/estoque/cest',
         name: 'cest',
         component: () => import('@/views/pages/estoque/CestView.vue')
+    },
+    // Paginas de adiantamento de cliente
+    {
+        path: '/paginas/adiantamento/cliente',
+        name: 'adiantamento_cliente',
+        component: AdiantamentoClienteView
+    },
+    // Paginas de adiantamento de fornecedor
+    {
+        path: '/paginas/adiantamento/fornecedor',
+        name: 'adiantamento_fornecedor',
+        component: AdiantamentoFornecedorView
     },
 
     // páginas de produtos

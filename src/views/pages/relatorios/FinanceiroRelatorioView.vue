@@ -31,6 +31,14 @@
           <p class="text-caption text-center mt-2">Lançamentos para conferência</p>
         </v-card>
       </v-col>
+
+      <v-col cols="12" md="4">
+        <v-card class="background-card pa-6 d-flex flex-column align-center justify-center" style="min-height: 200px; cursor: pointer;" @click="abrirModalDebitosRealizados">
+          <v-icon icon="mdi-cash-check" size="64" color="error" class="mb-3"></v-icon>
+          <h3 class="text-h6 text-center">Débitos Realizados</h3>
+          <p class="text-caption text-center mt-2">Débitos realizados por centro de custo</p>
+        </v-card>
+      </v-col>
     </v-row>
 
     <!-- Modal Centro de Custo -->
@@ -63,6 +71,26 @@
                 density="compact"
                 :theme="themeStore.darkMode ? 'dark' : 'light'"
               ></v-text-field>
+            </v-col>
+
+            <v-col cols="12">
+              <v-checkbox
+                v-model="filtrosCentroCusto.quebraPagina"
+                label="1 Centro de Custo por página"
+                density="compact"
+                color="var(--text-color-laranja)"
+                hide-details
+              ></v-checkbox>
+            </v-col>
+
+            <v-col cols="12">
+              <v-checkbox
+                v-model="filtrosCentroCusto.exibirGrafico"
+                label="Exibir gráfico de distribuição"
+                density="compact"
+                color="var(--text-color-laranja)"
+                hide-details
+              ></v-checkbox>
             </v-col>
           </v-row>
         </v-card-text>
@@ -230,6 +258,68 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Modal Débitos Realizados -->
+    <v-dialog v-model="modalDebitosRealizadosAberto" max-width="500px">
+      <v-card class="background-card">
+        <v-card-title class="text-h6 pa-4">
+          <v-icon icon="mdi-cash-check" class="mr-2" color="error"></v-icon>
+          Débitos Realizados por Centro de Custo
+        </v-card-title>
+
+        <v-card-text class="pa-4">
+          <v-row>
+            <v-col cols="12">
+              <v-text-field
+                v-model="filtrosDebitosRealizados.dtini"
+                label="Data Início *"
+                type="date"
+                variant="outlined"
+                density="compact"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12">
+              <v-text-field
+                v-model="filtrosDebitosRealizados.dtfim"
+                label="Data Fim *"
+                type="date"
+                variant="outlined"
+                density="compact"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12">
+              <v-checkbox
+                v-model="filtrosDebitosRealizados.quebraPagina"
+                label="1 Centro de Custo por página"
+                density="compact"
+                color="var(--text-color-laranja)"
+                hide-details
+              ></v-checkbox>
+            </v-col>
+
+            <v-col cols="12">
+              <v-checkbox
+                v-model="filtrosDebitosRealizados.exibirGrafico"
+                label="Exibir gráfico de distribuição"
+                density="compact"
+                color="var(--text-color-laranja)"
+                hide-details
+              ></v-checkbox>
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="modalDebitosRealizadosAberto = false" size="small">Cancelar</v-btn>
+          <v-btn color="error" variant="flat" class="text-white" @click="gerarRelatorioDebitosRealizados" :loading="gerando" size="small">Gerar Relatório</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -248,6 +338,7 @@ const financeiroStore = useFinanceiroStore()
 const modalCentroCustoAberto = ref(false)
 const modalPagarAberto = ref(false)
 const modalReceberAberto = ref(false)
+const modalDebitosRealizadosAberto = ref(false)
 const gerando = ref(false)
 
 const centrosCusto = ref([])
@@ -317,6 +408,8 @@ const filtrosCentroCusto = reactive({
   custoEspecifico: 'N',
   idCentroCusto: null,
   quebrapagina: 'S',
+  quebraPagina: false,
+  exibirGrafico: true,
   dtini: '',
   dtfim: ''
 })
@@ -337,6 +430,13 @@ const filtrosReceber = reactive({
   dtfim: ''
 })
 
+const filtrosDebitosRealizados = reactive({
+  dtini: '',
+  dtfim: '',
+  quebraPagina: false,
+  exibirGrafico: true
+})
+
 const abrirModalCentroCusto = () => {
   modalCentroCustoAberto.value = true
 }
@@ -347,6 +447,10 @@ const abrirModalPagar = () => {
 
 const abrirModalReceber = () => {
   modalReceberAberto.value = true
+}
+
+const abrirModalDebitosRealizados = () => {
+  modalDebitosRealizadosAberto.value = true
 }
 
 // Template HTML para impressão
@@ -892,43 +996,199 @@ const abrirImpressaoCentroCusto = (previsao, filtros) => {
     }
     console.log(`📐 Colunas: ${numColunas}, Classe: ${colsClass}`)
     
-    // 6. Gerar HTML dos headers de dias (com classe col-dia)
-    let headersDias = ''
-    diasComCobranca.forEach(dia => {
-      headersDias += `<th class="col-dia">${dia.label}</th>`
-    })
+    // 6. Função para dividir array em grupos de N elementos
+    const dividirEmGrupos = (array, tamanho) => {
+      const grupos = []
+      for (let i = 0; i < array.length; i += tamanho) {
+        grupos.push(array.slice(i, i + tamanho))
+      }
+      return grupos
+    }
     
-    // 7. Gerar HTML das linhas (centro de custo + despesas)
-    let linhasCCusto = ''
-    centrosCustoAgrupados.forEach(cc => {
-      // Linha do centro de custo (agrupador)
-      let linhaCCusto = `<tr class="row-ccusto"><td>${cc.centroCusto}</td>`
-      diasComCobranca.forEach(dia => {
-        const valor = cc[dia.key] || 0
-        linhaCCusto += `<td>${valor > 0 ? formatarMoeda(valor) : '-'}</td>`
-      })
-      linhaCCusto += `<td class="col-total">${formatarMoeda(cc.total)}</td></tr>`
-      linhasCCusto += linhaCCusto
+    // Dividir dias em grupos de 15
+    const DIAS_POR_TABELA = 15
+    const gruposDeDias = dividirEmGrupos(diasComCobranca, DIAS_POR_TABELA)
+    
+    console.log(`📅 Total de dias: ${diasComCobranca.length}, Grupos de ${DIAS_POR_TABELA}: ${gruposDeDias.length}`)
+    
+    // Função para limpar nome do centro de custo (remove "Ativo" repetido, etc)
+    const limparNomeCCusto = (nome) => {
+      if (!nome) return ''
+      // Remove " - Ativo" ou "- Ativo" do final e variações
+      let limpo = nome.replace(/\s*-?\s*Ativo$/i, '').trim()
+      return limpo || nome
+    }
+    
+    // 7. Gerar HTML - UMA TABELA POR CENTRO DE CUSTO (com quebra a cada 15 dias)
+    let tabelasCCusto = ''
+    let totalDespesasConsolidadas = 0
+    
+    // Verificar se deve quebrar página por centro de custo
+    const quebraPaginaPorCCusto = filtros.quebraPagina === true
+    
+    centrosCustoAgrupados.forEach((cc, indexCCusto) => {
+      const nomeCCusto = limparNomeCCusto(cc.centroCusto)
       
-      // Linhas das despesas (detalhes)
+      // Consolidar despesas iguais (mesmo nome) em uma única linha
+      const despesasConsolidadas = {}
       cc.despesas.forEach(despesa => {
-        let linhaDespesa = `<tr class="row-despesa"><td>${despesa.descricao}</td>`
+        const nomeDesp = despesa.descricao
+        
+        if (!despesasConsolidadas[nomeDesp]) {
+          despesasConsolidadas[nomeDesp] = {
+            descricao: nomeDesp,
+            total: 0
+          }
+          // Inicializa dias com 0
+          diasComCobranca.forEach(dia => {
+            despesasConsolidadas[nomeDesp][dia.key] = 0
+          })
+        }
+        
+        // Soma valores
+        despesasConsolidadas[nomeDesp].total += despesa.total || 0
         diasComCobranca.forEach(dia => {
-          const valor = despesa[dia.key] || 0
-          linhaDespesa += `<td class="${valor === 0 ? 'valor-zero' : ''}">${valor > 0 ? formatarMoeda(valor) : '-'}</td>`
+          despesasConsolidadas[nomeDesp][dia.key] += despesa[dia.key] || 0
         })
-        linhaDespesa += `<td class="col-total">${formatarMoeda(despesa.total)}</td></tr>`
-        linhasCCusto += linhaDespesa
       })
+      
+      const listaConsolidada = Object.values(despesasConsolidadas)
+      totalDespesasConsolidadas += listaConsolidada.length
+      
+      // Abrir div do bloco do centro de custo (quebra de página apenas a partir do segundo)
+      const classeQuebraPaginaCC = (quebraPaginaPorCCusto && indexCCusto > 0) ? ' quebra-pagina' : ''
+      tabelasCCusto += `<div class="ccusto-bloco${classeQuebraPaginaCC}">`
+      
+      // Cabeçalho do centro de custo
+      tabelasCCusto += `<h3 class="ccusto-titulo">${nomeCCusto}</h3>`
+      
+      // Gerar uma tabela para cada grupo de dias (máx 15 por tabela)
+      gruposDeDias.forEach((grupoDias, indexGrupo) => {
+        // Header dos dias deste grupo
+        let headersDiasGrupo = ''
+        grupoDias.forEach(dia => {
+          headersDiasGrupo += `<th>${dia.label}</th>`
+        })
+        
+        // Calcular subtotal deste grupo de dias
+        let subtotalGrupo = 0
+        grupoDias.forEach(dia => {
+          subtotalGrupo += cc[dia.key] || 0
+        })
+        
+        // Só mostrar tabela se tiver valores neste grupo
+        const temValoresNoGrupo = listaConsolidada.some(despesa => 
+          grupoDias.some(dia => (despesa[dia.key] || 0) > 0)
+        )
+        
+        if (!temValoresNoGrupo && gruposDeDias.length > 1) {
+          return // Pula grupos vazios quando há múltiplos grupos
+        }
+        
+        // Indicador de parte (se múltiplas tabelas)
+        const indicadorParte = gruposDeDias.length > 1 ? ` <span class="parte-indicador">(Parte ${indexGrupo + 1}/${gruposDeDias.length})</span>` : ''
+        
+        // Início da tabela
+        tabelasCCusto += `<table class="table-ccusto">
+          <thead>
+            <tr>
+              <th class="text-left" style="min-width: 150px;">Despesa${indicadorParte}</th>
+              ${headersDiasGrupo}
+              <th style="min-width: 80px;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>`
+        
+        // Linhas das despesas consolidadas (apenas colunas deste grupo)
+        listaConsolidada.forEach(despesa => {
+          // Calcular subtotal desta despesa para este grupo de dias
+          let subtotalDespesa = 0
+          grupoDias.forEach(dia => {
+            subtotalDespesa += despesa[dia.key] || 0
+          })
+          
+          let linha = `<tr><td>${despesa.descricao}</td>`
+          grupoDias.forEach(dia => {
+            const valor = despesa[dia.key] || 0
+            linha += `<td>${valor > 0 ? formatarMoeda(valor) : ''}</td>`
+          })
+          linha += `<td class="col-total">${formatarMoeda(subtotalDespesa)}</td></tr>`
+          tabelasCCusto += linha
+        })
+        
+        // Linha de subtotal do centro de custo (apenas dias deste grupo)
+        tabelasCCusto += `<tr class="row-subtotal"><td><strong>Subtotal</strong></td>`
+        grupoDias.forEach(dia => {
+          const valor = cc[dia.key] || 0
+          tabelasCCusto += `<td>${valor > 0 ? formatarMoeda(valor) : ''}</td>`
+        })
+        tabelasCCusto += `<td class="col-total"><strong>${formatarMoeda(subtotalGrupo)}</strong></td></tr>`
+        
+        // Fechar tabela
+        tabelasCCusto += `</tbody></table>`
+      })
+      
+      // Fechar div do bloco do centro de custo
+      tabelasCCusto += `</div>`
     })
     
-    // 8. Gerar HTML dos totais por dia
+    // 8. Gerar HTML dos totais por dia (para resumo geral)
     let totaisDias = ''
     totaisPorDia.forEach(total => {
       totaisDias += `<td>${formatarMoeda(total)}</td>`
     })
     
-    // 9. Substituir variáveis no template
+    // 9. Gerar dados do gráfico e seção condicional
+    const exibirGrafico = filtros.exibirGrafico === true
+    const dadosGrafico = {
+      labels: centrosCustoAgrupados.map(cc => limparNomeCCusto(cc.centroCusto)),
+      valores: centrosCustoAgrupados.map(cc => cc.total || 0),
+      total: totalGeral
+    }
+    
+    // HTML do gráfico (só inclui se exibirGrafico for true)
+    // Usa concatenação para evitar que Vue interprete as tags script
+    let secaoGrafico = ''
+    if (exibirGrafico) {
+      const scr = 'script'
+      secaoGrafico = `
+    <!-- Gráfico de Distribuição -->
+    <div class="grafico-container" style="margin-top: 30px; page-break-inside: avoid;">
+        <h2 class="section-title">Distribuição por Centro de Custo</h2>
+        <div style="display: flex; justify-content: center; align-items: center; gap: 30px; flex-wrap: wrap;">
+            <canvas id="graficoPizza" width="350" height="350"></canvas>
+            <div id="legendaGrafico" style="font-size: 11px; line-height: 1.8;"></div>
+        </div>
+    </div>
+    <` + scr + ` src="https://cdn.jsdelivr.net/npm/chart.js"></` + scr + `>
+    <` + scr + `>
+        const dadosGrafico = ${JSON.stringify(dadosGrafico)};
+        const cores = ['#FF8C42', '#FFA726', '#FFB74D', '#FFCC80', '#FFE0B2', '#FF9800', '#FB8C00', '#F57C00', '#EF6C00', '#E65100', '#FFD54F', '#FFCA28', '#FFC107', '#FFB300', '#FFA000'];
+        const ctx = document.getElementById('graficoPizza').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: { labels: dadosGrafico.labels, datasets: [{ data: dadosGrafico.valores, backgroundColor: cores.slice(0, dadosGrafico.labels.length), borderColor: '#fff', borderWidth: 2 }] },
+            options: { responsive: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+        });
+        const legendaDiv = document.getElementById('legendaGrafico');
+        let legendaHtml = '';
+        dadosGrafico.labels.forEach((label, i) => {
+            const cor = cores[i % cores.length];
+            const valor = dadosGrafico.valores[i];
+            const percentual = ((valor / dadosGrafico.total) * 100).toFixed(1);
+            const valorFormatado = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            legendaHtml += '<div style="display: flex; align-items: center; margin-bottom: 5px;">';
+            legendaHtml += '<span style="display: inline-block; width: 14px; height: 14px; background: ' + cor + '; margin-right: 8px; border-radius: 3px;"></span>';
+            legendaHtml += '<span style="min-width: 180px;">' + label + '</span>';
+            legendaHtml += '<span style="min-width: 100px; text-align: right; font-weight: 500;">' + valorFormatado + '</span>';
+            legendaHtml += '<span style="min-width: 60px; text-align: right; color: #666;">(' + percentual + '%)</span>';
+            legendaHtml += '</div>';
+        });
+        legendaDiv.innerHTML = legendaHtml;
+    </` + scr + `>`
+    }
+    
+    // 10. Substituir variáveis no template
     html = html.replace(/{{logoUrl}}/g, logo)
     html = html.replace(/{{colsClass}}/g, colsClass)
     html = html.replace(/{{empresa}}/g, empresa)
@@ -936,13 +1196,13 @@ const abrirImpressaoCentroCusto = (previsao, filtros) => {
     html = html.replace(/{{dataInicio}}/g, formatarData(filtros.dtini))
     html = html.replace(/{{dataFim}}/g, formatarData(filtros.dtfim))
     html = html.replace(/{{dataImpressao}}/g, dataAtual.toLocaleString('pt-BR'))
-    html = html.replace(/{{HEADERS_DIAS}}/g, headersDias)
-    html = html.replace(/{{LINHAS_CCUSTO}}/g, linhasCCusto)
+    html = html.replace(/{{TABELAS_CCUSTO}}/g, tabelasCCusto)
     html = html.replace(/{{TOTAIS_DIAS}}/g, totaisDias)
     html = html.replace(/{{totalGeral}}/g, formatarMoeda(totalGeral))
     html = html.replace(/{{totalCentrosCusto}}/g, centrosCustoAgrupados.length)
-    html = html.replace(/{{totalDespesas}}/g, previsoesProcessadas.length)
+    html = html.replace(/{{totalDespesas}}/g, totalDespesasConsolidadas)
     html = html.replace(/{{totalDias}}/g, diasComCobranca.length)
+    html = html.replace(/{{SECAO_GRAFICO}}/g, secaoGrafico)
     
     console.log('🖥️ Abrindo janela de impressão...')
     
@@ -960,10 +1220,10 @@ const abrirImpressaoCentroCusto = (previsao, filtros) => {
     
     console.log('✅ Impressão aberta com sucesso!')
     
-    // Aguardar carregamento e abrir print
+    // Aguardar carregamento do Chart.js e abrir print
     setTimeout(() => {
       janela.print()
-    }, 500)
+    }, 1000)
   } catch (err) {
     console.error('❌ Erro ao abrir impressão:', err)
     console.error('Stack:', err.stack)
@@ -1071,6 +1331,408 @@ const gerarRelatorioTitulosReceber = async () => {
     abrirImpressao('Títulos a Receber', resultado, filtrosReceber)
     
     modalReceberAberto.value = false
+  } catch (error) {
+    console.error('❌ Erro ao gerar relatório:', error)
+    toast.error('Erro ao gerar relatório')
+  } finally {
+    gerando.value = false
+  }
+}
+
+// Função para abrir impressão de Débitos Realizados
+const abrirImpressaoDebitosRealizados = (debitosResponse, filtros) => {
+  try {
+    console.log('🖨️ Iniciando impressão: Débitos Realizados')
+    console.log('📊 Resposta recebida:', debitosResponse)
+    
+    // Verificar se deve quebrar página por centro de custo
+    const quebraPaginaPorCCusto = filtros.quebraPagina || false
+    console.log('📄 Quebra de página por CCusto:', quebraPaginaPorCCusto)
+    
+    // Extrair array de dados (API pode retornar { data: [...] } ou diretamente [...])
+    const debitos = debitosResponse?.data || debitosResponse || []
+    const debitosArray = Array.isArray(debitos) ? debitos : []
+    
+    console.log('📊 Débitos processados:', debitosArray.length)
+    
+    if (!debitosArray || debitosArray.length === 0) {
+      console.warn('⚠️ Nenhum dado para exibir')
+      toast.warning('Nenhum dado encontrado para exibir')
+      return
+    }
+    
+    // Usar template importado
+    let html = TEMPLATE_CENTRO_CUSTO
+
+    // Dados padrão
+    const dataAtual = new Date()
+    const empresa = localStorage.getItem('empresa_nome') || 'Empresa'
+    const operador = localStorage.getItem('usuario_nome') || 'Sistema'
+    const logo = localStorage.getItem('empresa_logo') || '/logo.png'
+    
+    console.log('📝 Empresa:', empresa, 'Operador:', operador)
+    
+    // Formatar data para exibição
+    const formatarData = (data) => {
+      if (!data) return 'N/A'
+      const [ano, mes, dia] = data.split('-')
+      return `${dia}/${mes}/${ano}`
+    }
+    
+    // Formatar moeda
+    const formatarMoeda = (valor) => {
+      const num = parseFloat(valor) || 0
+      if (num === 0) return '0,00'
+      return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    }
+    
+    // Meses para formatação
+    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+    
+    // 1. Extrair datas únicas de vencimento
+    const datasUnicas = new Set()
+    debitosArray.forEach(item => {
+      const dtVenc = item.dtlancamento || item.dtvencimento || item.dtpagamento || item.data
+      if (dtVenc) {
+        datasUnicas.add(dtVenc)
+      }
+    })
+    
+    // 2. Ordenar datas e criar estrutura de dias
+    const datasOrdenadas = Array.from(datasUnicas).sort()
+    const diasComDebito = datasOrdenadas.map(dataStr => {
+      const data = new Date(dataStr + 'T00:00:00')
+      const dia = data.getDate()
+      const mes = meses[data.getMonth()]
+      
+      return {
+        key: `dia_${dataStr}`,
+        label: `${dia}/${mes}`,
+        data: data,
+        dataStr: dataStr
+      }
+    })
+    
+    console.log('📅 Dias com débito:', diasComDebito.length)
+    
+    // 3. Mapear dados para formato de débitos
+    const debitosProcessados = debitosArray.map(item => {
+      const debitoItem = {
+        centroCusto: item.desccentrocusto || item.DESCCENTROCUSTO || 'Sem Centro de Custo',
+        descricao: item.descconta || item.descplanoconta || item.DESCCONTA || item.descricao || 'Despesa',
+        id_ccusto: item.id_ccusto || item.idccusto,
+        dtvencimento: item.dtlancamento || item.dtvencimento || item.dtpagamento || item.data,
+        total: parseFloat(item.valor || item.vlrpago || 0)
+      }
+      
+      // Inicializar todos os dias com 0
+      diasComDebito.forEach(dia => {
+        debitoItem[dia.key] = 0
+      })
+      
+      // Colocar o valor no dia correto
+      const dtVenc = item.dtlancamento || item.dtvencimento || item.dtpagamento || item.data
+      if (dtVenc) {
+        const diaKey = `dia_${dtVenc}`
+        debitoItem[diaKey] = parseFloat(item.valor || item.vlrpago || 0)
+      }
+      
+      return debitoItem
+    })
+    
+    // 4. Agrupar por centro de custo
+    const agrupado = {}
+    
+    debitosProcessados.forEach(item => {
+      if (!agrupado[item.centroCusto]) {
+        agrupado[item.centroCusto] = {
+          centroCusto: item.centroCusto,
+          despesas: [],
+          total: 0
+        }
+        
+        // Inicializa as colunas de dias
+        diasComDebito.forEach(dia => {
+          agrupado[item.centroCusto][dia.key] = 0
+        })
+      }
+      
+      // Adiciona a despesa
+      agrupado[item.centroCusto].despesas.push(item)
+      agrupado[item.centroCusto].total += item.total || 0
+      
+      // Soma os valores por dia
+      diasComDebito.forEach(dia => {
+        agrupado[item.centroCusto][dia.key] += item[dia.key] || 0
+      })
+    })
+    
+    const centrosCustoAgrupados = Object.values(agrupado)
+    
+    // 5. Calcular totais
+    const totalGeral = debitosProcessados.reduce((sum, item) => sum + (item.total || 0), 0)
+    
+    console.log('📊 Centros de custo agrupados:', centrosCustoAgrupados.length)
+    console.log('💰 Total geral:', totalGeral)
+    
+    // 5.1. Determinar classe de tamanho baseada na quantidade de colunas
+    const numColunas = diasComDebito.length
+    let colsClass = 'cols-small'
+    if (numColunas > 20) {
+      colsClass = 'cols-xlarge'
+    } else if (numColunas > 12) {
+      colsClass = 'cols-large'
+    } else if (numColunas > 7) {
+      colsClass = 'cols-medium'
+    }
+    
+    // 6. Função para dividir array em grupos de N elementos
+    const dividirEmGrupos = (array, tamanho) => {
+      const grupos = []
+      for (let i = 0; i < array.length; i += tamanho) {
+        grupos.push(array.slice(i, i + tamanho))
+      }
+      return grupos
+    }
+    
+    // Dividir dias em grupos de 15
+    const DIAS_POR_TABELA = 15
+    const gruposDeDias = dividirEmGrupos(diasComDebito, DIAS_POR_TABELA)
+    
+    console.log(`📅 Total de dias: ${diasComDebito.length}, Grupos de ${DIAS_POR_TABELA}: ${gruposDeDias.length}`)
+    
+    // Função para limpar nome do centro de custo
+    const limparNomeCCusto = (nome) => {
+      if (!nome) return ''
+      let limpo = nome.replace(/\s*-?\s*Ativo$/i, '').trim()
+      return limpo || nome
+    }
+    
+    // 7. Gerar HTML - UMA TABELA POR CENTRO DE CUSTO (com quebra a cada 15 dias)
+    let tabelasCCusto = ''
+    let totalDespesasConsolidadas = 0
+    
+    centrosCustoAgrupados.forEach((cc, indexCCusto) => {
+      const nomeCCusto = limparNomeCCusto(cc.centroCusto)
+      
+      // Consolidar despesas iguais (mesmo nome) em uma única linha
+      const despesasConsolidadas = {}
+      cc.despesas.forEach(despesa => {
+        const nomeDesp = despesa.descricao
+        
+        if (!despesasConsolidadas[nomeDesp]) {
+          despesasConsolidadas[nomeDesp] = {
+            descricao: nomeDesp,
+            total: 0
+          }
+          // Inicializa dias com 0
+          diasComDebito.forEach(dia => {
+            despesasConsolidadas[nomeDesp][dia.key] = 0
+          })
+        }
+        
+        // Soma valores
+        despesasConsolidadas[nomeDesp].total += despesa.total || 0
+        diasComDebito.forEach(dia => {
+          despesasConsolidadas[nomeDesp][dia.key] += despesa[dia.key] || 0
+        })
+      })
+      
+      const listaConsolidada = Object.values(despesasConsolidadas)
+      totalDespesasConsolidadas += listaConsolidada.length
+      
+      // Abrir div do bloco do centro de custo (quebra de página apenas a partir do segundo)
+      const classeQuebraPaginaCC = (quebraPaginaPorCCusto && indexCCusto > 0) ? ' quebra-pagina' : ''
+      tabelasCCusto += `<div class="ccusto-bloco${classeQuebraPaginaCC}">`
+      
+      // Cabeçalho do centro de custo
+      tabelasCCusto += `<h3 class="ccusto-titulo">${nomeCCusto}</h3>`
+      
+      // Gerar uma tabela para cada grupo de dias (máx 15 por tabela)
+      gruposDeDias.forEach((grupoDias, indexGrupo) => {
+        // Header dos dias deste grupo
+        let headersDiasGrupo = ''
+        grupoDias.forEach(dia => {
+          headersDiasGrupo += `<th>${dia.label}</th>`
+        })
+        
+        // Calcular subtotal deste grupo de dias
+        let subtotalGrupo = 0
+        grupoDias.forEach(dia => {
+          subtotalGrupo += cc[dia.key] || 0
+        })
+        
+        // Só mostrar tabela se tiver valores neste grupo
+        const temValoresNoGrupo = listaConsolidada.some(despesa => 
+          grupoDias.some(dia => (despesa[dia.key] || 0) > 0)
+        )
+        
+        if (!temValoresNoGrupo && gruposDeDias.length > 1) {
+          return // Pula grupos vazios quando há múltiplos grupos
+        }
+        
+        // Indicador de parte (se múltiplas tabelas)
+        const indicadorParte = gruposDeDias.length > 1 ? ` <span class="parte-indicador">(Parte ${indexGrupo + 1}/${gruposDeDias.length})</span>` : ''
+        
+        // Início da tabela
+        tabelasCCusto += `<table class="table-ccusto">
+          <thead>
+            <tr>
+              <th class="text-left" style="min-width: 150px;">Despesa${indicadorParte}</th>
+              ${headersDiasGrupo}
+              <th style="min-width: 80px;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>`
+        
+        // Linhas das despesas consolidadas (apenas colunas deste grupo)
+        listaConsolidada.forEach(despesa => {
+          // Calcular subtotal desta despesa para este grupo de dias
+          let subtotalDespesa = 0
+          grupoDias.forEach(dia => {
+            subtotalDespesa += despesa[dia.key] || 0
+          })
+          
+          let linha = `<tr><td>${despesa.descricao}</td>`
+          grupoDias.forEach(dia => {
+            const valor = despesa[dia.key] || 0
+            linha += `<td>${valor > 0 ? formatarMoeda(valor) : ''}</td>`
+          })
+          linha += `<td class="col-total">${formatarMoeda(subtotalDespesa)}</td></tr>`
+          tabelasCCusto += linha
+        })
+        
+        // Linha de subtotal do centro de custo (apenas dias deste grupo)
+        tabelasCCusto += `<tr class="row-subtotal"><td><strong>Subtotal</strong></td>`
+        grupoDias.forEach(dia => {
+          const valor = cc[dia.key] || 0
+          tabelasCCusto += `<td>${valor > 0 ? formatarMoeda(valor) : ''}</td>`
+        })
+        tabelasCCusto += `<td class="col-total"><strong>${formatarMoeda(subtotalGrupo)}</strong></td></tr>`
+        
+        // Fechar tabela
+        tabelasCCusto += `</tbody></table>`
+      })
+      
+      // Fechar div do bloco do centro de custo
+      tabelasCCusto += `</div>`
+    })
+    
+    // 9. Gerar dados do gráfico e seção condicional
+    const exibirGrafico = filtros.exibirGrafico === true
+    const dadosGrafico = {
+      labels: centrosCustoAgrupados.map(cc => limparNomeCCusto(cc.centroCusto)),
+      valores: centrosCustoAgrupados.map(cc => cc.total || 0),
+      total: totalGeral
+    }
+    
+    // HTML do gráfico (só inclui se exibirGrafico for true)
+    // Usa concatenação para evitar que Vue interprete as tags script
+    let secaoGrafico = ''
+    if (exibirGrafico) {
+      const scr = 'script'
+      secaoGrafico = `
+    <!-- Gráfico de Distribuição -->
+    <div class="grafico-container" style="margin-top: 30px; page-break-inside: avoid;">
+        <h2 class="section-title">Distribuição por Centro de Custo</h2>
+        <div style="display: flex; justify-content: center; align-items: center; gap: 30px; flex-wrap: wrap;">
+            <canvas id="graficoPizza" width="350" height="350"></canvas>
+            <div id="legendaGrafico" style="font-size: 11px; line-height: 1.8;"></div>
+        </div>
+    </div>
+    <` + scr + ` src="https://cdn.jsdelivr.net/npm/chart.js"></` + scr + `>
+    <` + scr + `>
+        const dadosGrafico = ${JSON.stringify(dadosGrafico)};
+        const cores = ['#FF8C42', '#FFA726', '#FFB74D', '#FFCC80', '#FFE0B2', '#FF9800', '#FB8C00', '#F57C00', '#EF6C00', '#E65100', '#FFD54F', '#FFCA28', '#FFC107', '#FFB300', '#FFA000'];
+        const ctx = document.getElementById('graficoPizza').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: { labels: dadosGrafico.labels, datasets: [{ data: dadosGrafico.valores, backgroundColor: cores.slice(0, dadosGrafico.labels.length), borderColor: '#fff', borderWidth: 2 }] },
+            options: { responsive: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+        });
+        const legendaDiv = document.getElementById('legendaGrafico');
+        let legendaHtml = '';
+        dadosGrafico.labels.forEach((label, i) => {
+            const cor = cores[i % cores.length];
+            const valor = dadosGrafico.valores[i];
+            const percentual = ((valor / dadosGrafico.total) * 100).toFixed(1);
+            const valorFormatado = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            legendaHtml += '<div style="display: flex; align-items: center; margin-bottom: 5px;">';
+            legendaHtml += '<span style="display: inline-block; width: 14px; height: 14px; background: ' + cor + '; margin-right: 8px; border-radius: 3px;"></span>';
+            legendaHtml += '<span style="min-width: 180px;">' + label + '</span>';
+            legendaHtml += '<span style="min-width: 100px; text-align: right; font-weight: 500;">' + valorFormatado + '</span>';
+            legendaHtml += '<span style="min-width: 60px; text-align: right; color: #666;">(' + percentual + '%)</span>';
+            legendaHtml += '</div>';
+        });
+        legendaDiv.innerHTML = legendaHtml;
+    </` + scr + `>`
+    }
+    
+    // 10. Substituir variáveis no template
+    html = html.replace(/{{logoUrl}}/g, logo)
+    html = html.replace(/{{colsClass}}/g, colsClass)
+    html = html.replace(/{{empresa}}/g, empresa)
+    html = html.replace(/{{operador}}/g, operador)
+    html = html.replace(/{{dataInicio}}/g, formatarData(filtros.dtini))
+    html = html.replace(/{{dataFim}}/g, formatarData(filtros.dtfim))
+    html = html.replace(/{{dataImpressao}}/g, dataAtual.toLocaleString('pt-BR'))
+    html = html.replace(/{{TABELAS_CCUSTO}}/g, tabelasCCusto)
+    html = html.replace(/{{totalGeral}}/g, formatarMoeda(totalGeral))
+    html = html.replace(/{{totalCentrosCusto}}/g, centrosCustoAgrupados.length)
+    html = html.replace(/{{totalDespesas}}/g, totalDespesasConsolidadas)
+    html = html.replace(/{{SECAO_GRAFICO}}/g, secaoGrafico)
+    
+    console.log('🖥️ Abrindo janela de impressão...')
+    
+    // Abrir em nova janela com print
+    const janela = window.open('', '_blank', 'width=1200,height=800')
+    
+    if (!janela) {
+      console.error('❌ Pop-up foi bloqueado pelo navegador!')
+      toast.error('Pop-up foi bloqueado. Verifique as configurações do navegador.')
+      return
+    }
+    
+    janela.document.write(html)
+    janela.document.close()
+    
+    console.log('✅ Impressão aberta com sucesso!')
+    
+    // Aguardar carregamento do Chart.js e abrir print
+    setTimeout(() => {
+      janela.print()
+    }, 1000)
+  } catch (err) {
+    console.error('❌ Erro ao abrir impressão:', err)
+    console.error('Stack:', err.stack)
+    toast.error('Erro ao abrir impressão: ' + err.message)
+  }
+}
+
+const gerarRelatorioDebitosRealizados = async () => {
+  if (!filtrosDebitosRealizados.dtini || !filtrosDebitosRealizados.dtfim) {
+    toast.error('Informe as datas de início e fim')
+    return
+  }
+
+  gerando.value = true
+  try {
+    console.log('📊 Gerando relatório Débitos Realizados:', filtrosDebitosRealizados)
+    
+    // Buscar dados de débitos realizados
+    const debitos = await ccustoStore.buscarDebitosRealizados(
+      idEmpresa.value,
+      filtrosDebitosRealizados.dtini,
+      filtrosDebitosRealizados.dtfim
+    )
+    
+    console.log('✅ Débitos encontrados:', (debitos || []).length)
+    
+    // Abrir impressão com os dados
+    abrirImpressaoDebitosRealizados(debitos, filtrosDebitosRealizados)
+    
+    toast.success('Relatório gerado com sucesso!')
+    modalDebitosRealizadosAberto.value = false
   } catch (error) {
     console.error('❌ Erro ao gerar relatório:', error)
     toast.error('Erro ao gerar relatório')
