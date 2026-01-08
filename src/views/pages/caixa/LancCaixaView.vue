@@ -1,616 +1,611 @@
 <template>
-  <div class="pa-4">
-    <!-- Cabeçalho -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-cash-multiple" class="mr-3"></v-icon>
-          Lançamentos do Caixa
-        </div>
-      </v-card-title>
-    </v-card>
-
-    <!-- Conteúdo Principal -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
-      <v-card-text class="pa-4">
-        <!-- Filtros de Busca Avançada -->
-        <v-card class="mb-4 background-card" elevation="1">
-          <v-card-title class="text-h6 pa-4">
-            <v-icon icon="mdi-filter" class="mr-2"></v-icon>
-            Filtros de Período e Caixa
-          </v-card-title>
+  <top-all-pages icon="mdi-cash-multiple">
+    <template #titulo>Lançamentos do Caixa</template>
+    <template #section>
+      <div>
+        <!-- Conteúdo Principal -->
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
           <v-card-text class="pa-4">
-            <v-row>
-              <!-- Selecione o Caixa -->
-              <v-col cols="12" md="4">
-                <v-autocomplete
-                    v-model="filtros.id_caixa"
-                    :items="caixasDisponiveis"
-                    :loading="loadingCaixas"
-                    item-title="desccaixa"
-                    item-value="id_caixa"
-                    label="Selecione o Caixa *"
-                    variant="outlined"
-                    density="compact"
-                    prepend-inner-icon="mdi-cash-register"
-                    clearable
-                >
-                  <template v-slot:prepend-item>
-                    <v-list-item>
-                      <template v-slot:prepend>
-                        <v-icon>mdi-numeric</v-icon>
-                      </template>
-                      <template v-slot:title>
-                        <span class="font-weight-bold">{{ filtros.id_caixa || '1' }}</span>
-                      </template>
-                      <template v-slot:append>
-                        <span class="text-caption">{{ caixasDisponiveis.find(c => c.id_caixa === filtros.id_caixa)?.desccaixa || 'CAIXA - FINANCEIRO' }}</span>
-                      </template>
-                    </v-list-item>
-                    <v-divider></v-divider>
-                  </template>
-                </v-autocomplete>
-              </v-col>
-
-              <!-- Atalho de Período -->
-              <v-col cols="12" md="2">
-                <v-select
-                    v-model="periodoSelecionado"
-                    :items="periodos"
-                    label="Período"
-                    variant="outlined"
-                    density="compact"
-                    prepend-inner-icon="mdi-calendar-clock"
-                    @update:model-value="aplicarPeriodo"
-                ></v-select>
-              </v-col>
-
-              <!-- Período de Cadastro - De -->
-              <v-col cols="12" md="2">
-                <v-text-field
-                    v-model="filtros.dataInicio"
-                    label="Data Inicial *"
-                    type="date"
-                    variant="outlined"
-                    density="compact"
-                    prepend-inner-icon="mdi-calendar"
-                ></v-text-field>
-              </v-col>
-
-              <!-- Período de Cadastro - Até -->
-              <v-col cols="12" md="2">
-                <v-text-field
-                    v-model="filtros.dataFim"
-                    label="Data Final *"
-                    type="date"
-                    variant="outlined"
-                    density="compact"
-                    prepend-inner-icon="mdi-calendar"
-                ></v-text-field>
-              </v-col>
-
-              <!-- Botão Buscar -->
-              <v-col cols="12" md="2" class="d-flex">
-                <v-btn
-                    color="var(--text-color-laranja)"
-                    variant="flat"
-                    prepend-icon="mdi-magnify"
-                    @click="carregarLancamentos"
-                    :loading="loading"
-                    :disabled="!filtros.id_caixa || !filtros.dataInicio || !filtros.dataFim"
-                    class="text-white"
-                >
-                  Buscar
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-
-        <BotaoExpandTransition
-            :formulario-aberto="formularioAberto"
-            texto-abrir="Novo Lançamento"
-            texto-fechar="Cancelar"
-            @toggle="toggleFormulario"
-        />
-
-        <!-- Formulário de Lançamento -->
-        <v-expand-transition>
-          <div v-if="formularioAberto">
-            <v-card class="background-card mb-7" elevation="2">
+            <!-- Filtros de Busca Avançada -->
+            <v-card class="mb-4 background-card" elevation="1">
               <v-card-title class="text-h6 pa-4">
-                <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-                {{ editando ? 'Editar Lançamento' : 'Novo Lançamento' }}
+                <v-icon icon="mdi-filter" class="mr-2"></v-icon>
+                Filtros de Período e Caixa
               </v-card-title>
-
               <v-card-text class="pa-4">
-                <v-form ref="formRef" v-model="formValido">
-                  <v-row>
-                    <!-- Caixa -->
-                    <v-col cols="12" md="4">
-                      <v-autocomplete
-                          v-model="formData.id_caixa"
-                          :items="caixasDisponiveis"
-                          :loading="loadingCaixas"
-                          item-title="desccaixa"
-                          item-value="id_caixa"
-                          label="Caixa *"
-                          :rules="[rules.required]"
-                          variant="outlined"
-                          density="compact"
-                          prepend-inner-icon="mdi-cash-register"
-                          no-data-text="Nenhum caixa disponível"
-                          @update:model-value="onCaixaChange"
-                      ></v-autocomplete>
-                    </v-col>
+                <v-row>
+                  <!-- Selecione o Caixa -->
+                  <v-col cols="12" md="4">
+                    <v-autocomplete
+                        v-model="filtros.id_caixa"
+                        :items="caixasDisponiveis"
+                        :loading="loadingCaixas"
+                        item-title="desccaixa"
+                        item-value="id_caixa"
+                        label="Selecione o Caixa *"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-cash-register"
+                        clearable
+                    >
+                      <template v-slot:prepend-item>
+                        <v-list-item>
+                          <template v-slot:prepend>
+                            <v-icon>mdi-numeric</v-icon>
+                          </template>
+                          <template v-slot:title>
+                            <span class="font-weight-bold">{{ filtros.id_caixa || '1' }}</span>
+                          </template>
+                          <template v-slot:append>
+                            <span class="text-caption">{{ caixasDisponiveis.find(c => c.id_caixa === filtros.id_caixa)?.desccaixa || 'CAIXA - FINANCEIRO' }}</span>
+                          </template>
+                        </v-list-item>
+                        <v-divider></v-divider>
+                      </template>
+                    </v-autocomplete>
+                  </v-col>
 
-                    <!-- Data de Abertura do Caixa -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                          v-model="formData.dtlancamento"
-                          label="Data de Abertura do Caixa *"
-                          type="date"
-                          :rules="[rules.required]"
-                          variant="outlined"
-                          density="compact"
-                          prepend-inner-icon="mdi-calendar"
-                          readonly
-                          disabled
-                      >
-                        <template v-slot:append-inner>
-                          <v-tooltip location="top">
-                            <template v-slot:activator="{ props }">
-                              <v-icon v-bind="props" size="20" color="grey">mdi-information-outline</v-icon>
+                  <!-- Atalho de Período -->
+                  <v-col cols="12" md="2">
+                    <v-select
+                        v-model="periodoSelecionado"
+                        :items="periodos"
+                        label="Período"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-calendar-clock"
+                        @update:model-value="aplicarPeriodo"
+                    ></v-select>
+                  </v-col>
+
+                  <!-- Período de Cadastro - De -->
+                  <v-col cols="12" md="2">
+                    <v-text-field
+                        v-model="filtros.dataInicio"
+                        label="Data Inicial *"
+                        type="date"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-calendar"
+                    ></v-text-field>
+                  </v-col>
+
+                  <!-- Período de Cadastro - Até -->
+                  <v-col cols="12" md="2">
+                    <v-text-field
+                        v-model="filtros.dataFim"
+                        label="Data Final *"
+                        type="date"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-calendar"
+                    ></v-text-field>
+                  </v-col>
+
+                  <!-- Botão Buscar -->
+                  <v-col cols="12" md="2" class="d-flex">
+                    <v-btn
+                        color="var(--text-color-laranja)"
+                        variant="flat"
+                        prepend-icon="mdi-magnify"
+                        @click="carregarLancamentos"
+                        :loading="loading"
+                        :disabled="!filtros.id_caixa || !filtros.dataInicio || !filtros.dataFim"
+                        class="text-white"
+                    >
+                      Buscar
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+
+            <BotaoExpandTransition
+                :formulario-aberto="formularioAberto"
+                texto-abrir="Novo Lançamento"
+                texto-fechar="Cancelar"
+                @toggle="toggleFormulario"
+            />
+
+            <!-- Formulário de Lançamento -->
+            <v-expand-transition>
+              <div v-if="formularioAberto">
+                <v-card class="background-card mb-7" elevation="2">
+                  <v-card-title class="text-h6 pa-4">
+                    <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
+                    {{ editando ? 'Editar Lançamento' : 'Novo Lançamento' }}
+                  </v-card-title>
+
+                  <v-card-text class="pa-4">
+                    <v-form ref="formRef" v-model="formValido">
+                      <v-row>
+                        <!-- Caixa -->
+                        <v-col cols="12" md="4">
+                          <v-autocomplete
+                              v-model="formData.id_caixa"
+                              :items="caixasDisponiveis"
+                              :loading="loadingCaixas"
+                              item-title="desccaixa"
+                              item-value="id_caixa"
+                              label="Caixa *"
+                              :rules="[rules.required]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-cash-register"
+                              no-data-text="Nenhum caixa disponível"
+                              @update:model-value="onCaixaChange"
+                          ></v-autocomplete>
+                        </v-col>
+
+                        <!-- Data de Abertura do Caixa -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              v-model="formData.dtlancamento"
+                              label="Data de Abertura do Caixa *"
+                              type="date"
+                              :rules="[rules.required]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-calendar"
+                              readonly
+                              disabled
+                          >
+                            <template v-slot:append-inner>
+                              <v-tooltip location="top">
+                                <template v-slot:activator="{ props }">
+                                  <v-icon v-bind="props" size="20" color="grey">mdi-information-outline</v-icon>
+                                </template>
+                                Data de abertura do caixa selecionado (não editável)
+                              </v-tooltip>
                             </template>
-                            Data de abertura do caixa selecionado (não editável)
-                          </v-tooltip>
-                        </template>
-                      </v-text-field>
-                    </v-col>
+                          </v-text-field>
+                        </v-col>
 
-                    <!-- Valor -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                          v-model="formData.valor"
-                          label="Valor *"
-                          :rules="[rules.required, rules.valorPositivo]"
-                          variant="outlined"
-                          density="compact"
-                          prepend-inner-icon="mdi-currency-usd"
-                          prefix="R$"
-                          type="number"
-                          step="0.01"
-                      ></v-text-field>
-                    </v-col>
+                        <!-- Valor -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              v-model="formData.valor"
+                              label="Valor *"
+                              :rules="[rules.required, rules.valorPositivo]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-currency-usd"
+                              prefix="R$"
+                              type="number"
+                              step="0.01"
+                          ></v-text-field>
+                        </v-col>
 
-                    <!-- Código da Conta (Despesa ou Receita) -->
-                    <v-col cols="12" md="4">
-                      <v-autocomplete
-                          v-model="formData.id_planoconta"
-                          :items="planosConta"
-                          :loading="loadingPlanosConta"
-                          item-title="descconta"
-                          item-value="id"
-                          label="Plano de Conta *"
-                          :rules="[rules.required]"
-                          variant="outlined"
-                          density="compact"
-                          prepend-inner-icon="mdi-file-document"
-                          no-data-text="Nenhuma conta disponível"
-                      >
-                        <template v-slot:item="{ props, item }">
-                          <v-list-item v-bind="props">
-                            <template v-slot:title>
+                        <!-- Código da Conta (Despesa ou Receita) -->
+                        <v-col cols="12" md="4">
+                          <v-autocomplete
+                              v-model="formData.id_planoconta"
+                              :items="planosConta"
+                              :loading="loadingPlanosConta"
+                              item-title="descconta"
+                              item-value="id"
+                              label="Plano de Conta *"
+                              :rules="[rules.required]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-file-document"
+                              no-data-text="Nenhuma conta disponível"
+                          >
+                            <template v-slot:item="{ props, item }">
+                              <v-list-item v-bind="props">
+                                <template v-slot:title>
+                                  {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
+                                </template>
+                              </v-list-item>
+                            </template>
+                            <template v-slot:selection="{ item }">
                               {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
                             </template>
-                          </v-list-item>
-                        </template>
-                        <template v-slot:selection="{ item }">
-                          {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
-                        </template>
-                      </v-autocomplete>
-                    </v-col>
+                          </v-autocomplete>
+                        </v-col>
 
-                    <!-- Tipo Documento -->
-                    <v-col cols="12" md="4">
-                      <v-autocomplete
-                          v-model="formData.id_tipodocumento"
-                          :items="tiposDocumento"
-                          :loading="loadingTiposDoc"
-                          item-title="desctipodocumento"
-                          item-value="id"
-                          label="Tipo Documento *"
-                          :rules="[rules.required]"
-                          variant="outlined"
-                          density="compact"
-                          prepend-inner-icon="mdi-file-document-outline"
-                          no-data-text="Nenhum tipo disponível"
-                      ></v-autocomplete>
-                    </v-col>
+                        <!-- Tipo Documento -->
+                        <v-col cols="12" md="4">
+                          <v-autocomplete
+                              v-model="formData.id_tipodocumento"
+                              :items="tiposDocumento"
+                              :loading="loadingTiposDoc"
+                              item-title="desctipodocumento"
+                              item-value="id"
+                              label="Tipo Documento *"
+                              :rules="[rules.required]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-file-document-outline"
+                              no-data-text="Nenhum tipo disponível"
+                          ></v-autocomplete>
+                        </v-col>
 
-                    <!-- Número Documento -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                          v-model="formData.nrdocumento"
-                          label="Número Documento"
-                          variant="outlined"
-                          density="compact"
-                          prepend-inner-icon="mdi-numeric"
-                          maxlength="20"
-                          counter="20"
-                      ></v-text-field>
-                    </v-col>
+                        <!-- Número Documento -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              v-model="formData.nrdocumento"
+                              label="Número Documento"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-numeric"
+                              maxlength="20"
+                              counter="20"
+                          ></v-text-field>
+                        </v-col>
 
-                    <!-- Histórico do Caixa -->
-                    <v-col cols="12" md="4">
-                      <v-autocomplete
-                          v-model="formData.id_caixahist"
-                          :items="historicosCaixa"
-                          :loading="loadingHistCaixa"
-                          item-title="deschistorico"
-                          item-value="id"
-                          label="Histórico do Caixa *"
-                          :rules="[rules.required]"
-                          variant="outlined"
-                          density="compact"
-                          prepend-inner-icon="mdi-history"
-                          no-data-text="Nenhum histórico disponível"
-                      ></v-autocomplete>
-                    </v-col>
+                        <!-- Histórico do Caixa -->
+                        <v-col cols="12" md="4">
+                          <v-autocomplete
+                              v-model="formData.id_caixahist"
+                              :items="historicosCaixa"
+                              :loading="loadingHistCaixa"
+                              item-title="deschistorico"
+                              item-value="id"
+                              label="Histórico do Caixa *"
+                              :rules="[rules.required]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-history"
+                              no-data-text="Nenhum histórico disponível"
+                          ></v-autocomplete>
+                        </v-col>
 
-                    <!-- Histórico Contábil -->
-                    <v-col cols="12" md="4">
-                      <v-autocomplete
-                          v-model="formData.id_hist_contabil"
-                          :items="historicosContabil"
-                          :loading="loadingHistContabil"
-                          item-title="deschistorico"
-                          item-value="id"
-                          label="Histórico Contábil"
-                          variant="outlined"
-                          density="compact"
-                          prepend-inner-icon="mdi-book-open-variant"
-                          no-data-text="Nenhum histórico disponível"
-                          clearable
-                      ></v-autocomplete>
-                    </v-col>
+                        <!-- Histórico Contábil -->
+                        <v-col cols="12" md="4">
+                          <v-autocomplete
+                              v-model="formData.id_hist_contabil"
+                              :items="historicosContabil"
+                              :loading="loadingHistContabil"
+                              item-title="deschistorico"
+                              item-value="id"
+                              label="Histórico Contábil"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-book-open-variant"
+                              no-data-text="Nenhum histórico disponível"
+                              clearable
+                          ></v-autocomplete>
+                        </v-col>
 
-                    <!-- Tipo (Entrada/Saída) -->
-                    <v-col cols="12" md="4">
-                      <v-select
-                          v-model="formData.tipo"
-                          :items="[
+                        <!-- Tipo (Entrada/Saída) -->
+                        <v-col cols="12" md="4">
+                          <v-select
+                              v-model="formData.tipo"
+                              :items="[
                           { title: 'Entrada', value: '+' },
                           { title: 'Saída', value: '-' }
                         ]"
-                          label="Tipo *"
-                          :rules="[rules.required]"
-                          variant="outlined"
-                          density="compact"
-                          prepend-inner-icon="mdi-swap-vertical"
-                      ></v-select>
-                    </v-col>
+                              label="Tipo *"
+                              :rules="[rules.required]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-swap-vertical"
+                          ></v-select>
+                        </v-col>
 
-                    <!-- Tipo Pagamento/Recebimento -->
-                    <v-col cols="12" md="4">
-                      <v-autocomplete
-                          v-model="formData.id_tipopagrec"
-                          :items="tiposPagRec"
-                          :loading="loadingTiposPagRec"
-                          item-title="desctipopagrec"
-                          item-value="id"
-                          label="Tipo Pagamento/Recebimento *"
-                          :rules="[rules.required]"
-                          variant="outlined"
-                          density="compact"
-                          prepend-inner-icon="mdi-credit-card"
-                          no-data-text="Nenhum tipo disponível"
-                      ></v-autocomplete>
-                    </v-col>
+                        <!-- Tipo Pagamento/Recebimento -->
+                        <v-col cols="12" md="4">
+                          <v-autocomplete
+                              v-model="formData.id_tipopagrec"
+                              :items="tiposPagRec"
+                              :loading="loadingTiposPagRec"
+                              item-title="desctipopagrec"
+                              item-value="id"
+                              label="Tipo Pagamento/Recebimento *"
+                              :rules="[rules.required]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-credit-card"
+                              no-data-text="Nenhum tipo disponível"
+                          ></v-autocomplete>
+                        </v-col>
 
-                    <!-- Observação -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                          v-model="formData.observacao"
-                          label="Observação"
-                          variant="outlined"
-                          density="compact"
-                          prepend-inner-icon="mdi-note-text"
-                          maxlength="500"
-                      ></v-text-field>
-                    </v-col>
+                        <!-- Observação -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              v-model="formData.observacao"
+                              label="Observação"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-note-text"
+                              maxlength="500"
+                          ></v-text-field>
+                        </v-col>
 
-                    <!-- Rateio por Centro de Custo -->
-                    <v-col cols="12" v-if="mostrarRateio">
-                      <v-expand-transition>
-                        <v-card variant="outlined" class="mt-4" elevation="1">
-                          <v-card-title class="text-h6 pa-4 d-flex align-center">
-                            <v-icon icon="mdi-swap-horizontal" class="mr-2" color="orange"></v-icon>
-                            Rateio por Centro de Custo
-                            <v-spacer></v-spacer>
-                            <v-btn
-                                size="small"
-                                color="orange"
-                                variant="text"
-                                prepend-icon="mdi-plus"
-                                @click="adicionarCentro"
-                            >
-                              Adicionar Centro
-                            </v-btn>
-                            <v-btn
-                                size="small"
-                                color="orange"
-                                variant="elevated"
-                                class="ml-2"
-                                @click="distribuirIgualmente"
-                            >
-                              Distribuir igualmente
-                            </v-btn>
-                          </v-card-title>
+                        <!-- Rateio por Centro de Custo -->
+                        <v-col cols="12" v-if="mostrarRateio">
+                          <v-expand-transition>
+                            <v-card variant="outlined" class="mt-4" elevation="1">
+                              <v-card-title class="text-h6 pa-4 d-flex align-center">
+                                <v-icon icon="mdi-swap-horizontal" class="mr-2" color="orange"></v-icon>
+                                Rateio por Centro de Custo
+                                <v-spacer></v-spacer>
+                                <v-btn
+                                    size="small"
+                                    color="orange"
+                                    variant="text"
+                                    prepend-icon="mdi-plus"
+                                    @click="adicionarCentro"
+                                >
+                                  Adicionar Centro
+                                </v-btn>
+                                <v-btn
+                                    size="small"
+                                    color="orange"
+                                    variant="elevated"
+                                    class="ml-2"
+                                    @click="distribuirIgualmente"
+                                >
+                                  Distribuir igualmente
+                                </v-btn>
+                              </v-card-title>
 
-                          <v-card-text class="pa-4">
-                            <div v-if="ccustosRateio.length === 0" class="text-center text-grey pa-4">
-                              Nenhum centro de custo adicionado. Clique em "Adicionar Centro" para começar o rateio.
-                            </div>
+                              <v-card-text class="pa-4">
+                                <div v-if="ccustosRateio.length === 0" class="text-center text-grey pa-4">
+                                  Nenhum centro de custo adicionado. Clique em "Adicionar Centro" para começar o rateio.
+                                </div>
 
-                            <v-table v-else density="compact">
-                              <thead>
-                              <tr>
-                                <th style="width: 40%">Centro de Custo</th>
-                                <th style="width: 25%">Valor (R$)</th>
-                                <th style="width: 20%">Porcentagem (%)</th>
-                                <th style="width: 15%; text-align: center">Ações</th>
-                              </tr>
-                              </thead>
-                              <tbody>
-                              <tr v-for="(linha, index) in ccustosRateio" :key="index">
-                                <td>
-                                  <v-select
-                                      v-model="linha.id_ccusto"
-                                      :items="centrosCusto"
-                                      item-title="desccentrocusto"
-                                      item-value="id"
-                                      label="Selecione"
-                                      variant="outlined"
-                                      density="compact"
-                                      hide-details
-                                  />
-                                </td>
-                                <td>
-                                  <v-text-field
-                                      v-model.number="linha.valor"
-                                      type="number"
-                                      step="0.01"
-                                      variant="outlined"
-                                      density="compact"
-                                      prefix="R$"
-                                      hide-details
-                                      @input="onRateioValorChange(index)"
-                                  />
-                                </td>
-                                <td>
-                                  <v-text-field
-                                      v-model.number="linha.porcentagem"
-                                      type="number"
-                                      step="0.01"
-                                      variant="outlined"
-                                      density="compact"
-                                      suffix="%"
-                                      hide-details
-                                      @input="onRateioPercentChange(index)"
-                                  />
-                                </td>
-                                <td style="text-align: center">
-                                  <v-btn
-                                      icon="mdi-delete"
-                                      size="small"
-                                      color="error"
-                                      variant="text"
-                                      @click="removerCentro(index)"
-                                  />
-                                </td>
-                              </tr>
-                              </tbody>
-                              <tfoot>
-                              <tr class="font-weight-bold">
-                                <td>TOTAL</td>
-                                <td>{{ formatarMoeda(totalRateadoValor) }}</td>
-                                <td>{{ Number(totalRateadoPercent).toFixed(2) }}%</td>
-                                <td></td>
-                              </tr>
-                              </tfoot>
-                            </v-table>
-                          </v-card-text>
-                        </v-card>
-                      </v-expand-transition>
-                    </v-col>
-                  </v-row>
-                </v-form>
-              </v-card-text>
+                                <v-table v-else density="compact">
+                                  <thead>
+                                  <tr>
+                                    <th style="width: 40%">Centro de Custo</th>
+                                    <th style="width: 25%">Valor (R$)</th>
+                                    <th style="width: 20%">Porcentagem (%)</th>
+                                    <th style="width: 15%; text-align: center">Ações</th>
+                                  </tr>
+                                  </thead>
+                                  <tbody>
+                                  <tr v-for="(linha, index) in ccustosRateio" :key="index">
+                                    <td>
+                                      <v-select
+                                          v-model="linha.id_ccusto"
+                                          :items="centrosCusto"
+                                          item-title="desccentrocusto"
+                                          item-value="id"
+                                          label="Selecione"
+                                          variant="outlined"
+                                          density="compact"
+                                          hide-details
+                                      />
+                                    </td>
+                                    <td>
+                                      <v-text-field
+                                          v-model.number="linha.valor"
+                                          type="number"
+                                          step="0.01"
+                                          variant="outlined"
+                                          density="compact"
+                                          prefix="R$"
+                                          hide-details
+                                          @input="onRateioValorChange(index)"
+                                      />
+                                    </td>
+                                    <td>
+                                      <v-text-field
+                                          v-model.number="linha.porcentagem"
+                                          type="number"
+                                          step="0.01"
+                                          variant="outlined"
+                                          density="compact"
+                                          suffix="%"
+                                          hide-details
+                                          @input="onRateioPercentChange(index)"
+                                      />
+                                    </td>
+                                    <td style="text-align: center">
+                                      <v-btn
+                                          icon="mdi-delete"
+                                          size="small"
+                                          color="error"
+                                          variant="text"
+                                          @click="removerCentro(index)"
+                                      />
+                                    </td>
+                                  </tr>
+                                  </tbody>
+                                  <tfoot>
+                                  <tr class="font-weight-bold">
+                                    <td>TOTAL</td>
+                                    <td>{{ formatarMoeda(totalRateadoValor) }}</td>
+                                    <td>{{ Number(totalRateadoPercent).toFixed(2) }}%</td>
+                                    <td></td>
+                                  </tr>
+                                  </tfoot>
+                                </v-table>
+                              </v-card-text>
+                            </v-card>
+                          </v-expand-transition>
+                        </v-col>
+                      </v-row>
+                    </v-form>
+                  </v-card-text>
 
-              <v-card-actions class="pa-4">
-                <v-btn
-                    color="grey"
-                    variant="outlined"
-                    @click="excluirLancamento"
-                    v-if="editando"
-                >
-                  <v-icon start>mdi-delete</v-icon>
-                  Excluir
-                </v-btn>
-                <v-spacer></v-spacer>
-                <v-btn color="grey" variant="text" @click="cancelarFormulario">
-                  Cancelar
-                </v-btn>
-                <v-btn
-                    color="var(--text-color-laranja)"
-                    :loading="loading"
-                    :disabled="!formValido"
-                    @click="salvarLancamento"
-                    variant="flat"
-                    class="text-white"
-                >
-                  <v-icon start>mdi-content-save</v-icon>
-                  {{ editando ? 'Atualizar' : 'Salvar' }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </div>
-        </v-expand-transition>
+                  <v-card-actions class="pa-4">
+                    <v-btn
+                        color="grey"
+                        variant="outlined"
+                        @click="excluirLancamento"
+                        v-if="editando"
+                    >
+                      <v-icon start>mdi-delete</v-icon>
+                      Excluir
+                    </v-btn>
+                    <v-spacer></v-spacer>
+                    <v-btn color="grey" variant="text" @click="cancelarFormulario">
+                      Cancelar
+                    </v-btn>
+                    <v-btn
+                        color="var(--text-color-laranja)"
+                        :loading="loading"
+                        :disabled="!formValido"
+                        @click="salvarLancamento"
+                        variant="flat"
+                        class="text-white"
+                    >
+                      <v-icon start>mdi-content-save</v-icon>
+                      {{ editando ? 'Atualizar' : 'Salvar' }}
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </div>
+            </v-expand-transition>
 
-        <!-- Tabela de Lançamentos -->
-        <v-card class="background-card" elevation="1">
-          <v-card-text class="pa-0">
-            <!-- Saldo Anterior -->
-            <v-card class="ma-4 mb-0 background-card" elevation="2">
-              <v-card-text class="d-flex justify-space-between align-center pa-3">
-                <span class="text-subtitle-1 font-weight-bold">Saldo Anterior</span>
-                <span class="text-h6 font-weight-bold" :class="saldoAnterior >= 0 ? 'text-success' : 'text-error'">
+            <!-- Tabela de Lançamentos -->
+            <v-card class="background-card" elevation="1">
+              <v-card-text class="pa-0">
+                <!-- Saldo Anterior -->
+                <v-card class="ma-4 mb-0 background-card" elevation="2">
+                  <v-card-text class="d-flex justify-space-between align-center pa-3">
+                    <span class="text-subtitle-1 font-weight-bold">Saldo Anterior</span>
+                    <span class="text-h6 font-weight-bold" :class="saldoAnterior >= 0 ? 'text-success' : 'text-error'">
                   {{ formatarMoeda(saldoAnterior) }}
                 </span>
-              </v-card-text>
-            </v-card>
+                  </v-card-text>
+                </v-card>
 
-            <v-data-table
-                :headers="headers"
-                :items="lancamentosFiltrados"
-                :loading="loading"
-                item-key="id"
-                class="elevation-1 background-secondary"
-                :items-per-page="15"
-                density="compact"
-            >
-              <!-- Coluna Nr Documento -->
-              <template v-slot:[`item.nrdocumento`]="{ item }">
-                {{ item.nrdocumento || '--' }}
-              </template>
+                <v-data-table
+                    :headers="headers"
+                    :items="lancamentosFiltrados"
+                    :loading="loading"
+                    item-key="id"
+                    class="elevation-1 background-secondary"
+                    :items-per-page="15"
+                    density="compact"
+                >
+                  <!-- Coluna Nr Documento -->
+                  <template v-slot:[`item.nrdocumento`]="{ item }">
+                    {{ item.nrdocumento || '--' }}
+                  </template>
 
-              <!-- Coluna Dt Mov. -->
-              <template v-slot:[`item.dtlancamento`]="{ item }">
-                {{ formatarData(item.dtlancamento) }}
-              </template>
+                  <!-- Coluna Dt Mov. -->
+                  <template v-slot:[`item.dtlancamento`]="{ item }">
+                    {{ formatarData(item.dtlancamento) }}
+                  </template>
 
-              <!-- Coluna Complemento (deschistorico) -->
-              <template v-slot:[`item.deschistorico`]="{ item }">
-                {{ item.deschistorico || '--' }}
-              </template>
+                  <!-- Coluna Complemento (deschistorico) -->
+                  <template v-slot:[`item.deschistorico`]="{ item }">
+                    {{ item.deschistorico || '--' }}
+                  </template>
 
-              <!-- Coluna Entrada -->
-              <template v-slot:[`item.entrada`]="{ item }">
+                  <!-- Coluna Entrada -->
+                  <template v-slot:[`item.entrada`]="{ item }">
                 <span v-if="item.tipo === '+'" class="text-success font-weight-bold">
                   {{ formatarMoeda(item.valor) }}
                 </span>
-                <span v-else>--</span>
-              </template>
+                    <span v-else>--</span>
+                  </template>
 
-              <!-- Coluna Saída -->
-              <template v-slot:[`item.saida`]="{ item }">
+                  <!-- Coluna Saída -->
+                  <template v-slot:[`item.saida`]="{ item }">
                 <span v-if="item.tipo === '-'" class="text-error font-weight-bold">
                   {{ formatarMoeda(item.valor) }}
                 </span>
-                <span v-else>--</span>
-              </template>
+                    <span v-else>--</span>
+                  </template>
 
-              <!-- Coluna Saldo -->
-              <template v-slot:[`item.saldo`]="{ item }">
+                  <!-- Coluna Saldo -->
+                  <template v-slot:[`item.saldo`]="{ item }">
                 <span class="font-weight-bold" :class="calcularSaldo(lancamentosFiltrados.indexOf(item)) >= 0 ? 'text-success' : 'text-error'">
                   {{ formatarMoeda(calcularSaldo(lancamentosFiltrados.indexOf(item))) }}
                 </span>
-              </template>
+                  </template>
 
-              <!-- Coluna Origem -->
-              <template v-slot:[`item.origem`]="{ item }">
-                {{ obterLabelOrigem(item.origem) }}
-              </template>
+                  <!-- Coluna Origem -->
+                  <template v-slot:[`item.origem`]="{ item }">
+                    {{ obterLabelOrigem(item.origem) }}
+                  </template>
 
-              <!-- Coluna Tipo Pagamento -->
-              <template v-slot:[`item.desctipopagrec`]="{ item }">
-                {{ item.desctipopagrec || '--' }}
-              </template>
+                  <!-- Coluna Tipo Pagamento -->
+                  <template v-slot:[`item.desctipopagrec`]="{ item }">
+                    {{ item.desctipopagrec || '--' }}
+                  </template>
 
-              <!-- Coluna Observação -->
-              <template v-slot:[`item.observacao`]="{ item }">
-                {{ item.observacao || '--' }}
-              </template>
+                  <!-- Coluna Observação -->
+                  <template v-slot:[`item.observacao`]="{ item }">
+                    {{ item.observacao || '--' }}
+                  </template>
 
-              <!-- Coluna Ações -->
-              <template v-slot:[`item.actions`]="{ item }">
-                <div class="d-flex justify-center gap-1">
-                  <v-btn
-                      icon="mdi-pencil"
-                      size="small"
-                      variant="text"
-                      color="primary"
-                      @click="editarLancamento(item)"
-                      :disabled="item.origem !== 'CAI'"
-                  >
-                    <v-icon size="20">mdi-pencil</v-icon>
-                    <v-tooltip activator="parent" location="top">
-                      {{ item.origem !== 'CAI' ? 'Apenas lançamentos de caixa podem ser editados' : 'Editar' }}
-                    </v-tooltip>
-                  </v-btn>
-                  <v-btn
-                      icon="mdi-delete"
-                      size="small"
-                      variant="text"
-                      color="error"
-                      @click="confirmarExclusao(item)"
-                      :disabled="item.origem !== 'CAI'"
-                  >
-                    <v-icon size="20">mdi-delete</v-icon>
-                    <v-tooltip activator="parent" location="top">
-                      {{ item.origem !== 'CAI' ? 'Apenas lançamentos de caixa podem ser excluídos' : 'Excluir' }}
-                    </v-tooltip>
-                  </v-btn>
-                </div>
-              </template>
+                  <!-- Coluna Ações -->
+                  <template v-slot:[`item.actions`]="{ item }">
+                    <div class="d-flex justify-center gap-1">
+                      <v-btn
+                          icon="mdi-pencil"
+                          size="small"
+                          variant="text"
+                          color="primary"
+                          @click="editarLancamento(item)"
+                          :disabled="item.origem !== 'CAI'"
+                      >
+                        <v-icon size="20">mdi-pencil</v-icon>
+                        <v-tooltip activator="parent" location="top">
+                          {{ item.origem !== 'CAI' ? 'Apenas lançamentos de caixa podem ser editados' : 'Editar' }}
+                        </v-tooltip>
+                      </v-btn>
+                      <v-btn
+                          icon="mdi-delete"
+                          size="small"
+                          variant="text"
+                          color="error"
+                          @click="confirmarExclusao(item)"
+                          :disabled="item.origem !== 'CAI'"
+                      >
+                        <v-icon size="20">mdi-delete</v-icon>
+                        <v-tooltip activator="parent" location="top">
+                          {{ item.origem !== 'CAI' ? 'Apenas lançamentos de caixa podem ser excluídos' : 'Excluir' }}
+                        </v-tooltip>
+                      </v-btn>
+                    </div>
+                  </template>
 
-              <!-- Loading -->
-              <template v-slot:loading>
-                <v-skeleton-loader type="table-row@5"></v-skeleton-loader>
-              </template>
+                  <!-- Loading -->
+                  <template v-slot:loading>
+                    <v-skeleton-loader type="table-row@5"></v-skeleton-loader>
+                  </template>
 
-              <!-- Sem dados -->
-              <template v-slot:no-data>
-                <div class="text-center py-8">
-                  <v-icon icon="mdi-cash-multiple" size="64" color="grey" class="mb-4"></v-icon>
-                  <p class="text-h6 text-grey">Nenhum lançamento encontrado</p>
-                </div>
-              </template>
-            </v-data-table>
+                  <!-- Sem dados -->
+                  <template v-slot:no-data>
+                    <div class="text-center py-8">
+                      <v-icon icon="mdi-cash-multiple" size="64" color="grey" class="mb-4"></v-icon>
+                      <p class="text-h6 text-grey">Nenhum lançamento encontrado</p>
+                    </div>
+                  </template>
+                </v-data-table>
+              </v-card-text>
+            </v-card>
+
+            <!-- Card de Totais -->
+            <v-card class="mt-4 background-card" elevation="1">
+              <v-card-text class="pa-4">
+                <v-row>
+                  <v-col cols="12" md="3">
+                    <div class="text-caption text-grey">Entrada</div>
+                    <div class="text-h6 text-success font-weight-bold">{{ formatarMoeda(totalEntradas) }}</div>
+                  </v-col>
+                  <v-col cols="12" md="3">
+                    <div class="text-caption text-grey">Saída</div>
+                    <div class="text-h6 text-error font-weight-bold">{{ formatarMoeda(totalSaidas) }}</div>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <div class="text-caption text-grey">TOTAL DO PERÍODO:</div>
+                    <div class="text-h5 font-weight-bold" :class="saldoFinal >= 0 ? 'text-success' : 'text-error'">
+                      {{ formatarMoeda(saldoFinal) }}
+                    </div>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
           </v-card-text>
         </v-card>
-
-        <!-- Card de Totais -->
-        <v-card class="mt-4 background-card" elevation="1">
-          <v-card-text class="pa-4">
-            <v-row>
-              <v-col cols="12" md="3">
-                <div class="text-caption text-grey">Entrada</div>
-                <div class="text-h6 text-success font-weight-bold">{{ formatarMoeda(totalEntradas) }}</div>
-              </v-col>
-              <v-col cols="12" md="3">
-                <div class="text-caption text-grey">Saída</div>
-                <div class="text-h6 text-error font-weight-bold">{{ formatarMoeda(totalSaidas) }}</div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <div class="text-caption text-grey">TOTAL DO PERÍODO:</div>
-                <div class="text-h5 font-weight-bold" :class="saldoFinal >= 0 ? 'text-success' : 'text-error'">
-                  {{ formatarMoeda(saldoFinal) }}
-                </div>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-      </v-card-text>
-    </v-card>
-  </div>
-  <v-card class="background-secondary mb-4 ma-4 py-3 px-3 d-flex gap-4">
-    <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-file-pdf-box" @click="exportarPDF">PDF</v-btn>
-    <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-file-delimited" @click="exportarCSV">CSV</v-btn>
-    <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-microsoft-excel" @click="exportarExcel">EXCEL</v-btn>
-    <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-printer" @click="imprimirRelatorio">IMPRIMIR</v-btn>
-  </v-card>
+      </div>
+      <v-card class="background-secondary mb-4 ma-4 py-3 px-3 d-flex gap-4">
+        <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-file-pdf-box" @click="exportarPDF">PDF</v-btn>
+        <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-file-delimited" @click="exportarCSV">CSV</v-btn>
+        <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-microsoft-excel" @click="exportarExcel">EXCEL</v-btn>
+        <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-printer" @click="imprimirRelatorio">IMPRIMIR</v-btn>
+      </v-card>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
@@ -623,6 +618,7 @@ import { useConfigParfinStore } from '@/stores/APIs/config'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import html2pdf from 'html2pdf.js'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 const caixaStore = useCaixaStore()

@@ -1,992 +1,980 @@
 <template>
-  <div class="pa-4">
-    <!-- Cabeçalho -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-credit-card-outline" class="mr-3"></v-icon>
-          Contas a Pagar
-        </div>
-        <v-btn
-            icon="mdi-printer"
-            variant="text"
-            color="var(--text-color-laranja)"
-            @click="abrirModalExportacao"
-            title="Exportar/Imprimir relatório"
-        ></v-btn>
-      </v-card-title>
-    </v-card>
-
-    <!-- Card com Total das Parcelas -->
-    <v-card class="background-secondary mb-4" elevation="2">
-      <v-card-text class="pa-4">
-        <div class="d-flex align-center justify-space-between">
-          <div class="d-flex align-center">
-            <v-icon icon="mdi-cash-multiple" size="32" color="var(--text-color-laranja)" class="mr-3"></v-icon>
-            <div>
-              <div class="text-caption text-grey">Total A Pagar</div>
-              <div class="text-h5 font-weight-bold" style="color: var(--text-color-laranja)">
-                {{ formatarMoeda(totalParcelasFiltradas) }}
+  <top-all-pages icon="mdi-credit-card-outline">
+    <template #titulo>Contas a Pagar</template>
+    <template #section>
+      <div>
+        <!-- Card com Total das Parcelas -->
+        <v-card class="background-secondary mb-4" elevation="2">
+          <v-card-text class="pa-4">
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center">
+                <v-icon icon="mdi-cash-multiple" size="32" color="var(--text-color-laranja)" class="mr-3"></v-icon>
+                <div>
+                  <div class="text-caption text-grey">Total A Pagar</div>
+                  <div class="text-h5 font-weight-bold" style="color: var(--text-color-laranja)">
+                    {{ formatarMoeda(totalParcelasFiltradas) }}
+                  </div>
+                </div>
               </div>
+              <v-chip color="var(--text-color-laranja)" variant="tonal">
+                {{ contasPagarFiltradas.length }} {{ contasPagarFiltradas.length === 1 ? 'parcela' : 'parcelas' }}
+              </v-chip>
             </div>
-          </div>
-          <v-chip color="var(--text-color-laranja)" variant="tonal">
-            {{ contasPagarFiltradas.length }} {{ contasPagarFiltradas.length === 1 ? 'parcela' : 'parcelas' }}
-          </v-chip>
-        </div>
-      </v-card-text>
-    </v-card>
+          </v-card-text>
+        </v-card>
 
-    <!-- Lista de Contas a Pagar -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
-      <v-card-text class="pa-4">
-        <BotaoExpandTransition
-            :formulario-aberto="formularioAberto"
-            texto-abrir="Nova Conta a Pagar"
-            texto-fechar="Cancelar"
-            @toggle="toggleFormulario"
-        />
+        <!-- Lista de Contas a Pagar -->
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+          <v-card-text class="pa-4">
+            <BotaoExpandTransition
+                :formulario-aberto="formularioAberto"
+                texto-abrir="Nova Conta a Pagar"
+                texto-fechar="Cancelar"
+                @toggle="toggleFormulario"
+            />
 
-        <!-- Formulário Expansível -->
-        <v-expand-transition>
-          <div v-if="formularioAberto">
-            <v-card class="background-card mb-7" elevation="2">
-              <v-card-title class="text-h6 pa-4">
-                <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-                {{ editando ? 'Editar Conta a Pagar' : 'Nova Conta a Pagar' }}
-              </v-card-title>
+            <!-- Formulário Expansível -->
+            <v-expand-transition>
+              <div v-if="formularioAberto">
+                <v-card class="background-card mb-7" elevation="2">
+                  <v-card-title class="text-h6 pa-4">
+                    <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
+                    {{ editando ? 'Editar Conta a Pagar' : 'Nova Conta a Pagar' }}
+                  </v-card-title>
 
-              <v-card-text class="pa-4">
-                <v-form ref="formRef" v-model="formValido">
-                  <v-row>
-                    <!-- Número do Documento (Obrigatório) -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                          v-model="formData.nrdocumento"
-                          label="Número do Documento *"
-                          :rules="[rules.required]"
-                          maxlength="20"
-                          variant="outlined"
-                          density="compact"
-                          class=""
-                          prepend-inner-icon="mdi-file-document"
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Série -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                          v-model="formData.serie"
-                          label="Série"
-                          maxlength="10"
-                          variant="outlined"
-                          density="compact"
-                          class=""
-                          prepend-inner-icon="mdi-numeric"
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Espécie -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                          v-model="formData.especie"
-                          label="Espécie"
-                          maxlength="10"
-                          variant="outlined"
-                          density="compact"
-                          class=""
-                          prepend-inner-icon="mdi-tag"
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Tipo de Documento -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                          label="Tipo Documento *"
-                          v-model="tipoDocumentoSelecionado"
-                          variant="outlined"
-                          density="compact"
-                          hide-details="auto"
-                          :rules="[rules.required]"
-                          class=""
-                          prepend-inner-icon="mdi-file-document-outline"
-                      >
-                        <template #append-inner>
-                          <TipoDocumentoMenu @selecionar="selecionarTipoDocumento"/>
-                        </template>
-                      </v-text-field>
-                    </v-col>
-
-                    <!-- Fornecedor -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                          label="Fornecedor *"
-                          v-model="fornecedorSelecionado"
-                          variant="outlined"
-                          density="compact"
-                          hide-details="auto"
-                          :rules="[rules.required]"
-                          class=""
-                          prepend-inner-icon="mdi-account-box"
-                          readonly
-                          placeholder="Selecione um fornecedor"
-                      >
-                        <template #append-inner>
-                          <busca-padrao-menu
-                              v-model="menuFornecedor"
-                              :pesquisar="pesquisarFornecedores"
-                              :modelInput="termoFornecedor"
-                              :resultados="fornecedorResultados"
-                              @update:modelInput="termoFornecedor = $event"
-                              @selecionar="selecionarFornecedor"
-                          >
-                            <template #resultados="{ selecionar }">
-                              <v-virtual-scroll
-                                  :items="fornecedorResultados"
-                                  :height="120"
-                                  item-height="42"
-                                  class="mt-3"
-                              >
-                                <template #default="{ item }">
-                                  <div
-                                      class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
-                                      @click="selecionar(item)"
-                                  >
-                                    <p class="text-body-1">{{ item.apelido_fantasia || item.nome_razao || item.nome || item.apelido }}</p>
-                                  </div>
-                                </template>
-                              </v-virtual-scroll>
-                            </template>
-                          </busca-padrao-menu>
-                        </template>
-                      </v-text-field>
-                    </v-col>
-
-                    <!-- Plano de Conta -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                          label="Plano de Conta *"
-                          v-model="planoContaSelecionado"
-                          variant="outlined"
-                          density="compact"
-                          hide-details="auto"
-                          :rules="[rules.required]"
-                          class=""
-                          prepend-inner-icon="mdi-chart-tree"
-                      >
-                        <template #append-inner>
-                          <PlanoContaMenu @selecionar="selecionarPlanoConta"/>
-                        </template>
-                      </v-text-field>
-                    </v-col>
-
-                    <!-- Histórico Contábil -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                          label="Histórico Contábil"
-                          v-model="histContabilLabel"
-                          variant="outlined"
-                          density="compact"
-                          hide-details="auto"
-                          class=""
-                          prepend-inner-icon="mdi-file-document"
-                          readonly
-                          placeholder="Selecione um histórico"
-                      >
-                        <template #append-inner>
-                          <div class="d-flex align-center">
-                            <busca-padrao-menu
-                                v-model="menuHistContabil"
-                                :pesquisar="pesquisarHistoricosContabil"
-                                :modalCadastrar="abrirModalCadastrarHistorico"
-                                :modelInput="termoHistContabil"
-                                :resultados="historicoContabilResultados"
-                                @update:modelInput="termoHistContabil = $event"
-                                @selecionar="selecionarHistoricoContabil"
-                                :cadastrar-btn="true"
-                            >
-                              <template #resultados="{ selecionar }">
-                                <v-virtual-scroll
-                                    :items="historicoContabilResultados"
-                                    :height="120"
-                                    item-height="42"
-                                    class="mt-3"
-                                >
-                                  <template #default="{ item }">
-                                    <div
-                                        class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
-                                        @click="selecionar(item)"
-                                    >
-                                      <p class="text-body-1">({{ item.id }}) - {{ item.deschistorico || item.descricao }}</p>
-                                    </div>
-                                  </template>
-                                </v-virtual-scroll>
-                              </template>
-                            </busca-padrao-menu>
-                          </div>
-                        </template>
-                      </v-text-field>
-
-                      <CadastrarModal
-                          :cadastrarModal="cadastrarHistoricoModal"
-                          :clearInput="clearHistoricoInputs"
-                          :cadastrarcidade="cadastrarHistorico"
-                      >
-                        <template #titulo>Histórico Contábil</template>
-                        <template #textfields>
-                          <v-card-text>
-                            <v-form class="d-flex flex-column gap-3 w-100">
-                              <v-text-field
-                                  label="Descrição do Histórico"
-                                  variant="outlined"
-                                  density="comfortable"
-                                  hide-details="auto"
-                                  v-model="descricaoHistorico"
-                              />
-                            </v-form>
-                          </v-card-text>
-                        </template>
-                      </CadastrarModal>
-                    </v-col>
-
-
-                    <!-- Valor Original (Obrigatório) -->
-                    <v-col cols="12" md="2">
-                      <v-text-field
-                          v-model="formData.vlroriginal"
-                          label="Valor Original *"
-                          :rules="[rules.required, rules.currency]"
-                          type="number"
-                          step="0.01"
-                          variant="outlined"
-                          density="compact"
-                          class=""
-                          prepend-inner-icon="mdi-currency-usd"
-                          prefix="R$"
-                          :hint="formData.vlroriginal ? formatarMoeda(formData.vlroriginal) : ''"
-                          persistent-hint
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Quantidade de Parcelas -->
-                    <v-col cols="12" md="2">
-                      <v-text-field
-                          v-model.number="formData.qtdparcelas"
-                          label="Qtd Parcelas"
-                          type="number"
-                          min="1"
-                          variant="outlined"
-                          density="compact"
-                          class=""
-                          prepend-inner-icon="mdi-format-list-numbered"
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Data de Emissão (Obrigatório) -->
-                    <v-col cols="12" md="2">
-                      <v-text-field
-                          v-model="formData.dtemissao"
-                          label="Data Emissão *"
-                          :rules="[rules.required]"
-                          type="date"
-                          variant="outlined"
-                          density="compact"
-                          class=""
-                          prepend-inner-icon="mdi-calendar"
-                      ></v-text-field>
-                    </v-col>
-
-
-                    <!-- Juros -->
-                    <v-col cols="12" md="2">
-                      <v-text-field
-                          v-model="formData.juros"
-                          label="Juros"
-                          type="number"
-                          step="0.01"
-                          variant="outlined"
-                          density="compact"
-                          class=""
-                          prefix="R$"
-                          prepend-inner-icon="mdi-percent"
-                          :hint="formData.juros ? formatarMoeda(formData.juros) : ''"
-                          persistent-hint
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Multa -->
-                    <v-col cols="12" md="2">
-                      <v-text-field
-                          v-model="formData.multa"
-                          label="Multa"
-                          type="number"
-                          step="0.01"
-                          variant="outlined"
-                          density="compact"
-                          class=""
-                          prefix="R$"
-                          prepend-inner-icon="mdi-alert-circle"
-                          :hint="formData.multa ? formatarMoeda(formData.multa) : ''"
-                          persistent-hint
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Desconto -->
-                    <v-col cols="12" md="2">
-                      <v-text-field
-                          v-model="formData.desconto"
-                          label="Desconto"
-                          type="number"
-                          step="0.01"
-                          variant="outlined"
-                          density="compact"
-                          class=""
-                          prefix="R$"
-                          prepend-inner-icon="mdi-sale"
-                          :hint="formData.desconto ? formatarMoeda(formData.desconto) : ''"
-                          persistent-hint
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Placeholder col for balance -->
-                    <v-col cols="12" md="2">
-                      <!-- Empty column to maintain layout -->
-                    </v-col>
-
-                    <!-- Campos de Cálculo e Botão - Apenas para múltiplas parcelas -->
-                    <v-col cols="12" v-if="formData.qtdparcelas > 1 && !parcelasCalculadas">
-                      <v-card variant="outlined" class="mb-4" elevation="1">
-                        <v-card-title class="text-h6 pa-4 d-flex align-center">
-                          <v-icon icon="mdi-calculator-variant" class="mr-2" color="orange"></v-icon>
-                          Configurações das Parcelas
-                        </v-card-title>
-
-                        <v-card-text class="pa-4">
-                          <v-row>
-                            <!-- Valor da Primeira Parcela -->
-                            <v-col cols="12" md="4">
-                              <v-text-field
-                                  v-model="formData.valor_primeira_parcela"
-                                  label="Valor 1ª Parcela"
-                                  type="number"
-                                  step="0.01"
-                                  variant="outlined"
-                                  density="compact"
-                                  prefix="R$"
-                                  prepend-inner-icon="mdi-cash"
-                                  :hint="formData.valor_primeira_parcela ? formatarMoeda(formData.valor_primeira_parcela) : ''"
-                                  persistent-hint
-                              ></v-text-field>
-                            </v-col>
-
-                            <!-- Vencimento Primeira Parcela -->
-                            <v-col cols="12" md="4">
-                              <v-text-field
-                                  v-model="formData.venc_primeira_parcela"
-                                  label="Venc. 1ª Parcela"
-                                  type="date"
-                                  variant="outlined"
-                                  density="compact"
-                                  prepend-inner-icon="mdi-calendar-clock"
-                              ></v-text-field>
-                            </v-col>
-
-                            <!-- Intervalo entre Parcelas -->
-                            <v-col cols="12" md="4">
-                              <v-text-field
-                                  v-model.number="formData.intervalo_parcelas"
-                                  label="Intervalo (dias)"
-                                  type="number"
-                                  min="1"
-                                  variant="outlined"
-                                  density="compact"
-                                  prepend-inner-icon="mdi-calendar-range"
-                                  suffix="dias"
-                              ></v-text-field>
-                            </v-col>
-
-                            <!-- Botão Calcular -->
-                            <v-col cols="12" class="d-flex justify-center">
-                              <v-btn
-                                  color="orange"
-                                  variant="elevated"
-                                  @click="calcularParcelas"
-                                  :disabled="!formData.vlroriginal || !formData.qtdparcelas"
-                                  size="large"
-                                  min-width="200"
-                              >
-                                <v-icon class="mr-2">mdi-calculator</v-icon>
-                                Calcular Parcelas
-                              </v-btn>
-                            </v-col>
-                          </v-row>
-                        </v-card-text>
-                      </v-card>
-                    </v-col>
-
-
-                    <!-- Tabela de Parcelas -->
-                    <v-col cols="12">
-                      <v-expand-transition>
-
-                        <div v-if="parcelas.length > 0 || (formData.qtdparcelas === 1 && formData.vlroriginal)">
-                          <v-divider class="mb-4"></v-divider>
-                          <div class="d-flex align-center mb-4">
-                            <v-icon icon="mdi-format-list-numbered" class="mr-3" color="orange"></v-icon>
-                            <h4 class="text-h6 mb-0">Detalhamento das Parcelas</h4>
-                            <v-spacer></v-spacer>
-                            <v-chip
-                                :color="(parcelas.length === 1 || formData.qtdparcelas === 1) ? 'success' : 'orange'"
-                                variant="elevated"
-                                size="small"
-                            >
-                              {{ formData.qtdparcelas === 1 ? '1 Parcela (Única)' : `${parcelas.length} ${parcelas.length === 1 ? 'Parcela' : 'Parcelas'}` }}
-                            </v-chip>
-                          </div>
-
-                          <!-- Mensagem informativa para parcela única -->
-                          <v-alert
-                              v-if="formData.qtdparcelas === 1"
-                              type="info"
-                              variant="tonal"
-                              class="mb-4"
-                              density="compact"
-                          >
-                            Para parcela única, não é necessário calcular. Os valores são gerados automaticamente.
-                          </v-alert>
-
-
-                          <v-card
+                  <v-card-text class="pa-4">
+                    <v-form ref="formRef" v-model="formValido">
+                      <v-row>
+                        <!-- Número do Documento (Obrigatório) -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              v-model="formData.nrdocumento"
+                              label="Número do Documento *"
+                              :rules="[rules.required]"
+                              maxlength="20"
                               variant="outlined"
-                              class="background-secondary"
-                              elevation="2"
-                              :color="themeStore.darkMode ? 'text-white' : ''"
+                              density="compact"
+                              class=""
+                              prepend-inner-icon="mdi-file-document"
+                          ></v-text-field>
+                        </v-col>
+
+                        <!-- Série -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              v-model="formData.serie"
+                              label="Série"
+                              maxlength="10"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prepend-inner-icon="mdi-numeric"
+                          ></v-text-field>
+                        </v-col>
+
+                        <!-- Espécie -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              v-model="formData.especie"
+                              label="Espécie"
+                              maxlength="10"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prepend-inner-icon="mdi-tag"
+                          ></v-text-field>
+                        </v-col>
+
+                        <!-- Tipo de Documento -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              label="Tipo Documento *"
+                              v-model="tipoDocumentoSelecionado"
+                              variant="outlined"
+                              density="compact"
+                              hide-details="auto"
+                              :rules="[rules.required]"
+                              class=""
+                              prepend-inner-icon="mdi-file-document-outline"
                           >
-                            <v-card-text class="background-secondary" :color="themeStore.darkMode ? 'text-white' : ''">
-                              <v-data-table
-                                  :headers="headersParcelas"
-                                  :items="parcelas"
-                                  :items-per-page="itemsPerPageParcelas"
-                                  :items-per-page-options="[5, 10, 25, 50]"
-                                  class="parcelas-table elevation-0"
-                                  density="compact"
-                                  :page="currentPageParcelas"
-                                  @update:page="currentPageParcelas = $event"
-                                  @update:items-per-page="itemsPerPageParcelas = $event"
+                            <template #append-inner>
+                              <TipoDocumentoMenu @selecionar="selecionarTipoDocumento"/>
+                            </template>
+                          </v-text-field>
+                        </v-col>
+
+                        <!-- Fornecedor -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              label="Fornecedor *"
+                              v-model="fornecedorSelecionado"
+                              variant="outlined"
+                              density="compact"
+                              hide-details="auto"
+                              :rules="[rules.required]"
+                              class=""
+                              prepend-inner-icon="mdi-account-box"
+                              readonly
+                              placeholder="Selecione um fornecedor"
+                          >
+                            <template #append-inner>
+                              <busca-padrao-menu
+                                  v-model="menuFornecedor"
+                                  :pesquisar="pesquisarFornecedores"
+                                  :modelInput="termoFornecedor"
+                                  :resultados="fornecedorResultados"
+                                  @update:modelInput="termoFornecedor = $event"
+                                  @selecionar="selecionarFornecedor"
                               >
-                                <template v-slot:[`item.nrparcela`]="{ item }">
-                                  <div class="d-flex align-center">
-                                    <v-avatar
-                                        :color="item.nrparcela === 1 && valorEntrada > 0 ? 'orange' : 'orange lighten-2'"
-                                        size="28"
-                                        class="mr-2"
-                                    >
-                                  <span class="text-caption font-weight-bold text-white">
-                                    {{ item.nrparcela }}
-                                  </span>
-                                    </v-avatar>
-                                    <v-scale-transition>
-                                      <v-chip
-                                          v-if="item.nrparcela === 1 && valorEntrada > 0"
-                                          size="x-small"
-                                          color="primary"
-                                          variant="elevated"
+                                <template #resultados="{ selecionar }">
+                                  <v-virtual-scroll
+                                      :items="fornecedorResultados"
+                                      :height="120"
+                                      item-height="42"
+                                      class="mt-3"
+                                  >
+                                    <template #default="{ item }">
+                                      <div
+                                          class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                                          @click="selecionar(item)"
                                       >
-                                        <v-icon size="x-small" class="mr-1">mdi-cash</v-icon>
-                                        Entrada
-                                      </v-chip>
-                                    </v-scale-transition>
-                                  </div>
+                                        <p class="text-body-1">{{ item.apelido_fantasia || item.nome_razao || item.nome || item.apelido }}</p>
+                                      </div>
+                                    </template>
+                                  </v-virtual-scroll>
                                 </template>
+                              </busca-padrao-menu>
+                            </template>
+                          </v-text-field>
+                        </v-col>
 
-                                <template v-slot:[`item.dtvencimento`]="{ item }">
+                        <!-- Plano de Conta -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              label="Plano de Conta *"
+                              v-model="planoContaSelecionado"
+                              variant="outlined"
+                              density="compact"
+                              hide-details="auto"
+                              :rules="[rules.required]"
+                              class=""
+                              prepend-inner-icon="mdi-chart-tree"
+                          >
+                            <template #append-inner>
+                              <PlanoContaMenu @selecionar="selecionarPlanoConta"/>
+                            </template>
+                          </v-text-field>
+                        </v-col>
+
+                        <!-- Histórico Contábil -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              label="Histórico Contábil"
+                              v-model="histContabilLabel"
+                              variant="outlined"
+                              density="compact"
+                              hide-details="auto"
+                              class=""
+                              prepend-inner-icon="mdi-file-document"
+                              readonly
+                              placeholder="Selecione um histórico"
+                          >
+                            <template #append-inner>
+                              <div class="d-flex align-center">
+                                <busca-padrao-menu
+                                    v-model="menuHistContabil"
+                                    :pesquisar="pesquisarHistoricosContabil"
+                                    :modalCadastrar="abrirModalCadastrarHistorico"
+                                    :modelInput="termoHistContabil"
+                                    :resultados="historicoContabilResultados"
+                                    @update:modelInput="termoHistContabil = $event"
+                                    @selecionar="selecionarHistoricoContabil"
+                                    :cadastrar-btn="true"
+                                >
+                                  <template #resultados="{ selecionar }">
+                                    <v-virtual-scroll
+                                        :items="historicoContabilResultados"
+                                        :height="120"
+                                        item-height="42"
+                                        class="mt-3"
+                                    >
+                                      <template #default="{ item }">
+                                        <div
+                                            class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                                            @click="selecionar(item)"
+                                        >
+                                          <p class="text-body-1">({{ item.id }}) - {{ item.deschistorico || item.descricao }}</p>
+                                        </div>
+                                      </template>
+                                    </v-virtual-scroll>
+                                  </template>
+                                </busca-padrao-menu>
+                              </div>
+                            </template>
+                          </v-text-field>
+
+                          <CadastrarModal
+                              :cadastrarModal="cadastrarHistoricoModal"
+                              :clearInput="clearHistoricoInputs"
+                              :cadastrarcidade="cadastrarHistorico"
+                          >
+                            <template #titulo>Histórico Contábil</template>
+                            <template #textfields>
+                              <v-card-text>
+                                <v-form class="d-flex flex-column gap-3 w-100">
                                   <v-text-field
-                                      v-model="item.dtvencimento"
-                                      type="date"
+                                      label="Descrição do Histórico"
                                       variant="outlined"
-                                      density="compact"
-                                      hide-details
-                                      prepend-inner-icon="mdi-calendar"
-                                      @input="calcularTotalParcelas"
-                                  ></v-text-field>
-                                </template>
+                                      density="comfortable"
+                                      hide-details="auto"
+                                      v-model="descricaoHistorico"
+                                  />
+                                </v-form>
+                              </v-card-text>
+                            </template>
+                          </CadastrarModal>
+                        </v-col>
 
-                                <template v-slot:[`item.vlrparcela`]="{ item }">
+
+                        <!-- Valor Original (Obrigatório) -->
+                        <v-col cols="12" md="2">
+                          <v-text-field
+                              v-model="formData.vlroriginal"
+                              label="Valor Original *"
+                              :rules="[rules.required, rules.currency]"
+                              type="number"
+                              step="0.01"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prepend-inner-icon="mdi-currency-usd"
+                              prefix="R$"
+                              :hint="formData.vlroriginal ? formatarMoeda(formData.vlroriginal) : ''"
+                              persistent-hint
+                          ></v-text-field>
+                        </v-col>
+
+                        <!-- Quantidade de Parcelas -->
+                        <v-col cols="12" md="2">
+                          <v-text-field
+                              v-model.number="formData.qtdparcelas"
+                              label="Qtd Parcelas"
+                              type="number"
+                              min="1"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prepend-inner-icon="mdi-format-list-numbered"
+                          ></v-text-field>
+                        </v-col>
+
+                        <!-- Data de Emissão (Obrigatório) -->
+                        <v-col cols="12" md="2">
+                          <v-text-field
+                              v-model="formData.dtemissao"
+                              label="Data Emissão *"
+                              :rules="[rules.required]"
+                              type="date"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prepend-inner-icon="mdi-calendar"
+                          ></v-text-field>
+                        </v-col>
+
+
+                        <!-- Juros -->
+                        <v-col cols="12" md="2">
+                          <v-text-field
+                              v-model="formData.juros"
+                              label="Juros"
+                              type="number"
+                              step="0.01"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prefix="R$"
+                              prepend-inner-icon="mdi-percent"
+                              :hint="formData.juros ? formatarMoeda(formData.juros) : ''"
+                              persistent-hint
+                          ></v-text-field>
+                        </v-col>
+
+                        <!-- Multa -->
+                        <v-col cols="12" md="2">
+                          <v-text-field
+                              v-model="formData.multa"
+                              label="Multa"
+                              type="number"
+                              step="0.01"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prefix="R$"
+                              prepend-inner-icon="mdi-alert-circle"
+                              :hint="formData.multa ? formatarMoeda(formData.multa) : ''"
+                              persistent-hint
+                          ></v-text-field>
+                        </v-col>
+
+                        <!-- Desconto -->
+                        <v-col cols="12" md="2">
+                          <v-text-field
+                              v-model="formData.desconto"
+                              label="Desconto"
+                              type="number"
+                              step="0.01"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prefix="R$"
+                              prepend-inner-icon="mdi-sale"
+                              :hint="formData.desconto ? formatarMoeda(formData.desconto) : ''"
+                              persistent-hint
+                          ></v-text-field>
+                        </v-col>
+
+                        <!-- Placeholder col for balance -->
+                        <v-col cols="12" md="2">
+                          <!-- Empty column to maintain layout -->
+                        </v-col>
+
+                        <!-- Campos de Cálculo e Botão - Apenas para múltiplas parcelas -->
+                        <v-col cols="12" v-if="formData.qtdparcelas > 1 && !parcelasCalculadas">
+                          <v-card variant="outlined" class="mb-4" elevation="1">
+                            <v-card-title class="text-h6 pa-4 d-flex align-center">
+                              <v-icon icon="mdi-calculator-variant" class="mr-2" color="orange"></v-icon>
+                              Configurações das Parcelas
+                            </v-card-title>
+
+                            <v-card-text class="pa-4">
+                              <v-row>
+                                <!-- Valor da Primeira Parcela -->
+                                <v-col cols="12" md="4">
                                   <v-text-field
-                                      v-model="item.vlrparcela"
+                                      v-model="formData.valor_primeira_parcela"
+                                      label="Valor 1ª Parcela"
                                       type="number"
                                       step="0.01"
                                       variant="outlined"
                                       density="compact"
-                                      hide-details
                                       prefix="R$"
-                                      prepend-inner-icon="mdi-currency-usd"
-                                      @input="calcularTotalParcelas"
+                                      prepend-inner-icon="mdi-cash"
+                                      :hint="formData.valor_primeira_parcela ? formatarMoeda(formData.valor_primeira_parcela) : ''"
+                                      persistent-hint
                                   ></v-text-field>
-                                </template>
+                                </v-col>
 
-                                <template v-slot:[`item.id_localcobranca`]="{ item }">
-                                  <div class="d-flex align-center">
-                                    <v-text-field
-                                        v-model="item.localCobrancaTexto"
-                                        variant="outlined"
-                                        density="compact"
-                                        hide-details
-                                        placeholder="Selecione o local"
-                                        prepend-inner-icon="mdi-map-marker"
-                                    >
-                                      <template #append-inner>
-                                        <LocalCobrancaMenu @selecionar="(local) => selecionarLocalCobranca(local, item)"/>
-                                      </template>
-                                    </v-text-field>
-                                  </div>
-                                </template>
-
-                                <template v-slot:[`item.observacao`]="{ item }">
+                                <!-- Vencimento Primeira Parcela -->
+                                <v-col cols="12" md="4">
                                   <v-text-field
-                                      v-model="item.observacao"
+                                      v-model="formData.venc_primeira_parcela"
+                                      label="Venc. 1ª Parcela"
+                                      type="date"
                                       variant="outlined"
                                       density="compact"
-                                      hide-details
-                                      placeholder="Observação da parcela"
-                                      prepend-inner-icon="mdi-note-text-outline"
+                                      prepend-inner-icon="mdi-calendar-clock"
                                   ></v-text-field>
-                                </template>
-                              </v-data-table>
+                                </v-col>
 
-                              <!-- Resumo das Parcelas -->
-                              <v-row class="mt-4" v-if="parcelas.length > 0">
-                                <v-col cols="12">
-                                  <v-card
-                                      variant="tonal"
-                                      class="pa-3"
+                                <!-- Intervalo entre Parcelas -->
+                                <v-col cols="12" md="4">
+                                  <v-text-field
+                                      v-model.number="formData.intervalo_parcelas"
+                                      label="Intervalo (dias)"
+                                      type="number"
+                                      min="1"
+                                      variant="outlined"
+                                      density="compact"
+                                      prepend-inner-icon="mdi-calendar-range"
+                                      suffix="dias"
+                                  ></v-text-field>
+                                </v-col>
+
+                                <!-- Botão Calcular -->
+                                <v-col cols="12" class="d-flex justify-center">
+                                  <v-btn
                                       color="orange"
+                                      variant="elevated"
+                                      @click="calcularParcelas"
+                                      :disabled="!formData.vlroriginal || !formData.qtdparcelas"
+                                      size="large"
+                                      min-width="200"
                                   >
-                                    <div class="d-flex align-center justify-space-between">
-                                      <div class="d-flex align-center">
-                                        <v-icon
-                                            icon="mdi-chart-pie"
-                                            class="mr-2"
-                                            size="small"
-                                            color="orange"
-                                        ></v-icon>
-                                        <h5 class="text-subtitle-1 mb-0 font-weight-medium">
-                                          Resumo das Parcelas
-                                        </h5>
-                                      </div>
-                                      <v-chip
-                                          color="success"
-                                          variant="elevated"
-                                      >
-                                        Total: {{ formatarMoeda(totalParcelas) }}
-                                      </v-chip>
-                                    </div>
-                                  </v-card>
+                                    <v-icon class="mr-2">mdi-calculator</v-icon>
+                                    Calcular Parcelas
+                                  </v-btn>
                                 </v-col>
                               </v-row>
                             </v-card-text>
                           </v-card>
+                        </v-col>
 
 
-                        </div>
-                      </v-expand-transition>
-                    </v-col>
+                        <!-- Tabela de Parcelas -->
+                        <v-col cols="12">
+                          <v-expand-transition>
 
-                    <!-- Rateio por Centro de Custo (select acima e tabela de centros selecionados) -->
-                    <v-col cols="12" v-if="parcelas.length > 0">
-                      <v-card variant="outlined" class="mb-4" elevation="1">
-                        <v-card-title class="text-h6 pa-4 d-flex align-center">
-                          <v-icon icon="mdi-swap-horizontal" class="mr-2" color="orange"></v-icon>
-                          Rateio por Centro de Custo
-                          <v-spacer></v-spacer>
-                          <v-btn
-                              size="small"
-                              color="orange"
-                              variant="text"
-                              prepend-icon="mdi-plus"
-                              @click="adicionarCentro"
-                          >
-                            Adicionar Centro
-                          </v-btn>
-                          <v-btn
-                              size="small"
-                              color="orange"
-                              variant="elevated"
-                              class="ml-2"
-                              @click="distribuirIgualmente"
-                          >
-                            Distribuir igualmente
-                          </v-btn>
-                        </v-card-title>
-
-                        <v-card-text class="pa-4">
-                          <div v-if="ccustosRateio.length === 0" class="text-center text-grey pa-4">
-                            Nenhum centro de custo adicionado. Clique em "Adicionar Centro" para começar o rateio.
-                          </div>
-
-                          <v-table v-else density="compact">
-                            <thead>
-                            <tr>
-                              <th style="width: 40%">Centro de Custo</th>
-                              <th style="width: 25%">Valor (R$)</th>
-                              <th style="width: 20%">Porcentagem (%)</th>
-                              <th style="width: 15%; text-align: center">Ações</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr v-for="(linha, index) in ccustosRateio" :key="index">
-                              <td>
-                                <v-select
-                                    v-model="linha.id_ccusto"
-                                    :items="centrosCusto"
-                                    item-title="desccentrocusto"
-                                    item-value="id"
-                                    label="Selecione"
-                                    variant="outlined"
-                                    density="compact"
-                                    hide-details
-                                />
-                                <div v-if="linha.desccentrocusto" class="text-caption text-grey mt-1">
-                                  API: {{ linha.desccentrocusto }}
-                                </div>
-                              </td>
-                              <td>
-                                <v-text-field
-                                    v-model.number="linha.valor"
-                                    type="number"
-                                    step="0.01"
-                                    variant="outlined"
-                                    density="compact"
-                                    prefix="R$"
-                                    hide-details
-                                    @input="onRateioValorChange(index)"
-                                />
-                              </td>
-                              <td>
-                                <v-text-field
-                                    v-model.number="linha.porcentagem"
-                                    type="number"
-                                    step="0.01"
-                                    variant="outlined"
-                                    density="compact"
-                                    suffix="%"
-                                    hide-details
-                                    @input="onRateioPercentChange(index)"
-                                />
-                              </td>
-                              <td style="text-align: center">
-                                <v-btn
-                                    icon="mdi-delete"
+                            <div v-if="parcelas.length > 0 || (formData.qtdparcelas === 1 && formData.vlroriginal)">
+                              <v-divider class="mb-4"></v-divider>
+                              <div class="d-flex align-center mb-4">
+                                <v-icon icon="mdi-format-list-numbered" class="mr-3" color="orange"></v-icon>
+                                <h4 class="text-h6 mb-0">Detalhamento das Parcelas</h4>
+                                <v-spacer></v-spacer>
+                                <v-chip
+                                    :color="(parcelas.length === 1 || formData.qtdparcelas === 1) ? 'success' : 'orange'"
+                                    variant="elevated"
                                     size="small"
-                                    color="error"
-                                    variant="text"
-                                    @click="removerCentro(index)"
-                                />
-                              </td>
-                            </tr>
-                            </tbody>
-                            <tfoot>
-                            <tr class="font-weight-bold">
-                              <td>TOTAL</td>
-                              <td>{{ formatarMoeda(totalRateadoValor) }}</td>
-                              <td>{{ Number(totalRateadoPercent).toFixed(2) }}%</td>
-                              <td></td>
-                            </tr>
-                            </tfoot>
-                          </v-table>
-                        </v-card-text>
-                      </v-card>
-                    </v-col>
-
-                    <!-- Anexar Documento -->
-                    <v-col cols="12">
-                      <v-card variant="outlined" class="mb-4" elevation="1">
-                        <v-card-title class="text-h6 pa-4 d-flex align-center">
-                          <v-icon icon="mdi-file-image" class="mr-2" color="orange"></v-icon>
-                          Anexar um Documento
-                        </v-card-title>
-
-                        <v-card-text class="pa-4">
-                          <MediaSave
-                              id-saas="1"
-                              id-usuario="1"
-                              :on-upload-success="handleMediaUpload"
-                              @upload-success="onMediaSuccess"
-                              @upload-error="onMediaError"
-                          />
-
-                          <!-- Indicador de imagem anexada -->
-                          <v-alert
-                              v-if="formData.id_media || financeiroStore.getMediaKeyTemporaria()"
-                              type="success"
-                              variant="tonal"
-                              density="compact"
-                              class="mt-3"
-                          >
-                            <div class="d-flex align-center">
-                              <v-icon icon="mdi-check-circle" class="mr-2"></v-icon>
-                              <div>
-                                <strong>Documento anexado com sucesso!</strong>
-                                <br>
-                                <small class="text-medium-emphasis">Key: {{ financeiroStore.getMediaKeyTemporaria() || formData.id_media }}</small>
+                                >
+                                  {{ formData.qtdparcelas === 1 ? '1 Parcela (Única)' : `${parcelas.length} ${parcelas.length === 1 ? 'Parcela' : 'Parcelas'}` }}
+                                </v-chip>
                               </div>
+
+                              <!-- Mensagem informativa para parcela única -->
+                              <v-alert
+                                  v-if="formData.qtdparcelas === 1"
+                                  type="info"
+                                  variant="tonal"
+                                  class="mb-4"
+                                  density="compact"
+                              >
+                                Para parcela única, não é necessário calcular. Os valores são gerados automaticamente.
+                              </v-alert>
+
+
+                              <v-card
+                                  variant="outlined"
+                                  class="background-secondary"
+                                  elevation="2"
+                                  :color="themeStore.darkMode ? 'text-white' : ''"
+                              >
+                                <v-card-text class="background-secondary" :color="themeStore.darkMode ? 'text-white' : ''">
+                                  <v-data-table
+                                      :headers="headersParcelas"
+                                      :items="parcelas"
+                                      :items-per-page="itemsPerPageParcelas"
+                                      :items-per-page-options="[5, 10, 25, 50]"
+                                      class="parcelas-table elevation-0"
+                                      density="compact"
+                                      :page="currentPageParcelas"
+                                      @update:page="currentPageParcelas = $event"
+                                      @update:items-per-page="itemsPerPageParcelas = $event"
+                                  >
+                                    <template v-slot:[`item.nrparcela`]="{ item }">
+                                      <div class="d-flex align-center">
+                                        <v-avatar
+                                            :color="item.nrparcela === 1 && valorEntrada > 0 ? 'orange' : 'orange lighten-2'"
+                                            size="28"
+                                            class="mr-2"
+                                        >
+                                  <span class="text-caption font-weight-bold text-white">
+                                    {{ item.nrparcela }}
+                                  </span>
+                                        </v-avatar>
+                                        <v-scale-transition>
+                                          <v-chip
+                                              v-if="item.nrparcela === 1 && valorEntrada > 0"
+                                              size="x-small"
+                                              color="primary"
+                                              variant="elevated"
+                                          >
+                                            <v-icon size="x-small" class="mr-1">mdi-cash</v-icon>
+                                            Entrada
+                                          </v-chip>
+                                        </v-scale-transition>
+                                      </div>
+                                    </template>
+
+                                    <template v-slot:[`item.dtvencimento`]="{ item }">
+                                      <v-text-field
+                                          v-model="item.dtvencimento"
+                                          type="date"
+                                          variant="outlined"
+                                          density="compact"
+                                          hide-details
+                                          prepend-inner-icon="mdi-calendar"
+                                          @input="calcularTotalParcelas"
+                                      ></v-text-field>
+                                    </template>
+
+                                    <template v-slot:[`item.vlrparcela`]="{ item }">
+                                      <v-text-field
+                                          v-model="item.vlrparcela"
+                                          type="number"
+                                          step="0.01"
+                                          variant="outlined"
+                                          density="compact"
+                                          hide-details
+                                          prefix="R$"
+                                          prepend-inner-icon="mdi-currency-usd"
+                                          @input="calcularTotalParcelas"
+                                      ></v-text-field>
+                                    </template>
+
+                                    <template v-slot:[`item.id_localcobranca`]="{ item }">
+                                      <div class="d-flex align-center">
+                                        <v-text-field
+                                            v-model="item.localCobrancaTexto"
+                                            variant="outlined"
+                                            density="compact"
+                                            hide-details
+                                            placeholder="Selecione o local"
+                                            prepend-inner-icon="mdi-map-marker"
+                                        >
+                                          <template #append-inner>
+                                            <LocalCobrancaMenu @selecionar="(local) => selecionarLocalCobranca(local, item)"/>
+                                          </template>
+                                        </v-text-field>
+                                      </div>
+                                    </template>
+
+                                    <template v-slot:[`item.observacao`]="{ item }">
+                                      <v-text-field
+                                          v-model="item.observacao"
+                                          variant="outlined"
+                                          density="compact"
+                                          hide-details
+                                          placeholder="Observação da parcela"
+                                          prepend-inner-icon="mdi-note-text-outline"
+                                      ></v-text-field>
+                                    </template>
+                                  </v-data-table>
+
+                                  <!-- Resumo das Parcelas -->
+                                  <v-row class="mt-4" v-if="parcelas.length > 0">
+                                    <v-col cols="12">
+                                      <v-card
+                                          variant="tonal"
+                                          class="pa-3"
+                                          color="orange"
+                                      >
+                                        <div class="d-flex align-center justify-space-between">
+                                          <div class="d-flex align-center">
+                                            <v-icon
+                                                icon="mdi-chart-pie"
+                                                class="mr-2"
+                                                size="small"
+                                                color="orange"
+                                            ></v-icon>
+                                            <h5 class="text-subtitle-1 mb-0 font-weight-medium">
+                                              Resumo das Parcelas
+                                            </h5>
+                                          </div>
+                                          <v-chip
+                                              color="success"
+                                              variant="elevated"
+                                          >
+                                            Total: {{ formatarMoeda(totalParcelas) }}
+                                          </v-chip>
+                                        </div>
+                                      </v-card>
+                                    </v-col>
+                                  </v-row>
+                                </v-card-text>
+                              </v-card>
+
+
                             </div>
-                          </v-alert>
-                        </v-card-text>
-                      </v-card>
-                    </v-col>
-                  </v-row>
-                </v-form>
-              </v-card-text>
+                          </v-expand-transition>
+                        </v-col>
 
-              <v-card-actions class="pa-4">
-                <v-spacer></v-spacer>
-                <v-btn
-                    color="grey"
-                    variant="text"
-                    @click="cancelarFormulario"
-                >
-                  Cancelar
-                </v-btn>
-                <v-btn
-                    color="var(--text-color-laranja)"
-                    :loading="loading"
-                    :disabled="!formValido"
-                    @click="salvarContaPagar"
-                    variant="flat"
-                    class="text-white"
-                >
-                  {{ editando ? 'Atualizar' : 'Salvar' }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </div>
-        </v-expand-transition>
+                        <!-- Rateio por Centro de Custo (select acima e tabela de centros selecionados) -->
+                        <v-col cols="12" v-if="parcelas.length > 0">
+                          <v-card variant="outlined" class="mb-4" elevation="1">
+                            <v-card-title class="text-h6 pa-4 d-flex align-center">
+                              <v-icon icon="mdi-swap-horizontal" class="mr-2" color="orange"></v-icon>
+                              Rateio por Centro de Custo
+                              <v-spacer></v-spacer>
+                              <v-btn
+                                  size="small"
+                                  color="orange"
+                                  variant="text"
+                                  prepend-icon="mdi-plus"
+                                  @click="adicionarCentro"
+                              >
+                                Adicionar Centro
+                              </v-btn>
+                              <v-btn
+                                  size="small"
+                                  color="orange"
+                                  variant="elevated"
+                                  class="ml-2"
+                                  @click="distribuirIgualmente"
+                              >
+                                Distribuir igualmente
+                              </v-btn>
+                            </v-card-title>
 
-        <!-- Busca Avançada -->
-        <div v-if="!formularioAberto" class="my-4">
-          <BuscaAvancada
-              v-model="filtrosAvancados"
-              @aplicar="aplicarFiltrosAvancados"
-          />
-        </div>
+                            <v-card-text class="pa-4">
+                              <div v-if="ccustosRateio.length === 0" class="text-center text-grey pa-4">
+                                Nenhum centro de custo adicionado. Clique em "Adicionar Centro" para começar o rateio.
+                              </div>
 
-        <!-- Tabela de Contas a Pagar -->
-        <TabelaPadrao
-            :formulario-aberto="formularioAberto"
-            :headers="headers"
-            :items="contasPagarFiltradas"
-            :loading="loading"
-            :search="search"
-            @update:search="(value) => search = value"
-            search-label="Pesquisar Parcelas"
-            item-key="id"
-            no-data-icon="mdi-credit-card-outline"
-            no-data-text="Nenhuma registro encontrado."
-            :show-custom-action="false"
-            delete-dialog-message="Esta ação excluirá esta parcela específica. Não pode ser desfeita."
-            delete-item-display-field="nrdocumento"
-            @edit-item="editarContaPagar"
-            @confirm-delete="excluirContaPagar"
-        >
-          <!-- Coluna de Imagem -->
-          <template v-slot:[`item.imagem`]="{ item }">
-            <MediaShow
-                v-if="item.id_media"
-                :image-key="item.id_media"
-                height="40"
-                width="40"
-                :show-actions="false"
-                :show-loading-text="false"
-                no-image-text=""
-                class="rounded"
-            />
-            <v-icon
-                v-else
-                icon="mdi-image-off-outline"
-                size="20"
-                color="grey"
-            ></v-icon>
-          </template>
+                              <v-table v-else density="compact">
+                                <thead>
+                                <tr>
+                                  <th style="width: 40%">Centro de Custo</th>
+                                  <th style="width: 25%">Valor (R$)</th>
+                                  <th style="width: 20%">Porcentagem (%)</th>
+                                  <th style="width: 15%; text-align: center">Ações</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="(linha, index) in ccustosRateio" :key="index">
+                                  <td>
+                                    <v-select
+                                        v-model="linha.id_ccusto"
+                                        :items="centrosCusto"
+                                        item-title="desccentrocusto"
+                                        item-value="id"
+                                        label="Selecione"
+                                        variant="outlined"
+                                        density="compact"
+                                        hide-details
+                                    />
+                                    <div v-if="linha.desccentrocusto" class="text-caption text-grey mt-1">
+                                      API: {{ linha.desccentrocusto }}
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <v-text-field
+                                        v-model.number="linha.valor"
+                                        type="number"
+                                        step="0.01"
+                                        variant="outlined"
+                                        density="compact"
+                                        prefix="R$"
+                                        hide-details
+                                        @input="onRateioValorChange(index)"
+                                    />
+                                  </td>
+                                  <td>
+                                    <v-text-field
+                                        v-model.number="linha.porcentagem"
+                                        type="number"
+                                        step="0.01"
+                                        variant="outlined"
+                                        density="compact"
+                                        suffix="%"
+                                        hide-details
+                                        @input="onRateioPercentChange(index)"
+                                    />
+                                  </td>
+                                  <td style="text-align: center">
+                                    <v-btn
+                                        icon="mdi-delete"
+                                        size="small"
+                                        color="error"
+                                        variant="text"
+                                        @click="removerCentro(index)"
+                                    />
+                                  </td>
+                                </tr>
+                                </tbody>
+                                <tfoot>
+                                <tr class="font-weight-bold">
+                                  <td>TOTAL</td>
+                                  <td>{{ formatarMoeda(totalRateadoValor) }}</td>
+                                  <td>{{ Number(totalRateadoPercent).toFixed(2) }}%</td>
+                                  <td></td>
+                                </tr>
+                                </tfoot>
+                              </v-table>
+                            </v-card-text>
+                          </v-card>
+                        </v-col>
 
-          <!-- Formatação para Valor do Documento -->
-          <template v-slot:[`item.vlrdocumento`]="{ item }">
-            <span class="font-weight-medium">{{ formatarMoeda(item.vlrdocumento) }}</span>
-          </template>
+                        <!-- Anexar Documento -->
+                        <v-col cols="12">
+                          <v-card variant="outlined" class="mb-4" elevation="1">
+                            <v-card-title class="text-h6 pa-4 d-flex align-center">
+                              <v-icon icon="mdi-file-image" class="mr-2" color="orange"></v-icon>
+                              Anexar um Documento
+                            </v-card-title>
 
-          <!-- Formatação para Valor da Parcela -->
-          <template v-slot:[`item.vlrparcela`]="{ item }">
-            <v-chip
-                :color="parseFloat(item.vlrparcela) > 1000 ? 'orange' : 'primary'"
-                variant="tonal"
-                size="small"
+                            <v-card-text class="pa-4">
+                              <MediaSave
+                                  id-saas="1"
+                                  id-usuario="1"
+                                  :on-upload-success="handleMediaUpload"
+                                  @upload-success="onMediaSuccess"
+                                  @upload-error="onMediaError"
+                              />
+
+                              <!-- Indicador de imagem anexada -->
+                              <v-alert
+                                  v-if="formData.id_media || financeiroStore.getMediaKeyTemporaria()"
+                                  type="success"
+                                  variant="tonal"
+                                  density="compact"
+                                  class="mt-3"
+                              >
+                                <div class="d-flex align-center">
+                                  <v-icon icon="mdi-check-circle" class="mr-2"></v-icon>
+                                  <div>
+                                    <strong>Documento anexado com sucesso!</strong>
+                                    <br>
+                                    <small class="text-medium-emphasis">Key: {{ financeiroStore.getMediaKeyTemporaria() || formData.id_media }}</small>
+                                  </div>
+                                </div>
+                              </v-alert>
+                            </v-card-text>
+                          </v-card>
+                        </v-col>
+                      </v-row>
+                    </v-form>
+                  </v-card-text>
+
+                  <v-card-actions class="pa-4">
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        color="grey"
+                        variant="text"
+                        @click="cancelarFormulario"
+                    >
+                      Cancelar
+                    </v-btn>
+                    <v-btn
+                        color="var(--text-color-laranja)"
+                        :loading="loading"
+                        :disabled="!formValido"
+                        @click="salvarContaPagar"
+                        variant="flat"
+                        class="text-white"
+                    >
+                      {{ editando ? 'Atualizar' : 'Salvar' }}
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </div>
+            </v-expand-transition>
+
+            <!-- Busca Avançada -->
+            <div v-if="!formularioAberto" class="my-4">
+              <BuscaAvancada
+                  v-model="filtrosAvancados"
+                  @aplicar="aplicarFiltrosAvancados"
+              />
+            </div>
+
+            <!-- Tabela de Contas a Pagar -->
+            <TabelaPadrao
+                :formulario-aberto="formularioAberto"
+                :headers="headers"
+                :items="contasPagarFiltradas"
+                :loading="loading"
+                :search="search"
+                @update:search="(value) => search = value"
+                search-label="Pesquisar Parcelas"
+                item-key="id"
+                no-data-icon="mdi-credit-card-outline"
+                no-data-text="Nenhuma registro encontrado."
+                :show-custom-action="false"
+                delete-dialog-message="Esta ação excluirá esta parcela específica. Não pode ser desfeita."
+                delete-item-display-field="nrdocumento"
+                @edit-item="editarContaPagar"
+                @confirm-delete="excluirContaPagar"
             >
-              {{ formatarMoeda(item.vlrparcela) }}
-            </v-chip>
-          </template>
+              <!-- Coluna de Imagem -->
+              <template v-slot:[`item.imagem`]="{ item }">
+                <MediaShow
+                    v-if="item.id_media"
+                    :image-key="item.id_media"
+                    height="40"
+                    width="40"
+                    :show-actions="false"
+                    :show-loading-text="false"
+                    no-image-text=""
+                    class="rounded"
+                />
+                <v-icon
+                    v-else
+                    icon="mdi-image-off-outline"
+                    size="20"
+                    color="grey"
+                ></v-icon>
+              </template>
 
-          <!-- Formatação para Saldo Devedor -->
-          <template v-slot:[`item.saldo_devedor`]="{ item }">
+              <!-- Formatação para Valor do Documento -->
+              <template v-slot:[`item.vlrdocumento`]="{ item }">
+                <span class="font-weight-medium">{{ formatarMoeda(item.vlrdocumento) }}</span>
+              </template>
+
+              <!-- Formatação para Valor da Parcela -->
+              <template v-slot:[`item.vlrparcela`]="{ item }">
+                <v-chip
+                    :color="parseFloat(item.vlrparcela) > 1000 ? 'orange' : 'primary'"
+                    variant="tonal"
+                    size="small"
+                >
+                  {{ formatarMoeda(item.vlrparcela) }}
+                </v-chip>
+              </template>
+
+              <!-- Formatação para Saldo Devedor -->
+              <template v-slot:[`item.saldo_devedor`]="{ item }">
             <span v-if="item.pag_utiliza_aut_pagto === 'N'" class="font-weight-medium">
               {{ formatarMoeda(item.saldo_devedor) }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Formatação para Valor Quitado -->
-          <template v-slot:[`item.vlrquitado`]="{ item }">
+              <!-- Formatação para Valor Quitado -->
+              <template v-slot:[`item.vlrquitado`]="{ item }">
             <span v-if="item.pag_utiliza_aut_pagto === 'N'" class="font-weight-medium text-success">
               {{ formatarMoeda(item.vlrquitado) }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Autorizado Por -->
-          <template v-slot:[`item.user_liberou`]="{ item }">
+              <!-- Autorizado Por -->
+              <template v-slot:[`item.user_liberou`]="{ item }">
             <span v-if="item.pag_utiliza_aut_pagto === 'S' && item.user_liberou" class="font-weight-medium">
               {{ item.user_liberou }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Valor Autorizado -->
-          <template v-slot:[`item.vlrliberadopagto`]="{ item }">
+              <!-- Valor Autorizado -->
+              <template v-slot:[`item.vlrliberadopagto`]="{ item }">
             <span v-if="item.pag_utiliza_aut_pagto === 'S' && item.vlrliberadopagto > 0" class="font-weight-medium text-success">
               {{ formatarMoeda(item.vlrliberadopagto) }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Data de Autorização -->
-          <template v-slot:[`item.dhliberacaopagto`]="{ item }">
+              <!-- Data de Autorização -->
+              <template v-slot:[`item.dhliberacaopagto`]="{ item }">
             <span v-if="item.pag_utiliza_aut_pagto === 'S' && item.dhliberacaopagto">
               {{ formatarDataHora(item.dhliberacaopagto) }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Formatação para Data de Emissão -->
-          <template v-slot:[`item.dtemissao`]="{ item }">
+              <!-- Formatação para Data de Emissão -->
+              <template v-slot:[`item.dtemissao`]="{ item }">
             <span v-if="item.dtemissao">
               {{ new Date(item.dtemissao).toLocaleDateString('pt-BR') }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Formatação para Data de Vencimento -->
-          <template v-slot:[`item.dtvencimento`]="{ item }">
+              <!-- Formatação para Data de Vencimento -->
+              <template v-slot:[`item.dtvencimento`]="{ item }">
             <span v-if="item.dtvencimento">
               {{ new Date(item.dtvencimento).toLocaleDateString('pt-BR') }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Formatação para Data de Inclusão -->
-          <template v-slot:[`item.dhinc`]="{ item }">
+              <!-- Formatação para Data de Inclusão -->
+              <template v-slot:[`item.dhinc`]="{ item }">
             <span v-if="item.dhinc">
               {{ formatarDataHora(item.dhinc) }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Ações personalizadas -->
-          <template v-slot:[`item.actions`]="{ item }">
-            <div class="d-flex gap-1">
-              <!-- Editar -->
+              <!-- Ações personalizadas -->
+              <template v-slot:[`item.actions`]="{ item }">
+                <div class="d-flex gap-1">
+                  <!-- Editar -->
+                  <v-btn
+                      icon="mdi-pencil"
+                      size="small"
+                      color="primary"
+                      variant="text"
+                      title="Editar"
+                      @click="editarContaPagar(item)"
+                  ></v-btn>
+
+                  <!-- Excluir -->
+                  <v-btn
+                      icon="mdi-delete"
+                      size="small"
+                      color="error"
+                      variant="text"
+                      title="Excluir"
+                      @click="confirmarExclusao(item)"
+                  ></v-btn>
+                </div>
+              </template>
+            </TabelaPadrao>
+          </v-card-text>
+        </v-card>
+
+
+
+
+
+        <!-- Dialog de Confirmação de Exclusão -->
+        <v-dialog
+            v-model="dialogExclusao.aberto"
+            max-width="400px"
+            persistent
+        >
+          <v-card>
+            <v-card-title class="text-h6">
+              <v-icon icon="mdi-delete-alert" color="error" class="mr-2"></v-icon>
+              Confirmar Exclusão
+            </v-card-title>
+            <v-card-text>
+              Tem certeza que deseja excluir a parcela do documento
+              <strong>{{ dialogExclusao.item?.nrdocumento }}</strong>?
+              <br><br>
+              Esta ação não pode ser desfeita.
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
               <v-btn
-                  icon="mdi-pencil"
-                  size="small"
-                  color="primary"
+                  color="grey"
                   variant="text"
-                  title="Editar"
-                  @click="editarContaPagar(item)"
-              ></v-btn>
-
-              <!-- Excluir -->
+                  @click="dialogExclusao.aberto = false"
+              >
+                Cancelar
+              </v-btn>
               <v-btn
-                  icon="mdi-delete"
-                  size="small"
                   color="error"
-                  variant="text"
-                  title="Excluir"
-                  @click="confirmarExclusao(item)"
-              ></v-btn>
-            </div>
-          </template>
-        </TabelaPadrao>
-      </v-card-text>
-    </v-card>
+                  variant="flat"
+                  @click="confirmarExclusaoFinal"
+                  :loading="loading"
+              >
+                Excluir
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
 
+        <!-- Modal de Exportação/Impressão -->
+        <ExportacaoModal
+            v-model="modalExportacaoAberto"
+            :dados="contasPagarFiltradas"
+            :filtros="filtrosAvancados"
+            nome-relatorio="Contas a Pagar"
+            @exportar-pdf="handleExportarPDF"
+            @exportar-csv="handleExportarCSV"
+            @exportar-excel="handleExportarExcel"
+            @imprimir="handleImprimir"
+        ></ExportacaoModal>
 
+        <!-- Modal de Preview do PDF -->
+        <PdfPreviewModal
+            v-model="modalPreviewPDF"
+            :html-content="previewHTMLContent"
+            :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Contas_a_Pagar'"
+        />
 
-
-
-    <!-- Dialog de Confirmação de Exclusão -->
-    <v-dialog
-        v-model="dialogExclusao.aberto"
-        max-width="400px"
-        persistent
-    >
-      <v-card>
-        <v-card-title class="text-h6">
-          <v-icon icon="mdi-delete-alert" color="error" class="mr-2"></v-icon>
-          Confirmar Exclusão
-        </v-card-title>
-        <v-card-text>
-          Tem certeza que deseja excluir a parcela do documento
-          <strong>{{ dialogExclusao.item?.nrdocumento }}</strong>?
-          <br><br>
-          Esta ação não pode ser desfeita.
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-              color="grey"
-              variant="text"
-              @click="dialogExclusao.aberto = false"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-              color="error"
-              variant="flat"
-              @click="confirmarExclusaoFinal"
-              :loading="loading"
-          >
-            Excluir
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Modal de Exportação/Impressão -->
-    <ExportacaoModal
-        v-model="modalExportacaoAberto"
-        :dados="contasPagarFiltradas"
-        :filtros="filtrosAvancados"
-        nome-relatorio="Contas a Pagar"
-        @exportar-pdf="handleExportarPDF"
-        @exportar-csv="handleExportarCSV"
-        @exportar-excel="handleExportarExcel"
-        @imprimir="handleImprimir"
-    ></ExportacaoModal>
-
-    <!-- Modal de Preview do PDF -->
-    <PdfPreviewModal
-        v-model="modalPreviewPDF"
-        :html-content="previewHTMLContent"
-        :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Contas_a_Pagar'"
-    />
-
-    <!-- Snackbar para feedback -->
-    <v-snackbar
-        v-model="snackbar.show"
-        :color="snackbar.color"
-        :timeout="3000"
-    >
-      {{ snackbar.message }}
-    </v-snackbar>
-  </div>
+        <!-- Snackbar para feedback -->
+        <v-snackbar
+            v-model="snackbar.show"
+            :color="snackbar.color"
+            :timeout="3000"
+        >
+          {{ snackbar.message }}
+        </v-snackbar>
+      </div>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
@@ -1010,6 +998,7 @@ import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
 import CadastrarModal from '@/components/base/modais/CadastrarModal.vue'
 // eslint-disable-next-line no-unused-vars
 import numeric from 'numeric'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -2374,13 +2363,13 @@ const gerarParcelasTemporario = () => {
 
 // ========== EXPORTAÇÃO E IMPRESSÃO ==========
 
-const abrirModalExportacao = () => {
-  if (contasPagarFiltradas.value.length === 0) {
-    toast.warning('Nenhuma conta a pagar para exportar. Aplique filtros primeiro.')
-    return
-  }
-  modalExportacaoAberto.value = true
-}
+// const abrirModalExportacao = () => {
+//   if (contasPagarFiltradas.value.length === 0) {
+//     toast.warning('Nenhuma conta a pagar para exportar. Aplique filtros primeiro.')
+//     return
+//   }
+//   modalExportacaoAberto.value = true
+// }
 
 // Função para exportar CSV
 const handleExportarCSV = ({ dados, nomeRelatorio }) => {
