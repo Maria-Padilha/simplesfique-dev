@@ -1,616 +1,611 @@
 <template>
-  <div class="pa-4">
-    <!-- Cabeçalho -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-cash-multiple" class="mr-3"></v-icon>
-          Lançamentos do Caixa
-        </div>
-      </v-card-title>
-    </v-card>
-
-    <!-- Conteúdo Principal -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
-      <v-card-text class="pa-4">
-        <!-- Filtros de Busca Avançada -->
-        <v-card class="mb-4 background-card" elevation="1">
-          <v-card-title class="text-h6 pa-4">
-            <v-icon icon="mdi-filter" class="mr-2"></v-icon>
-            Filtros de Período e Caixa
-          </v-card-title>
+  <top-all-pages icon="mdi-cash-multiple">
+    <template #titulo>Lançamentos do Caixa</template>
+    <template #section>
+      <div>
+        <!-- Conteúdo Principal -->
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
           <v-card-text class="pa-4">
-            <v-row>
-              <!-- Selecione o Caixa -->
-              <v-col cols="12" md="4">
-                <v-autocomplete
-                  v-model="filtros.id_caixa"
-                  :items="caixasDisponiveis"
-                  :loading="loadingCaixas"
-                  item-title="desccaixa"
-                  item-value="id_caixa"
-                  label="Selecione o Caixa *"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-cash-register"
-                  clearable
-                >
-                  <template v-slot:prepend-item>
-                    <v-list-item>
-                      <template v-slot:prepend>
-                        <v-icon>mdi-numeric</v-icon>
-                      </template>
-                      <template v-slot:title>
-                        <span class="font-weight-bold">{{ filtros.id_caixa || '1' }}</span>
-                      </template>
-                      <template v-slot:append>
-                        <span class="text-caption">{{ caixasDisponiveis.find(c => c.id_caixa === filtros.id_caixa)?.desccaixa || 'CAIXA - FINANCEIRO' }}</span>
-                      </template>
-                    </v-list-item>
-                    <v-divider></v-divider>
-                  </template>
-                </v-autocomplete>
-              </v-col>
-
-              <!-- Atalho de Período -->
-              <v-col cols="12" md="2">
-                <v-select
-                  v-model="periodoSelecionado"
-                  :items="periodos"
-                  label="Período"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-calendar-clock"
-                  @update:model-value="aplicarPeriodo"
-                ></v-select>
-              </v-col>
-
-              <!-- Período de Cadastro - De -->
-              <v-col cols="12" md="2">
-                <v-text-field
-                  v-model="filtros.dataInicio"
-                  label="Data Inicial *"
-                  type="date"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-calendar"
-                ></v-text-field>
-              </v-col>
-
-              <!-- Período de Cadastro - Até -->
-              <v-col cols="12" md="2">
-                <v-text-field
-                  v-model="filtros.dataFim"
-                  label="Data Final *"
-                  type="date"
-                  variant="outlined"
-                  density="compact"
-                  prepend-inner-icon="mdi-calendar"
-                ></v-text-field>
-              </v-col>
-
-              <!-- Botão Buscar -->
-              <v-col cols="12" md="2" class="d-flex">
-                <v-btn
-                  color="var(--text-color-laranja)"
-                  variant="flat"
-                  prepend-icon="mdi-magnify"
-                  @click="carregarLancamentos"
-                  :loading="loading"
-                  :disabled="!filtros.id_caixa || !filtros.dataInicio || !filtros.dataFim"
-                  class="text-white"
-                >
-                  Buscar
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-
-        <BotaoExpandTransition
-          :formulario-aberto="formularioAberto"
-          texto-abrir="Novo Lançamento"
-          texto-fechar="Cancelar"
-          @toggle="toggleFormulario"
-        />
-
-        <!-- Formulário de Lançamento -->
-        <v-expand-transition>
-          <div v-if="formularioAberto">
-            <v-card class="background-card mb-7" elevation="2">
+            <!-- Filtros de Busca Avançada -->
+            <v-card class="mb-4 background-card" elevation="1">
               <v-card-title class="text-h6 pa-4">
-                <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-                {{ editando ? 'Editar Lançamento' : 'Novo Lançamento' }}
+                <v-icon icon="mdi-filter" class="mr-2"></v-icon>
+                Filtros de Período e Caixa
               </v-card-title>
-
               <v-card-text class="pa-4">
-                <v-form ref="formRef" v-model="formValido">
-                  <v-row>
-                    <!-- Caixa -->
-                    <v-col cols="12" md="4">
-                      <v-autocomplete
-                        v-model="formData.id_caixa"
+                <v-row>
+                  <!-- Selecione o Caixa -->
+                  <v-col cols="12" md="4">
+                    <v-autocomplete
+                        v-model="filtros.id_caixa"
                         :items="caixasDisponiveis"
                         :loading="loadingCaixas"
                         item-title="desccaixa"
                         item-value="id_caixa"
-                        label="Caixa *"
-                        :rules="[rules.required]"
+                        label="Selecione o Caixa *"
                         variant="outlined"
                         density="compact"
                         prepend-inner-icon="mdi-cash-register"
-                        no-data-text="Nenhum caixa disponível"
-                        @update:model-value="onCaixaChange"
-                      ></v-autocomplete>
-                    </v-col>
+                        clearable
+                    >
+                      <template v-slot:prepend-item>
+                        <v-list-item>
+                          <template v-slot:prepend>
+                            <v-icon>mdi-numeric</v-icon>
+                          </template>
+                          <template v-slot:title>
+                            <span class="font-weight-bold">{{ filtros.id_caixa || '1' }}</span>
+                          </template>
+                          <template v-slot:append>
+                            <span class="text-caption">{{ caixasDisponiveis.find(c => c.id_caixa === filtros.id_caixa)?.desccaixa || 'CAIXA - FINANCEIRO' }}</span>
+                          </template>
+                        </v-list-item>
+                        <v-divider></v-divider>
+                      </template>
+                    </v-autocomplete>
+                  </v-col>
 
-                    <!-- Data de Abertura do Caixa -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        v-model="formData.dtlancamento"
-                        label="Data de Abertura do Caixa *"
+                  <!-- Atalho de Período -->
+                  <v-col cols="12" md="2">
+                    <v-select
+                        v-model="periodoSelecionado"
+                        :items="periodos"
+                        label="Período"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-calendar-clock"
+                        @update:model-value="aplicarPeriodo"
+                    ></v-select>
+                  </v-col>
+
+                  <!-- Período de Cadastro - De -->
+                  <v-col cols="12" md="2">
+                    <v-text-field
+                        v-model="filtros.dataInicio"
+                        label="Data Inicial *"
                         type="date"
-                        :rules="[rules.required]"
                         variant="outlined"
                         density="compact"
                         prepend-inner-icon="mdi-calendar"
-                        readonly
-                        disabled
-                      >
-                        <template v-slot:append-inner>
-                          <v-tooltip location="top">
-                            <template v-slot:activator="{ props }">
-                              <v-icon v-bind="props" size="20" color="grey">mdi-information-outline</v-icon>
+                    ></v-text-field>
+                  </v-col>
+
+                  <!-- Período de Cadastro - Até -->
+                  <v-col cols="12" md="2">
+                    <v-text-field
+                        v-model="filtros.dataFim"
+                        label="Data Final *"
+                        type="date"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-calendar"
+                    ></v-text-field>
+                  </v-col>
+
+                  <!-- Botão Buscar -->
+                  <v-col cols="12" md="2" class="d-flex">
+                    <v-btn
+                        color="var(--text-color-laranja)"
+                        variant="flat"
+                        prepend-icon="mdi-magnify"
+                        @click="carregarLancamentos"
+                        :loading="loading"
+                        :disabled="!filtros.id_caixa || !filtros.dataInicio || !filtros.dataFim"
+                        class="text-white"
+                    >
+                      Buscar
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+
+            <BotaoExpandTransition
+                :formulario-aberto="formularioAberto"
+                texto-abrir="Novo Lançamento"
+                texto-fechar="Cancelar"
+                @toggle="toggleFormulario"
+            />
+
+            <!-- Formulário de Lançamento -->
+            <v-expand-transition>
+              <div v-if="formularioAberto">
+                <v-card class="background-card mb-7" elevation="2">
+                  <v-card-title class="text-h6 pa-4">
+                    <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
+                    {{ editando ? 'Editar Lançamento' : 'Novo Lançamento' }}
+                  </v-card-title>
+
+                  <v-card-text class="pa-4">
+                    <v-form ref="formRef" v-model="formValido">
+                      <v-row>
+                        <!-- Caixa -->
+                        <v-col cols="12" md="4">
+                          <v-autocomplete
+                              v-model="formData.id_caixa"
+                              :items="caixasDisponiveis"
+                              :loading="loadingCaixas"
+                              item-title="desccaixa"
+                              item-value="id_caixa"
+                              label="Caixa *"
+                              :rules="[rules.required]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-cash-register"
+                              no-data-text="Nenhum caixa disponível"
+                              @update:model-value="onCaixaChange"
+                          ></v-autocomplete>
+                        </v-col>
+
+                        <!-- Data de Abertura do Caixa -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              v-model="formData.dtlancamento"
+                              label="Data de Abertura do Caixa *"
+                              type="date"
+                              :rules="[rules.required]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-calendar"
+                              readonly
+                              disabled
+                          >
+                            <template v-slot:append-inner>
+                              <v-tooltip location="top">
+                                <template v-slot:activator="{ props }">
+                                  <v-icon v-bind="props" size="20" color="grey">mdi-information-outline</v-icon>
+                                </template>
+                                Data de abertura do caixa selecionado (não editável)
+                              </v-tooltip>
                             </template>
-                            Data de abertura do caixa selecionado (não editável)
-                          </v-tooltip>
-                        </template>
-                      </v-text-field>
-                    </v-col>
+                          </v-text-field>
+                        </v-col>
 
-                    <!-- Valor -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        v-model="formData.valor"
-                        label="Valor *"
-                        :rules="[rules.required, rules.valorPositivo]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-currency-usd"
-                        prefix="R$"
-                        type="number"
-                        step="0.01"
-                      ></v-text-field>
-                    </v-col>
+                        <!-- Valor -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              v-model="formData.valor"
+                              label="Valor *"
+                              :rules="[rules.required, rules.valorPositivo]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-currency-usd"
+                              prefix="R$"
+                              type="number"
+                              step="0.01"
+                          ></v-text-field>
+                        </v-col>
 
-                    <!-- Código da Conta (Despesa ou Receita) -->
-                    <v-col cols="12" md="4">
-                      <v-autocomplete
-                        v-model="formData.id_planoconta"
-                        :items="planosConta"
-                        :loading="loadingPlanosConta"
-                        item-title="descconta"
-                        item-value="id"
-                        label="Plano de Conta *"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-file-document"
-                        no-data-text="Nenhuma conta disponível"
-                      >
-                        <template v-slot:item="{ props, item }">
-                          <v-list-item v-bind="props">
-                            <template v-slot:title>
+                        <!-- Código da Conta (Despesa ou Receita) -->
+                        <v-col cols="12" md="4">
+                          <v-autocomplete
+                              v-model="formData.id_planoconta"
+                              :items="planosConta"
+                              :loading="loadingPlanosConta"
+                              item-title="descconta"
+                              item-value="id"
+                              label="Plano de Conta *"
+                              :rules="[rules.required]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-file-document"
+                              no-data-text="Nenhuma conta disponível"
+                          >
+                            <template v-slot:item="{ props, item }">
+                              <v-list-item v-bind="props">
+                                <template v-slot:title>
+                                  {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
+                                </template>
+                              </v-list-item>
+                            </template>
+                            <template v-slot:selection="{ item }">
                               {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
                             </template>
-                          </v-list-item>
-                        </template>
-                        <template v-slot:selection="{ item }">
-                          {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
-                        </template>
-                      </v-autocomplete>
-                    </v-col>
+                          </v-autocomplete>
+                        </v-col>
 
-                    <!-- Tipo Documento -->
-                    <v-col cols="12" md="4">
-                      <v-autocomplete
-                        v-model="formData.id_tipodocumento"
-                        :items="tiposDocumento"
-                        :loading="loadingTiposDoc"
-                        item-title="desctipodocumento"
-                        item-value="id"
-                        label="Tipo Documento *"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-file-document-outline"
-                        no-data-text="Nenhum tipo disponível"
-                      ></v-autocomplete>
-                    </v-col>
+                        <!-- Tipo Documento -->
+                        <v-col cols="12" md="4">
+                          <v-autocomplete
+                              v-model="formData.id_tipodocumento"
+                              :items="tiposDocumento"
+                              :loading="loadingTiposDoc"
+                              item-title="desctipodocumento"
+                              item-value="id"
+                              label="Tipo Documento *"
+                              :rules="[rules.required]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-file-document-outline"
+                              no-data-text="Nenhum tipo disponível"
+                          ></v-autocomplete>
+                        </v-col>
 
-                    <!-- Número Documento -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        v-model="formData.nrdocumento"
-                        label="Número Documento"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-numeric"
-                        maxlength="20"
-                        counter="20"
-                      ></v-text-field>
-                    </v-col>
+                        <!-- Número Documento -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              v-model="formData.nrdocumento"
+                              label="Número Documento"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-numeric"
+                              maxlength="20"
+                              counter="20"
+                          ></v-text-field>
+                        </v-col>
 
-                    <!-- Histórico do Caixa -->
-                    <v-col cols="12" md="4">
-                      <v-autocomplete
-                        v-model="formData.id_caixahist"
-                        :items="historicosCaixa"
-                        :loading="loadingHistCaixa"
-                        item-title="deschistorico"
-                        item-value="id"
-                        label="Histórico do Caixa *"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-history"
-                        no-data-text="Nenhum histórico disponível"
-                      ></v-autocomplete>
-                    </v-col>
+                        <!-- Histórico do Caixa -->
+                        <v-col cols="12" md="4">
+                          <v-autocomplete
+                              v-model="formData.id_caixahist"
+                              :items="historicosCaixa"
+                              :loading="loadingHistCaixa"
+                              item-title="deschistorico"
+                              item-value="id"
+                              label="Histórico do Caixa *"
+                              :rules="[rules.required]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-history"
+                              no-data-text="Nenhum histórico disponível"
+                          ></v-autocomplete>
+                        </v-col>
 
-                    <!-- Histórico Contábil -->
-                    <v-col cols="12" md="4">
-                      <v-autocomplete
-                        v-model="formData.id_hist_contabil"
-                        :items="historicosContabil"
-                        :loading="loadingHistContabil"
-                        item-title="deschistorico"
-                        item-value="id"
-                        label="Histórico Contábil"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-book-open-variant"
-                        no-data-text="Nenhum histórico disponível"
-                        clearable
-                      ></v-autocomplete>
-                    </v-col>
+                        <!-- Histórico Contábil -->
+                        <v-col cols="12" md="4">
+                          <v-autocomplete
+                              v-model="formData.id_hist_contabil"
+                              :items="historicosContabil"
+                              :loading="loadingHistContabil"
+                              item-title="deschistorico"
+                              item-value="id"
+                              label="Histórico Contábil"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-book-open-variant"
+                              no-data-text="Nenhum histórico disponível"
+                              clearable
+                          ></v-autocomplete>
+                        </v-col>
 
-                    <!-- Tipo (Entrada/Saída) -->
-                    <v-col cols="12" md="4">
-                      <v-select
-                        v-model="formData.tipo"
-                        :items="[
+                        <!-- Tipo (Entrada/Saída) -->
+                        <v-col cols="12" md="4">
+                          <v-select
+                              v-model="formData.tipo"
+                              :items="[
                           { title: 'Entrada', value: '+' },
                           { title: 'Saída', value: '-' }
                         ]"
-                        label="Tipo *"
-                        :rules="[rules.required]"
+                              label="Tipo *"
+                              :rules="[rules.required]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-swap-vertical"
+                          ></v-select>
+                        </v-col>
+
+                        <!-- Tipo Pagamento/Recebimento -->
+                        <v-col cols="12" md="4">
+                          <v-autocomplete
+                              v-model="formData.id_tipopagrec"
+                              :items="tiposPagRec"
+                              :loading="loadingTiposPagRec"
+                              item-title="desctipopagrec"
+                              item-value="id"
+                              label="Tipo Pagamento/Recebimento *"
+                              :rules="[rules.required]"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-credit-card"
+                              no-data-text="Nenhum tipo disponível"
+                          ></v-autocomplete>
+                        </v-col>
+
+                        <!-- Observação -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              v-model="formData.observacao"
+                              label="Observação"
+                              variant="outlined"
+                              density="compact"
+                              prepend-inner-icon="mdi-note-text"
+                              maxlength="500"
+                          ></v-text-field>
+                        </v-col>
+
+                        <!-- Rateio por Centro de Custo -->
+                        <v-col cols="12" v-if="mostrarRateio">
+                          <v-expand-transition>
+                            <v-card variant="outlined" class="mt-4" elevation="1">
+                              <v-card-title class="text-h6 pa-4 d-flex align-center">
+                                <v-icon icon="mdi-swap-horizontal" class="mr-2" color="orange"></v-icon>
+                                Rateio por Centro de Custo
+                                <v-spacer></v-spacer>
+                                <v-btn
+                                    size="small"
+                                    color="orange"
+                                    variant="text"
+                                    prepend-icon="mdi-plus"
+                                    @click="adicionarCentro"
+                                >
+                                  Adicionar Centro
+                                </v-btn>
+                                <v-btn
+                                    size="small"
+                                    color="orange"
+                                    variant="elevated"
+                                    class="ml-2"
+                                    @click="distribuirIgualmente"
+                                >
+                                  Distribuir igualmente
+                                </v-btn>
+                              </v-card-title>
+
+                              <v-card-text class="pa-4">
+                                <div v-if="ccustosRateio.length === 0" class="text-center text-grey pa-4">
+                                  Nenhum centro de custo adicionado. Clique em "Adicionar Centro" para começar o rateio.
+                                </div>
+
+                                <v-table v-else density="compact">
+                                  <thead>
+                                  <tr>
+                                    <th style="width: 40%">Centro de Custo</th>
+                                    <th style="width: 25%">Valor (R$)</th>
+                                    <th style="width: 20%">Porcentagem (%)</th>
+                                    <th style="width: 15%; text-align: center">Ações</th>
+                                  </tr>
+                                  </thead>
+                                  <tbody>
+                                  <tr v-for="(linha, index) in ccustosRateio" :key="index">
+                                    <td>
+                                      <v-select
+                                          v-model="linha.id_ccusto"
+                                          :items="centrosCusto"
+                                          item-title="desccentrocusto"
+                                          item-value="id"
+                                          label="Selecione"
+                                          variant="outlined"
+                                          density="compact"
+                                          hide-details
+                                      />
+                                    </td>
+                                    <td>
+                                      <v-text-field
+                                          v-model.number="linha.valor"
+                                          type="number"
+                                          step="0.01"
+                                          variant="outlined"
+                                          density="compact"
+                                          prefix="R$"
+                                          hide-details
+                                          @input="onRateioValorChange(index)"
+                                      />
+                                    </td>
+                                    <td>
+                                      <v-text-field
+                                          v-model.number="linha.porcentagem"
+                                          type="number"
+                                          step="0.01"
+                                          variant="outlined"
+                                          density="compact"
+                                          suffix="%"
+                                          hide-details
+                                          @input="onRateioPercentChange(index)"
+                                      />
+                                    </td>
+                                    <td style="text-align: center">
+                                      <v-btn
+                                          icon="mdi-delete"
+                                          size="small"
+                                          color="error"
+                                          variant="text"
+                                          @click="removerCentro(index)"
+                                      />
+                                    </td>
+                                  </tr>
+                                  </tbody>
+                                  <tfoot>
+                                  <tr class="font-weight-bold">
+                                    <td>TOTAL</td>
+                                    <td>{{ formatarMoeda(totalRateadoValor) }}</td>
+                                    <td>{{ Number(totalRateadoPercent).toFixed(2) }}%</td>
+                                    <td></td>
+                                  </tr>
+                                  </tfoot>
+                                </v-table>
+                              </v-card-text>
+                            </v-card>
+                          </v-expand-transition>
+                        </v-col>
+                      </v-row>
+                    </v-form>
+                  </v-card-text>
+
+                  <v-card-actions class="pa-4">
+                    <v-btn
+                        color="grey"
                         variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-swap-vertical"
-                      ></v-select>
-                    </v-col>
+                        @click="excluirLancamento"
+                        v-if="editando"
+                    >
+                      <v-icon start>mdi-delete</v-icon>
+                      Excluir
+                    </v-btn>
+                    <v-spacer></v-spacer>
+                    <v-btn color="grey" variant="text" @click="cancelarFormulario">
+                      Cancelar
+                    </v-btn>
+                    <v-btn
+                        color="var(--text-color-laranja)"
+                        :loading="loading"
+                        :disabled="!formValido"
+                        @click="salvarLancamento"
+                        variant="flat"
+                        class="text-white"
+                    >
+                      <v-icon start>mdi-content-save</v-icon>
+                      {{ editando ? 'Atualizar' : 'Salvar' }}
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </div>
+            </v-expand-transition>
 
-                    <!-- Tipo Pagamento/Recebimento -->
-                    <v-col cols="12" md="4">
-                      <v-autocomplete
-                        v-model="formData.id_tipopagrec"
-                        :items="tiposPagRec"
-                        :loading="loadingTiposPagRec"
-                        item-title="desctipopagrec"
-                        item-value="id"
-                        label="Tipo Pagamento/Recebimento *"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-credit-card"
-                        no-data-text="Nenhum tipo disponível"
-                      ></v-autocomplete>
-                    </v-col>
-
-                    <!-- Observação -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        v-model="formData.observacao"
-                        label="Observação"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-note-text"
-                        maxlength="500"
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Rateio por Centro de Custo -->
-                    <v-col cols="12" v-if="mostrarRateio">
-                      <v-expand-transition>
-                        <v-card variant="outlined" class="mt-4" elevation="1">
-                          <v-card-title class="text-h6 pa-4 d-flex align-center">
-                            <v-icon icon="mdi-swap-horizontal" class="mr-2" color="orange"></v-icon>
-                            Rateio por Centro de Custo
-                            <v-spacer></v-spacer>
-                            <v-btn 
-                              size="small" 
-                              color="orange" 
-                              variant="text" 
-                              prepend-icon="mdi-plus"
-                              @click="adicionarCentro"
-                            >
-                              Adicionar Centro
-                            </v-btn>
-                            <v-btn 
-                              size="small" 
-                              color="orange" 
-                              variant="elevated" 
-                              class="ml-2"
-                              @click="distribuirIgualmente"
-                            >
-                              Distribuir igualmente
-                            </v-btn>
-                          </v-card-title>
-
-                          <v-card-text class="pa-4">
-                            <div v-if="ccustosRateio.length === 0" class="text-center text-grey pa-4">
-                              Nenhum centro de custo adicionado. Clique em "Adicionar Centro" para começar o rateio.
-                            </div>
-
-                            <v-table v-else density="compact">
-                              <thead>
-                                <tr>
-                                  <th style="width: 40%">Centro de Custo</th>
-                                  <th style="width: 25%">Valor (R$)</th>
-                                  <th style="width: 20%">Porcentagem (%)</th>
-                                  <th style="width: 15%; text-align: center">Ações</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr v-for="(linha, index) in ccustosRateio" :key="index">
-                                  <td>
-                                    <v-select
-                                      v-model="linha.id_ccusto"
-                                      :items="centrosCusto"
-                                      item-title="desccentrocusto"
-                                      item-value="id"
-                                      label="Selecione"
-                                      variant="outlined"
-                                      density="compact"
-                                      hide-details
-                                    />
-                                  </td>
-                                  <td>
-                                    <v-text-field
-                                      v-model.number="linha.valor"
-                                      type="number"
-                                      step="0.01"
-                                      variant="outlined"
-                                      density="compact"
-                                      prefix="R$"
-                                      hide-details
-                                      @input="onRateioValorChange(index)"
-                                    />
-                                  </td>
-                                  <td>
-                                    <v-text-field
-                                      v-model.number="linha.porcentagem"
-                                      type="number"
-                                      step="0.01"
-                                      variant="outlined"
-                                      density="compact"
-                                      suffix="%"
-                                      hide-details
-                                      @input="onRateioPercentChange(index)"
-                                    />
-                                  </td>
-                                  <td style="text-align: center">
-                                    <v-btn
-                                      icon="mdi-delete"
-                                      size="small"
-                                      color="error"
-                                      variant="text"
-                                      @click="removerCentro(index)"
-                                    />
-                                  </td>
-                                </tr>
-                              </tbody>
-                              <tfoot>
-                                <tr class="font-weight-bold">
-                                  <td>TOTAL</td>
-                                  <td>{{ formatarMoeda(totalRateadoValor) }}</td>
-                                  <td>{{ Number(totalRateadoPercent).toFixed(2) }}%</td>
-                                  <td></td>
-                                </tr>
-                              </tfoot>
-                            </v-table>
-                          </v-card-text>
-                        </v-card>
-                      </v-expand-transition>
-                    </v-col>
-                  </v-row>
-                </v-form>
-              </v-card-text>
-
-              <v-card-actions class="pa-4">
-                <v-btn
-                  color="grey"
-                  variant="outlined"
-                  @click="excluirLancamento"
-                  v-if="editando"
-                >
-                  <v-icon start>mdi-delete</v-icon>
-                  Excluir
-                </v-btn>
-                <v-spacer></v-spacer>
-                <v-btn color="grey" variant="text" @click="cancelarFormulario">
-                  Cancelar
-                </v-btn>
-                <v-btn
-                  color="var(--text-color-laranja)"
-                  :loading="loading"
-                  :disabled="!formValido"
-                  @click="salvarLancamento"
-                  variant="flat"
-                  class="text-white"
-                >
-                  <v-icon start>mdi-content-save</v-icon>
-                  {{ editando ? 'Atualizar' : 'Salvar' }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </div>
-        </v-expand-transition>
-
-        <!-- Tabela de Lançamentos -->
-        <v-card class="background-card" elevation="1">
-          <v-card-text class="pa-0">
-            <!-- Saldo Anterior -->
-            <v-card class="ma-4 mb-0 background-card" elevation="2">
-              <v-card-text class="d-flex justify-space-between align-center pa-3">
-                <span class="text-subtitle-1 font-weight-bold">Saldo Anterior</span>
-                <span class="text-h6 font-weight-bold" :class="saldoAnterior >= 0 ? 'text-success' : 'text-error'">
+            <!-- Tabela de Lançamentos -->
+            <v-card class="background-card" elevation="1">
+              <v-card-text class="pa-0">
+                <!-- Saldo Anterior -->
+                <v-card class="ma-4 mb-0 background-card" elevation="2">
+                  <v-card-text class="d-flex justify-space-between align-center pa-3">
+                    <span class="text-subtitle-1 font-weight-bold">Saldo Anterior</span>
+                    <span class="text-h6 font-weight-bold" :class="saldoAnterior >= 0 ? 'text-success' : 'text-error'">
                   {{ formatarMoeda(saldoAnterior) }}
                 </span>
-              </v-card-text>
-            </v-card>
+                  </v-card-text>
+                </v-card>
 
-            <v-data-table
-              :headers="headers"
-              :items="lancamentosFiltrados"
-              :loading="loading"
-              item-key="id"
-              class="elevation-1 background-secondary"
-              :items-per-page="15"
-              density="compact"
-            >
-              <!-- Coluna Nr Documento -->
-              <template v-slot:[`item.nrdocumento`]="{ item }">
-                {{ item.nrdocumento || '--' }}
-              </template>
+                <v-data-table
+                    :headers="headers"
+                    :items="lancamentosFiltrados"
+                    :loading="loading"
+                    item-key="id"
+                    class="elevation-1 background-secondary"
+                    :items-per-page="15"
+                    density="compact"
+                >
+                  <!-- Coluna Nr Documento -->
+                  <template v-slot:[`item.nrdocumento`]="{ item }">
+                    {{ item.nrdocumento || '--' }}
+                  </template>
 
-              <!-- Coluna Dt Mov. -->
-              <template v-slot:[`item.dtlancamento`]="{ item }">
-                {{ formatarData(item.dtlancamento) }}
-              </template>
+                  <!-- Coluna Dt Mov. -->
+                  <template v-slot:[`item.dtlancamento`]="{ item }">
+                    {{ formatarData(item.dtlancamento) }}
+                  </template>
 
-              <!-- Coluna Complemento (deschistorico) -->
-              <template v-slot:[`item.deschistorico`]="{ item }">
-                {{ item.deschistorico || '--' }}
-              </template>
+                  <!-- Coluna Complemento (deschistorico) -->
+                  <template v-slot:[`item.deschistorico`]="{ item }">
+                    {{ item.deschistorico || '--' }}
+                  </template>
 
-              <!-- Coluna Entrada -->
-              <template v-slot:[`item.entrada`]="{ item }">
+                  <!-- Coluna Entrada -->
+                  <template v-slot:[`item.entrada`]="{ item }">
                 <span v-if="item.tipo === '+'" class="text-success font-weight-bold">
                   {{ formatarMoeda(item.valor) }}
                 </span>
-                <span v-else>--</span>
-              </template>
+                    <span v-else>--</span>
+                  </template>
 
-              <!-- Coluna Saída -->
-              <template v-slot:[`item.saida`]="{ item }">
+                  <!-- Coluna Saída -->
+                  <template v-slot:[`item.saida`]="{ item }">
                 <span v-if="item.tipo === '-'" class="text-error font-weight-bold">
                   {{ formatarMoeda(item.valor) }}
                 </span>
-                <span v-else>--</span>
-              </template>
+                    <span v-else>--</span>
+                  </template>
 
-              <!-- Coluna Saldo -->
-              <template v-slot:[`item.saldo`]="{ item }">
+                  <!-- Coluna Saldo -->
+                  <template v-slot:[`item.saldo`]="{ item }">
                 <span class="font-weight-bold" :class="calcularSaldo(lancamentosFiltrados.indexOf(item)) >= 0 ? 'text-success' : 'text-error'">
                   {{ formatarMoeda(calcularSaldo(lancamentosFiltrados.indexOf(item))) }}
                 </span>
-              </template>
+                  </template>
 
-              <!-- Coluna Origem -->
-              <template v-slot:[`item.origem`]="{ item }">
-                {{ obterLabelOrigem(item.origem) }}
-              </template>
+                  <!-- Coluna Origem -->
+                  <template v-slot:[`item.origem`]="{ item }">
+                    {{ obterLabelOrigem(item.origem) }}
+                  </template>
 
-              <!-- Coluna Tipo Pagamento -->
-              <template v-slot:[`item.desctipopagrec`]="{ item }">
-                {{ item.desctipopagrec || '--' }}
-              </template>
+                  <!-- Coluna Tipo Pagamento -->
+                  <template v-slot:[`item.desctipopagrec`]="{ item }">
+                    {{ item.desctipopagrec || '--' }}
+                  </template>
 
-              <!-- Coluna Observação -->
-              <template v-slot:[`item.observacao`]="{ item }">
-                {{ item.observacao || '--' }}
-              </template>
+                  <!-- Coluna Observação -->
+                  <template v-slot:[`item.observacao`]="{ item }">
+                    {{ item.observacao || '--' }}
+                  </template>
 
-              <!-- Coluna Ações -->
-              <template v-slot:[`item.actions`]="{ item }">
-                <div class="d-flex justify-center gap-1">
-                  <v-btn
-                    icon="mdi-pencil"
-                    size="small"
-                    variant="text"
-                    color="primary"
-                    @click="editarLancamento(item)"
-                    :disabled="item.origem !== 'CAI'"
-                  >
-                    <v-icon size="20">mdi-pencil</v-icon>
-                    <v-tooltip activator="parent" location="top">
-                      {{ item.origem !== 'CAI' ? 'Apenas lançamentos de caixa podem ser editados' : 'Editar' }}
-                    </v-tooltip>
-                  </v-btn>
-                  <v-btn
-                    icon="mdi-delete"
-                    size="small"
-                    variant="text"
-                    color="error"
-                    @click="confirmarExclusao(item)"
-                    :disabled="item.origem !== 'CAI'"
-                  >
-                    <v-icon size="20">mdi-delete</v-icon>
-                    <v-tooltip activator="parent" location="top">
-                      {{ item.origem !== 'CAI' ? 'Apenas lançamentos de caixa podem ser excluídos' : 'Excluir' }}
-                    </v-tooltip>
-                  </v-btn>
-                </div>
-              </template>
+                  <!-- Coluna Ações -->
+                  <template v-slot:[`item.actions`]="{ item }">
+                    <div class="d-flex justify-center gap-1">
+                      <v-btn
+                          icon="mdi-pencil"
+                          size="small"
+                          variant="text"
+                          color="primary"
+                          @click="editarLancamento(item)"
+                          :disabled="item.origem !== 'CAI'"
+                      >
+                        <v-icon size="20">mdi-pencil</v-icon>
+                        <v-tooltip activator="parent" location="top">
+                          {{ item.origem !== 'CAI' ? 'Apenas lançamentos de caixa podem ser editados' : 'Editar' }}
+                        </v-tooltip>
+                      </v-btn>
+                      <v-btn
+                          icon="mdi-delete"
+                          size="small"
+                          variant="text"
+                          color="error"
+                          @click="confirmarExclusao(item)"
+                          :disabled="item.origem !== 'CAI'"
+                      >
+                        <v-icon size="20">mdi-delete</v-icon>
+                        <v-tooltip activator="parent" location="top">
+                          {{ item.origem !== 'CAI' ? 'Apenas lançamentos de caixa podem ser excluídos' : 'Excluir' }}
+                        </v-tooltip>
+                      </v-btn>
+                    </div>
+                  </template>
 
-              <!-- Loading -->
-              <template v-slot:loading>
-                <v-skeleton-loader type="table-row@5"></v-skeleton-loader>
-              </template>
+                  <!-- Loading -->
+                  <template v-slot:loading>
+                    <v-skeleton-loader type="table-row@5"></v-skeleton-loader>
+                  </template>
 
-              <!-- Sem dados -->
-              <template v-slot:no-data>
-                <div class="text-center py-8">
-                  <v-icon icon="mdi-cash-multiple" size="64" color="grey" class="mb-4"></v-icon>
-                  <p class="text-h6 text-grey">Nenhum lançamento encontrado</p>
-                </div>
-              </template>
-            </v-data-table>
+                  <!-- Sem dados -->
+                  <template v-slot:no-data>
+                    <div class="text-center py-8">
+                      <v-icon icon="mdi-cash-multiple" size="64" color="grey" class="mb-4"></v-icon>
+                      <p class="text-h6 text-grey">Nenhum lançamento encontrado</p>
+                    </div>
+                  </template>
+                </v-data-table>
+              </v-card-text>
+            </v-card>
+
+            <!-- Card de Totais -->
+            <v-card class="mt-4 background-card" elevation="1">
+              <v-card-text class="pa-4">
+                <v-row>
+                  <v-col cols="12" md="3">
+                    <div class="text-caption text-grey">Entrada</div>
+                    <div class="text-h6 text-success font-weight-bold">{{ formatarMoeda(totalEntradas) }}</div>
+                  </v-col>
+                  <v-col cols="12" md="3">
+                    <div class="text-caption text-grey">Saída</div>
+                    <div class="text-h6 text-error font-weight-bold">{{ formatarMoeda(totalSaidas) }}</div>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <div class="text-caption text-grey">TOTAL DO PERÍODO:</div>
+                    <div class="text-h5 font-weight-bold" :class="saldoFinal >= 0 ? 'text-success' : 'text-error'">
+                      {{ formatarMoeda(saldoFinal) }}
+                    </div>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
           </v-card-text>
         </v-card>
-
-        <!-- Card de Totais -->
-        <v-card class="mt-4 background-card" elevation="1">
-          <v-card-text class="pa-4">
-            <v-row>
-              <v-col cols="12" md="3">
-                <div class="text-caption text-grey">Entrada</div>
-                <div class="text-h6 text-success font-weight-bold">{{ formatarMoeda(totalEntradas) }}</div>
-              </v-col>
-              <v-col cols="12" md="3">
-                <div class="text-caption text-grey">Saída</div>
-                <div class="text-h6 text-error font-weight-bold">{{ formatarMoeda(totalSaidas) }}</div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <div class="text-caption text-grey">TOTAL DO PERÍODO:</div>
-                <div class="text-h5 font-weight-bold" :class="saldoFinal >= 0 ? 'text-success' : 'text-error'">
-                  {{ formatarMoeda(saldoFinal) }}
-                </div>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-      </v-card-text>
-    </v-card>
-  </div>
-  <v-card class="background-secondary mb-4 ma-4 py-3 px-3 d-flex gap-4">
-    <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-file-pdf-box" @click="exportarPDF">PDF</v-btn>
-    <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-file-delimited" @click="exportarCSV">CSV</v-btn>
-    <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-microsoft-excel" @click="exportarExcel">EXCEL</v-btn>
-    <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-printer" @click="imprimirRelatorio">IMPRIMIR</v-btn>
-  </v-card>
+      </div>
+      <v-card class="background-secondary mb-4 ma-4 py-3 px-3 d-flex gap-4">
+        <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-file-pdf-box" @click="exportarPDF">PDF</v-btn>
+        <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-file-delimited" @click="exportarCSV">CSV</v-btn>
+        <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-microsoft-excel" @click="exportarExcel">EXCEL</v-btn>
+        <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-printer" @click="imprimirRelatorio">IMPRIMIR</v-btn>
+      </v-card>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
@@ -623,6 +618,7 @@ import { useConfigParfinStore } from '@/stores/APIs/config'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import html2pdf from 'html2pdf.js'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 const caixaStore = useCaixaStore()
@@ -737,14 +733,14 @@ const saldoAnterior = ref(664.90) // Será calculado conforme período
 
 const totalEntradas = computed(() => {
   return lancamentosFiltrados.value
-    .filter(l => l.tipo === '+')
-    .reduce((sum, l) => sum + parseFloat(l.valor || 0), 0)
+      .filter(l => l.tipo === '+')
+      .reduce((sum, l) => sum + parseFloat(l.valor || 0), 0)
 })
 
 const totalSaidas = computed(() => {
   return lancamentosFiltrados.value
-    .filter(l => l.tipo === '-')
-    .reduce((sum, l) => sum + parseFloat(l.valor || 0), 0)
+      .filter(l => l.tipo === '-')
+      .reduce((sum, l) => sum + parseFloat(l.valor || 0), 0)
 })
 
 const saldoFinal = computed(() => {
@@ -790,7 +786,7 @@ const obterLabelOrigem = (origem) => {
 
 const calcularSaldo = (index) => {
   let saldo = saldoAnterior.value
-  
+
   for (let i = 0; i <= index; i++) {
     const item = lancamentosFiltrados.value[i]
     if (item.tipo === '+') {
@@ -799,7 +795,7 @@ const calcularSaldo = (index) => {
       saldo -= parseFloat(item.valor || 0)
     }
   }
-  
+
   return saldo
 }
 
@@ -814,7 +810,7 @@ const aplicarPeriodo = (periodo) => {
       dataInicio = hoje
       dataFim = hoje
       break
-    
+
     case 'semana': {
       // Primeiro dia da semana (domingo)
       const primeiroDiaSemana = hoje.getDate() - hoje.getDay()
@@ -822,31 +818,31 @@ const aplicarPeriodo = (periodo) => {
       dataFim = hoje
       break
     }
-    
+
     case 'mes':
       // Primeiro dia do mês
       dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
       dataFim = hoje
       break
-    
+
     case 'ano':
       // Primeiro dia do ano
       dataInicio = new Date(hoje.getFullYear(), 0, 1)
       dataFim = hoje
       break
-    
+
     case '7dias':
       // Últimos 7 dias
       dataInicio = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000)
       dataFim = hoje
       break
-    
+
     case '30dias':
       // Últimos 30 dias
       dataInicio = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000)
       dataFim = hoje
       break
-    
+
     case 'personalizado':
       // Não altera as datas, usuário define manualmente
       return
@@ -910,17 +906,17 @@ const verificarUtilizaCCusto = async () => {
     console.log('🔍 Verificando parâmetros de centro de custo para empresa:', idEmpresa)
     const response = await ccustoStore.buscarParametrosCCusto(idEmpresa)
     console.log('📦 Resposta completa da API:', response)
-    
+
     // A API retorna { data: [{ utiliza_ccusto: "S", ... }] }
     const dataArray = response?.data || response
     const params = Array.isArray(dataArray) ? dataArray[0] : dataArray
     console.log('📋 Parâmetros processados:', params)
     console.log('✅ utiliza_ccusto:', params?.utiliza_ccusto)
-    
+
     if (params && params.utiliza_ccusto === 'S') {
       console.log('✅ Centro de custo ATIVO - Mostrando rateio')
       mostrarRateio.value = true
-      
+
       // Carregar centros de custo se ainda não foram carregados
       if (centrosCusto.value.length === 0) {
         console.log('📥 Carregando centros de custo...')
@@ -928,7 +924,7 @@ const verificarUtilizaCCusto = async () => {
         centrosCusto.value = ccustoStore.centrosCusto || []
         console.log('📊 Centros carregados:', centrosCusto.value.length)
       }
-      
+
       // Inicializar com uma linha se estiver vazio
       if (ccustosRateio.value.length === 0) {
         console.log('➕ Adicionando primeira linha de rateio')
@@ -963,10 +959,10 @@ const removerCentro = (index) => {
 const onRateioValorChange = (index) => {
   const total = parseFloat(formData.valor) || 0
   if (total === 0) return
-  
+
   const r = ccustosRateio.value[index]
   if (!r) return
-  
+
   const valorAtual = parseFloat(r.valor) || 0
   r.porcentagem = ((valorAtual / total) * 100).toFixed(2)
 }
@@ -974,10 +970,10 @@ const onRateioValorChange = (index) => {
 const onRateioPercentChange = (index) => {
   const total = parseFloat(formData.valor) || 0
   if (total === 0) return
-  
+
   const r = ccustosRateio.value[index]
   if (!r) return
-  
+
   const porcAtual = parseFloat(r.porcentagem) || 0
   r.valor = ((porcAtual * total) / 100).toFixed(2)
 }
@@ -985,7 +981,7 @@ const onRateioPercentChange = (index) => {
 const recalcularPorcentagens = () => {
   const total = parseFloat(formData.valor) || 0
   if (total === 0) return
-  
+
   ccustosRateio.value.forEach(r => {
     const valorNum = parseFloat(r.valor) || 0
     r.porcentagem = ((valorNum / total) * 100).toFixed(2)
@@ -995,12 +991,12 @@ const recalcularPorcentagens = () => {
 const distribuirIgualmente = () => {
   const total = parseFloat(formData.valor) || 0
   const count = ccustosRateio.value.length || 1
-  
+
   if (count === 0 || total === 0) return
-  
+
   const valorPorCentro = total / count
   let valorAcumulado = 0
-  
+
   ccustosRateio.value.forEach((r, index) => {
     // Para o último centro, ajustar para garantir que a soma seja exatamente o total
     if (index === count - 1) {
@@ -1009,7 +1005,7 @@ const distribuirIgualmente = () => {
       r.valor = valorPorCentro.toFixed(2)
       valorAcumulado += parseFloat(r.valor)
     }
-    
+
     // Calcular porcentagem
     r.porcentagem = ((parseFloat(r.valor) / total) * 100).toFixed(2)
   })
@@ -1018,15 +1014,15 @@ const distribuirIgualmente = () => {
 // Atualizar data quando caixa for selecionado
 const onCaixaChange = (idCaixa) => {
   console.log('Caixa selecionado:', idCaixa)
-  
+
   if (!idCaixa) {
     formData.dtlancamento = new Date().toISOString().split('T')[0]
     return
   }
-  
+
   const caixaSelecionado = caixasDisponiveis.value.find(c => c.id_caixa === idCaixa)
   console.log('Dados do caixa:', caixaSelecionado)
-  
+
   if (caixaSelecionado && caixaSelecionado.dt_abertura) {
     formData.dtlancamento = caixaSelecionado.dt_abertura
     console.log('Data de abertura atribuída:', formData.dtlancamento)
@@ -1038,16 +1034,16 @@ const carregarCaixas = async () => {
   loadingCaixas.value = true
   try {
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-    
+
     if (!idEmpresa) {
       console.warn('ID da empresa não encontrado')
       return
     }
-    
+
     console.log('Buscando caixas abertos para empresa:', idEmpresa)
     const dados = await caixaStore.buscarCaixasUsuarioAberto(idEmpresa)
     console.log('Caixas recebidos:', dados)
-    
+
     if (Array.isArray(dados) && dados.length > 0) {
       caixasDisponiveis.value = dados
       console.log('Caixas disponíveis atualizados:', caixasDisponiveis.value)
@@ -1080,7 +1076,7 @@ const carregarHistoricosCaixa = async () => {
   loadingHistCaixa.value = true
   try {
     const dados = await configStore.buscarHistoricoCaixa()
-    
+
     // Normalizar resposta
     let historicos = []
     if (dados && dados.data && Array.isArray(dados.data)) {
@@ -1090,7 +1086,7 @@ const carregarHistoricosCaixa = async () => {
     } else if (dados && typeof dados === 'object') {
       historicos = [dados]
     }
-    
+
     historicosCaixa.value = historicos
   } catch (error) {
     console.error('Erro ao carregar históricos de caixa:', error)
@@ -1104,7 +1100,7 @@ const carregarHistoricosContabil = async () => {
   loadingHistContabil.value = true
   try {
     const dados = await financeiroStore.buscarHistoricosContabil()
-    
+
     // Normalizar resposta
     let historicos = []
     if (dados && dados.data && Array.isArray(dados.data)) {
@@ -1114,7 +1110,7 @@ const carregarHistoricosContabil = async () => {
     } else if (dados && typeof dados === 'object') {
       historicos = [dados]
     }
-    
+
     historicosContabil.value = historicos
   } catch (error) {
     console.error('Erro ao carregar históricos contábeis:', error)
@@ -1155,7 +1151,7 @@ const carregarLancamentos = async () => {
   loading.value = true
   try {
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-    
+
     if (!idEmpresa) {
       console.warn('ID da empresa não encontrado')
       return
@@ -1168,27 +1164,27 @@ const carregarLancamentos = async () => {
       saldoAnterior.value = 0
       return
     }
-    
+
     console.log('Carregando lançamentos com filtros:', {
       idEmpresa,
       id_caixa: filtros.id_caixa,
       dataInicio: filtros.dataInicio,
       dataFim: filtros.dataFim
     })
-    
+
     const resultado = await caixaStore.buscarLancamentosCaixa(
-      idEmpresa, 
-      filtros.id_caixa, 
-      filtros.dataInicio, 
-      filtros.dataFim
+        idEmpresa,
+        filtros.id_caixa,
+        filtros.dataInicio,
+        filtros.dataFim
     )
-    
+
     console.log('Resultado da API:', resultado)
-    
+
     // A API retorna { saldoanterior, data, records }
     saldoAnterior.value = resultado.saldoanterior || 0
     lancamentos.value = Array.isArray(resultado.data) ? resultado.data : []
-    
+
     console.log('Lançamentos carregados:', lancamentos.value.length)
     console.log('Saldo anterior:', saldoAnterior.value)
   } catch (error) {
@@ -1210,7 +1206,7 @@ const salvarLancamento = async () => {
   loading.value = true
   try {
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-    
+
     if (!idEmpresa) {
       mostrarMensagem('ID da empresa não encontrado', 'error')
       loading.value = false
@@ -1225,12 +1221,12 @@ const salvarLancamento = async () => {
 
     // Montar array ccusto no formato solicitado: [{ id_ccusto, valor, perc_ccusto }]
     const ccustoArray = ccustosRateio.value
-      .filter(r => r.id_ccusto) // Só incluir linhas com centro selecionado
-      .map(r => ({
-        id_ccusto: r.id_ccusto,
-        valor: (parseFloat(r.valor) || 0).toFixed(2),
-        perc_ccusto: (parseFloat(r.porcentagem) || 0).toFixed(2)
-      }))
+        .filter(r => r.id_ccusto) // Só incluir linhas com centro selecionado
+        .map(r => ({
+          id_ccusto: r.id_ccusto,
+          valor: (parseFloat(r.valor) || 0).toFixed(2),
+          perc_ccusto: (parseFloat(r.porcentagem) || 0).toFixed(2)
+        }))
 
     // Validar soma do rateio (se houver rateios) contra o valor do lançamento
     if (ccustoArray.length > 0) {
@@ -1272,7 +1268,7 @@ const salvarLancamento = async () => {
       await caixaStore.criarLancamentoCaixa(idEmpresa, formData.id_caixa, payload)
       mostrarMensagem('Lançamento cadastrado com sucesso!', 'success')
     }
-    
+
     cancelarFormulario()
     await carregarLancamentos()
   } catch (error) {
@@ -1298,35 +1294,35 @@ const editarLancamento = async (item) => {
   try {
     loading.value = true
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-    
+
     if (!idEmpresa) {
       mostrarMensagem('ID da empresa não encontrado', 'error')
       return
     }
 
     console.log('Buscando lançamento completo:', item.id, item.id_caixa)
-    
+
     // Buscar dados completos do lançamento da API
     const response = await caixaStore.buscarLancamentoCaixa(idEmpresa, item.id_caixa, item.id)
-    
+
     console.log('Resposta completa da API:', response)
-    
+
     // A API retorna { data: [...], contabil: [...], ccusto: [...] }
     const dados = Array.isArray(response?.data) ? response.data[0] : response?.data || item
     const contabil = response?.contabil || []
     const ccusto = response?.ccusto || []
-    
+
     console.log('Dados do lançamento:', dados)
     console.log('Dados contábeis:', contabil)
     console.log('Rateio de centro de custo:', ccusto)
-    
+
     editando.value = true
     formularioAberto.value = true
-    
+
     // Buscar id_planoconta e id_hist_contabil do array contabil
     const contabilPrincipal = contabil.find(c => c.id_planoconta) || {}
     const contabilHistorico = contabil.find(c => c.id_historico_ctb) || {}
-    
+
     Object.assign(formData, {
       id: dados.id,
       id_caixa: dados.id_caixa,
@@ -1348,21 +1344,21 @@ const editarLancamento = async (item) => {
     // Se for saída, verificar rateio de centro de custo
     if (formData.tipo === '-') {
       await verificarUtilizaCCusto()
-      
+
       // Se houver rateio no lançamento, carregar
       if (Array.isArray(ccusto) && ccusto.length > 0) {
         console.log('Carregando rateio existente:', ccusto)
-        
+
         // Calcular porcentagem baseado no valor total
         const valorTotal = parseFloat(dados.valor || 0)
-        
+
         ccustosRateio.value = ccusto.map(c => ({
           id_ccusto: c.id_ccusto,
           desccentrocusto: c.desccentrocusto || '',
           valor: parseFloat(c.valor || 0),
           porcentagem: valorTotal > 0 ? ((parseFloat(c.valor || 0) / valorTotal) * 100).toFixed(2) : 0
         }))
-        
+
         console.log('Rateio carregado:', ccustosRateio.value)
       }
     }
@@ -1391,9 +1387,9 @@ const excluirLancamento = async (item) => {
   loading.value = true
   try {
     const idParaExcluir = item?.id || formData.id
-    
+
     console.log('Excluindo lançamento por ID:', idParaExcluir)
-    
+
     if (!idParaExcluir) {
       console.error('ID do lançamento não encontrado:', item)
       mostrarMensagem('ID do lançamento não encontrado', 'error')
@@ -1402,7 +1398,7 @@ const excluirLancamento = async (item) => {
     }
 
     await caixaStore.deletarLancamentoCaixaPorId(idParaExcluir)
-    
+
     mostrarMensagem('Lançamento excluído com sucesso!', 'success')
     cancelarFormulario()
     await carregarLancamentos()
@@ -1668,24 +1664,24 @@ onMounted(async () => {
     carregarPlanosConta(),
     carregarTiposPagRec()
   ])
-  
+
   // Carregar lançamentos após carregar os caixas
   console.log('Filtros após carregamento:', filtros)
   console.log('Caixas disponíveis:', caixasDisponiveis.value)
-  
+
   // Se há caixas disponíveis e nenhum está selecionado, selecionar o primeiro
   if (caixasDisponiveis.value.length > 0 && !filtros.id_caixa) {
     filtros.id_caixa = caixasDisponiveis.value[0].id_caixa
     console.log('Caixa selecionado automaticamente:', filtros.id_caixa)
   }
-  
+
   // Também definir o caixa no formulário e sua data de abertura
   if (caixasDisponiveis.value.length > 0 && !formData.id_caixa) {
     formData.id_caixa = caixasDisponiveis.value[0].id_caixa
     formData.dtlancamento = caixasDisponiveis.value[0].dt_abertura
     console.log('Caixa e data iniciais:', formData.id_caixa, formData.dtlancamento)
   }
-  
+
   await carregarLancamentos()
   console.log('✅ Carregamento inicial completo')
 })

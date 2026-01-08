@@ -1,570 +1,557 @@
 <template>
-  <div class="pa-4">
-    <!-- Cabeçalho -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-bank-outline" class="mr-3"></v-icon>
-          Contas Corrente
-        </div>
-      </v-card-title>
-    </v-card>
+  <top-all-pages icon="mdi-bank-outline">
+    <template #titulo>Contas Corrente</template>
+    <template #section>
+      <!-- Lista de Contas -->
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card-text class="pa-4">
+          <BotaoExpandTransition
+              :formulario-aberto="formularioAberto"
+              texto-abrir="Nova Conta"
+              texto-fechar="Cancelar"
+              @toggle="toggleFormulario"
+          />
 
-    <!-- Lista de Contas -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
-      <v-card-text class="pa-4">
-        <BotaoExpandTransition
-          :formulario-aberto="formularioAberto"
-          texto-abrir="Nova Conta"
-          texto-fechar="Cancelar"
-          @toggle="toggleFormulario"
-        />
-        
-        <!-- Formulário Expansível -->
-        <v-expand-transition>
-          <div v-if="formularioAberto">
-            <v-card class="background-card mb-7" elevation="2">
-              <v-card-title class="text-h6 pa-4">
-                <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-                {{ editando ? 'Editar Conta' : 'Nova Conta' }}
-              </v-card-title>
-              
-              <v-card-text class="pa-4">
-                <v-form ref="formRef" v-model="formValido">
-                  <v-row>
-                    <!-- Número da Conta (Obrigatório) -->
-                    <v-col cols="12" md="8">
-                      <v-text-field
-                        v-model="formData.numero_ccorrente"
-                        label="Número da Conta *"
-                        :rules="[rules.required, rules.number]"
-                        type="number"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-credit-card-outline"
-                      ></v-text-field>
-                    </v-col>
+          <!-- Formulário Expansível -->
+          <v-expand-transition>
+            <div v-if="formularioAberto">
+              <v-card class="background-card mb-7" elevation="2">
+                <v-card-title class="text-h6 pa-4">
+                  <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
+                  {{ editando ? 'Editar Conta' : 'Nova Conta' }}
+                </v-card-title>
 
-                    <!-- Dígito CC (Obrigatório) -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        v-model="formData.digito_cc"
-                        label="Dígito *"
-                        :rules="[rules.required]"
-                        maxlength="1"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-numeric"
-                      ></v-text-field>
-                    </v-col>
+                <v-card-text class="pa-4">
+                  <v-form ref="formRef" v-model="formValido">
+                    <v-row dense>
+                      <!-- Número da Conta (Obrigatório) -->
+                      <v-col cols="12" md="8">
+                        <v-text-field
+                            v-model="formData.numero_ccorrente"
+                            label="Número da Conta *"
+                            :rules="[rules.required, rules.number]"
+                            type="number"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-credit-card-outline"
+                        ></v-text-field>
+                      </v-col>
 
-                    <!-- Titular (Obrigatório) -->
-                    <v-col cols="12" md="12">
-                      <v-text-field
-                        v-model="formData.titular"
-                        label="Titular *"
-                        :rules="[rules.required]"
-                        maxlength="60"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-account"
-                      ></v-text-field>
-                    </v-col>
+                      <!-- Dígito CC (Obrigatório) -->
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            v-model="formData.digito_cc"
+                            label="Dígito *"
+                            :rules="[rules.required]"
+                            maxlength="1"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-numeric"
+                        ></v-text-field>
+                      </v-col>
 
-                    <!-- Banco (Obrigatório) -->
-                    <v-col cols="12" md="6">
-                      <v-autocomplete
-                        v-model="bancoSelecionado"
-                        :items="financeiroStore.bancos"
-                        item-title="descbanco"
-                        item-value="id"
-                        label="Banco *"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-bank"
-                        :loading="financeiroStore.loading"
-                        hide-no-data
-                      >
-                        <template v-slot:no-data>
-                          <v-list-item>
-                            <v-list-item-title>Nenhum banco encontrado</v-list-item-title>
-                          </v-list-item>
-                        </template>
-                      </v-autocomplete>
-                    </v-col>
+                      <!-- Titular (Obrigatório) -->
+                      <v-col cols="12" md="12">
+                        <v-text-field
+                            v-model="formData.titular"
+                            label="Titular *"
+                            :rules="[rules.required]"
+                            maxlength="60"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-account"
+                        ></v-text-field>
+                      </v-col>
 
-                                    <v-col cols="12" md="6" class="d-flex align-center">
-                                      <v-combobox
-                                        ref="agenciaRef"
-                                        v-model="formData.id_agencia"
-                                        :items="agenciasFiltradas"
-                                        item-title="DISPLAY_NAME"
-                                        item-value="ID"
-                                        label="Agência *"
-                                        :rules="[rules.required]"
-                                        variant="outlined"
-                                        density="compact"
-                                        class="custom-text-field flex-grow-1"
-                                        prepend-inner-icon="mdi-bank-transfer"
-                                        :loading="financeiroStore.loading"
-                                        :disabled="!formData.id_banco"
-                                        @update:model-value="onAgenciaChange"
-                                      >
-                                        <template #append>
-                                          <v-btn icon variant="text" @click="abrirModalAgencia" title="Cadastrar agência">
-                                            <v-icon icon="mdi-magnify" />
-                                          </v-btn>
-                                        </template>
-                                        <template v-slot:no-data>
-                                          <v-list-item>
-                                            <v-list-item-title>Nenhuma agência encontrada</v-list-item-title>
-                                          </v-list-item>
-                                        </template>
-                                      </v-combobox>
-                                    </v-col>
+                      <!-- Banco (Obrigatório) -->
+                      <v-col cols="12" md="6">
+                        <v-autocomplete
+                            v-model="bancoSelecionado"
+                            :items="financeiroStore.bancos"
+                            item-title="descbanco"
+                            item-value="id"
+                            label="Banco *"
+                            :rules="[rules.required]"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-bank"
+                            :loading="financeiroStore.loading"
+                            hide-no-data
+                        >
+                          <template v-slot:no-data>
+                            <v-list-item>
+                              <v-list-item-title>Nenhum banco encontrado</v-list-item-title>
+                            </v-list-item>
+                          </template>
+                        </v-autocomplete>
+                      </v-col>
 
-                    <!-- Plano de Conta (Obrigatório) -->
-                    <v-col cols="12" md="12">
-                      <v-autocomplete
-                        v-model="formData.id_reduzido_ctb"
-                        :items="financeiroStore.planosConta"
-                        item-title="descconta"
-                        item-value="id"
-                        label="Plano de Conta *"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-file-tree"
-                        :loading="loadingPlanosConta"
-                        hide-no-data
-                      >
-                        <template v-slot:item="{ props, item }">
-                          <v-list-item v-bind="props">
-                            <template v-slot:prepend>
-                              <v-icon icon="mdi-file-tree" size="20" class="mr-2"></v-icon>
-                            </template>
-                            <template v-slot:title>
-                              {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
-                            </template>
-                            <template v-slot:subtitle>
+                      <v-col cols="12" md="6" class="d-flex align-center">
+                        <v-text-field
+                            ref="agenciaRef"
+                            v-model="descagencia"
+                            label="Agência *"
+                            :rules="[rules.required]"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field flex-grow-1"
+                            prepend-inner-icon="mdi-bank-transfer"
+                            :loading="financeiroStore.loading"
+                            :disabled="!formData.id_banco"
+                        >
+                          <template #append-inner>
+                            <agenciacc-menu
+                                :id-banco="formData.id_banco"
+                                @selecionar="selecionarAgencia"
+                            />
+                          </template>
+                        </v-text-field>
+                      </v-col>
+
+                      <!-- Plano de Conta (Obrigatório) -->
+                      <v-col cols="12" md="12">
+                        <v-autocomplete
+                            v-model="formData.id_reduzido_ctb"
+                            :items="financeiroStore.planosConta"
+                            item-title="descconta"
+                            item-value="id"
+                            label="Plano de Conta *"
+                            :rules="[rules.required]"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-file-tree"
+                            :loading="loadingPlanosConta"
+                            hide-no-data
+                        >
+                          <template v-slot:item="{ props, item }">
+                            <v-list-item v-bind="props">
+                              <template v-slot:prepend>
+                                <v-icon icon="mdi-file-tree" size="20" class="mr-2"></v-icon>
+                              </template>
+                              <template v-slot:title>
+                                {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
+                              </template>
+                              <template v-slot:subtitle>
                               <span class="text-caption opacity-70">
                                 Tipo: {{ item.raw.tipo_conta }} | Natureza: {{ item.raw.natureza }} | Nível: {{ item.raw.nivel }}
                               </span>
-                            </template>
-                          </v-list-item>
-                        </template>
-                        <template v-slot:selection="{ item }">
-                          {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
-                        </template>
-                        <template v-slot:no-data>
-                          <v-list-item>
-                            <v-list-item-title>Nenhum plano de conta encontrado</v-list-item-title>
-                          </v-list-item>
-                        </template>
-                      </v-autocomplete>
-                    </v-col>
+                              </template>
+                            </v-list-item>
+                          </template>
+                          <template v-slot:selection="{ item }">
+                            {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
+                          </template>
+                          <template v-slot:no-data>
+                            <v-list-item>
+                              <v-list-item-title>Nenhum plano de conta encontrado</v-list-item-title>
+                            </v-list-item>
+                          </template>
+                        </v-autocomplete>
+                      </v-col>
 
-                    <!-- Limite (Obrigatório) -->
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="formData.limite"
-                        label="Limite *"
-                        :rules="[rules.required, rules.decimal]"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        variant="outlined"
-                        density="compact"
-                        prefix="R$"
-                        :theme="themeStore.darkMode ? 'dark' : 'light'"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-cash"
-                      ></v-text-field>
-                    </v-col>
+                      <!-- Limite (Obrigatório) -->
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                            v-model="formData.limite"
+                            label="Limite *"
+                            :rules="[rules.required, rules.decimal]"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            variant="outlined"
+                            density="compact"
+                            prefix="R$"
+                            :theme="themeStore.darkMode ? 'dark' : 'light'"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-cash"
+                        ></v-text-field>
+                      </v-col>
 
-                    <!-- Data Abertura (Obrigatório) -->
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="formData.dtabertura"
-                        label="Data Abertura *"
-                        :rules="[rules.required]"
-                        type="date"
-                        variant="outlined"
-                        density="compact"
-                        :theme="themeStore.darkMode ? 'dark' : 'light'"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-calendar-plus"
-                      ></v-text-field>
-                    </v-col>
+                      <!-- Data Abertura (Obrigatório) -->
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                            v-model="formData.dtabertura"
+                            label="Data Abertura *"
+                            :rules="[rules.required]"
+                            type="date"
+                            variant="outlined"
+                            density="compact"
+                            :theme="themeStore.darkMode ? 'dark' : 'light'"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-calendar-plus"
+                        ></v-text-field>
+                      </v-col>
 
-                    <!-- Data Vencimento do Limite (Opcional) -->
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="formData.dtvenctolimite"
-                        label="Data Vencimento do Limite"
-                        type="date"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        :theme="themeStore.darkMode ? 'dark' : 'light'"
-                        prepend-inner-icon="mdi-calendar-clock"
-                      ></v-text-field>
-                    </v-col>
+                      <!-- Data Vencimento do Limite (Opcional) -->
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                            v-model="formData.dtvenctolimite"
+                            label="Data Vencimento do Limite"
+                            type="date"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            :theme="themeStore.darkMode ? 'dark' : 'light'"
+                            prepend-inner-icon="mdi-calendar-clock"
+                        ></v-text-field>
+                      </v-col>
 
-                    <!-- Gerente (Opcional) -->
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="formData.gerente"
-                        label="Gerente"
-                        maxlength="60"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-account-tie"
-                      ></v-text-field>
-                    </v-col>
+                      <!-- Gerente (Opcional) -->
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                            v-model="formData.gerente"
+                            label="Gerente"
+                            maxlength="60"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-account-tie"
+                        ></v-text-field>
+                      </v-col>
 
-                    <!-- Telefone (Opcional) -->
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="formData.telefone"
-                        label="Telefone"
-                        maxlength="15"
-                        variant="outlined"
-                        density="compact"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-phone"
-                        v-mask-phone.br
-                      ></v-text-field>
-                    </v-col>
-                  </v-row>
-                </v-form>
-              </v-card-text>
+                      <!-- Telefone (Opcional) -->
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                            v-model="formData.telefone"
+                            label="Telefone"
+                            maxlength="15"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-phone"
+                            v-mask-phone.br
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-form>
+                </v-card-text>
 
-              <v-card-actions class="pa-4">
-                <v-spacer></v-spacer>
-                <v-btn
-                  color="grey"
-                  variant="text"
-                  @click="cancelarFormulario"
-                >
-                  Cancelar
-                </v-btn>
-                <v-btn
-                  color="var(--text-color-laranja)"
-                  :loading="financeiroStore.loading"
-                  :disabled="!formValido"
-                  @click="salvarConta"
-                  variant="flat"
-                  class="text-white"
-                >
-                  {{ editando ? 'Atualizar' : 'Salvar' }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </div>
-        </v-expand-transition>
-        
-        <!-- Tabela de Contas -->
-        <TabelaPadrao
-          :formulario-aberto="formularioAberto"
-          :headers="headers"
-          :items="financeiroStore.contas"
-          :loading="financeiroStore.loading"
-          :search="financeiroStore.search"
-          @update:search="(value) => financeiroStore.search = value"
-          search-label="Pesquisar Conta"
-          item-key="id"
-          no-data-icon="mdi-bank-off"
-          no-data-text="Nenhuma conta cadastrada"
-          :show-custom-action="true"
-          custom-action-icon="mdi-account-multiple"
-          custom-action-title="Gerenciar Usuários"
-          :custom-action-loading="loadingUsuarios"
-          delete-dialog-message="Esta ação não pode ser desfeita."
-          delete-item-display-field="titular"
-          @edit-item="editarConta"
-          @custom-action="abrirModalUsuarios"
-          @confirm-delete="excluirConta"
-        >
-          <!-- Slots para formatação customizada -->
-          <template v-slot:[`item.descbanco`]="{ item }">
-            {{ item.descbanco || getBancoNome(item.id_banco) }}
-          </template>
-          
-          <template v-slot:[`item.limite`]="{ item }">
-            {{ formatarMoeda(item.limite) }}
-          </template>
-          
-          <template v-slot:[`item.dtvenctolimite`]="{ item }">
-            {{ item.dtvenctolimite ? formatarData(item.dtvenctolimite) : '-' }}
-          </template>
-          
-          <template v-slot:[`item.dhinc`]="{ item }">
-            {{ item.dhinc ? formatarDataHora(item.dhinc) : '-' }}
-          </template>
-        </TabelaPadrao>
-      </v-card-text>
-    </v-card>
+                <v-card-actions class="pa-4">
+                  <v-spacer></v-spacer>
+                  <v-btn
+                      color="grey"
+                      variant="text"
+                      @click="cancelarFormulario"
+                  >
+                    Cancelar
+                  </v-btn>
+                  <v-btn
+                      color="var(--text-color-laranja)"
+                      :loading="financeiroStore.loading"
+                      :disabled="!formValido"
+                      @click="salvarConta"
+                      variant="flat"
+                      class="text-white"
+                  >
+                    {{ editando ? 'Atualizar' : 'Salvar' }}
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </div>
+          </v-expand-transition>
 
+          <!-- Tabela de Contas -->
+          <TabelaPadrao
+              :formulario-aberto="formularioAberto"
+              :headers="headers"
+              :items="financeiroStore.contas"
+              :loading="financeiroStore.loading"
+              :search="financeiroStore.search"
+              @update:search="(value) => financeiroStore.search = value"
+              search-label="Pesquisar Conta"
+              item-key="id"
+              no-data-icon="mdi-bank-off"
+              no-data-text="Nenhuma conta cadastrada"
+              :show-custom-action="true"
+              custom-action-icon="mdi-account-multiple"
+              custom-action-title="Gerenciar Usuários"
+              :custom-action-loading="loadingUsuarios"
+              delete-dialog-message="Esta ação não pode ser desfeita."
+              delete-item-display-field="titular"
+              @edit-item="editarConta"
+              @custom-action="abrirModalUsuarios"
+              @confirm-delete="excluirConta"
+          >
+            <!-- Slots para formatação customizada -->
+            <template v-slot:[`item.descbanco`]="{ item }">
+              {{ item.descbanco || getBancoNome(item.id_banco) }}
+            </template>
 
+            <template v-slot:[`item.limite`]="{ item }">
+              {{ formatarMoeda(item.limite) }}
+            </template>
 
-    <!-- Modal para cadastrar agência -->
-    <v-dialog v-model="openAgenciaModal" persistent max-width="600px">
-      <v-card class="background-secondary">
-        <v-card-title class="text-h6 pa-4">
-          Cadastrar Agência
-        </v-card-title>
-        
-        <v-card-text class="pa-4">
-          <v-form>
-            <v-row>
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="agenciaForm.id"
-                  label="Número da Agência *"
-                  type="text"
-                  variant="outlined"
-                  density="compact"
-                  :theme="themeStore.darkMode ? 'dark' : 'light'"
-                  class="custom-text-field"
-                ></v-text-field>
-              </v-col>
+            <template v-slot:[`item.dtvenctolimite`]="{ item }">
+              {{ item.dtvenctolimite ? formatarData(item.dtvenctolimite) : '-' }}
+            </template>
 
-              <v-col cols="12" md="2">
-                <v-text-field
-                  v-model="agenciaForm.digito_ag"
-                  label="Dígito"
-                  maxlength="1"
-                  variant="outlined"
-                  density="compact"
-                  :theme="themeStore.darkMode ? 'dark' : 'light'"
-                  class="custom-text-field"
-                ></v-text-field>
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="agenciaForm.descagencia"
-                  label="Descrição *"
-                  variant="outlined"
-                  density="compact"
-                  :theme="themeStore.darkMode ? 'dark' : 'light'"
-                  class="custom-text-field"
-                ></v-text-field>
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-select
-                  v-model="agenciaForm.id_uf"
-                  :items="financeiroStore.ufs || []"
-                  item-title="SIGLA"
-                  item-value="SIGLA"
-                  label="UF"
-                  variant="outlined"
-                  density="compact"
-                  :theme="themeStore.darkMode ? 'dark' : 'light'"
-                  class="custom-text-field"
-                ></v-select>
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="agenciaForm.contato"
-                  label="Contato"
-                  variant="outlined"
-                  density="compact"
-                  :theme="themeStore.darkMode ? 'dark' : 'light'"
-                  class="custom-text-field"
-                ></v-text-field>
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="agenciaForm.telefone"
-                  label="Telefone"
-                  variant="outlined"
-                  density="compact"
-                  :theme="themeStore.darkMode ? 'dark' : 'light'"
-                  class="custom-text-field"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-          </v-form>
+            <template v-slot:[`item.dhinc`]="{ item }">
+              {{ item.dhinc ? formatarDataHora(item.dhinc) : '-' }}
+            </template>
+          </TabelaPadrao>
         </v-card-text>
-        
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn color="grey" variant="text" @click="fecharModalAgencia">
-            Cancelar
-          </v-btn>
-          <v-btn 
-            color="var(--text-color-laranja)" 
-            :loading="financeiroStore.loading" 
-            @click="salvarAgencia" 
-            variant="flat" 
-            class="text-white"
-          >
-            Salvar
-          </v-btn>
-        </v-card-actions>
       </v-card>
-    </v-dialog>
 
 
-    <!-- Modal de Gerenciamento de Usuários -->
-    <v-dialog v-model="openUsuariosModal" persistent max-width="900px">
-      <v-card class="background-secondary">
-        <v-card-title class="text-h6 pa-4 d-flex justify-space-between align-center">
-          <div class="d-flex align-center">
-            <v-icon icon="mdi-account-multiple" class="mr-3"></v-icon>
-            Gerenciar Usuários - Conta {{ contaParaUsuarios?.numero_ccorrente || contaParaUsuarios?.id || contaParaUsuarios?.ID }}
-          </div>
-          <v-btn
-            icon="mdi-close"
-            variant="text"
-            size="small"
-            @click="openUsuariosModal = false"
-          ></v-btn>
-        </v-card-title>
 
-        <v-divider></v-divider>
+      <!-- Modal para cadastrar agência -->
+      <v-dialog v-model="openAgenciaModal" persistent max-width="600px">
+        <v-card class="background-secondary">
+          <v-card-title class="text-h6 pa-4">
+            Cadastrar Agência
+          </v-card-title>
 
-        <v-card-text class="pa-4">
-          <!-- Loading interno enquanto carrega dados -->
-          <div v-if="loadingUsuarios" class="text-center pa-8">
-            <v-progress-circular
-              indeterminate
-              color="var(--text-color-laranja)"
-              size="48"
-              class="mb-4"
-            ></v-progress-circular>
-            <p class="text-body-1">Carregando usuários...</p>
-          </div>
+          <v-card-text class="pa-4">
+            <v-form>
+              <v-row>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                      v-model="agenciaForm.id"
+                      label="Número da Agência *"
+                      type="text"
+                      variant="outlined"
+                      density="compact"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                      class="custom-text-field"
+                  ></v-text-field>
+                </v-col>
 
-          <!-- Tabela de usuários -->
-          <div v-else>
-            <v-alert
-              v-if="usuariosList.length === 0"
-              type="info"
-              variant="tonal"
-              class="mb-4"
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      v-model="agenciaForm.digito_ag"
+                      label="Dígito"
+                      maxlength="1"
+                      variant="outlined"
+                      density="compact"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                      class="custom-text-field"
+                  ></v-text-field>
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-text-field
+                      v-model="agenciaForm.descagencia"
+                      label="Descrição *"
+                      variant="outlined"
+                      density="compact"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                      class="custom-text-field"
+                  ></v-text-field>
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-select
+                      v-model="agenciaForm.id_uf"
+                      :items="financeiroStore.ufs || []"
+                      item-title="SIGLA"
+                      item-value="SIGLA"
+                      label="UF"
+                      variant="outlined"
+                      density="compact"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                      class="custom-text-field"
+                  ></v-select>
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-text-field
+                      v-model="agenciaForm.contato"
+                      label="Contato"
+                      variant="outlined"
+                      density="compact"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                      class="custom-text-field"
+                  ></v-text-field>
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-text-field
+                      v-model="agenciaForm.telefone"
+                      label="Telefone"
+                      variant="outlined"
+                      density="compact"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                      class="custom-text-field"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+            </v-form>
+          </v-card-text>
+
+          <v-card-actions class="pa-4">
+            <v-spacer></v-spacer>
+            <v-btn color="grey" variant="text" @click="fecharModalAgencia">
+              Cancelar
+            </v-btn>
+            <v-btn
+                color="var(--text-color-laranja)"
+                :loading="financeiroStore.loading"
+                @click="salvarAgencia"
+                variant="flat"
+                class="text-white"
             >
-              <template v-slot:prepend>
-                <v-icon icon="mdi-information"></v-icon>
-              </template>
-              Nenhum usuário vinculado a esta conta encontrado.
-            </v-alert>
+              Salvar
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
 
-            <v-data-table
-              v-else
-              :headers="headersUsuarios"
-              :items="usuariosList"
-              item-key="ID"
-              class="elevation-1 background-secondary"
-              :theme="themeStore.darkMode ? 'dark' : 'light'"
-            >
-              <template v-slot:[`item.nome`]="{ item }">
-                <div class="d-flex align-center">
-                  <v-avatar size="32" class="mr-3" :color="themeStore.darkMode ? 'grey-darken-3' : 'grey-lighten-2'">
-                    <v-icon icon="mdi-account" :color="themeStore.darkMode ? 'grey-lighten-1' : 'grey-darken-2'"></v-icon>
-                  </v-avatar>
-                  <span>{{ item.nome || `Usuário ${item.ID}` }}</span>
-                </div>
-              </template>
-              
-              <template v-slot:[`item.email`]="{ item }">
-                <div class="d-flex align-center">
-                  <v-icon icon="mdi-email" size="16" class="mr-2 opacity-60"></v-icon>
-                  {{ item.email || '-' }}
-                </div>
-              </template>
-              
-              <template v-slot:[`item.ativo`]="{ item }">
-                <v-chip 
-                  size="small" 
-                  :color="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'success' : 'default'" 
-                  :variant="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'flat' : 'outlined'"
-                >
-                  <v-icon 
-                    :icon="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'mdi-check-circle' : 'mdi-close-circle'" 
-                    size="16" 
-                    class="mr-1"
-                  ></v-icon>
-                  {{ (item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'Ativo' : 'Inativo' }}
-                </v-chip>
-              </template>
-              
-              <template v-slot:[`item.permissao`]="{ item }">
-                <v-checkbox
-                  v-model="userAccessMap[String(item.ID)]"
-                  density="compact"
-                  hide-details
+
+      <!-- Modal de Gerenciamento de Usuários -->
+      <v-dialog v-model="openUsuariosModal" persistent max-width="900px">
+        <v-card class="background-secondary">
+          <v-card-title class="text-h6 pa-4 d-flex justify-space-between align-center">
+            <div class="d-flex align-center">
+              <v-icon icon="mdi-account-multiple" class="mr-3"></v-icon>
+              Gerenciar Usuários - Conta {{ contaParaUsuarios?.numero_ccorrente || contaParaUsuarios?.id || contaParaUsuarios?.ID }}
+            </div>
+            <v-btn
+                icon="mdi-close"
+                variant="text"
+                size="small"
+                @click="openUsuariosModal = false"
+            ></v-btn>
+          </v-card-title>
+
+          <v-divider></v-divider>
+
+          <v-card-text class="pa-4">
+            <!-- Loading interno enquanto carrega dados -->
+            <div v-if="loadingUsuarios" class="text-center pa-8">
+              <v-progress-circular
+                  indeterminate
                   color="var(--text-color-laranja)"
+                  size="48"
+                  class="mb-4"
+              ></v-progress-circular>
+              <p class="text-body-1">Carregando usuários...</p>
+            </div>
+
+            <!-- Tabela de usuários -->
+            <div v-else>
+              <v-alert
+                  v-if="usuariosList.length === 0"
+                  type="info"
+                  variant="tonal"
+                  class="mb-4"
+              >
+                <template v-slot:prepend>
+                  <v-icon icon="mdi-information"></v-icon>
+                </template>
+                Nenhum usuário vinculado a esta conta encontrado.
+              </v-alert>
+
+              <v-data-table
+                  v-else
+                  :headers="headersUsuarios"
+                  :items="usuariosList"
+                  item-key="ID"
+                  class="elevation-1 background-secondary"
                   :theme="themeStore.darkMode ? 'dark' : 'light'"
-                ></v-checkbox>
-              </template>
-              
-              <template v-slot:no-data>
-                <div class="pa-8 text-center">
-                  <v-icon icon="mdi-account-off" size="64" class="mb-4 opacity-60" :color="themeStore.darkMode ? '#fff' : '#666'"></v-icon>
-                  <p class="text-body-1 mb-2">Nenhum usuário disponível</p>
-                  <p class="text-body-2 opacity-60">Não há usuários vinculados a esta conta.</p>
-                </div>
-              </template>
-            </v-data-table>
-          </div>
-        </v-card-text>
+              >
+                <template v-slot:[`item.nome`]="{ item }">
+                  <div class="d-flex align-center">
+                    <v-avatar size="32" class="mr-3" :color="themeStore.darkMode ? 'grey-darken-3' : 'grey-lighten-2'">
+                      <v-icon icon="mdi-account" :color="themeStore.darkMode ? 'grey-lighten-1' : 'grey-darken-2'"></v-icon>
+                    </v-avatar>
+                    <span>{{ item.nome || `Usuário ${item.ID}` }}</span>
+                  </div>
+                </template>
 
-        <v-divider></v-divider>
+                <template v-slot:[`item.email`]="{ item }">
+                  <div class="d-flex align-center">
+                    <v-icon icon="mdi-email" size="16" class="mr-2 opacity-60"></v-icon>
+                    {{ item.email || '-' }}
+                  </div>
+                </template>
 
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn 
-            color="grey" 
-            variant="text" 
-            @click="openUsuariosModal = false"
-            :disabled="loadingUsuarios"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn 
-            color="var(--text-color-laranja)" 
-            :loading="financeiroStore.loading" 
-            :disabled="loadingUsuarios || usuariosList.length === 0"
-            @click="salvarUsuariosAcesso" 
-            variant="flat" 
-            class="text-white"
-          >
-            <v-icon icon="mdi-content-save" class="mr-2"></v-icon>
-            Salvar Permissões
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+                <template v-slot:[`item.ativo`]="{ item }">
+                  <v-chip
+                      size="small"
+                      :color="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'success' : 'default'"
+                      :variant="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'flat' : 'outlined'"
+                  >
+                    <v-icon
+                        :icon="(item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'mdi-check-circle' : 'mdi-close-circle'"
+                        size="16"
+                        class="mr-1"
+                    ></v-icon>
+                    {{ (item.ativo === 'S' || item.ativo === 's' || item.ativo === true) ? 'Ativo' : 'Inativo' }}
+                  </v-chip>
+                </template>
 
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      :timeout="3000"
-    >
-      {{ snackbar.message }}
-    </v-snackbar>
-  </div>
+                <template v-slot:[`item.permissao`]="{ item }">
+                  <v-checkbox
+                      v-model="userAccessMap[String(item.ID)]"
+                      density="compact"
+                      hide-details
+                      color="var(--text-color-laranja)"
+                      :theme="themeStore.darkMode ? 'dark' : 'light'"
+                  ></v-checkbox>
+                </template>
+
+                <template v-slot:no-data>
+                  <div class="pa-8 text-center">
+                    <v-icon icon="mdi-account-off" size="64" class="mb-4 opacity-60" :color="themeStore.darkMode ? '#fff' : '#666'"></v-icon>
+                    <p class="text-body-1 mb-2">Nenhum usuário disponível</p>
+                    <p class="text-body-2 opacity-60">Não há usuários vinculados a esta conta.</p>
+                  </div>
+                </template>
+              </v-data-table>
+            </div>
+          </v-card-text>
+
+          <v-divider></v-divider>
+
+          <v-card-actions class="pa-4">
+            <v-spacer></v-spacer>
+            <v-btn
+                color="grey"
+                variant="text"
+                @click="openUsuariosModal = false"
+                :disabled="loadingUsuarios"
+            >
+              Cancelar
+            </v-btn>
+            <v-btn
+                color="var(--text-color-laranja)"
+                :loading="financeiroStore.loading"
+                :disabled="loadingUsuarios || usuariosList.length === 0"
+                @click="salvarUsuariosAcesso"
+                variant="flat"
+                class="text-white"
+            >
+              <v-icon icon="mdi-content-save" class="mr-2"></v-icon>
+              Salvar Permissões
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+      <v-snackbar
+          v-model="snackbar.show"
+          :color="snackbar.color"
+          :timeout="3000"
+      >
+        {{ snackbar.message }}
+      </v-snackbar>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, nextTick, watch } from 'vue'
+import { ref, reactive, onMounted, nextTick, watch } from 'vue'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+import AgenciaccMenu from "@/components/base/menu/financeiro/AgenciaccMenu.vue";
 // BuscaPadraoMenu removed for agency inline autocomplete; keep modal for cadastrar
 
 const themeStore = useThemeStore();
@@ -648,28 +635,6 @@ const rules = {
   decimal: (value) => /^\d+(\.\d{1,2})?$/.test(value) || 'Deve ser um valor decimal válido',
 }
 
-// Computed: agencias filtradas pelo banco selecionado
-const agenciasFiltradas = computed(() => {
-  if (!formData.id_banco || !financeiroStore) return []
-  
-  const list = Array.isArray(financeiroStore.agencias) ? financeiroStore.agencias : []
-  return list
-    .filter(a => {
-      if (!a) return false
-      const bankId = a.ID_BANCO ?? a.id_banco ?? a.IDBANCO ?? a.idBanco ?? a.ID
-      return String(bankId) === String(formData.id_banco)
-    })
-    .map(a => {
-      const id = a.ID ?? a.id ?? a.id_agencia ?? a.ID_AGENCIA ?? ''
-      const desc = a.DESCAGENCIA ?? a.descagencia ?? a.DESCRICAO ?? a.descricao ?? ''
-      const dig = a.DIGITO_AG ?? a.digito_ag ?? a.digito ?? ''
-      const display = desc ? `${desc} — ${id}${dig ? '-' + dig : ''}` : `${id}${dig ? '-' + dig : ''}`
-      return { ...a, DISPLAY_NAME: display, ID: id }
-    })
-})
-
-
-
 // Métodos
 const toggleFormulario = () => {
   if (formularioAberto.value) {
@@ -711,22 +676,6 @@ const onBancoChange = async (val) => {
 watch(bancoSelecionado, (val) => {
   onBancoChange(val)
 })
-
-const onAgenciaChange = (val) => {
-  formData.id_agencia = val
-}
-
-const abrirModalAgencia = () => {
-  // preenche o banco selecionado caso exista
-  agenciaForm.id_banco = formData.id_banco || ''
-  agenciaForm.id = ''
-  agenciaForm.digito_ag = ''
-  agenciaForm.descagencia = ''
-  agenciaForm.id_uf = ''
-  agenciaForm.contato = ''
-  agenciaForm.telefone = ''
-  openAgenciaModal.value = true
-}
 
 const fecharModalAgencia = () => {
   openAgenciaModal.value = false
@@ -855,6 +804,13 @@ const salvarAgencia = async () => {
   } catch (error) {
     mostrarSnackbar('Erro ao criar agência: ' + error.message, 'error')
   }
+}
+
+const descagencia = ref('');
+
+const selecionarAgencia = (agencia) => {
+  formData.id_agencia = agencia.ID
+  descagencia.value = agencia.DISPLAY_NAME || agencia.DESCRICAO || ''
 }
 
 const abrirFormulario = () => {

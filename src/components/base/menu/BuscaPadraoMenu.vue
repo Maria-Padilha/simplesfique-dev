@@ -14,8 +14,8 @@
       />
     </template>
 
-    <v-card min-width="320" class="mt-1">
-      <v-card-text class="pa-3">
+    <v-card min-width="320" class="mt-1" color="var(--bg-card)">
+      <v-card-text class="pa-3 texto-color-primary">
         <v-text-field
             variant="outlined"
             hide-details="auto"

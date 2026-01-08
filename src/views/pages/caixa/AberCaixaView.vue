@@ -1,246 +1,242 @@
 <template>
-  <div class="pa-4">
-    <!-- Cabeçalho -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-cash-register" class="mr-3"></v-icon>
-          Abertura de Caixa
-        </div>
-      </v-card-title>
-    </v-card>
-
-    <!-- Card de Resumo do Caixa Aberto -->
-    <v-card v-if="caixaAberto" class="background-secondary mb-4" elevation="2">
-      <v-card-text class="pa-4">
-        <div class="d-flex align-center justify-space-between">
-          <div class="d-flex align-center">
-            <v-icon icon="mdi-cash-check" size="32" color="success" class="mr-3"></v-icon>
-            <div>
-              <div class="text-caption text-grey">Caixa Aberto</div>
-              <div class="text-h6 font-weight-bold">
-                {{ caixaAberto.descricao }}
-              </div>
-              <div class="text-caption">
-                Aberto em: {{ formatarDataHora(caixaAberto.dtabertura) }}
+  <top-all-pages icon="mdi-cash-register">
+    <template #titulo>Abertura de Caixa</template>
+    <template #section>
+      <!-- Card de Resumo do Caixa Aberto -->
+      <v-card v-if="caixaAberto" class="background-secondary mb-4" elevation="2">
+        <v-card-text class="pa-4">
+          <div class="d-flex align-center justify-space-between">
+            <div class="d-flex align-center">
+              <v-icon icon="mdi-cash-check" size="32" color="success" class="mr-3"></v-icon>
+              <div>
+                <div class="text-caption text-grey">Caixa Aberto</div>
+                <div class="text-h6 font-weight-bold">
+                  {{ caixaAberto.descricao }}
+                </div>
+                <div class="text-caption">
+                  Aberto em: {{ formatarDataHora(caixaAberto.dtabertura) }}
+                </div>
               </div>
             </div>
-          </div>
-          <div class="text-right">
-            <div class="text-caption text-grey">Saldo Inicial</div>
-            <div class="text-h5 font-weight-bold" style="color: var(--text-color-laranja)">
-              {{ formatarMoeda(caixaAberto.vlrabertura) }}
+            <div class="text-right">
+              <div class="text-caption text-grey">Saldo Inicial</div>
+              <div class="text-h5 font-weight-bold" style="color: var(--text-color-laranja)">
+                {{ formatarMoeda(caixaAberto.vlrabertura) }}
+              </div>
             </div>
           </div>
-        </div>
-      </v-card-text>
-    </v-card>
+        </v-card-text>
+      </v-card>
 
-    <!-- Conteúdo Principal -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
-      <v-card-text class="pa-4">
-        <BotaoExpandTransition
-          :formulario-aberto="formularioAberto"
-          texto-abrir="Abrir Novo Caixa"
-          texto-fechar="Cancelar"
-          @toggle="toggleFormulario"
-        />
+      <!-- Conteúdo Principal -->
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card-text class="pa-4">
+          <BotaoExpandTransition
+              :formulario-aberto="formularioAberto"
+              texto-abrir="Abrir Novo Caixa"
+              texto-fechar="Cancelar"
+              @toggle="toggleFormulario"
+          />
 
-        <!-- Formulário de Abertura -->
-        <v-expand-transition>
-          <div v-if="formularioAberto">
-            <v-card class="background-card mb-7" elevation="2">
-              <v-card-title class="text-h6 pa-4">
-                <v-icon icon="mdi-cash-plus" class="mr-2"></v-icon>
-                Abertura de Caixa
-              </v-card-title>
+          <!-- Formulário de Abertura -->
+          <v-expand-transition>
+            <div v-if="formularioAberto">
+              <v-card class="background-card mb-7" elevation="2">
+                <v-card-title class="text-h6 pa-4">
+                  <v-icon icon="mdi-cash-plus" class="mr-2"></v-icon>
+                  Abertura de Caixa
+                </v-card-title>
 
-              <v-card-text class="pa-4">
-                <v-form ref="formRef" v-model="formValido">
-                  <v-row>
-                    <!-- Caixa -->
-                    <v-col cols="12" md="3">
-                      <v-autocomplete
-                        v-model="formData.id_caixa"
-                        :items="caixasDisponiveis"
-                        :loading="loadingCaixas"
-                        item-title="desccaixa"
-                        item-value="id"
-                        label="Caixa *"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-cash-register"
-                        no-data-text="Nenhum caixa disponível"
-                      >
-                        <template v-slot:item="{ props, item }">
-                          <v-list-item v-bind="props">
-                            <template v-slot:prepend>
-                              <v-icon 
-                                :icon="item.raw.status === 'A' ? 'mdi-check-circle' : 'mdi-lock'" 
-                                :color="item.raw.status === 'A' ? 'success' : 'grey'"
-                              ></v-icon>
-                            </template>
-                            <v-list-item-title>{{ item.raw.desccaixa }}</v-list-item-title>
-                            <v-list-item-subtitle>
-                              {{ item.raw.status === 'A' ? 'Ativo' : 'Inativo' }} | 
-                              Participa Fluxo: {{ item.raw.participa_fluxo === 'S' ? 'Sim' : 'Não' }}
-                            </v-list-item-subtitle>
-                          </v-list-item>
-                        </template>
-                      </v-autocomplete>
-                    </v-col>
+                <v-card-text class="pa-4">
+                  <v-form ref="formRef" v-model="formValido">
+                    <v-row>
+                      <!-- Caixa -->
+                      <v-col cols="12" md="3">
+                        <v-autocomplete
+                            v-model="formData.id_caixa"
+                            :items="caixasDisponiveis"
+                            :loading="loadingCaixas"
+                            item-title="desccaixa"
+                            item-value="id"
+                            label="Caixa *"
+                            :rules="[rules.required]"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-cash-register"
+                            no-data-text="Nenhum caixa disponível"
+                        >
+                          <template v-slot:item="{ props, item }">
+                            <v-list-item v-bind="props">
+                              <template v-slot:prepend>
+                                <v-icon
+                                    :icon="item.raw.status === 'A' ? 'mdi-check-circle' : 'mdi-lock'"
+                                    :color="item.raw.status === 'A' ? 'success' : 'grey'"
+                                ></v-icon>
+                              </template>
+                              <v-list-item-title>{{ item.raw.desccaixa }}</v-list-item-title>
+                              <v-list-item-subtitle>
+                                {{ item.raw.status === 'A' ? 'Ativo' : 'Inativo' }} |
+                                Participa Fluxo: {{ item.raw.participa_fluxo === 'S' ? 'Sim' : 'Não' }}
+                              </v-list-item-subtitle>
+                            </v-list-item>
+                          </template>
+                        </v-autocomplete>
+                      </v-col>
 
-                    <!-- Data de Abertura -->
-                    <v-col cols="12" md="3">
-                      <v-text-field
-                        v-model="formData.dtabertura"
-                        label="Data de Abertura *"
-                        type="date"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-calendar"
-                      ></v-text-field>
-                    </v-col>
+                      <!-- Data de Abertura -->
+                      <v-col cols="12" md="3">
+                        <v-text-field
+                            v-model="formData.dtabertura"
+                            label="Data de Abertura *"
+                            type="date"
+                            :rules="[rules.required]"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-calendar"
+                            :theme="themeStore.darkMode ? 'dark' : 'light'"
+                        ></v-text-field>
+                      </v-col>
 
-                    <!-- Hora de Abertura -->
-                    <v-col cols="12" md="3">
-                      <v-text-field
-                        v-model="formData.hrabertura"
-                        label="Hora de Abertura *"
-                        type="time"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-clock-outline"
-                      ></v-text-field>
-                    </v-col>
+                      <!-- Hora de Abertura -->
+                      <v-col cols="12" md="3">
+                        <v-text-field
+                            v-model="formData.hrabertura"
+                            label="Hora de Abertura *"
+                            type="time"
+                            :rules="[rules.required]"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-clock-outline"
+                            :theme="themeStore.darkMode ? 'dark' : 'light'"
+                        ></v-text-field>
+                      </v-col>
 
-                    <!-- Suprimento -->
-                    <v-col cols="12" md="3">
-                      <v-text-field
-                        v-model="formData.vlrabertura"
-                        label="Valor Inicial *"
-                        :rules="[rules.required, rules.valorPositivo]"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-currency-usd"
-                        prefix="R$"
-                        type="number"
-                        step="0.01"
-                      ></v-text-field>
-                    </v-col>
-                  </v-row>
-                </v-form>
-              </v-card-text>
+                      <!-- Suprimento -->
+                      <v-col cols="12" md="3">
+                        <v-text-field
+                            v-model="formData.vlrabertura"
+                            label="Valor Inicial *"
+                            :rules="[rules.required, rules.valorPositivo]"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-currency-usd"
+                            prefix="R$"
+                            type="number"
+                            step="0.01"
+                            :theme="themeStore.darkMode ? 'dark' : 'light'"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-form>
+                </v-card-text>
 
-              <v-card-actions class="pa-4">
-                <v-spacer></v-spacer>
-                <v-btn color="grey" variant="text" @click="cancelarFormulario">
-                  Cancelar
-                </v-btn>
-                <v-btn
-                  color="var(--text-color-laranja)"
-                  :loading="loading"
-                  :disabled="!formValido"
-                  @click="abrirCaixa"
-                  variant="flat"
-                  class="text-white"
-                >
-                  <v-icon start>mdi-cash-check</v-icon>
-                  Abrir Caixa
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </div>
-        </v-expand-transition>
-
-        <!-- Tabela de Aberturas -->
-        <TabelaPadrao
-          :formulario-aberto="formularioAberto"
-          :headers="headers"
-          :items="aberturasFiltradasComputadas"
-          :loading="loading"
-          :search="search"
-          @update:search="(value) => search = value"
-          search-label="Pesquisar abertura de caixa"
-          item-key="id"
-          no-data-icon="mdi-cash-register"
-          no-data-text="Nenhuma abertura de caixa registrada"
-          delete-item-display-field="descricao_caixa"
-          @confirm-delete="encerrarCaixa"
-          :show-edit="false"
-          :show-delete="true"
-          delete-icon="mdi-cash-lock"
-          delete-tooltip="Encerrar Caixa"
-          delete-dialog-title="Encerrar Caixa"
-          delete-dialog-text="Deseja realmente encerrar este caixa?"
-        >
-          <!-- Coluna de Data -->
-          <template v-slot:[`item.dtabertura`]="{ item }">
-            <div class="text-body-2">{{ formatarData(item.dtabertura) }}</div>
-          </template>
-
-          <!-- Coluna Aberto em -->
-          <template v-slot:[`item.aberto_em`]="{ item }">
-            <div>
-              <div class="text-body-2">{{ formatarHora(item.hrabertura) }}</div>
-              <div class="text-caption text-grey">{{ item.usuario }}</div>
+                <v-card-actions class="pa-4">
+                  <v-spacer></v-spacer>
+                  <v-btn color="grey" variant="text" @click="cancelarFormulario">
+                    Cancelar
+                  </v-btn>
+                  <v-btn
+                      color="var(--text-color-laranja)"
+                      :loading="loading"
+                      :disabled="!formValido"
+                      @click="abrirCaixa"
+                      variant="flat"
+                      class="text-white"
+                  >
+                    <v-icon start>mdi-cash-check</v-icon>
+                    Abrir Caixa
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
             </div>
-          </template>
+          </v-expand-transition>
 
-          <!-- Coluna Fechado em -->
-          <template v-slot:[`item.fechado_em`]="{ item }">
-            <div v-if="item.hrfechamento">
-              <div class="text-body-2">{{ formatarHora(item.hrfechamento) }}</div>
-              <div class="text-caption text-grey">{{ item.usuario }}</div>
-            </div>
-            <div v-else class="text-grey text-center">-</div>
-          </template>
+          <!-- Tabela de Aberturas -->
+          <TabelaPadrao
+              :formulario-aberto="formularioAberto"
+              :headers="headers"
+              :items="aberturasFiltradasComputadas"
+              :loading="loading"
+              :search="search"
+              @update:search="(value) => search = value"
+              search-label="Pesquisar abertura de caixa"
+              item-key="id"
+              no-data-icon="mdi-cash-register"
+              no-data-text="Nenhuma abertura de caixa registrada"
+              delete-item-display-field="descricao_caixa"
+              @confirm-delete="encerrarCaixa"
+              :show-edit="false"
+              :show-delete="true"
+              delete-icon="mdi-cash-lock"
+              delete-tooltip="Encerrar Caixa"
+              delete-dialog-title="Encerrar Caixa"
+              delete-dialog-text="Deseja realmente encerrar este caixa?"
+          >
+            <!-- Coluna de Data -->
+            <template v-slot:[`item.dtabertura`]="{ item }">
+              <div class="text-body-2">{{ formatarData(item.dtabertura) }}</div>
+            </template>
 
-          <!-- Coluna Conferido -->
-          <template v-slot:[`item.vlrfechamento`]="{ item }">
-            <div class="text-body-2 text-right">
+            <!-- Coluna Aberto em -->
+            <template v-slot:[`item.aberto_em`]="{ item }">
+              <div>
+                <div class="text-body-2">{{ formatarHora(item.hrabertura) }}</div>
+                <div class="text-caption text-grey">{{ item.usuario }}</div>
+              </div>
+            </template>
+
+            <!-- Coluna Fechado em -->
+            <template v-slot:[`item.fechado_em`]="{ item }">
+              <div v-if="item.hrfechamento">
+                <div class="text-body-2">{{ formatarHora(item.hrfechamento) }}</div>
+                <div class="text-caption text-grey">{{ item.usuario }}</div>
+              </div>
+              <div v-else class="text-grey text-center">-</div>
+            </template>
+
+            <!-- Coluna Conferido -->
+            <template v-slot:[`item.vlrfechamento`]="{ item }">
+              <div class="text-body-2 text-right">
               <span v-if="item.vlrfechamento !== null && item.vlrfechamento !== undefined">
                 {{ formatarMoeda(item.vlrfechamento) }}
               </span>
-              <span v-else class="text-grey">-</span>
-            </div>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </div>
+            </template>
 
-          <!-- Coluna Sistema -->
-          <template v-slot:[`item.vlrabertura`]="{ item }">
-            <div class="text-body-2 font-weight-medium text-right">
-              {{ formatarMoeda(item.vlrabertura) }}
-            </div>
-          </template>
+            <!-- Coluna Sistema -->
+            <template v-slot:[`item.vlrabertura`]="{ item }">
+              <div class="text-body-2 font-weight-medium text-right">
+                {{ formatarMoeda(item.vlrabertura) }}
+              </div>
+            </template>
 
-          <!-- Coluna Diferença -->
-          <template v-slot:[`item.diferenca`]="{ item }">
-            <div class="text-body-2 text-right" :class="{
+            <!-- Coluna Diferença -->
+            <template v-slot:[`item.diferenca`]="{ item }">
+              <div class="text-body-2 text-right" :class="{
               'text-success': item.diferenca === 0,
               'text-error': item.diferenca !== 0
             }">
-              {{ formatarMoeda(item.diferenca) }}
-            </div>
-          </template>
+                {{ formatarMoeda(item.diferenca) }}
+              </div>
+            </template>
 
-          <!-- Coluna de Situação -->
-          <template v-slot:[`item.status`]="{ item }">
-            <v-chip
-              :color="item.status === 'A' ? 'success' : 'error'"
-              variant="flat"
-              size="small"
-              class="font-weight-medium"
-            >
-              {{ item.status === 'A' ? 'Aberto' : 'Fechado' }}
-            </v-chip>
-          </template>
-        </TabelaPadrao>
-      </v-card-text>
-    </v-card>
-  </div>
+            <!-- Coluna de Situação -->
+            <template v-slot:[`item.status`]="{ item }">
+              <v-chip
+                  :color="item.status === 'A' ? 'success' : 'error'"
+                  variant="flat"
+                  size="small"
+                  class="font-weight-medium"
+              >
+                {{ item.status === 'A' ? 'Aberto' : 'Fechado' }}
+              </v-chip>
+            </template>
+          </TabelaPadrao>
+        </v-card-text>
+      </v-card>
+    </template>
+  </top-all-pages>>
 </template>
 
 <script setup>
@@ -250,6 +246,7 @@ import { useCaixaStore } from '@/stores/APIs/caixa'
 import { useEmpresaStore } from '@/stores/APIs/empresa'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 const caixaStore = useCaixaStore()
