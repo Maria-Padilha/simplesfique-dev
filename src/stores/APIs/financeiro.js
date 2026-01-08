@@ -1040,7 +1040,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true
       this.error = null
       try {
-        const response = await api.delete(`/receberbaixados/${id}`, {
+        const idEmpresa = localStorage.getItem('empresa') || localStorage.getItem('id_empresa') || '1'
+        const response = await api.delete(`/estornoreceber/${idEmpresa}/id/${id}`, {
           headers: this.getAuthHeaders()
         })
         return response.data

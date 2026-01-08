@@ -62,64 +62,53 @@
         <v-card class="background-card" elevation="2">
           <v-card-title class="text-h6 pa-4">
             <v-icon icon="mdi-table" class="mr-2"></v-icon>
-            Código da Baixa / Nf Documento
+            Lotes de Baixa
           </v-card-title>
           <v-card-text class="pa-4">
             <v-data-table
               :headers="headers"
               :items="baixasAgrupadas"
               :loading="loading"
+              show-expand
+              item-value="uniqueId"
               class="elevation-1"
               :items-per-page="10"
               :items-per-page-options="[10, 25, 50, 100]"
               no-data-text="Nenhum registro encontrado no período"
               loading-text="Carregando baixas..."
             >
-              <!-- Cabeçalho expandível -->
-              <template v-slot:[`item.data-table-expand`]="{ item, toggleExpand, isExpanded }">
-                <v-btn
-                  :icon="isExpanded(item) ? 'mdi-chevron-up' : 'mdi-chevron-down'"
-                  variant="text"
-                  size="small"
-                  @click="toggleExpand(item)"
-                ></v-btn>
-              </template>
-
-              <!-- Código da Baixa -->
-              <template v-slot:[`item.codigo_baixa`]="{ item }">
-                <div class="font-weight-bold">{{ item.codigo_baixa }}</div>
-                <div class="text-caption">{{ item.data_baixa }}</div>
-              </template>
-
-              <!-- Cliente -->
-              <template v-slot:[`item.cliente`]="{ item }">
-                <div>{{ item.cliente }}</div>
-              </template>
-
-              <!-- Valor Baixado -->
-              <template v-slot:[`item.valor_total`]="{ item }">
-                <div class="font-weight-medium">
-                  {{ formatarMoeda(item.valor_total) }}
+              <!-- ID Lote -->
+              <template v-slot:[`item.id_recbaixa_lote`]="{ item }">
+                <div class="font-weight-bold">
+                  <v-chip size="small" color="primary">
+                    #{{ item.id_recbaixa_lote || 'S/N' }}
+                  </v-chip>
                 </div>
               </template>
 
-              <!-- Data de Vencimento -->
-              <template v-slot:[`item.dt_vencto`]="{ item }">
-                <div>{{ item.dt_vencto }}</div>
+              <!-- Valor Total Baixado -->
+              <template v-slot:[`item.vlrbaixado_lote`]="{ item }">
+                <div class="font-weight-medium">
+                  {{ formatarMoeda(item.vlrbaixado_lote) }}
+                </div>
               </template>
 
               <!-- Data da Baixa -->
-              <template v-slot:[`item.data_baixa`]="{ item }">
-                <div>{{ item.data_baixa }}</div>
+              <template v-slot:[`item.dhinc`]="{ item }">
+                <div>{{ item.dhinc }}</div>
               </template>
 
-              <!-- Tipo de Documento -->
-              <template v-slot:[`item.tipo_doc`]="{ item }">
-                <v-chip
-                  size="small"
-                  :color="item.tipo_doc === 'DUPLICATA' ? 'primary' : 'secondary'"
-                >
-                  {{ item.tipo_doc }}
+              <!-- Usuário -->
+              <template v-slot:[`item.usuario_baixou`]="{ item }">
+                <v-chip size="small" color="secondary">
+                  {{ item.usuario_baixou }}
+                </v-chip>
+              </template>
+
+              <!-- Quantidade -->
+              <template v-slot:[`item.quantidade`]="{ item }">
+                <v-chip size="small" color="info">
+                  {{ item.quantidade }} título(s)
                 </v-chip>
               </template>
 
@@ -136,57 +125,71 @@
                           density="compact"
                           class="elevation-0"
                         >
-                          <!-- Documento -->
-                          <template v-slot:[`item.nf_documento`]="{ item: detalhe }">
-                            <div>{{ detalhe.nf_documento }}</div>
+                          <!-- Número da Parcela -->
+                          <template v-slot:[`item.nrparcela`]="{ item: detalhe }">
+                            <v-chip size="small" :color="detalhe.nrparcela ? 'info' : 'grey'">
+                              {{ detalhe.nrparcela || '-' }}
+                            </v-chip>
+                          </template>
+
+                          <!-- Vencimento -->
+                          <template v-slot:[`item.dtvencimento`]="{ item: detalhe }">
+                            <div>{{ detalhe.dtvencimento }}</div>
                           </template>
 
                           <!-- Cliente -->
                           <template v-slot:[`item.cliente`]="{ item: detalhe }">
-                            <div>{{ detalhe.cliente }}</div>
+                            <div>{{ detalhe.cliente || '-' }}</div>
                           </template>
 
-                          <!-- Valor Baixado -->
-                          <template v-slot:[`item.valor_baixado`]="{ item: detalhe }">
-                            <div>{{ formatarMoeda(detalhe.valor_baixado) }}</div>
+                          <!-- Valor Parcela -->
+                          <template v-slot:[`item.vlrparcela`]="{ item: detalhe }">
+                            <div>{{ formatarMoeda(detalhe.vlrparcela) }}</div>
                           </template>
 
-                          <!-- Data de Vencimento -->
-                          <template v-slot:[`item.dt_vencto`]="{ item: detalhe }">
-                            <div>{{ detalhe.dt_vencto }}</div>
+                          <!-- Juros -->
+                          <template v-slot:[`item.vlrjuros`]="{ item: detalhe }">
+                            <div :class="detalhe.vlrjuros > 0 ? 'text-error' : ''">
+                              {{ formatarMoeda(detalhe.vlrjuros) }}
+                            </div>
                           </template>
 
-                          <!-- Data da Baixa -->
-                          <template v-slot:[`item.data_baixa`]="{ item: detalhe }">
-                            <div>{{ detalhe.data_baixa }}</div>
+                          <!-- Multa -->
+                          <template v-slot:[`item.vlrmulta`]="{ item: detalhe }">
+                            <div :class="detalhe.vlrmulta > 0 ? 'text-error' : ''">
+                              {{ formatarMoeda(detalhe.vlrmulta) }}
+                            </div>
                           </template>
 
-                          <!-- Tipo de Documento -->
-                          <template v-slot:[`item.tipo_doc`]="{ item: detalhe }">
-                            <v-chip
-                              size="small"
-                              :color="detalhe.tipo_doc === 'DUPLICATA' ? 'primary' : 'secondary'"
+                          <!-- Desconto -->
+                          <template v-slot:[`item.vlrdesconto`]="{ item: detalhe }">
+                            <div :class="detalhe.vlrdesconto > 0 ? 'text-success' : ''">
+                              {{ formatarMoeda(detalhe.vlrdesconto) }}
+                            </div>
+                          </template>
+
+                          <!-- Tipo Composição -->
+                          <template v-slot:[`item.tipo_composicao`]="{ item: detalhe }">
+                            <v-chip 
+                              size="small" 
+                              :color="detalhe.id_caixamov ? 'orange' : detalhe.id_ccorrentemov ? 'blue' : 'grey'"
                             >
-                              {{ detalhe.tipo_doc }}
+                              {{ detalhe.id_caixamov ? 'CAIXA' : detalhe.id_ccorrentemov ? 'BANCO' : '-' }}
                             </v-chip>
                           </template>
-
-                          <!-- Ações -->
-                          <template v-slot:[`item.actions`]="{ item: detalhe }">
-                            <v-tooltip text="Estornar Baixa">
-                              <template #activator="{ props }">
-                                <v-btn
-                                  v-bind="props"
-                                  icon="mdi-undo-variant"
-                                  variant="text"
-                                  color="error"
-                                  size="small"
-                                  @click="confirmarEstorno(detalhe)"
-                                ></v-btn>
-                              </template>
-                            </v-tooltip>
-                          </template>
                         </v-data-table>
+                        
+                        <!-- Botão de Estorno do Lote -->
+                        <div class="d-flex justify-end mt-4">
+                          <v-btn
+                            color="error"
+                            variant="flat"
+                            prepend-icon="mdi-undo-variant"
+                            @click="confirmarEstornoLote(item)"
+                          >
+                            Estornar Lote Completo
+                          </v-btn>
+                        </div>
                       </v-card-text>
                     </v-card>
                   </td>
@@ -203,16 +206,20 @@
       <v-card>
         <v-card-title class="text-h6 pa-4 background-secondary">
           <v-icon icon="mdi-alert" class="mr-2" color="error"></v-icon>
-          Confirmar Estorno
+          Confirmar Estorno do Lote
         </v-card-title>
         <v-card-text class="pa-4">
-          <p class="mb-2">Deseja realmente estornar esta baixa?</p>
+          <p class="mb-2">Deseja realmente estornar todo o lote de baixa?</p>
           <div v-if="itemParaEstornar">
             <v-divider class="my-3"></v-divider>
-            <div><strong>Documento:</strong> {{ itemParaEstornar.nf_documento }}</div>
-            <div><strong>Cliente:</strong> {{ itemParaEstornar.cliente }}</div>
-            <div><strong>Valor:</strong> {{ formatarMoeda(itemParaEstornar.valor_baixado) }}</div>
-            <div><strong>Data Baixa:</strong> {{ itemParaEstornar.data_baixa }}</div>
+            <div><strong>ID Lote:</strong> #{{ itemParaEstornar.id_recbaixa_lote || 'S/N' }}</div>
+            <div><strong>Quantidade de Títulos:</strong> {{ itemParaEstornar.quantidade }}</div>
+            <div><strong>Valor Total do Lote:</strong> {{ formatarMoeda(itemParaEstornar.vlrbaixado_lote) }}</div>
+            <div><strong>Data da Baixa:</strong> {{ itemParaEstornar.dhinc }}</div>
+            <div><strong>Usuário:</strong> {{ itemParaEstornar.usuario_baixou }}</div>
+            <v-alert type="warning" variant="tonal" class="mt-3">
+              Esta ação irá estornar TODOS os {{ itemParaEstornar.quantidade }} título(s) deste lote.
+            </v-alert>
           </div>
         </v-card-text>
         <v-card-actions class="pa-4">
@@ -226,7 +233,7 @@
             :loading="loadingEstorno"
             @click="executarEstorno"
           >
-            Estornar
+            Estornar Lote
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -277,49 +284,56 @@ const baixas = ref([])
 // Headers da tabela principal
 const headers = [
   { title: '', key: 'data-table-expand', sortable: false },
-  { title: 'Código da Baixa', key: 'codigo_baixa', sortable: true },
-  { title: 'Cliente', key: 'cliente', sortable: true },
-  { title: 'Valor Baixado', key: 'valor_total', sortable: true },
-  { title: 'Dt Vencto', key: 'dt_vencto', sortable: true },
-  { title: 'Data Baixa', key: 'data_baixa', sortable: true },
-  { title: 'Tipo Doc', key: 'tipo_doc', sortable: true }
+  { title: 'ID Lote', key: 'id_recbaixa_lote', sortable: true },
+  { title: 'Valor Total Baixado', key: 'vlrbaixado_lote', sortable: true },
+  { title: 'Data da Baixa', key: 'dhinc', sortable: true },
+  { title: 'Usuário', key: 'usuario_baixou', sortable: true },
+  { title: 'Qtd Títulos', key: 'quantidade', sortable: true }
 ]
 
 // Headers da tabela de detalhes
 const headersDetalhes = [
-  { title: 'Nf Documento', key: 'nf_documento', sortable: false },
+  { title: 'Parcela', key: 'nrparcela', sortable: false },
+  { title: 'Vencimento', key: 'dtvencimento', sortable: false },
   { title: 'Cliente', key: 'cliente', sortable: false },
-  { title: 'Valor Baixado', key: 'valor_baixado', sortable: false },
-  { title: 'Dt Vencto', key: 'dt_vencto', sortable: false },
-  { title: 'Data Baixa', key: 'data_baixa', sortable: false },
-  { title: 'Tipo Doc', key: 'tipo_doc', sortable: false },
-  { title: 'Ações', key: 'actions', sortable: false }
+  { title: 'Vlr Parcela', key: 'vlrparcela', sortable: false },
+  { title: 'Juros', key: 'vlrjuros', sortable: false },
+  { title: 'Multa', key: 'vlrmulta', sortable: false },
+  { title: 'Desconto', key: 'vlrdesconto', sortable: false },
+  { title: 'Tipo', key: 'tipo_composicao', sortable: false }
 ]
 
-// Agrupar baixas por código de baixa
+// Agrupar baixas por lote
 const baixasAgrupadas = computed(() => {
   const grupos = {}
   
   baixas.value.forEach(baixa => {
-    const codigo = baixa.codigo_baixa
+    const loteId = baixa.id_recbaixa_lote || 'sem-lote'
     
-    if (!grupos[codigo]) {
-      grupos[codigo] = {
-        codigo_baixa: codigo,
-        cliente: baixa.cliente,
-        data_baixa: baixa.data_baixa,
-        dt_vencto: baixa.dt_vencto,
-        tipo_doc: baixa.tipo_doc,
-        valor_total: 0,
+    if (!grupos[loteId]) {
+      grupos[loteId] = {
+        id_recbaixa_lote: baixa.id_recbaixa_lote,
+        vlrbaixado_lote: parseFloat(baixa.vlrbaixado_lote || 0),
+        dhinc: formatarDataHora(baixa.dhinc),
+        usuario_baixou: baixa.usuario_baixou,
+        quantidade: 0,
         detalhes: []
       }
     }
     
-    grupos[codigo].valor_total += parseFloat(baixa.valor_baixado || 0)
-    grupos[codigo].detalhes.push(baixa)
+    grupos[loteId].quantidade += 1
+    grupos[loteId].detalhes.push({
+      ...baixa,
+      dhinc: formatarDataHora(baixa.dhinc),
+      dtvencimento: formatarData(baixa.dtvencimento)
+    })
   })
   
-  return Object.values(grupos)
+  // Adicionar ID único para cada grupo
+  return Object.values(grupos).map((grupo, index) => ({
+    ...grupo,
+    uniqueId: `lote-${grupo.id_recbaixa_lote || 'sem'}-${index}`
+  }))
 })
 
 // Pesquisar baixas
@@ -352,9 +366,9 @@ const pesquisarBaixas = async () => {
   }
 }
 
-// Confirmar estorno
-const confirmarEstorno = (item) => {
-  itemParaEstornar.value = item
+// Confirmar estorno do lote
+const confirmarEstornoLote = (lote) => {
+  itemParaEstornar.value = lote
   dialogEstorno.value = true
 }
 
@@ -364,10 +378,10 @@ const executarEstorno = async () => {
 
   loadingEstorno.value = true
   try {
-    // Ajuste a chamada conforme sua API
-    await financeiroStore.estornarBaixaReceber(itemParaEstornar.value.id)
+    // Estornar usando o id_recbaixa_lote
+    await financeiroStore.estornarBaixaReceber(itemParaEstornar.value.id_recbaixa_lote)
     
-    toast.success('Baixa estornada com sucesso!')
+    toast.success('Lote estornado com sucesso!')
     dialogEstorno.value = false
     itemParaEstornar.value = null
     
@@ -389,6 +403,32 @@ const formatarMoeda = (valor) => {
     style: 'currency',
     currency: 'BRL'
   }).format(valor)
+}
+
+// Formatar data e hora
+const formatarDataHora = (dataISO) => {
+  if (!dataISO) return '-'
+  
+  const data = new Date(dataISO)
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(data)
+}
+
+// Formatar apenas data
+const formatarData = (dataISO) => {
+  if (!dataISO) return '-'
+  
+  const data = new Date(dataISO + 'T00:00:00')
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).format(data)
 }
 
 // Buscar baixas ao montar o componente
