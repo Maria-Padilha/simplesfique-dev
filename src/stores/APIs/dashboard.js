@@ -9,6 +9,18 @@ export const useDashboardStore = defineStore('dashboard', {
       detalhes: []
     },
     saldosBancarios: [],
+    fluxoCaixaMensal: [],
+    fluxoCaixaDiario: [],
+    pagRecDocLoc: {
+      tipodocumento: {
+        receber: [],
+        pagar: []
+      },
+      localcobranca: {
+        receber: [],
+        pagar: []
+      }
+    },
     loading: false,
     error: null
   }),
@@ -35,12 +47,9 @@ export const useDashboardStore = defineStore('dashboard', {
         const url = `/pagarreceber/${idempresa}`
         const headers = this.getAuthHeaders()
 
-        console.log('📤 Requisição GET:', url)
-        console.log('🔐 Headers:', headers)
+        console.log(`[${new Date().toLocaleString('pt-BR')}] GET ${url}`)
 
         const response = await api.get(url, { headers })
-
-        console.log('✅ Resposta recebida:', response.data)
 
         const resposta = response.data
 
@@ -55,14 +64,9 @@ export const useDashboardStore = defineStore('dashboard', {
         }
 
         this.pagarReceber = dados
-
-        console.log('✨ Dados de Pagar/Receber armazenados:', this.pagarReceber)
         return this.pagarReceber
       } catch (error) {
         this.error = error.response?.data?.message || 'Erro ao buscar dados de pagar/receber'
-        console.error('❌ Erro ao buscar pagar/receber:', error)
-        console.error('   Status:', error.response?.status)
-        console.error('   Mensagem:', error.message)
         return null
       } finally {
         this.loading = false
@@ -81,12 +85,9 @@ export const useDashboardStore = defineStore('dashboard', {
         const url = `/saldosbancario/${idempresa}`
         const headers = this.getAuthHeaders()
 
-        console.log('📤 Requisição GET:', url)
-        console.log('🔐 Headers:', headers)
+        console.log(`[${new Date().toLocaleString('pt-BR')}] GET ${url}`)
 
         const response = await api.get(url, { headers })
-
-        console.log('✅ Resposta recebida:', response.data)
 
         const resposta = response.data
 
@@ -103,14 +104,227 @@ export const useDashboardStore = defineStore('dashboard', {
         }
 
         this.saldosBancarios = dados
-
-        console.log('✨ Saldos Bancários armazenados:', this.saldosBancarios)
         return this.saldosBancarios
       } catch (error) {
         this.error = error.response?.data?.message || 'Erro ao buscar saldos bancários'
-        console.error('❌ Erro ao buscar saldos bancários:', error)
-        console.error('   Status:', error.response?.status)
-        console.error('   Mensagem:', error.message)
+        console.error(`[${new Date().toLocaleString('pt-BR')}] Erro ao buscar saldos bancários:`, error)
+        return null
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // ========== FLUXO DE CAIXA MENSAL ==========
+    /**
+     * Busca fluxo de caixa mensal por empresa
+     * @param {number} idempresa - ID da empresa
+     */
+    async buscarFluxoCaixaMensal(idempresa) {
+      this.loading = true
+      this.error = null
+      try {
+        const url = `/fluxocaixamensal/${idempresa}`
+        const headers = this.getAuthHeaders()
+
+        console.log(`[${new Date().toLocaleString('pt-BR')}] GET ${url}`)
+
+        const response = await api.get(url, { headers })
+
+        const resposta = response.data
+
+        // Garantir que seja um array válido
+        let dados
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data
+        } else if (Array.isArray(resposta) && resposta.length > 0 && resposta[0].data) {
+          // Se vem como [{data: [...]}], extrair o array interno
+          dados = resposta[0].data
+        } else if (Array.isArray(resposta)) {
+          dados = resposta
+        } else if (resposta && typeof resposta === 'object' && !resposta.data) {
+          dados = [resposta]
+        } else {
+          dados = []
+        }
+
+        this.fluxoCaixaMensal = dados
+        return this.fluxoCaixaMensal
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar fluxo de caixa mensal'
+        console.error(`[${new Date().toLocaleString('pt-BR')}] Erro ao buscar fluxo de caixa mensal:`, error)
+        return null
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // ========== FLUXO DE CAIXA DIÁRIO ==========
+    /**
+     * Busca fluxo de caixa diário por empresa
+     * @param {number} idempresa - ID da empresa
+     */
+    async buscarFluxoCaixaDiario(idempresa) {
+      this.loading = true
+      this.error = null
+      try {
+        const url = `/fluxocaixadiario/${idempresa}`
+        const headers = this.getAuthHeaders()
+
+        console.log(`[${new Date().toLocaleString('pt-BR')}] GET ${url}`)
+
+        const response = await api.get(url, { headers })
+
+        const resposta = response.data
+
+        // Garantir que seja um array válido
+        let dados
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data
+        } else if (Array.isArray(resposta) && resposta.length > 0 && resposta[0].registros) {
+          // Se vem como [{registros: [...]}], extrair o array interno
+          dados = resposta[0].registros
+        } else if (Array.isArray(resposta)) {
+          dados = resposta
+        } else if (resposta && typeof resposta === 'object' && !resposta.data) {
+          dados = [resposta]
+        } else {
+          dados = []
+        }
+
+        this.fluxoCaixaDiario = dados
+        return this.fluxoCaixaDiario
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar fluxo de caixa diário'
+        console.error(`[${new Date().toLocaleString('pt-BR')}] Erro ao buscar fluxo de caixa diário:`, error)
+        return null
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // ========== TÍTULOS A PAGAR/RECEBER POR LOCAL E DOCUMENTO ==========
+    /**
+     * Busca títulos a pagar/receber por local de cobrança e tipo de documento
+     * @param {number} idempresa - ID da empresa
+     */
+    async buscarPagRecDocLoc(idempresa) {
+      this.loading = true
+      this.error = null
+      try {
+        const url = `/pagrecdocloc/${idempresa}`
+        const headers = this.getAuthHeaders()
+
+        console.log(`[${new Date().toLocaleString('pt-BR')}] GET ${url}`)
+
+        const response = await api.get(url, { headers })
+
+        const resposta = response.data
+
+        // Estrutura da API:
+        // [{
+        //   rec_tpdocto: [{tipodocumento, saldo}],
+        //   rec_localcob: [{localcobranca, saldo}],
+        //   pag_tpdocto: [{tipodocumento, saldo}],
+        //   pag_localcob: [{localcobranca, saldo}]
+        // }, ...]
+
+        let recTipoDocumento = {}
+        let recLocalCobranca = {}
+        let pagTipoDocumento = {}
+        let pagLocalCobranca = {}
+
+        if (Array.isArray(resposta)) {
+          resposta.forEach(grupo => {
+            // Processar Receber por Tipo de Documento
+            if (grupo.rec_tpdocto && Array.isArray(grupo.rec_tpdocto)) {
+              grupo.rec_tpdocto.forEach(registro => {
+                const tipo = (registro.tipodocumento || '').trim()
+                if (tipo) {
+                  if (!recTipoDocumento[tipo]) {
+                    recTipoDocumento[tipo] = 0
+                  }
+                  recTipoDocumento[tipo] += parseFloat(registro.saldo || 0)
+                }
+              })
+            }
+
+            // Processar Receber por Local de Cobrança
+            if (grupo.rec_localcob && Array.isArray(grupo.rec_localcob)) {
+              grupo.rec_localcob.forEach(registro => {
+                const local = (registro.localcobranca || '').trim()
+                if (local) {
+                  if (!recLocalCobranca[local]) {
+                    recLocalCobranca[local] = 0
+                  }
+                  recLocalCobranca[local] += parseFloat(registro.saldo || 0)
+                }
+              })
+            }
+
+            // Processar Pagar por Tipo de Documento
+            if (grupo.pag_tpdocto && Array.isArray(grupo.pag_tpdocto)) {
+              grupo.pag_tpdocto.forEach(registro => {
+                const tipo = (registro.tipodocumento || '').trim()
+                if (tipo) {
+                  if (!pagTipoDocumento[tipo]) {
+                    pagTipoDocumento[tipo] = 0
+                  }
+                  pagTipoDocumento[tipo] += parseFloat(registro.saldo || 0)
+                }
+              })
+            }
+
+            // Processar Pagar por Local de Cobrança
+            if (grupo.pag_localcob && Array.isArray(grupo.pag_localcob)) {
+              grupo.pag_localcob.forEach(registro => {
+                const local = (registro.localcobranca || '').trim()
+                if (local) {
+                  if (!pagLocalCobranca[local]) {
+                    pagLocalCobranca[local] = 0
+                  }
+                  pagLocalCobranca[local] += parseFloat(registro.saldo || 0)
+                }
+              })
+            }
+          })
+        }
+
+        // Converter objetos para arrays de objetos
+        const recTipoDocumentoArray = Object.entries(recTipoDocumento).map(([tipo, saldo]) => ({
+          tipodocumento: tipo,
+          saldo: saldo
+        }))
+
+        const recLocalCobrancaArray = Object.entries(recLocalCobranca).map(([local, saldo]) => ({
+          localcobranca: local,
+          saldo: saldo
+        }))
+
+        const pagTipoDocumentoArray = Object.entries(pagTipoDocumento).map(([tipo, saldo]) => ({
+          tipodocumento: tipo,
+          saldo: saldo
+        }))
+
+        const pagLocalCobrancaArray = Object.entries(pagLocalCobranca).map(([local, saldo]) => ({
+          localcobranca: local,
+          saldo: saldo
+        }))
+
+        this.pagRecDocLoc = {
+          tipodocumento: {
+            receber: recTipoDocumentoArray,
+            pagar: pagTipoDocumentoArray
+          },
+          localcobranca: {
+            receber: recLocalCobrancaArray,
+            pagar: pagLocalCobrancaArray
+          }
+        }
+
+        return this.pagRecDocLoc
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar títulos por local e documento'
+        console.error(`[${new Date().toLocaleString('pt-BR')}] Erro ao buscar pagar/receber por doc/loc:`, error)
         return null
       } finally {
         this.loading = false
@@ -123,20 +337,16 @@ export const useDashboardStore = defineStore('dashboard', {
      * @param {number} idempresa - ID da empresa
      */
     async carregarDadosDashboard(idempresa) {
-      console.log('🚀 Iniciando carregamento do dashboard para empresa:', idempresa)
       try {
-        const resultados = await Promise.all([
+        await Promise.all([
           this.buscarPagarReceber(idempresa),
-          this.buscarSaldosBancarios(idempresa)
+          this.buscarSaldosBancarios(idempresa),
+          this.buscarFluxoCaixaMensal(idempresa),
+          this.buscarFluxoCaixaDiario(idempresa),
+          this.buscarPagRecDocLoc(idempresa)
         ])
-
-        console.log('🎉 Todos os dados do dashboard carregados com sucesso!')
-        console.log('   Pagar/Receber:', resultados[0])
-        console.log('   Saldos Bancários:', resultados[1])
-
         return true
       } catch (error) {
-        console.error('❌ Erro ao carregar dados do dashboard:', error)
         return false
       }
     }

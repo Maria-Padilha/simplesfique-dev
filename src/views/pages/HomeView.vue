@@ -125,9 +125,27 @@
       <!-- Fluxo de Caixa -->
       <v-col cols="12" lg="8">
         <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center">
-            <v-icon icon="mdi-chart-line" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-            Fluxo de Caixa - Últimos 6 Meses
+          <v-card-title class="pa-4 d-flex align-center justify-space-between">
+            <div class="d-flex align-center">
+              <v-icon icon="mdi-chart-line" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+              {{ fluxoCaixaDados.titulo }}
+            </div>
+            <div class="d-flex align-center gap-2">
+              <span class="text-caption" :style="{ color: tipoFluxoCaixa === 'mensal' ? 'var(--text-color-laranja)' : 'var(--text-color)' }">
+                Mensal
+              </span>
+              <v-switch
+                v-model="tipoFluxoCaixa"
+                true-value="diario"
+                false-value="mensal"
+                color="var(--text-color-laranja)"
+                hide-details
+                density="compact"
+              ></v-switch>
+              <span class="text-caption" :style="{ color: tipoFluxoCaixa === 'diario' ? 'var(--text-color-laranja)' : 'var(--text-color)' }">
+                Diário
+              </span>
+            </div>
           </v-card-title>
           <v-card-text class="pa-4">
             <apexchart
@@ -164,9 +182,27 @@
       <!-- Contas a Pagar vs Receber -->
       <v-col cols="12" md="6">
         <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center">
-            <v-icon icon="mdi-chart-bar" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-            Contas a Pagar vs Receber
+          <v-card-title class="pa-4 d-flex align-center justify-space-between">
+            <div class="d-flex align-center">
+              <v-icon icon="mdi-chart-bar" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+              Por {{ tipoVisualizacaoPagarReceber === 'tipodocumento' ? 'Tipo de Documento' : 'Local de Cobrança' }}
+            </div>
+            <div class="d-flex align-center gap-2">
+              <span class="text-caption" :style="{ color: tipoVisualizacaoPagarReceber === 'tipodocumento' ? 'var(--text-color-laranja)' : 'var(--text-color)' }">
+                Doc.
+              </span>
+              <v-switch
+                v-model="tipoVisualizacaoPagarReceber"
+                true-value="localcobranca"
+                false-value="tipodocumento"
+                color="var(--text-color-laranja)"
+                hide-details
+                density="compact"
+              ></v-switch>
+              <span class="text-caption" :style="{ color: tipoVisualizacaoPagarReceber === 'localcobranca' ? 'var(--text-color-laranja)' : 'var(--text-color)' }">
+                Local
+              </span>
+            </div>
           </v-card-title>
           <v-card-text class="pa-4">
             <apexchart
@@ -331,6 +367,12 @@ import { useDashboardStore } from '@/stores/APIs/dashboard'
 const themeStore = useThemeStore()
 const dashboardStore = useDashboardStore()
 
+// Ref para controlar o tipo de fluxo de caixa (mensal ou diário)
+const tipoFluxoCaixa = ref('mensal')
+
+// Ref para controlar visualização de pagar/receber (por tipo de documento ou local de cobrança)
+const tipoVisualizacaoPagarReceber = ref('tipodocumento')
+
 // Data atual formatada
 const dataAtual = computed(() => {
   const hoje = new Date()
@@ -367,7 +409,10 @@ onMounted(async () => {
 
     console.log('✅ Dashboard carregado com sucesso!', {
       pagarReceber: dashboardStore.pagarReceber,
-      saldosBancarios: dashboardStore.saldosBancarios
+      saldosBancarios: dashboardStore.saldosBancarios,
+      fluxoCaixaMensal: dashboardStore.fluxoCaixaMensal,
+      fluxoCaixaDiario: dashboardStore.fluxoCaixaDiario,
+      pagRecDocLoc: dashboardStore.pagRecDocLoc
     })
   } catch (error) {
     console.error('❌ Erro ao carregar dashboard:', error)
@@ -452,6 +497,78 @@ const saldoTotal = computed(() => {
   }
 })
 
+// Dados de Fluxo de Caixa processados
+const fluxoCaixaDados = computed(() => {
+  if (tipoFluxoCaixa.value === 'mensal') {
+    const dados = dashboardStore.fluxoCaixaMensal || []
+    if (Array.isArray(dados) && dados.length > 0) {
+      // Processar dados mensais
+      // Campos da API: nomemes, receber, pagar, saldofinal, saldoinicial
+      const categorias = dados.map(d => d.nomemes || d.mes || d.periodo || '')
+
+      // Converter strings com vírgula para números
+      const entradas = dados.map(d => {
+        const valor = d.receber || d.entradas || d.total_entradas || '0'
+        return parseFloat(String(valor).replace(',', '.')) || 0
+      })
+
+      const saidas = dados.map(d => {
+        const valor = d.pagar || d.saidas || d.total_saidas || '0'
+        return parseFloat(String(valor).replace(',', '.')) || 0
+      })
+
+      return {
+        categorias,
+        entradas,
+        saidas,
+        titulo: 'Fluxo de Caixa - Proximos Meses'
+      }
+    }
+  } else {
+    const dados = dashboardStore.fluxoCaixaDiario || []
+
+    if (Array.isArray(dados) && dados.length > 0) {
+      // Processar dados diários
+      // Campos esperados: dtvencimento, receber, pagar
+      const categorias = dados.map(d => {
+        const data = d.dtvencimento || d.data || d.dia || ''
+        // Formatar data de YYYY-MM-DD para DD/MM
+        if (data.includes('-')) {
+          const [, mes, dia] = data.split('-')
+          return `${dia}/${mes}`
+        }
+        return data
+      })
+
+      // Converter strings com vírgula para números
+      const entradas = dados.map(d => {
+        const valor = d.receber || d.entradas || d.total_entradas || '0'
+        return parseFloat(String(valor).replace(',', '.')) || 0
+      })
+
+      const saidas = dados.map(d => {
+        const valor = d.pagar || d.saidas || d.total_saidas || '0'
+        return parseFloat(String(valor).replace(',', '.')) || 0
+      })
+
+      return {
+        categorias,
+        entradas,
+        saidas,
+        titulo: 'Fluxo de Caixa - Últimos Dias'
+      }
+    }
+  }
+
+  // Dados padrão se não houver dados da API
+  return {
+    categorias: ['Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+    entradas: [45000, 52000, 48000, 61000, 55000, 78950],
+    saidas: [38000, 42000, 35000, 51000, 47000, 45780],
+    titulo: 'Fluxo de Caixa - Últimos 6 Meses'
+  }
+})
+
 // Distribuição Bancária - Opções do gráfico
 const distribuicaoBancariaOptions = computed(() => {
   const bancos = saldoTotal.value.saldosbancario || []
@@ -531,7 +648,7 @@ const fluxoCaixaOptions = computed(() => ({
     }
   },
   xaxis: {
-    categories: ['Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+    categories: fluxoCaixaDados.value.categorias,
     labels: { style: { colors: coresGrafico.value.texto } }
   },
   yaxis: {
@@ -551,56 +668,89 @@ const fluxoCaixaOptions = computed(() => ({
   }
 }))
 
-const fluxoCaixaSeries = ref([
-  { name: 'Entradas', data: [45000, 52000, 48000, 61000, 55000, 78950] },
-  { name: 'Saídas', data: [38000, 42000, 35000, 51000, 47000, 45780] }
+const fluxoCaixaSeries = computed(() => [
+  { name: 'Entradas', data: fluxoCaixaDados.value.entradas },
+  { name: 'Saídas', data: fluxoCaixaDados.value.saidas }
 ])
 
 // Configurações do gráfico de Centro de Custo
 
 
 // Configurações do gráfico Pagar vs Receber
-const pagarReceberOptions = computed(() => ({
-  chart: {
-    type: 'bar',
-    toolbar: { show: false },
-    background: 'transparent',
-    fontFamily: 'Roboto, sans-serif'
-  },
-  colors: [coresGrafico.value.vermelho, coresGrafico.value.verde],
-  plotOptions: {
-    bar: {
-      horizontal: false,
-      columnWidth: '55%',
-      borderRadius: 4
-    }
-  },
-  dataLabels: { enabled: false },
-  xaxis: {
-    categories: ['Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-    labels: { style: { colors: coresGrafico.value.texto } }
-  },
-  yaxis: {
-    labels: {
-      style: { colors: coresGrafico.value.texto },
-      formatter: (val) => `R$ ${(val / 1000).toFixed(0)}k`
-    }
-  },
-  grid: { borderColor: coresGrafico.value.grid, strokeDashArray: 3 },
-  legend: {
-    labels: { colors: coresGrafico.value.texto },
-    position: 'top'
-  },
-  tooltip: {
-    theme: themeStore.darkMode ? 'dark' : 'light',
-    y: { formatter: (val) => `R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` }
-  }
-}))
+const pagarReceberOptions = computed(() => {
+  const categorias = tipoVisualizacaoPagarReceber.value === 'tipodocumento'
+    ? (dashboardStore.pagRecDocLoc?.tipodocumento?.receber || []).map(d => d.tipodocumento || 'Sem Tipo')
+    : (dashboardStore.pagRecDocLoc?.localcobranca?.receber || []).map(d => d.localcobranca || 'Sem Local')
 
-const pagarReceberSeries = ref([
-  { name: 'A Pagar', data: [28000, 32000, 25000, 41000, 37000, 45780] },
-  { name: 'A Receber', data: [35000, 42000, 38000, 51000, 45000, 78950] }
-])
+  return {
+    chart: {
+      type: 'bar',
+      toolbar: { show: false },
+      background: 'transparent',
+      fontFamily: 'Roboto, sans-serif'
+    },
+    colors: [coresGrafico.value.vermelho, coresGrafico.value.verde],
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: '55%',
+        borderRadius: 4
+      }
+    },
+    dataLabels: { enabled: false },
+    xaxis: {
+      categories: categorias,
+      labels: { style: { colors: coresGrafico.value.texto } }
+    },
+    yaxis: {
+      labels: {
+        style: { colors: coresGrafico.value.texto },
+        formatter: (val) => `R$ ${(val / 1000).toFixed(0)}k`
+      }
+    },
+    grid: { borderColor: coresGrafico.value.grid, strokeDashArray: 3 },
+    legend: {
+      labels: { colors: coresGrafico.value.texto },
+      position: 'top'
+    },
+    tooltip: {
+      theme: themeStore.darkMode ? 'dark' : 'light',
+      y: { formatter: (val) => `R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` }
+    }
+  }
+})
+
+const pagarReceberSeries = computed(() => {
+  if (tipoVisualizacaoPagarReceber.value === 'tipodocumento') {
+    const dadosPagar = dashboardStore.pagRecDocLoc?.tipodocumento?.pagar || []
+    const dadosReceber = dashboardStore.pagRecDocLoc?.tipodocumento?.receber || []
+
+    return [
+      {
+        name: 'A Pagar',
+        data: dadosPagar.map(d => d.saldo || 0)
+      },
+      {
+        name: 'A Receber',
+        data: dadosReceber.map(d => d.saldo || 0)
+      }
+    ]
+  } else {
+    const dadosPagar = dashboardStore.pagRecDocLoc?.localcobranca?.pagar || []
+    const dadosReceber = dashboardStore.pagRecDocLoc?.localcobranca?.receber || []
+
+    return [
+      {
+        name: 'A Pagar',
+        data: dadosPagar.map(d => d.saldo || 0)
+      },
+      {
+        name: 'A Receber',
+        data: dadosReceber.map(d => d.saldo || 0)
+      }
+    ]
+  }
+})
 
 // Configurações do gráfico de Movimentação do Caixa
 const movimentacaoCaixaOptions = computed(() => ({
@@ -764,9 +914,6 @@ const getAvatarColor = (index) => {
   color: #4CAF50 !important;
 }
 
-.color-azul {
-  color: #2196F3 !important;
-}
 
 .color-roxo {
   color: #9C27B0 !important;
