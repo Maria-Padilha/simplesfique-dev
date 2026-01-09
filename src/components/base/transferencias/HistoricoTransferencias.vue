@@ -104,6 +104,21 @@
           </v-chip>
         </template>
 
+        <template #[`item.actions`]="{ item }">
+          <v-tooltip text="Estornar Transferência">
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                icon="mdi-undo-variant"
+                variant="text"
+                color="error"
+                size="small"
+                @click="confirmarEstorno(item)"
+              ></v-btn>
+            </template>
+          </v-tooltip>
+        </template>
+
         <template #no-data>
           <div class="text-center pa-4">
             <v-icon icon="mdi-transfer" size="48" class="mb-2 text-medium-emphasis"></v-icon>
@@ -116,16 +131,60 @@
           <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
         </template>
       </v-data-table>
+
+    <!-- Dialog de Confirmação de Estorno -->
+    <v-dialog v-model="dialogEstorno" max-width="500">
+      <v-card>
+        <v-card-title class="text-h6 pa-4 background-secondary">
+          <v-icon icon="mdi-alert" class="mr-2" color="error"></v-icon>
+          Confirmar Estorno de Transferência
+        </v-card-title>
+        <v-card-text class="pa-4">
+          <p class="mb-2">Deseja realmente estornar esta transferência?</p>
+          <div v-if="itemParaEstornar">
+            <v-divider class="my-3"></v-divider>
+            <div><strong>ID:</strong> #{{ itemParaEstornar.id }}</div>
+            <div><strong>Tipo:</strong> {{ itemParaEstornar.tipo_transf }}</div>
+            <div><strong>Valor:</strong> {{ formatarValor(itemParaEstornar.valor) }}</div>
+            <div><strong>Data/Hora:</strong> {{ formatarDataHora(itemParaEstornar.dhinc) }}</div>
+            <div><strong>Usuário:</strong> {{ itemParaEstornar.nome }}</div>
+            <div v-if="itemParaEstornar.observacao"><strong>Observação:</strong> {{ itemParaEstornar.observacao }}</div>
+            <v-alert type="warning" variant="tonal" class="mt-3">
+              Esta ação não poderá ser desfeita.
+            </v-alert>
+          </div>
+        </v-card-text>
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="dialogEstorno = false">
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="error"
+            variant="flat"
+            :loading="loadingEstorno"
+            @click="executarEstorno"
+          >
+            Estornar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
+import { toast } from 'vue3-toastify'
+import api from '@/services/api'
 
 const financeiroStore = useFinanceiroStore()
 
 const loading = ref(false)
+const loadingEstorno = ref(false)
+const dialogEstorno = ref(false)
+const itemParaEstornar = ref(null)
 const transferencias = ref([])
 
 const filtros = reactive({
@@ -148,7 +207,8 @@ const headers = [
   { title: 'Tipo', key: 'tipo_transf', sortable: true },
   { title: 'Valor', key: 'valor', sortable: true },
   { title: 'Usuário', key: 'nome', sortable: true },
-  { title: 'Observação', key: 'observacao', sortable: false }
+  { title: 'Observação', key: 'observacao', sortable: false },
+  { title: 'Ações', key: 'actions', sortable: false, align: 'center' }
 ]
 
 const rules = {
@@ -220,6 +280,37 @@ const formatarValor = (valor) => {
     style: 'currency',
     currency: 'BRL'
   }).format(valor)
+}
+
+// Confirmar estorno
+const confirmarEstorno = (item) => {
+  itemParaEstornar.value = item
+  dialogEstorno.value = true
+}
+
+// Executar estorno
+const executarEstorno = async () => {
+  if (!itemParaEstornar.value) return
+
+  loadingEstorno.value = true
+  try {
+    const token = localStorage.getItem('token')
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
+
+    await api.delete(`/estornotransffin/${itemParaEstornar.value.id}`, { headers })
+    
+    toast.success('Transferência estornada com sucesso!')
+    dialogEstorno.value = false
+    itemParaEstornar.value = null
+    
+    // Recarregar a lista
+    await buscarTransferencias()
+  } catch (error) {
+    console.error('Erro ao estornar transferência:', error)
+    toast.error('Erro ao estornar transferência')
+  } finally {
+    loadingEstorno.value = false
+  }
 }
 
 // Buscar automaticamente ao montar

@@ -25,7 +25,7 @@
                   <v-form ref="formRef" v-model="formValido">
                     <v-row dense>
                       <!-- Número da Conta (Obrigatório) -->
-                      <v-col cols="12" md="8">
+                      <v-col cols="12" md="4">
                         <v-text-field
                             v-model="formData.numero_ccorrente"
                             label="Número da Conta *"
@@ -39,7 +39,7 @@
                       </v-col>
 
                       <!-- Dígito CC (Obrigatório) -->
-                      <v-col cols="12" md="4">
+                      <v-col cols="12" md="2">
                         <v-text-field
                             v-model="formData.digito_cc"
                             label="Dígito *"
@@ -53,7 +53,7 @@
                       </v-col>
 
                       <!-- Titular (Obrigatório) -->
-                      <v-col cols="12" md="12">
+                      <v-col cols="12" md="6">
                         <v-text-field
                             v-model="formData.titular"
                             label="Titular *"
@@ -67,7 +67,7 @@
                       </v-col>
 
                       <!-- Banco (Obrigatório) -->
-                      <v-col cols="12" md="6">
+                      <v-col cols="12" md="4">
                         <v-autocomplete
                             v-model="bancoSelecionado"
                             :items="financeiroStore.bancos"
@@ -90,7 +90,7 @@
                         </v-autocomplete>
                       </v-col>
 
-                      <v-col cols="12" md="6" class="d-flex align-center">
+                      <v-col cols="12" md="4" class="d-flex align-center">
                         <v-text-field
                             ref="agenciaRef"
                             v-model="descagencia"
@@ -113,7 +113,7 @@
                       </v-col>
 
                       <!-- Plano de Conta (Obrigatório) -->
-                      <v-col cols="12" md="12">
+                      <v-col cols="12" md="4">
                         <v-autocomplete
                             v-model="formData.id_reduzido_ctb"
                             :items="financeiroStore.planosConta"
@@ -155,7 +155,7 @@
                       </v-col>
 
                       <!-- Limite (Obrigatório) -->
-                      <v-col cols="12" md="6">
+                      <v-col cols="12" md="4">
                         <v-text-field
                             v-model="formData.limite"
                             label="Limite *"
@@ -173,7 +173,7 @@
                       </v-col>
 
                       <!-- Data Abertura (Obrigatório) -->
-                      <v-col cols="12" md="6">
+                      <v-col cols="12" md="4">
                         <v-text-field
                             v-model="formData.dtabertura"
                             label="Data Abertura *"
@@ -188,7 +188,7 @@
                       </v-col>
 
                       <!-- Data Vencimento do Limite (Opcional) -->
-                      <v-col cols="12" md="6">
+                      <v-col cols="12" md="4">
                         <v-text-field
                             v-model="formData.dtvenctolimite"
                             label="Data Vencimento do Limite"
