@@ -1,114 +1,108 @@
 <template>
-  <div class="pa-4">
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-account-cog" class="mr-3"></v-icon>
-          Usuários
-        </div>
-      </v-card-title>
-    </v-card>
+  <top-all-pages icon="mdi-account-cog">
+    <template #titulo>Usuários</template>
+    <template #section>
+      <v-card class="background-secondary">
+        <v-card-text class="pa-4">
+          <BotaoExpandTransition
+              :formulario-aberto="formularioAberto"
+              texto-abrir="Novo Usuário"
+              texto-fechar="Cancelar"
+              @toggle="toggleFormulario"
+          />
 
-    <v-card class="background-secondary">
-      <v-card-text class="pa-4">
-        <BotaoExpandTransition
-          :formulario-aberto="formularioAberto"
-          texto-abrir="Novo Usuário"
-          texto-fechar="Cancelar"
-          @toggle="toggleFormulario"
-        />
+          <v-expand-transition>
+            <div v-if="formularioAberto">
+              <v-card class="background-card mb-7" elevation="2">
+                <v-card-title class="text-h6 pa-4">
+                  <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
+                  {{ editando ? 'Editar Usuário' : 'Novo Usuário' }}
+                </v-card-title>
+                <v-card-text class="pa-4">
+                  <v-form ref="formRef" v-model="formValido">
+                    <v-row>
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                            v-model="form.nome"
+                            label="Nome *"
+                            :rules="[rules.required]"
+                            maxlength="120"
+                            variant="outlined"
+                            density="compact"
+                            :theme="themeStore.darkMode ? 'dark' : 'light'"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-account"
+                        ></v-text-field>
+                      </v-col>
 
-        <v-expand-transition>
-          <div v-if="formularioAberto">
-            <v-card class="background-card mb-7" elevation="2">
-              <v-card-title class="text-h6 pa-4">
-                <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-                {{ editando ? 'Editar Usuário' : 'Novo Usuário' }}
-              </v-card-title>
-              <v-card-text class="pa-4">
-                <v-form ref="formRef" v-model="formValido">
-                  <v-row>
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="form.nome"
-                        label="Nome *"
-                        :rules="[rules.required]"
-                        maxlength="120"
-                        variant="outlined"
-                        density="compact"
-                        :theme="themeStore.darkMode ? 'dark' : 'light'"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-account"
-                      ></v-text-field>
-                    </v-col>
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                            v-model="form.email"
+                            label="E-mail *"
+                            :rules="[rules.required, rules.email]"
+                            maxlength="120"
+                            variant="outlined"
+                            density="compact"
+                            :theme="themeStore.darkMode ? 'dark' : 'light'"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-email"
+                        ></v-text-field>
+                      </v-col>
 
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="form.email"
-                        label="E-mail *"
-                        :rules="[rules.required, rules.email]"
-                        maxlength="120"
-                        variant="outlined"
-                        density="compact"
-                        :theme="themeStore.darkMode ? 'dark' : 'light'"
-                        class="custom-text-field"
-                        prepend-inner-icon="mdi-email"
-                      ></v-text-field>
-                    </v-col>
+                      <v-col cols="12" md="3">
+                        <v-checkbox v-model="form.consolidar" label="Permite consolidar" true-value="S" false-value="N"></v-checkbox>
+                      </v-col>
 
-                    <v-col cols="12" md="3">
-                      <v-checkbox v-model="form.consolidar" label="Permite consolidar" true-value="S" false-value="N"></v-checkbox>
-                    </v-col>
+                    </v-row>
+                  </v-form>
+                </v-card-text>
+                <v-card-actions class="pa-4">
+                  <v-spacer></v-spacer>
+                  <v-btn color="grey" variant="text" @click="cancelarFormulario">Cancelar</v-btn>
+                  <v-btn
+                      color="var(--text-color-laranja)"
+                      :loading="loading"
+                      :disabled="!formValido"
+                      @click="salvarUsuario"
+                      variant="flat"
+                      class="text-white">
+                    {{ editando ? 'Atualizar' : 'Salvar' }}
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </div>
+          </v-expand-transition>
 
-                  </v-row>
-                </v-form>
-              </v-card-text>
-              <v-card-actions class="pa-4">
-                <v-spacer></v-spacer>
-                <v-btn color="grey" variant="text" @click="cancelarFormulario">Cancelar</v-btn>
-                <v-btn
-                  color="var(--text-color-laranja)"
-                  :loading="loading"
-                  :disabled="!formValido"
-                  @click="salvarUsuario"
-                  variant="flat"
-                  class="text-white">
-                  {{ editando ? 'Atualizar' : 'Salvar' }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </div>
-        </v-expand-transition>
+          <!-- Tabela de Usuários -->
+          <TabelaPadrao
+              :formulario-aberto="formularioAberto"
+              :headers="headers"
+              :items="usuarios"
+              :loading="loading"
+              :search="search"
+              @update:search="(value) => search = value"
+              search-label="Pesquisar Usuário"
+              item-key="id"
+              no-data-icon="mdi-account-off"
+              no-data-text="Nenhum usuário encontrado"
+              :show-custom-action="false"
+              delete-dialog-message="Esta ação não pode ser desfeita."
+              delete-item-display-field="nome"
+              @edit-item="editarUsuario"
+              @confirm-delete="deletarUsuario"
+          >
+            <!-- Slots para formatação customizada -->
+            <template v-slot:[`item.consolidar`]="{ item }">
+              {{ item.consolidar === 'S' ? 'Sim' : 'Não' }}
+            </template>
+          </TabelaPadrao>
 
-        <!-- Tabela de Usuários -->
-        <TabelaPadrao
-          :formulario-aberto="formularioAberto"
-          :headers="headers"
-          :items="usuarios"
-          :loading="loading"
-          :search="search"
-          @update:search="(value) => search = value"
-          search-label="Pesquisar Usuário"
-          item-key="id"
-          no-data-icon="mdi-account-off"
-          no-data-text="Nenhum usuário encontrado"
-          :show-custom-action="false"
-          delete-dialog-message="Esta ação não pode ser desfeita."
-          delete-item-display-field="nome"
-          @edit-item="editarUsuario"
-          @confirm-delete="deletarUsuario"
-        >
-          <!-- Slots para formatação customizada -->
-          <template v-slot:[`item.consolidar`]="{ item }">
-            {{ item.consolidar === 'S' ? 'Sim' : 'Não' }}
-          </template>
-        </TabelaPadrao>
+        </v-card-text>
+      </v-card>
 
-      </v-card-text>
-    </v-card>
-
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000">{{ snackbar.message }}</v-snackbar>
-  </div>
+      <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000">{{ snackbar.message }}</v-snackbar>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
@@ -117,6 +111,7 @@ import api from '@/services/api'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore();
 

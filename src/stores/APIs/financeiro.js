@@ -1040,7 +1040,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true
       this.error = null
       try {
-        const response = await api.delete(`/receberbaixados/${id}`, {
+        const idEmpresa = localStorage.getItem('empresa') || localStorage.getItem('id_empresa') || '1'
+        const response = await api.delete(`/estornoreceber/${idEmpresa}/id/${id}`, {
           headers: this.getAuthHeaders()
         })
         return response.data
@@ -1679,6 +1680,83 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return response.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Erro ao criar tipo de documento'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Cadastrar fornecedor (POST /pessoa)
+    async cadastrarFornecedor(fornecedorData = {}) {
+      this.loading = true
+      this.error = null
+      try {
+        // Construir payload apenas com dados disponíveis (não deixar campos vazios desnecessários)
+        const dados = {
+          tipo_pessoa: fornecedorData.tipo_pessoa || 'J',
+          nome_razao: fornecedorData.nome_razao,
+          apelido_fantasia: fornecedorData.apelido_fantasia,
+          cpf_cnpj: fornecedorData.cpf_cnpj,
+          cliente: fornecedorData.cliente || 'N',
+          fornecedor: fornecedorData.fornecedor || 'S',
+          transportadora: fornecedorData.transportadora || 'N',
+          colaborador: fornecedorData.colaborador || 'N',
+          representante: fornecedorData.representante || 'N',
+          ativo: fornecedorData.ativo || 'S'
+        }
+
+        // Adicionar campos opcionais apenas se tiverem valor
+        if (fornecedorData.rg_inscricao) dados.rg_inscricao = fornecedorData.rg_inscricao
+        if (fornecedorData.telefone) dados.telefone = fornecedorData.telefone
+        if (fornecedorData.celular) dados.celular = fornecedorData.celular
+        if (fornecedorData.whats) dados.whats = fornecedorData.whats
+        if (fornecedorData.website) dados.website = fornecedorData.website
+        if (fornecedorData.instagram) dados.instagram = fornecedorData.instagram
+        if (fornecedorData.facebook) dados.facebook = fornecedorData.facebook
+        if (fornecedorData.twitter_x) dados.twitter_x = fornecedorData.twitter_x
+        if (fornecedorData.tik_tok) dados.tik_tok = fornecedorData.tik_tok
+        if (fornecedorData.telegram) dados.telegram = fornecedorData.telegram
+        if (fornecedorData.latitude !== null && fornecedorData.latitude !== undefined) dados.latitude = fornecedorData.latitude
+        if (fornecedorData.longitude !== null && fornecedorData.longitude !== undefined) dados.longitude = fornecedorData.longitude
+
+        // Remover id caso venha para criação
+        delete dados.id
+        delete dados.ID
+
+        // Payload no padrão THorse
+        const payload = { data: [dados] }
+
+        const response = await api.post('/pessoa', payload, {
+          headers: this.getAuthHeaders()
+        })
+
+        // Normalizar retorno: pode vir { data: [...] } ou objeto direto ou apenas { id_pessoa: X }
+        const resp = response.data
+        let created = null
+
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          // Formato: { data: [{...}] }
+          created = resp.data[0]
+        } else if (resp && resp.id_pessoa) {
+          // Formato: { id_pessoa: 20 } - apenas ID retornado
+          // Aceitar apenas o ID por enquanto
+          created = {
+            id_pessoa: resp.id_pessoa,
+            id: resp.id_pessoa
+          }
+        } else if (resp && typeof resp === 'object') {
+          // Formato: objeto direto
+          created = resp
+        }
+
+        // Garantir que temos um ID (normalizar id_pessoa para id se necessário)
+        if (created && created.id_pessoa && !created.id) {
+          created.id = created.id_pessoa
+        }
+
+        return created || response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao cadastrar fornecedor'
         throw error
       } finally {
         this.loading = false

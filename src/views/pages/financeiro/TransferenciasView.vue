@@ -1,104 +1,99 @@
 <template>
-  <div class="pa-4">
-    <!-- Cabeçalho -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-swap-horizontal" class="mr-3"></v-icon>
-          Transferências Financeiras
-        </div>
-      </v-card-title>
-    </v-card>
+  <top-all-pages icon="mdi-swap-horizontal">
+    <template #titulo>Transferências Financeiras</template>
+    <template #section>
+      <div>
+        <!-- Conteúdo Principal -->
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+          <v-card-text class="pa-4">
+            <!-- Botão Expandir Formulário -->
+            <BotaoExpandTransition
+                :formulario-aberto="formularioAberto"
+                texto-abrir="Nova Transferência"
+                texto-fechar="Cancelar"
+                @toggle="toggleFormulario"
+            />
 
-    <!-- Conteúdo Principal -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
-      <v-card-text class="pa-4">
-        <!-- Botão Expandir Formulário -->
-        <BotaoExpandTransition
-          :formulario-aberto="formularioAberto"
-          texto-abrir="Nova Transferência"
-          texto-fechar="Cancelar"
-          @toggle="toggleFormulario"
-        />
+            <!-- Formulário Expansível -->
+            <v-expand-transition>
+              <div v-if="formularioAberto">
+                <v-card class="background-card mb-7" elevation="2">
+                  <v-card-title class="text-h6 pa-4">
+                    <v-icon icon="mdi-swap-horizontal" class="mr-2"></v-icon>
+                    Nova Transferência
+                  </v-card-title>
+                  <v-card-text class="pa-4">
+                    <!-- Seletor de Tipo de Transferência -->
+                    <v-row class="mb-4">
+                      <v-col cols="12">
+                        <v-select
+                            v-model="tipoTransferencia"
+                            label="Tipo de Transferência *"
+                            :items="tiposTransferencia"
+                            item-title="text"
+                            item-value="value"
+                            density="compact"
+                            variant="outlined"
+                            hide-details="auto"
+                            prepend-inner-icon="mdi-swap-horizontal"
+                            :rules="[rules.required]"
+                        ></v-select>
+                      </v-col>
+                    </v-row>
 
-        <!-- Formulário Expansível -->
-        <v-expand-transition>
-          <div v-if="formularioAberto">
-            <v-card class="background-card mb-7" elevation="2">
-              <v-card-title class="text-h6 pa-4">
-                <v-icon icon="mdi-swap-horizontal" class="mr-2"></v-icon>
-                Nova Transferência
-              </v-card-title>
-              <v-card-text class="pa-4">
-                <!-- Seletor de Tipo de Transferência -->
-                <v-row class="mb-4">
-                  <v-col cols="12">
-                    <v-select
-                      v-model="tipoTransferencia"
-                      label="Tipo de Transferência *"
-                      :items="tiposTransferencia"
-                      item-title="text"
-                      item-value="value"
-                      density="compact"
-                      variant="outlined"
-                      hide-details="auto"
-                      prepend-inner-icon="mdi-swap-horizontal"
-                      :rules="[rules.required]"
-                    ></v-select>
-                  </v-col>
-                </v-row>
+                    <!-- Componentes de Transferência Dinâmicos -->
+                    <TransferenciaCaixaBanco
+                        v-if="tipoTransferencia === 4"
+                        @sucesso="onTransferenciaRealizada"
+                    />
+                    <TransferenciaIntercaixa
+                        v-if="tipoTransferencia === 3"
+                        @sucesso="onTransferenciaRealizada"
+                    />
+                    <TransferenciaBancoCaixa
+                        v-if="tipoTransferencia === 2"
+                        @sucesso="onTransferenciaRealizada"
+                    />
+                    <TransferenciaInterbancaria
+                        v-if="tipoTransferencia === 1"
+                        @sucesso="onTransferenciaRealizada"
+                    />
 
-                <!-- Componentes de Transferência Dinâmicos -->
-                <TransferenciaCaixaBanco 
-                  v-if="tipoTransferencia === 4"
-                  @sucesso="onTransferenciaRealizada"
-                />
-                <TransferenciaIntercaixa 
-                  v-if="tipoTransferencia === 3"
-                  @sucesso="onTransferenciaRealizada"
-                />
-                <TransferenciaBancoCaixa 
-                  v-if="tipoTransferencia === 2"
-                  @sucesso="onTransferenciaRealizada"
-                />
-                <TransferenciaInterbancaria 
-                  v-if="tipoTransferencia === 1"
-                  @sucesso="onTransferenciaRealizada"
-                />
+                    <!-- Mensagem quando nenhum tipo selecionado -->
+                    <v-alert
+                        v-if="!tipoTransferencia"
+                        type="info"
+                        variant="tonal"
+                        class="mt-4"
+                    >
+                      <v-icon icon="mdi-information" class="mr-2"></v-icon>
+                      Selecione um tipo de transferência para continuar
+                    </v-alert>
+                  </v-card-text>
+                </v-card>
+              </div>
+            </v-expand-transition>
 
-                <!-- Mensagem quando nenhum tipo selecionado -->
-                <v-alert
-                  v-if="!tipoTransferencia"
-                  type="info"
-                  variant="tonal"
-                  class="mt-4"
-                >
-                  <v-icon icon="mdi-information" class="mr-2"></v-icon>
-                  Selecione um tipo de transferência para continuar
-                </v-alert>
-              </v-card-text>
-            </v-card>
-          </div>
-        </v-expand-transition>
+            <!-- Tabela de Histórico -->
+            <HistoricoTransferencias
+                ref="historicoRef"
+                :formulario-aberto="formularioAberto"
+            />
+          </v-card-text>
+        </v-card>
 
-        <!-- Tabela de Histórico -->
-        <HistoricoTransferencias 
-          ref="historicoRef"
-          :formulario-aberto="formularioAberto"
-        />
-      </v-card-text>
-    </v-card>
-
-    <!-- Snackbar de Feedback -->
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      :timeout="3000"
-      location="top"
-    >
-      {{ snackbar.message }}
-    </v-snackbar>
-  </div>
+        <!-- Snackbar de Feedback -->
+        <v-snackbar
+            v-model="snackbar.show"
+            :color="snackbar.color"
+            :timeout="3000"
+            location="top"
+        >
+          {{ snackbar.message }}
+        </v-snackbar>
+      </div>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
@@ -110,6 +105,7 @@ import TransferenciaIntercaixa from '@/components/base/transferencias/Transferen
 import TransferenciaBancoCaixa from '@/components/base/transferencias/TransferenciaBancoCaixa.vue'
 import TransferenciaInterbancaria from '@/components/base/transferencias/TransferenciaInterbancaria.vue'
 import HistoricoTransferencias from '@/components/base/transferencias/HistoricoTransferencias.vue'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 const formularioAberto = ref(false)

@@ -44,6 +44,8 @@ export const useProdutosStore = defineStore('produtos', {
 
         entradadfe: [],
         entradadfeItem: null,
+
+        localizacoes: [],
     }),
 
     actions: {
@@ -671,5 +673,90 @@ export const useProdutosStore = defineStore('produtos', {
                 this.loading = false;
             }
         },
+
+        /**
+         * BUSCAR LOCALIZAÇÕES
+         * @return {Promise<void>}
+         */
+
+        async buscarLocalizacoes(idEmpresa) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/localizacao/${idEmpresa}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                this.localizacoes = response.data.data;
+                this.errorMessage = '';
+
+                console.log('localizações encontradas:', this.localizacoes);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar localizações:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * CADASTRAR LOCALIZAÇÃO
+         * @param {object} localizacaoData - Dados da localização a ser cadastrada.
+         * @return {Promise<void>}
+         */
+
+        async cadastrarLocalizacao(localizacaoData, idEmpresa) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao('localizacao', 'post', localizacaoData);
+                await this.buscarLocalizacoes(idEmpresa);
+            } catch (error) {
+                console.error('Erro ao cadastrar localização:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * DELETAR LOCALIZAÇÃO
+         * @param {number} idEmpresa - ID da Empresa.
+         * @param {number} id - ID da localização a ser deletada.
+         * @return {Promise<void>}
+         */
+
+        async deletarLocalizacao(idEmpresa, id) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`localizacao/${idEmpresa}/${id}`, 'delete');
+                await this.buscarLocalizacoes(idEmpresa);
+            } catch (error) {
+                console.error('Erro ao deletar localização:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * ATUALIZAR LOCALIZAÇÃO
+         * @param {number} idEmpresa - ID da Empresa.
+         * @param {number} id - ID da localização a ser atualizada.
+         * @param {object} localizacaoData - Dados da localização a serem atualizados.
+         * @return {Promise<void>}
+         */
+
+        async atualizarLocalizacao(idEmpresa, id, localizacaoData) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`localizacao/${idEmpresa}/${id}`, 'put', localizacaoData);
+                await this.buscarLocalizacoes(idEmpresa);
+            } catch (error) {
+                console.error('Erro ao atualizar localização:', error);
+            } finally {
+                this.loading = false;
+            }
+        }
     }
 })

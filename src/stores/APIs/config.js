@@ -262,6 +262,43 @@ export const useConfigParfinStore = defineStore('config-parfin', {
         },
 
         /**
+         * BUSCAR PARÂMETROS FINANCEIROS - BAIXA
+         */
+        async buscarParametrosBaixa(idEmpresa) {
+            this.loading = true;
+            
+            if (!this.token) {
+                console.error('Token não encontrado!');
+                this.errorMessage = 'Token não encontrado!';
+                this.loading = false;
+                return null;
+            }
+            
+            if (!idEmpresa) {
+                console.error('ID da empresa não encontrado!');
+                this.errorMessage = 'ID da empresa não encontrado!';
+                this.loading = false;
+                return null;
+            }
+            
+            try {
+                const response = await api.get(`parfinbxa/${idEmpresa}`, {
+                    headers: {Authorization: `Bearer ${this.token}`}
+                });
+                
+                this.errorMessage = '';
+                return response.data;
+                
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
+                console.error('Erro ao buscar parâmetros financeiros (baixa):', error);
+                return null;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
          * BUSCAR HISTÓRICO CAIXA
          */
         async buscarHistoricoCaixa() {

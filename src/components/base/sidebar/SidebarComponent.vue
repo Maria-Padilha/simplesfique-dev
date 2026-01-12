@@ -215,6 +215,7 @@
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {useSidebarStore} from "@/stores/Sidebar";
 import {useEmpresaStore} from "@/stores/APIs/empresa";
+import {useConfigParfinStore} from "@/stores/APIs/config";
 import {ref, onMounted, onBeforeUnmount, mergeProps, computed, watchEffect} from 'vue'
 import ErrorAlertModal from "@/components/base/modais/ErrorAlertModal.vue";
 
@@ -227,6 +228,9 @@ const themeStore = useThemeStore();
 // Store de empresas
 const empresaStore = useEmpresaStore();
 const empresas = computed(() => empresaStore.empresas?.data || []);
+
+// Store de configurações
+const configStore = useConfigParfinStore();
 
 // modal de erro
 const errorModal = ref(false);
@@ -262,6 +266,58 @@ const selecionarEmpresa = (empresa) => {
   empresaStore.selecionarEmpresa(empresa);
 };
 
+// Função para buscar configurações do sistema
+const buscarConfiguracoes = async () => {
+  try {
+    // Buscar ID da empresa do localStorage
+    let idEmpresa = localStorage.getItem('empresa');
+    
+    // Se não encontrar, tenta buscar do objeto empresaSelecionada
+    if (!idEmpresa) {
+      const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada');
+      if (empresaSelecionadaStr) {
+        try {
+          const empresaSelecionada = JSON.parse(empresaSelecionadaStr);
+          idEmpresa = empresaSelecionada.id;
+        } catch (e) {
+          console.error('Erro ao parsear empresaSelecionada:', e);
+        }
+      }
+    }
+    
+    if (!idEmpresa) {
+      console.error('ID da empresa não encontrado');
+      return;
+    }
+    
+    // Buscar parâmetros financeiros de pagamento
+    const parfinpag = await configStore.buscarParametrosFinanceirosPagar(idEmpresa);
+    if (parfinpag) {
+      localStorage.setItem('parfinpag', JSON.stringify(parfinpag));
+    }
+    
+    // Buscar parâmetros financeiros de baixa
+    const parfinbxa = await configStore.buscarParametrosCaixa(idEmpresa);
+    if (parfinbxa) {
+      localStorage.setItem('parfinbxa', JSON.stringify(parfinbxa));
+    }
+    
+    // Buscar parâmetros financeiros de recebimento
+    const parfinrec = await configStore.buscarParametrosFinanceirosReceber(idEmpresa);
+    if (parfinrec) {
+      localStorage.setItem('parfinrec', JSON.stringify(parfinrec));
+    }
+    
+    // Buscar parâmetros de centro de custo
+    const ccustoparametro = await configStore.buscarparfin();
+    if (ccustoparametro) {
+      localStorage.setItem('ccustoparametro', JSON.stringify(ccustoparametro));
+    }
+  } catch (error) {
+    console.error('Erro ao buscar configurações:', error);
+  }
+}
+
 // Consolidar todos os onMounted em um único
 onMounted(() => {  
   empresaStore.carregarEmpresaSelecionada();
@@ -291,6 +347,10 @@ onMounted(async () => {
   // Primeiro tenta carregar a empresa salva
   empresaStore.carregarEmpresaSelecionada();
 
+  // Aguarda 2 segundos para garantir que o idEmpresa esteja disponível no localStorage
+  setTimeout(async () => {
+    await buscarConfiguracoes();
+  }, 2000);
 
   window.addEventListener('resize', onResize);
   onResize();

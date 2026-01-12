@@ -1,248 +1,243 @@
 <template>
-  <div class="pa-4">
-    <!-- Cabeçalho -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-cash-plus" class="mr-3"></v-icon>
-          Baixa de Recebimentos
-        </div>
-      </v-card-title>
-    </v-card>
+  <top-all-pages icon="mdi-cash-plus">
+    <template #titulo>Baixa de Recebimentos</template>
+    <template #section>
+      <div>
+        <!-- Card com Total das Parcelas e Ações de Baixa -->
+        <v-card class="background-secondary mb-4" elevation="2">
+          <v-card-text class="pa-4">
+            <div class="d-flex justify-space-between align-items-center">
+              <div>
+                <h4 class="text-h6 mb-2">Resumo Financeiro</h4>
+                <p class="text-body-1 mb-1">
+                  Total de parcelas: <strong>{{ contasReceber.length }}</strong>
+                </p>
+                <p class="text-body-1 mb-1">
+                  Valor total: <strong>{{ formatarMoeda(totalParcelasFiltradas) }}</strong>
+                </p>
+                <p class="text-body-1 mb-1">
+                  Selecionados: <strong>{{ contasSelecionadas.length }}</strong> |
+                  Valor selecionado: <strong>{{ formatarMoeda(valorSelecionado) }}</strong>
+                </p>
 
-    <!-- Card com Total das Parcelas e Ações de Baixa -->
-    <v-card class="background-secondary mb-4" elevation="2">
-      <v-card-text class="pa-4">
-        <div class="d-flex justify-space-between align-items-center">
-          <div>
-            <h4 class="text-h6 mb-2">Resumo Financeiro</h4>
-            <p class="text-body-1 mb-1">
-              Total de parcelas: <strong>{{ contasReceber.length }}</strong>
-            </p>
-            <p class="text-body-1 mb-1">
-              Valor total: <strong>{{ formatarMoeda(totalParcelasFiltradas) }}</strong>
-            </p>
-            <p class="text-body-1 mb-1">
-              Selecionados: <strong>{{ contasSelecionadas.length }}</strong> | 
-              Valor selecionado: <strong>{{ formatarMoeda(valorSelecionado) }}</strong>
-            </p>
-            
-            <!-- Select para tipo de baixa -->
-            <div class="mt-3">
-              <v-select
-                v-model="tipoBaixa"
-                :items="[
+                <!-- Select para tipo de baixa -->
+                <div class="mt-3">
+                  <v-select
+                      v-model="tipoBaixa"
+                      :items="[
                   { title: 'Banco', value: 'banco' },
                   { title: 'Caixa', value: 'caixa' }
                 ]"
-                item-title="title"
-                item-value="value"
-                label="Tipo de Baixa"
-                variant="outlined"
-                density="compact"
-                style="max-width: 200px;"
-                hide-details
-              />
+                      item-title="title"
+                      item-value="value"
+                      label="Tipo de Baixa"
+                      variant="outlined"
+                      density="compact"
+                      style="max-width: 200px;"
+                      hide-details
+                  />
+                </div>
+              </div>
+              <div class="d-flex flex-column ga-2">
+                <v-btn
+                    color="var(--text-color-laranja)"
+                    :disabled="contasSelecionadas.length === 0"
+                    :loading="loadingBaixa"
+                    @click="confirmarBaixaRecebimento"
+                    variant="flat"
+                    class="text-white"
+                    prepend-icon="mdi-cash-plus"
+                >
+                  Baixar {{ contasSelecionadas.length }} Recebimento(s)
+                </v-btn>
+                <v-btn
+                    variant="text"
+                    color="grey"
+                    :disabled="contasSelecionadas.length === 0"
+                    @click="limparSelecoes"
+                    size="small"
+                >
+                  Limpar Seleção
+                </v-btn>
+              </div>
             </div>
-          </div>
-          <div class="d-flex flex-column ga-2">
-            <v-btn
-              color="var(--text-color-laranja)"
-              :disabled="contasSelecionadas.length === 0"
-              :loading="loadingBaixa"
-              @click="confirmarBaixaRecebimento"
-              variant="flat"
-              class="text-white"
-              prepend-icon="mdi-cash-plus"
-            >
-              Baixar {{ contasSelecionadas.length }} Recebimento(s)
-            </v-btn>
-            <v-btn
-              variant="text"
-              color="grey"
-              :disabled="contasSelecionadas.length === 0"
-              @click="limparSelecoes"
-              size="small"
-            >
-              Limpar Seleção
-            </v-btn>
-          </div>
-        </div>
-      </v-card-text>
-    </v-card>
+          </v-card-text>
+        </v-card>
 
-    <!-- Lista de Contas a Receber -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
-      <v-card-text class="pa-4">
-        <!-- Busca Avançada -->
-        <BuscaAvancadaBaixa
-          entidade="contasreceber"
-          @aplicar="aplicarFiltrosAvancados"
-        />
-
-        <!-- Tabela de Contas a Receber -->
-        <TabelaPadrao
-          :headers="headers"
-          :items="contasReceberFiltradas"
-          :loading="loading"
-          :search="search"
-          @update:search="(value) => search = value"
-          search-label="Pesquisar contas a receber"
-          item-key="id"
-          no-data-icon="mdi-cash-plus-outline"
-          no-data-text="Nenhuma conta a receber encontrada para baixa"
-          :hide-delete-action="true"
-          :hide-edit-action="true"
-          :show-custom-action="false"
-        >
-          <!-- Checkbox de seleção -->
-          <template v-slot:[`item.checkbox`]="{ item }">
-            <v-checkbox
-              v-model="contasSelecionadas"
-              :value="item"
-              hide-details
-              density="compact"
-              color="var(--text-color-laranja)"
+        <!-- Lista de Contas a Receber -->
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+          <v-card-text class="pa-4">
+            <!-- Busca Avançada -->
+            <BuscaAvancadaBaixa
+                entidade="contasreceber"
+                @aplicar="aplicarFiltrosAvancados"
             />
-          </template>
 
-          <!-- Checkbox no cabeçalho para selecionar todos -->
-          <template v-slot:[`header.checkbox`]>
-            <v-checkbox
-              v-model="todosSelecionados"
-              @update:model-value="toggleTodosSelecionados"
-              hide-details
-              density="compact"
-              color="var(--text-color-laranja)"
-              :indeterminate="contasSelecionadas.length > 0 && contasSelecionadas.length < contasReceberFiltradas.length"
-            />
-          </template>
+            <!-- Tabela de Contas a Receber -->
+            <TabelaPadrao
+                :headers="headers"
+                :items="contasReceberFiltradas"
+                :loading="loading"
+                :search="search"
+                @update:search="(value) => search = value"
+                search-label="Pesquisar contas a receber"
+                item-key="id"
+                no-data-icon="mdi-cash-plus-outline"
+                no-data-text="Nenhuma conta a receber encontrada para baixa"
+                :hide-delete-action="true"
+                :hide-edit-action="true"
+                :show-custom-action="false"
+            >
+              <!-- Checkbox de seleção -->
+              <template v-slot:[`item.checkbox`]="{ item }">
+                <v-checkbox
+                    v-model="contasSelecionadas"
+                    :value="item"
+                    hide-details
+                    density="compact"
+                    color="var(--text-color-laranja)"
+                />
+              </template>
 
-          <!-- Formatação da data de vencimento -->
-          <template v-slot:[`item.dtvencimento`]="{ item }">
+              <!-- Checkbox no cabeçalho para selecionar todos -->
+              <template v-slot:[`header.checkbox`]>
+                <v-checkbox
+                    v-model="todosSelecionados"
+                    @update:model-value="toggleTodosSelecionados"
+                    hide-details
+                    density="compact"
+                    color="var(--text-color-laranja)"
+                    :indeterminate="contasSelecionadas.length > 0 && contasSelecionadas.length < contasReceberFiltradas.length"
+                />
+              </template>
+
+              <!-- Formatação da data de vencimento -->
+              <template v-slot:[`item.dtvencimento`]="{ item }">
             <span :class="{ 'text-red': isVencido(item.dtvencimento) }">
               {{ item.dtvencimento ? new Date(item.dtvencimento).toLocaleDateString('pt-BR') : '--' }}
             </span>
-          </template>
+              </template>
 
-          <!-- Formatação do valor da parcela -->
-          <template v-slot:[`item.vlrparcela`]="{ item }">
-            {{ formatarMoeda(item.vlrparcela) }}
-          </template>
+              <!-- Formatação do valor da parcela -->
+              <template v-slot:[`item.vlrparcela`]="{ item }">
+                {{ formatarMoeda(item.vlrparcela) }}
+              </template>
 
-          <!-- Edição inline de Juros (sempre editável) -->
-          <template v-slot:[`item.juros`]="{ item }">
-            <v-text-field
-              v-model="item.juros_display"
-              type="text"
-              variant="outlined"
-              density="compact"
-              hide-details
-              class="campo-editavel-tabela juros-input"
-              :class="{ 'campo-editavel-dark': themeStore.darkMode }"
-              style="min-width: 120px; width: 140px;"
-              @update:model-value="(val) => handleItemCurrencyInput(item, 'juros', val)"
-              @blur="() => handleItemCurrencyBlur(item, 'juros')"
-            />
-          </template>
+              <!-- Edição inline de Juros (sempre editável) -->
+              <template v-slot:[`item.juros`]="{ item }">
+                <v-text-field
+                    v-model="item.juros_display"
+                    type="text"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                    class="campo-editavel-tabela juros-input"
+                    :class="{ 'campo-editavel-dark': themeStore.darkMode }"
+                    style="min-width: 120px; width: 140px;"
+                    @update:model-value="(val) => handleItemCurrencyInput(item, 'juros', val)"
+                    @blur="() => handleItemCurrencyBlur(item, 'juros')"
+                />
+              </template>
 
-          <!-- Edição inline de Multa (sempre editável) -->
-          <template v-slot:[`item.multa`]="{ item }">
-            <v-text-field
-              v-model="item.multa_display"
-              type="text"
-              variant="outlined"
-              density="compact"
-              hide-details
-              :class="{ 'campo-editavel-dark': themeStore.darkMode }"
-              class="campo-editavel-tabela multa-input"
-              style="min-width: 120px; width: 140px;"
-              @update:model-value="(val) => handleItemCurrencyInput(item, 'multa', val)"
-              @blur="() => handleItemCurrencyBlur(item, 'multa')"
-            />
-          </template>
+              <!-- Edição inline de Multa (sempre editável) -->
+              <template v-slot:[`item.multa`]="{ item }">
+                <v-text-field
+                    v-model="item.multa_display"
+                    type="text"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                    :class="{ 'campo-editavel-dark': themeStore.darkMode }"
+                    class="campo-editavel-tabela multa-input"
+                    style="min-width: 120px; width: 140px;"
+                    @update:model-value="(val) => handleItemCurrencyInput(item, 'multa', val)"
+                    @blur="() => handleItemCurrencyBlur(item, 'multa')"
+                />
+              </template>
 
-          <!-- Edição inline de Desconto (sempre editável) -->
-          <template v-slot:[`item.desconto`]="{ item }">
-            <v-text-field
-              v-model="item.desconto_display"
-              type="text"
-              variant="outlined"
-              density="compact"
-              hide-details
-              class="campo-editavel-tabela desconto-input"
-              :class="{ 'campo-editavel-dark': themeStore.darkMode }"
-              style="min-width: 120px; width: 140px;"
-              @update:model-value="(val) => handleItemCurrencyInput(item, 'desconto', val)"
-              @blur="() => handleItemCurrencyBlur(item, 'desconto')"
-            />
-          </template>
+              <!-- Edição inline de Desconto (sempre editável) -->
+              <template v-slot:[`item.desconto`]="{ item }">
+                <v-text-field
+                    v-model="item.desconto_display"
+                    type="text"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                    class="campo-editavel-tabela desconto-input"
+                    :class="{ 'campo-editavel-dark': themeStore.darkMode }"
+                    style="min-width: 120px; width: 140px;"
+                    @update:model-value="(val) => handleItemCurrencyInput(item, 'desconto', val)"
+                    @blur="() => handleItemCurrencyBlur(item, 'desconto')"
+                />
+              </template>
 
-          <!-- Formatação do saldo devedor (leitura) -->
-          <template v-slot:[`item.saldo_devedor`]="{ item }">
-            {{ formatarMoeda(item.saldo_devedor) }}
-          </template>
+              <!-- Formatação do saldo devedor (leitura) -->
+              <template v-slot:[`item.saldo_devedor`]="{ item }">
+                {{ formatarMoeda(item.saldo_devedor) }}
+              </template>
 
-          <!-- Edição inline de Vlr a Receber (novo campo editável) -->
-          <template v-slot:[`item.vlrareceber`]="{ item }">
-            <v-text-field
-              v-model="item.vlrareceber_display"
-              type="text"
-              step="0.01"
-              variant="outlined"
-              density="compact"
-              hide-details
-              class="campo-editavel-tabela vlr-a-receber"
-              :class="{ 'campo-editavel-dark': themeStore.darkMode }"
-              style="width: 160px; min-width: 120px;"
-              @update:model-value="(val) => handleItemCurrencyInput(item, 'vlrareceber', val)"
-              @blur="() => handleItemCurrencyBlur(item, 'vlrareceber')"
-            />
-          </template>
+              <!-- Edição inline de Vlr a Receber (novo campo editável) -->
+              <template v-slot:[`item.vlrareceber`]="{ item }">
+                <v-text-field
+                    v-model="item.vlrareceber_display"
+                    type="text"
+                    step="0.01"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                    class="campo-editavel-tabela vlr-a-receber"
+                    :class="{ 'campo-editavel-dark': themeStore.darkMode }"
+                    style="width: 160px; min-width: 120px;"
+                    @update:model-value="(val) => handleItemCurrencyInput(item, 'vlrareceber', val)"
+                    @blur="() => handleItemCurrencyBlur(item, 'vlrareceber')"
+                />
+              </template>
 
-          <!-- Formatação do valor quitado -->
-          <template v-slot:[`item.vlrquitado`]="{ item }">
-            {{ formatarMoeda(item.vlrquitado) }}
-          </template>
+              <!-- Formatação do valor quitado -->
+              <template v-slot:[`item.vlrquitado`]="{ item }">
+                {{ formatarMoeda(item.vlrquitado) }}
+              </template>
 
-          <!-- Formatação do valor liberado -->
-          <template v-slot:[`item.vlrliberado`]="{ item }">
-            {{ formatarMoeda(item.vlrliberado || 0) }}
-          </template>
-        </TabelaPadrao>
-      </v-card-text>
-    </v-card>
+              <!-- Formatação do valor liberado -->
+              <template v-slot:[`item.vlrliberado`]="{ item }">
+                {{ formatarMoeda(item.vlrliberado || 0) }}
+              </template>
+            </TabelaPadrao>
+          </v-card-text>
+        </v-card>
 
-    <!-- Modal de Baixa por Caixa -->
-    <BaixaCaixaModal
-      v-if="tipoBaixa === 'caixa'"
-      v-model="dialogBaixa.aberto"
-      :id-empresa="idEmpresa"
-      :contas-selecionadas="contasSelecionadas"
-      :valor-total="valorSelecionado"
-      :loading="loadingBaixa"
-      @confirmar="executarBaixaCaixa"
-    />
+        <!-- Modal de Baixa por Caixa -->
+        <BaixaCaixaModal
+            v-if="tipoBaixa === 'caixa'"
+            v-model="dialogBaixa.aberto"
+            :id-empresa="idEmpresa"
+            :contas-selecionadas="contasSelecionadas"
+            :valor-total="valorSelecionado"
+            :loading="loadingBaixa"
+            @confirmar="executarBaixaCaixa"
+        />
 
-    <!-- Modal de Baixa por Banco -->
-    <BaixaBancoModal
-      v-if="tipoBaixa === 'banco'"
-      v-model="dialogBaixa.aberto"
-      :contas-selecionadas="contasSelecionadas"
-      :valor-total="valorSelecionado"
-      :loading="loadingBaixa"
-      @confirmar="executarBaixaBanco"
-    />
+        <!-- Modal de Baixa por Banco -->
+        <BaixaBancoModal
+            v-if="tipoBaixa === 'banco'"
+            v-model="dialogBaixa.aberto"
+            :contas-selecionadas="contasSelecionadas"
+            :valor-total="valorSelecionado"
+            :loading="loadingBaixa"
+            @confirmar="executarBaixaBanco"
+        />
 
-    <!-- Snackbar para feedback -->
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      :timeout="3000"
-    >
-      {{ snackbar.message }}
-    </v-snackbar>
-  </div>
+        <!-- Snackbar para feedback -->
+        <v-snackbar
+            v-model="snackbar.show"
+            :color="snackbar.color"
+            :timeout="3000"
+        >
+          {{ snackbar.message }}
+        </v-snackbar>
+      </div>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
@@ -254,6 +249,7 @@ import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import BuscaAvancadaBaixa from '@/components/base/padrao-paginas/BuscaAvancadaBaixa.vue'
 import BaixaCaixaModal from '@/components/base/modais/BaixaCaixaModal.vue'
 import BaixaBancoModal from '@/components/base/modais/BaixaBancoModal.vue'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()

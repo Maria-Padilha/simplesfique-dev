@@ -1,992 +1,1304 @@
 <template>
-  <div class="pa-4">
-    <!-- Cabeçalho -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-credit-card-outline" class="mr-3"></v-icon>
-          Contas a Pagar
-        </div>
-        <v-btn
-          icon="mdi-printer"
-          variant="text"
-          color="var(--text-color-laranja)"
-          @click="abrirModalExportacao"
-          title="Exportar/Imprimir relatório"
-        ></v-btn>
-      </v-card-title>
-    </v-card>
-
-    <!-- Card com Total das Parcelas -->
-    <v-card class="background-secondary mb-4" elevation="2">
-      <v-card-text class="pa-4">
-        <div class="d-flex align-center justify-space-between">
-          <div class="d-flex align-center">
-            <v-icon icon="mdi-cash-multiple" size="32" color="var(--text-color-laranja)" class="mr-3"></v-icon>
-            <div>
-              <div class="text-caption text-grey">Total A Pagar</div>
-              <div class="text-h5 font-weight-bold" style="color: var(--text-color-laranja)">
-                {{ formatarMoeda(totalParcelasFiltradas) }}
+  <top-all-pages icon="mdi-credit-card-outline">
+    <template #titulo>Contas a Pagar</template>
+    <template #section>
+      <div>
+        <!-- Card com Total das Parcelas -->
+        <v-card class="background-secondary mb-4" elevation="2">
+          <v-card-text class="pa-4">
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center">
+                <v-icon icon="mdi-cash-multiple" size="32" color="var(--text-color-laranja)" class="mr-3"></v-icon>
+                <div>
+                  <div class="text-caption text-grey">Total A Pagar</div>
+                  <div class="text-h5 font-weight-bold" style="color: var(--text-color-laranja)">
+                    {{ formatarMoeda(totalParcelasFiltradas) }}
+                  </div>
+                </div>
               </div>
+              <v-chip color="var(--text-color-laranja)" variant="tonal">
+                {{ contasPagarFiltradas.length }} {{ contasPagarFiltradas.length === 1 ? 'parcela' : 'parcelas' }}
+              </v-chip>
             </div>
-          </div>
-          <v-chip color="var(--text-color-laranja)" variant="tonal">
-            {{ contasPagarFiltradas.length }} {{ contasPagarFiltradas.length === 1 ? 'parcela' : 'parcelas' }}
-          </v-chip>
-        </div>
-      </v-card-text>
-    </v-card>
+          </v-card-text>
+        </v-card>
 
-    <!-- Lista de Contas a Pagar -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
-      <v-card-text class="pa-4">
-        <BotaoExpandTransition
-          :formulario-aberto="formularioAberto"
-          texto-abrir="Nova Conta a Pagar"
-          texto-fechar="Cancelar"
-          @toggle="toggleFormulario"
-        />
+        <!-- Lista de Contas a Pagar -->
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+          <v-card-text class="pa-4">
+            <div class="d-flex justify-end align-center mb-3">
+              <v-btn
+                  color="var(--text-color-laranja)"
+                  variant="outlined"
+                  size="small"
+                  prepend-icon="mdi-file-xml-box"
+                  class="mr-3"
+                  @click="abrirModalImportarXML"
+              >
+                Importar XML
+              </v-btn>
+              <v-btn
+                  color="var(--text-color-laranja)"
+                  :prepend-icon="formularioAberto ? 'mdi-minus' : 'mdi-plus'"
+                  variant="flat"
+                  size="small"
+                  class="text-white"
+                  @click="toggleFormulario"
+              >
+                {{ formularioAberto ? 'Cancelar' : 'Nova Conta a Pagar' }}
+              </v-btn>
+            </div>
 
-        <!-- Formulário Expansível -->
-        <v-expand-transition>
-          <div v-if="formularioAberto">
-            <v-card class="background-card mb-7" elevation="2">
-              <v-card-title class="text-h6 pa-4">
-                <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-                {{ editando ? 'Editar Conta a Pagar' : 'Nova Conta a Pagar' }}
-              </v-card-title>
+            <!-- Formulário Expansível -->
+            <v-expand-transition>
+              <div v-if="formularioAberto">
+                <v-card class="background-card mb-7" elevation="2">
+                  <v-card-title class="text-h6 pa-4">
+                    <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
+                    {{ editando ? 'Editar Conta a Pagar' : 'Nova Conta a Pagar' }}
+                  </v-card-title>
 
-              <v-card-text class="pa-4">
-                <v-form ref="formRef" v-model="formValido">
-                  <v-row>
-                    <!-- Número do Documento (Obrigatório) -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        v-model="formData.nrdocumento"
-                        label="Número do Documento *"
-                        :rules="[rules.required]"
-                        maxlength="20"
-                        variant="outlined"
-                        density="compact"
-                        class=""
-                        prepend-inner-icon="mdi-file-document"
-                      ></v-text-field>
-                    </v-col>
+                  <v-card-text class="pa-4">
+                    <v-form ref="formRef" v-model="formValido">
+                      <v-row>
+                        <!-- Número do Documento (Obrigatório) -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              v-model="formData.nrdocumento"
+                              label="Número do Documento *"
+                              :rules="[rules.required]"
+                              maxlength="20"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prepend-inner-icon="mdi-file-document"
+                          ></v-text-field>
+                        </v-col>
 
-                    <!-- Série -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        v-model="formData.serie"
-                        label="Série"
-                        maxlength="10"
-                        variant="outlined"
-                        density="compact"
-                        class=""
-                        prepend-inner-icon="mdi-numeric"
-                      ></v-text-field>
-                    </v-col>
+                        <!-- Série -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              v-model="formData.serie"
+                              label="Série"
+                              maxlength="10"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prepend-inner-icon="mdi-numeric"
+                          ></v-text-field>
+                        </v-col>
 
-                    <!-- Espécie -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        v-model="formData.especie"
-                        label="Espécie"
-                        maxlength="10"
-                        variant="outlined"
-                        density="compact"
-                        class=""
-                        prepend-inner-icon="mdi-tag"
-                      ></v-text-field>
-                    </v-col>
+                        <!-- Espécie -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              v-model="formData.especie"
+                              label="Espécie"
+                              maxlength="10"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prepend-inner-icon="mdi-tag"
+                          ></v-text-field>
+                        </v-col>
 
-                    <!-- Tipo de Documento -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        label="Tipo Documento *"
-                        v-model="tipoDocumentoSelecionado"
-                        variant="outlined"
-                        density="compact"
-                        hide-details="auto"
-                        :rules="[rules.required]"
-                        class=""
-                        prepend-inner-icon="mdi-file-document-outline"
-                      >
-                        <template #append-inner>
-                          <TipoDocumentoMenu @selecionar="selecionarTipoDocumento"/>
-                        </template>
-                      </v-text-field>
-                    </v-col>
-
-                    <!-- Fornecedor -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        label="Fornecedor *"
-                        v-model="fornecedorSelecionado"
-                        variant="outlined"
-                        density="compact"
-                        hide-details="auto"
-                        :rules="[rules.required]"
-                        class=""
-                        prepend-inner-icon="mdi-account-box"
-                        readonly
-                        placeholder="Selecione um fornecedor"
-                      >
-                        <template #append-inner>
-                          <busca-padrao-menu
-                            v-model="menuFornecedor"
-                            :pesquisar="pesquisarFornecedores"
-                            :modelInput="termoFornecedor"
-                            :resultados="fornecedorResultados"
-                            @update:modelInput="termoFornecedor = $event"
-                            @selecionar="selecionarFornecedor"
+                        <!-- Tipo de Documento -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              label="Tipo Documento *"
+                              v-model="tipoDocumentoSelecionado"
+                              variant="outlined"
+                              density="compact"
+                              hide-details="auto"
+                              :rules="[rules.required]"
+                              class=""
+                              prepend-inner-icon="mdi-file-document-outline"
                           >
-                            <template #resultados="{ selecionar }">
-                              <v-virtual-scroll
-                                :items="fornecedorResultados"
-                                :height="120"
-                                item-height="42"
-                                class="mt-3"
-                              >
-                                <template #default="{ item }">
-                                  <div
-                                    class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
-                                    @click="selecionar(item)"
-                                  >
-                                    <p class="text-body-1">{{ item.apelido_fantasia || item.nome_razao || item.nome || item.apelido }}</p>
-                                  </div>
-                                </template>
-                              </v-virtual-scroll>
+                            <template #append-inner>
+                              <TipoDocumentoMenu @selecionar="selecionarTipoDocumento"/>
                             </template>
-                          </busca-padrao-menu>
-                        </template>
-                      </v-text-field>
-                    </v-col>
+                          </v-text-field>
+                        </v-col>
 
-                    <!-- Plano de Conta -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        label="Plano de Conta *"
-                        v-model="planoContaSelecionado"
-                        variant="outlined"
-                        density="compact"
-                        hide-details="auto"
-                        :rules="[rules.required]"
-                        class=""
-                        prepend-inner-icon="mdi-chart-tree"
-                      >
-                        <template #append-inner>
-                          <PlanoContaMenu @selecionar="selecionarPlanoConta"/>
-                        </template>
-                      </v-text-field>
-                    </v-col>
-
-                    <!-- Histórico Contábil -->
-                    <v-col cols="12" md="4">
-                      <v-text-field
-                        label="Histórico Contábil"
-                        v-model="histContabilLabel"
-                        variant="outlined"
-                        density="compact"
-                        hide-details="auto"
-                        class=""
-                        prepend-inner-icon="mdi-file-document"
-                        readonly
-                        placeholder="Selecione um histórico"
-                      >
-                        <template #append-inner>
-                          <div class="d-flex align-center">
-                            <busca-padrao-menu
-                              v-model="menuHistContabil"
-                              :pesquisar="pesquisarHistoricosContabil"
-                              :modalCadastrar="abrirModalCadastrarHistorico"
-                              :modelInput="termoHistContabil"
-                              :resultados="historicoContabilResultados"
-                              @update:modelInput="termoHistContabil = $event"
-                              @selecionar="selecionarHistoricoContabil"
-                              :cadastrar-btn="true"
-                            >
-                              <template #resultados="{ selecionar }">
-                                <v-virtual-scroll
-                                  :items="historicoContabilResultados"
-                                  :height="120"
-                                  item-height="42"
-                                  class="mt-3"
-                                >
-                                  <template #default="{ item }">
-                                    <div
-                                      class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
-                                      @click="selecionar(item)"
-                                    >
-                                      <p class="text-body-1">({{ item.id }}) - {{ item.deschistorico || item.descricao }}</p>
-                                    </div>
-                                  </template>
-                                </v-virtual-scroll>
-                              </template>
-                            </busca-padrao-menu>
-                          </div>
-                        </template>
-                      </v-text-field>
-
-                      <CadastrarModal
-                        :cadastrarModal="cadastrarHistoricoModal"
-                        :clearInput="clearHistoricoInputs"
-                        :cadastrarcidade="cadastrarHistorico"
-                      >
-                        <template #titulo>Histórico Contábil</template>
-                        <template #textfields>
-                          <v-card-text>
-                            <v-form class="d-flex flex-column gap-3 w-100">
-                              <v-text-field
-                                label="Descrição do Histórico"
-                                variant="outlined"
-                                density="comfortable"
-                                hide-details="auto"
-                                v-model="descricaoHistorico"
-                              />
-                            </v-form>
-                          </v-card-text>
-                        </template>
-                      </CadastrarModal>
-                    </v-col>
-
-                    
-                    <!-- Valor Original (Obrigatório) -->
-                    <v-col cols="12" md="2">
-                      <v-text-field
-                        v-model="formData.vlroriginal"
-                        label="Valor Original *"
-                        :rules="[rules.required, rules.currency]"
-                        type="number"
-                        step="0.01"
-                        variant="outlined"
-                        density="compact"
-                        class=""
-                        prepend-inner-icon="mdi-currency-usd"
-                        prefix="R$"
-                        :hint="formData.vlroriginal ? formatarMoeda(formData.vlroriginal) : ''"
-                        persistent-hint
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Quantidade de Parcelas -->
-                    <v-col cols="12" md="2">
-                      <v-text-field
-                        v-model.number="formData.qtdparcelas"
-                        label="Qtd Parcelas"
-                        type="number"
-                        min="1"
-                        variant="outlined"
-                        density="compact"
-                        class=""
-                        prepend-inner-icon="mdi-format-list-numbered"
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Data de Emissão (Obrigatório) -->
-                    <v-col cols="12" md="2">
-                      <v-text-field
-                        v-model="formData.dtemissao"
-                        label="Data Emissão *"
-                        :rules="[rules.required]"
-                        type="date"
-                        variant="outlined"
-                        density="compact"
-                        class=""
-                        prepend-inner-icon="mdi-calendar"
-                      ></v-text-field>
-                    </v-col>
-
-
-                    <!-- Juros -->
-                    <v-col cols="12" md="2">
-                      <v-text-field
-                        v-model="formData.juros"
-                        label="Juros"
-                        type="number"
-                        step="0.01"
-                        variant="outlined"
-                        density="compact"
-                        class=""
-                        prefix="R$"
-                        prepend-inner-icon="mdi-percent"
-                        :hint="formData.juros ? formatarMoeda(formData.juros) : ''"
-                        persistent-hint
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Multa -->
-                    <v-col cols="12" md="2">
-                      <v-text-field
-                        v-model="formData.multa"
-                        label="Multa"
-                        type="number"
-                        step="0.01"
-                        variant="outlined"
-                        density="compact"
-                        class=""
-                        prefix="R$"
-                        prepend-inner-icon="mdi-alert-circle"
-                        :hint="formData.multa ? formatarMoeda(formData.multa) : ''"
-                        persistent-hint
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Desconto -->
-                    <v-col cols="12" md="2">
-                      <v-text-field
-                        v-model="formData.desconto"
-                        label="Desconto"
-                        type="number"
-                        step="0.01"
-                        variant="outlined"
-                        density="compact"
-                        class=""
-                        prefix="R$"
-                        prepend-inner-icon="mdi-sale"
-                        :hint="formData.desconto ? formatarMoeda(formData.desconto) : ''"
-                        persistent-hint
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Placeholder col for balance -->
-                    <v-col cols="12" md="2">
-                      <!-- Empty column to maintain layout -->
-                    </v-col>
-
-                    <!-- Campos de Cálculo e Botão - Apenas para múltiplas parcelas -->
-                    <v-col cols="12" v-if="formData.qtdparcelas > 1 && !parcelasCalculadas">
-                      <v-card variant="outlined" class="mb-4" elevation="1">
-                        <v-card-title class="text-h6 pa-4 d-flex align-center">
-                          <v-icon icon="mdi-calculator-variant" class="mr-2" color="orange"></v-icon>
-                          Configurações das Parcelas
-                        </v-card-title>
-
-                        <v-card-text class="pa-4">
-                          <v-row>
-                            <!-- Valor da Primeira Parcela -->
-                            <v-col cols="12" md="4">
-                              <v-text-field
-                                v-model="formData.valor_primeira_parcela"
-                                label="Valor 1ª Parcela"
-                                type="number"
-                                step="0.01"
-                                variant="outlined"
-                                density="compact"
-                                prefix="R$"
-                                prepend-inner-icon="mdi-cash"
-                                :hint="formData.valor_primeira_parcela ? formatarMoeda(formData.valor_primeira_parcela) : ''"
-                                persistent-hint
-                              ></v-text-field>
-                            </v-col>
-
-                            <!-- Vencimento Primeira Parcela -->
-                            <v-col cols="12" md="4">
-                              <v-text-field
-                                v-model="formData.venc_primeira_parcela"
-                                label="Venc. 1ª Parcela"
-                                type="date"
-                                variant="outlined"
-                                density="compact"
-                                prepend-inner-icon="mdi-calendar-clock"
-                              ></v-text-field>
-                            </v-col>
-
-                            <!-- Intervalo entre Parcelas -->
-                            <v-col cols="12" md="4">
-                              <v-text-field
-                                v-model.number="formData.intervalo_parcelas"
-                                label="Intervalo (dias)"
-                                type="number"
-                                min="1"
-                                variant="outlined"
-                                density="compact"
-                                prepend-inner-icon="mdi-calendar-range"
-                                suffix="dias"
-                              ></v-text-field>
-                            </v-col>
-
-                            <!-- Botão Calcular -->
-                            <v-col cols="12" class="d-flex justify-center">
-                              <v-btn
-                                color="orange"
-                                variant="elevated"
-                                @click="calcularParcelas"
-                                :disabled="!formData.vlroriginal || !formData.qtdparcelas"
-                                size="large"
-                                min-width="200"
-                              >
-                                <v-icon class="mr-2">mdi-calculator</v-icon>
-                                Calcular Parcelas
-                              </v-btn>
-                            </v-col>
-                          </v-row>
-                        </v-card-text>
-                      </v-card>
-                    </v-col>
-                    
-
-                    <!-- Tabela de Parcelas -->
-                    <v-col cols="12">
-                      <v-expand-transition>
-                        
-                        <div v-if="parcelas.length > 0 || (formData.qtdparcelas === 1 && formData.vlroriginal)">
-                          <v-divider class="mb-4"></v-divider>
-                          <div class="d-flex align-center mb-4">
-                            <v-icon icon="mdi-format-list-numbered" class="mr-3" color="orange"></v-icon>
-                            <h4 class="text-h6 mb-0">Detalhamento das Parcelas</h4>
-                            <v-spacer></v-spacer>
-                            <v-chip
-                              :color="(parcelas.length === 1 || formData.qtdparcelas === 1) ? 'success' : 'orange'"
-                              variant="elevated"
-                              size="small"
-                            >
-                              {{ formData.qtdparcelas === 1 ? '1 Parcela (Única)' : `${parcelas.length} ${parcelas.length === 1 ? 'Parcela' : 'Parcelas'}` }}
-                            </v-chip>
-                          </div>
-                          
-                          <!-- Mensagem informativa para parcela única -->
-                          <v-alert
-                            v-if="formData.qtdparcelas === 1"
-                            type="info"
-                            variant="tonal"
-                            class="mb-4"
-                            density="compact"
+                        <!-- Fornecedor -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              label="Fornecedor *"
+                              v-model="fornecedorSelecionado"
+                              variant="outlined"
+                              density="compact"
+                              hide-details="auto"
+                              :rules="[rules.required]"
+                              class=""
+                              prepend-inner-icon="mdi-account-box"
+                              readonly
+                              placeholder="Selecione um fornecedor"
                           >
-                            Para parcela única, não é necessário calcular. Os valores são gerados automaticamente.
-                          </v-alert>
-
-                          
-                          <v-card 
-                            variant="outlined" 
-                            class="background-secondary"
-                            elevation="2"
-                            :color="themeStore.darkMode ? 'text-white' : ''" 
-                          >
-                            <v-card-text class="background-secondary" :color="themeStore.darkMode ? 'text-white' : ''">
-                              <v-data-table
-                                :headers="headersParcelas"
-                                :items="parcelas"
-                                :items-per-page="itemsPerPageParcelas"
-                                :items-per-page-options="[5, 10, 25, 50]"
-                                class="parcelas-table elevation-0"
-                                density="compact"
-                                :page="currentPageParcelas"
-                                @update:page="currentPageParcelas = $event"
-                                @update:items-per-page="itemsPerPageParcelas = $event"
+                            <template #append-inner>
+                              <busca-padrao-menu
+                                  v-model="menuFornecedor"
+                                  :pesquisar="pesquisarFornecedores"
+                                  :modelInput="termoFornecedor"
+                                  :resultados="fornecedorResultados"
+                                  @update:modelInput="termoFornecedor = $event"
+                                  @selecionar="selecionarFornecedor"
                               >
-                            <template v-slot:[`item.nrparcela`]="{ item }">
+                                <template #resultados="{ selecionar }">
+                                  <v-virtual-scroll
+                                      :items="fornecedorResultados"
+                                      :height="120"
+                                      item-height="42"
+                                      class="mt-3"
+                                  >
+                                    <template #default="{ item }">
+                                      <div
+                                          class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                                          @click="selecionar(item)"
+                                      >
+                                        <p class="text-body-1">{{ item.apelido_fantasia || item.nome_razao || item.nome || item.apelido }}</p>
+                                      </div>
+                                    </template>
+                                  </v-virtual-scroll>
+                                </template>
+                              </busca-padrao-menu>
+                            </template>
+                          </v-text-field>
+                        </v-col>
+
+                        <!-- Plano de Conta -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              label="Plano de Conta *"
+                              v-model="planoContaSelecionado"
+                              variant="outlined"
+                              density="compact"
+                              hide-details="auto"
+                              :rules="[rules.required]"
+                              class=""
+                              prepend-inner-icon="mdi-chart-tree"
+                          >
+                            <template #append-inner>
+                              <PlanoContaMenu @selecionar="selecionarPlanoConta"/>
+                            </template>
+                          </v-text-field>
+                        </v-col>
+
+                        <!-- Histórico Contábil -->
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                              label="Histórico Contábil"
+                              v-model="histContabilLabel"
+                              variant="outlined"
+                              density="compact"
+                              hide-details="auto"
+                              class=""
+                              prepend-inner-icon="mdi-file-document"
+                              readonly
+                              placeholder="Selecione um histórico"
+                          >
+                            <template #append-inner>
                               <div class="d-flex align-center">
-                                <v-avatar 
-                                  :color="item.nrparcela === 1 && valorEntrada > 0 ? 'orange' : 'orange lighten-2'"
-                                  size="28"
-                                  class="mr-2"
+                                <busca-padrao-menu
+                                    v-model="menuHistContabil"
+                                    :pesquisar="pesquisarHistoricosContabil"
+                                    :modalCadastrar="abrirModalCadastrarHistorico"
+                                    :modelInput="termoHistContabil"
+                                    :resultados="historicoContabilResultados"
+                                    @update:modelInput="termoHistContabil = $event"
+                                    @selecionar="selecionarHistoricoContabil"
+                                    :cadastrar-btn="true"
                                 >
+                                  <template #resultados="{ selecionar }">
+                                    <v-virtual-scroll
+                                        :items="historicoContabilResultados"
+                                        :height="120"
+                                        item-height="42"
+                                        class="mt-3"
+                                    >
+                                      <template #default="{ item }">
+                                        <div
+                                            class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
+                                            @click="selecionar(item)"
+                                        >
+                                          <p class="text-body-1">({{ item.id }}) - {{ item.deschistorico || item.descricao }}</p>
+                                        </div>
+                                      </template>
+                                    </v-virtual-scroll>
+                                  </template>
+                                </busca-padrao-menu>
+                              </div>
+                            </template>
+                          </v-text-field>
+
+                          <CadastrarModal
+                              :cadastrarModal="cadastrarHistoricoModal"
+                              :clearInput="clearHistoricoInputs"
+                              :cadastrarcidade="cadastrarHistorico"
+                          >
+                            <template #titulo>Histórico Contábil</template>
+                            <template #textfields>
+                              <v-card-text>
+                                <v-form class="d-flex flex-column gap-3 w-100">
+                                  <v-text-field
+                                      label="Descrição do Histórico"
+                                      variant="outlined"
+                                      density="comfortable"
+                                      hide-details="auto"
+                                      v-model="descricaoHistorico"
+                                  />
+                                </v-form>
+                              </v-card-text>
+                            </template>
+                          </CadastrarModal>
+                        </v-col>
+
+
+                        <!-- Valor Original (Obrigatório) -->
+                        <v-col cols="12" md="2">
+                          <v-text-field
+                              v-model="formData.vlroriginal"
+                              label="Valor Original *"
+                              :rules="[rules.required, rules.currency]"
+                              type="number"
+                              step="0.01"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prepend-inner-icon="mdi-currency-usd"
+                              prefix="R$"
+                              :hint="formData.vlroriginal ? formatarMoeda(formData.vlroriginal) : ''"
+                              persistent-hint
+                          ></v-text-field>
+                        </v-col>
+
+                        <!-- Quantidade de Parcelas -->
+                        <v-col cols="12" md="2">
+                          <v-text-field
+                              v-model.number="formData.qtdparcelas"
+                              label="Qtd Parcelas"
+                              type="number"
+                              min="1"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prepend-inner-icon="mdi-format-list-numbered"
+                          ></v-text-field>
+                        </v-col>
+
+                        <!-- Data de Emissão (Obrigatório) -->
+                        <v-col cols="12" md="2">
+                          <v-text-field
+                              v-model="formData.dtemissao"
+                              label="Data Emissão *"
+                              :rules="[rules.required]"
+                              type="date"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prepend-inner-icon="mdi-calendar"
+                          ></v-text-field>
+                        </v-col>
+
+
+                        <!-- Juros -->
+                        <v-col cols="12" md="2">
+                          <v-text-field
+                              v-model="formData.juros"
+                              label="Juros"
+                              type="number"
+                              step="0.01"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prefix="R$"
+                              prepend-inner-icon="mdi-percent"
+                              :hint="formData.juros ? formatarMoeda(formData.juros) : ''"
+                              persistent-hint
+                          ></v-text-field>
+                        </v-col>
+
+                        <!-- Multa -->
+                        <v-col cols="12" md="2">
+                          <v-text-field
+                              v-model="formData.multa"
+                              label="Multa"
+                              type="number"
+                              step="0.01"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prefix="R$"
+                              prepend-inner-icon="mdi-alert-circle"
+                              :hint="formData.multa ? formatarMoeda(formData.multa) : ''"
+                              persistent-hint
+                          ></v-text-field>
+                        </v-col>
+
+                        <!-- Desconto -->
+                        <v-col cols="12" md="2">
+                          <v-text-field
+                              v-model="formData.desconto"
+                              label="Desconto"
+                              type="number"
+                              step="0.01"
+                              variant="outlined"
+                              density="compact"
+                              class=""
+                              prefix="R$"
+                              prepend-inner-icon="mdi-sale"
+                              :hint="formData.desconto ? formatarMoeda(formData.desconto) : ''"
+                              persistent-hint
+                          ></v-text-field>
+                        </v-col>
+
+                        <!-- Placeholder col for balance -->
+                        <v-col cols="12" md="2">
+                          <!-- Empty column to maintain layout -->
+                        </v-col>
+
+                        <!-- Campos de Cálculo e Botão - Apenas para múltiplas parcelas -->
+                        <v-col cols="12" v-if="formData.qtdparcelas > 1 && !parcelasCalculadas">
+                          <v-card variant="outlined" class="mb-4" elevation="1">
+                            <v-card-title class="text-h6 pa-4 d-flex align-center">
+                              <v-icon icon="mdi-calculator-variant" class="mr-2" color="orange"></v-icon>
+                              Configurações das Parcelas
+                            </v-card-title>
+
+                            <v-card-text class="pa-4">
+                              <v-row>
+                                <!-- Valor da Primeira Parcela -->
+                                <v-col cols="12" md="4">
+                                  <v-text-field
+                                      v-model="formData.valor_primeira_parcela"
+                                      label="Valor 1ª Parcela"
+                                      type="number"
+                                      step="0.01"
+                                      variant="outlined"
+                                      density="compact"
+                                      prefix="R$"
+                                      prepend-inner-icon="mdi-cash"
+                                      :hint="formData.valor_primeira_parcela ? formatarMoeda(formData.valor_primeira_parcela) : ''"
+                                      persistent-hint
+                                  ></v-text-field>
+                                </v-col>
+
+                                <!-- Vencimento Primeira Parcela -->
+                                <v-col cols="12" md="4">
+                                  <v-text-field
+                                      v-model="formData.venc_primeira_parcela"
+                                      label="Venc. 1ª Parcela"
+                                      type="date"
+                                      variant="outlined"
+                                      density="compact"
+                                      prepend-inner-icon="mdi-calendar-clock"
+                                  ></v-text-field>
+                                </v-col>
+
+                                <!-- Intervalo entre Parcelas -->
+                                <v-col cols="12" md="4">
+                                  <v-text-field
+                                      v-model.number="formData.intervalo_parcelas"
+                                      label="Intervalo (dias)"
+                                      type="number"
+                                      min="1"
+                                      variant="outlined"
+                                      density="compact"
+                                      prepend-inner-icon="mdi-calendar-range"
+                                      suffix="dias"
+                                  ></v-text-field>
+                                </v-col>
+
+                                <!-- Botão Calcular -->
+                                <v-col cols="12" class="d-flex justify-center">
+                                  <v-btn
+                                      color="orange"
+                                      variant="elevated"
+                                      @click="calcularParcelas"
+                                      :disabled="!formData.vlroriginal || !formData.qtdparcelas"
+                                      size="large"
+                                      min-width="200"
+                                  >
+                                    <v-icon class="mr-2">mdi-calculator</v-icon>
+                                    Calcular Parcelas
+                                  </v-btn>
+                                </v-col>
+                              </v-row>
+                            </v-card-text>
+                          </v-card>
+                        </v-col>
+
+
+                        <!-- Tabela de Parcelas -->
+                        <v-col cols="12">
+                          <v-expand-transition>
+
+                            <div v-if="parcelas.length > 0 || (formData.qtdparcelas === 1 && formData.vlroriginal)">
+                              <v-divider class="mb-4"></v-divider>
+                              <div class="d-flex align-center mb-4">
+                                <v-icon icon="mdi-format-list-numbered" class="mr-3" color="orange"></v-icon>
+                                <h4 class="text-h6 mb-0">Detalhamento das Parcelas</h4>
+                                <v-spacer></v-spacer>
+                                <v-chip
+                                    :color="(parcelas.length === 1 || formData.qtdparcelas === 1) ? 'success' : 'orange'"
+                                    variant="elevated"
+                                    size="small"
+                                >
+                                  {{ formData.qtdparcelas === 1 ? '1 Parcela (Única)' : `${parcelas.length} ${parcelas.length === 1 ? 'Parcela' : 'Parcelas'}` }}
+                                </v-chip>
+                              </div>
+
+                              <!-- Mensagem informativa para parcela única -->
+                              <v-alert
+                                  v-if="formData.qtdparcelas === 1"
+                                  type="info"
+                                  variant="tonal"
+                                  class="mb-4"
+                                  density="compact"
+                              >
+                                Para parcela única, não é necessário calcular. Os valores são gerados automaticamente.
+                              </v-alert>
+
+
+                              <v-card
+                                  variant="outlined"
+                                  class="background-secondary"
+                                  elevation="2"
+                                  :color="themeStore.darkMode ? 'text-white' : ''"
+                              >
+                                <v-card-text class="background-secondary" :color="themeStore.darkMode ? 'text-white' : ''">
+                                  <v-data-table
+                                      :headers="headersParcelas"
+                                      :items="parcelas"
+                                      :items-per-page="itemsPerPageParcelas"
+                                      :items-per-page-options="[5, 10, 25, 50]"
+                                      class="parcelas-table elevation-0"
+                                      density="compact"
+                                      :page="currentPageParcelas"
+                                      @update:page="currentPageParcelas = $event"
+                                      @update:items-per-page="itemsPerPageParcelas = $event"
+                                  >
+                                    <template v-slot:[`item.nrparcela`]="{ item }">
+                                      <div class="d-flex align-center">
+                                        <v-avatar
+                                            :color="item.nrparcela === 1 && valorEntrada > 0 ? 'orange' : 'orange lighten-2'"
+                                            size="28"
+                                            class="mr-2"
+                                        >
                                   <span class="text-caption font-weight-bold text-white">
                                     {{ item.nrparcela }}
                                   </span>
-                                </v-avatar>
-                                <v-scale-transition>
-                                  <v-chip
-                                    v-if="item.nrparcela === 1 && valorEntrada > 0"
-                                    size="x-small"
-                                    color="primary"
-                                    variant="elevated"
-                                  >
-                                    <v-icon size="x-small" class="mr-1">mdi-cash</v-icon>
-                                    Entrada
-                                  </v-chip>
-                                </v-scale-transition>
-                              </div>
-                            </template>
+                                        </v-avatar>
+                                        <v-scale-transition>
+                                          <v-chip
+                                              v-if="item.nrparcela === 1 && valorEntrada > 0"
+                                              size="x-small"
+                                              color="primary"
+                                              variant="elevated"
+                                          >
+                                            <v-icon size="x-small" class="mr-1">mdi-cash</v-icon>
+                                            Entrada
+                                          </v-chip>
+                                        </v-scale-transition>
+                                      </div>
+                                    </template>
 
-                            <template v-slot:[`item.dtvencimento`]="{ item }">
-                              <v-text-field
-                                v-model="item.dtvencimento"
-                                type="date"
-                                variant="outlined"
-                                density="compact"
-                                hide-details
-                                prepend-inner-icon="mdi-calendar"
-                                @input="calcularTotalParcelas"
-                              ></v-text-field>
-                            </template>
+                                    <template v-slot:[`item.dtvencimento`]="{ item }">
+                                      <v-text-field
+                                          v-model="item.dtvencimento"
+                                          type="date"
+                                          variant="outlined"
+                                          density="compact"
+                                          hide-details
+                                          prepend-inner-icon="mdi-calendar"
+                                          @input="calcularTotalParcelas"
+                                      ></v-text-field>
+                                    </template>
 
-                            <template v-slot:[`item.vlrparcela`]="{ item }">
-                              <v-text-field
-                                v-model="item.vlrparcela"
-                                type="number"
-                                step="0.01"
-                                variant="outlined"
-                                density="compact"
-                                hide-details
-                                prefix="R$"
-                                prepend-inner-icon="mdi-currency-usd"
-                                @input="calcularTotalParcelas"
-                              ></v-text-field>
-                            </template>
+                                    <template v-slot:[`item.vlrparcela`]="{ item }">
+                                      <v-text-field
+                                          v-model="item.vlrparcela"
+                                          type="number"
+                                          step="0.01"
+                                          variant="outlined"
+                                          density="compact"
+                                          hide-details
+                                          prefix="R$"
+                                          prepend-inner-icon="mdi-currency-usd"
+                                          @input="calcularTotalParcelas"
+                                      ></v-text-field>
+                                    </template>
 
-                            <template v-slot:[`item.id_localcobranca`]="{ item }">
-                              <div class="d-flex align-center">
-                                <v-text-field
-                                  v-model="item.localCobrancaTexto"
-                                  variant="outlined"
-                                  density="compact"
-                                  hide-details
-                                  placeholder="Selecione o local"
-                                  prepend-inner-icon="mdi-map-marker"
-                                >
-                                  <template #append-inner>
-                                    <LocalCobrancaMenu @selecionar="(local) => selecionarLocalCobranca(local, item)"/>
-                                  </template>
-                                </v-text-field>
-                              </div>
-                            </template>
+                                    <template v-slot:[`item.id_localcobranca`]="{ item }">
+                                      <div class="d-flex align-center">
+                                        <v-text-field
+                                            v-model="item.localCobrancaTexto"
+                                            variant="outlined"
+                                            density="compact"
+                                            hide-details
+                                            placeholder="Selecione o local"
+                                            prepend-inner-icon="mdi-map-marker"
+                                        >
+                                          <template #append-inner>
+                                            <LocalCobrancaMenu @selecionar="(local) => selecionarLocalCobranca(local, item)"/>
+                                          </template>
+                                        </v-text-field>
+                                      </div>
+                                    </template>
 
-                            <template v-slot:[`item.observacao`]="{ item }">
-                              <v-text-field
-                                v-model="item.observacao"
-                                variant="outlined"
-                                density="compact"
-                                hide-details
-                                placeholder="Observação da parcela"
-                                prepend-inner-icon="mdi-note-text-outline"
-                              ></v-text-field>
-                            </template>
-                          </v-data-table>
+                                    <template v-slot:[`item.observacao`]="{ item }">
+                                      <v-text-field
+                                          v-model="item.observacao"
+                                          variant="outlined"
+                                          density="compact"
+                                          hide-details
+                                          placeholder="Observação da parcela"
+                                          prepend-inner-icon="mdi-note-text-outline"
+                                      ></v-text-field>
+                                    </template>
+                                  </v-data-table>
 
-                          <!-- Resumo das Parcelas -->
-                          <v-row class="mt-4" v-if="parcelas.length > 0">
-                            <v-col cols="12">
-                              <v-card 
-                                variant="tonal" 
-                                class="pa-3"
-                                color="orange"
-                              >
-                                <div class="d-flex align-center justify-space-between">
-                                  <div class="d-flex align-center">
-                                    <v-icon 
-                                      icon="mdi-chart-pie" 
-                                      class="mr-2" 
-                                      size="small"
-                                      color="orange"
-                                    ></v-icon>
-                                    <h5 class="text-subtitle-1 mb-0 font-weight-medium">
-                                      Resumo das Parcelas
-                                    </h5>
-                                  </div>
-                                  <v-chip 
-                                    color="success"
-                                    variant="elevated"
-                                  >
-                                    Total: {{ formatarMoeda(totalParcelas) }}
-                                  </v-chip>
-                                </div>
+                                  <!-- Resumo das Parcelas -->
+                                  <v-row class="mt-4" v-if="parcelas.length > 0">
+                                    <v-col cols="12">
+                                      <v-card
+                                          variant="tonal"
+                                          class="pa-3"
+                                          color="orange"
+                                      >
+                                        <div class="d-flex align-center justify-space-between">
+                                          <div class="d-flex align-center">
+                                            <v-icon
+                                                icon="mdi-chart-pie"
+                                                class="mr-2"
+                                                size="small"
+                                                color="orange"
+                                            ></v-icon>
+                                            <h5 class="text-subtitle-1 mb-0 font-weight-medium">
+                                              Resumo das Parcelas
+                                            </h5>
+                                          </div>
+                                          <v-chip
+                                              color="success"
+                                              variant="elevated"
+                                          >
+                                            Total: {{ formatarMoeda(totalParcelas) }}
+                                          </v-chip>
+                                        </div>
+                                      </v-card>
+                                    </v-col>
+                                  </v-row>
+                                </v-card-text>
                               </v-card>
-                            </v-col>
-                          </v-row>
+
+
+                            </div>
+                          </v-expand-transition>
+                        </v-col>
+
+                        <!-- Rateio por Centro de Custo (select acima e tabela de centros selecionados) -->
+                        <v-col cols="12" v-if="parcelas.length > 0">
+                          <v-card variant="outlined" class="mb-4" elevation="1">
+                            <v-card-title class="text-h6 pa-4 d-flex align-center">
+                              <v-icon icon="mdi-swap-horizontal" class="mr-2" color="orange"></v-icon>
+                              Rateio por Centro de Custo
+                              <v-spacer></v-spacer>
+                              <v-btn
+                                  size="small"
+                                  color="orange"
+                                  variant="text"
+                                  prepend-icon="mdi-plus"
+                                  @click="adicionarCentro"
+                              >
+                                Adicionar Centro
+                              </v-btn>
+                              <v-btn
+                                  size="small"
+                                  color="orange"
+                                  variant="elevated"
+                                  class="ml-2"
+                                  @click="distribuirIgualmente"
+                              >
+                                Distribuir igualmente
+                              </v-btn>
+                            </v-card-title>
+
+                            <v-card-text class="pa-4">
+                              <div v-if="ccustosRateio.length === 0" class="text-center text-grey pa-4">
+                                Nenhum centro de custo adicionado. Clique em "Adicionar Centro" para começar o rateio.
+                              </div>
+
+                              <v-table v-else density="compact">
+                                <thead>
+                                <tr>
+                                  <th style="width: 40%">Centro de Custo</th>
+                                  <th style="width: 25%">Valor (R$)</th>
+                                  <th style="width: 20%">Porcentagem (%)</th>
+                                  <th style="width: 15%; text-align: center">Ações</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="(linha, index) in ccustosRateio" :key="index">
+                                  <td>
+                                    <v-select
+                                        v-model="linha.id_ccusto"
+                                        :items="centrosCusto"
+                                        item-title="desccentrocusto"
+                                        item-value="id"
+                                        label="Selecione"
+                                        variant="outlined"
+                                        density="compact"
+                                        hide-details
+                                    />
+                                    <div v-if="linha.desccentrocusto" class="text-caption text-grey mt-1">
+                                      API: {{ linha.desccentrocusto }}
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <v-text-field
+                                        v-model.number="linha.valor"
+                                        type="number"
+                                        step="0.01"
+                                        variant="outlined"
+                                        density="compact"
+                                        prefix="R$"
+                                        hide-details
+                                        @input="onRateioValorChange(index)"
+                                    />
+                                  </td>
+                                  <td>
+                                    <v-text-field
+                                        v-model.number="linha.porcentagem"
+                                        type="number"
+                                        step="0.01"
+                                        variant="outlined"
+                                        density="compact"
+                                        suffix="%"
+                                        hide-details
+                                        @input="onRateioPercentChange(index)"
+                                    />
+                                  </td>
+                                  <td style="text-align: center">
+                                    <v-btn
+                                        icon="mdi-delete"
+                                        size="small"
+                                        color="error"
+                                        variant="text"
+                                        @click="removerCentro(index)"
+                                    />
+                                  </td>
+                                </tr>
+                                </tbody>
+                                <tfoot>
+                                <tr class="font-weight-bold">
+                                  <td>TOTAL</td>
+                                  <td>{{ formatarMoeda(totalRateadoValor) }}</td>
+                                  <td>{{ Number(totalRateadoPercent).toFixed(2) }}%</td>
+                                  <td></td>
+                                </tr>
+                                </tfoot>
+                              </v-table>
                             </v-card-text>
                           </v-card>
+                        </v-col>
 
-                         
-                        </div>
-                      </v-expand-transition>
-                    </v-col>
+                        <!-- Anexar Documento -->
+                        <v-col cols="12">
+                          <v-card variant="outlined" class="mb-4" elevation="1">
+                            <v-card-title class="text-h6 pa-4 d-flex align-center">
+                              <v-icon icon="mdi-file-image" class="mr-2" color="orange"></v-icon>
+                              Anexar um Documento
+                            </v-card-title>
 
-                    <!-- Rateio por Centro de Custo (select acima e tabela de centros selecionados) -->
-                    <v-col cols="12" v-if="parcelas.length > 0">
-                      <v-card variant="outlined" class="mb-4" elevation="1">
-                        <v-card-title class="text-h6 pa-4 d-flex align-center">
-                          <v-icon icon="mdi-swap-horizontal" class="mr-2" color="orange"></v-icon>
-                          Rateio por Centro de Custo
-                          <v-spacer></v-spacer>
-                          <v-btn 
-                            size="small" 
-                            color="orange" 
-                            variant="text" 
-                            prepend-icon="mdi-plus"
-                            @click="adicionarCentro"
-                          >
-                            Adicionar Centro
-                          </v-btn>
-                          <v-btn 
-                            size="small" 
-                            color="orange" 
-                            variant="elevated" 
-                            class="ml-2"
-                            @click="distribuirIgualmente"
-                          >
-                            Distribuir igualmente
-                          </v-btn>
-                        </v-card-title>
+                            <v-card-text class="pa-4">
+                              <MediaSave
+                                  id-saas="1"
+                                  id-usuario="1"
+                                  :on-upload-success="handleMediaUpload"
+                                  @upload-success="onMediaSuccess"
+                                  @upload-error="onMediaError"
+                              />
 
-                        <v-card-text class="pa-4">
-                          <div v-if="ccustosRateio.length === 0" class="text-center text-grey pa-4">
-                            Nenhum centro de custo adicionado. Clique em "Adicionar Centro" para começar o rateio.
-                          </div>
-
-                          <v-table v-else density="compact">
-                            <thead>
-                              <tr>
-                                <th style="width: 40%">Centro de Custo</th>
-                                <th style="width: 25%">Valor (R$)</th>
-                                <th style="width: 20%">Porcentagem (%)</th>
-                                <th style="width: 15%; text-align: center">Ações</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr v-for="(linha, index) in ccustosRateio" :key="index">
-                                <td>
-                                  <v-select
-                                    v-model="linha.id_ccusto"
-                                    :items="centrosCusto"
-                                    item-title="desccentrocusto"
-                                    item-value="id"
-                                    label="Selecione"
-                                    variant="outlined"
-                                    density="compact"
-                                    hide-details
-                                  />
-                                  <div v-if="linha.desccentrocusto" class="text-caption text-grey mt-1">
-                                    API: {{ linha.desccentrocusto }}
+                              <!-- Indicador de imagem anexada -->
+                              <v-alert
+                                  v-if="formData.id_media || financeiroStore.getMediaKeyTemporaria()"
+                                  type="success"
+                                  variant="tonal"
+                                  density="compact"
+                                  class="mt-3"
+                              >
+                                <div class="d-flex align-center">
+                                  <v-icon icon="mdi-check-circle" class="mr-2"></v-icon>
+                                  <div>
+                                    <strong>Documento anexado com sucesso!</strong>
+                                    <br>
+                                    <small class="text-medium-emphasis">Key: {{ financeiroStore.getMediaKeyTemporaria() || formData.id_media }}</small>
                                   </div>
-                                </td>
-                                <td>
-                                  <v-text-field
-                                    v-model.number="linha.valor"
-                                    type="number"
-                                    step="0.01"
-                                    variant="outlined"
-                                    density="compact"
-                                    prefix="R$"
-                                    hide-details
-                                    @input="onRateioValorChange(index)"
-                                  />
-                                </td>
-                                <td>
-                                  <v-text-field
-                                    v-model.number="linha.porcentagem"
-                                    type="number"
-                                    step="0.01"
-                                    variant="outlined"
-                                    density="compact"
-                                    suffix="%"
-                                    hide-details
-                                    @input="onRateioPercentChange(index)"
-                                  />
-                                </td>
-                                <td style="text-align: center">
-                                  <v-btn
-                                    icon="mdi-delete"
-                                    size="small"
-                                    color="error"
-                                    variant="text"
-                                    @click="removerCentro(index)"
-                                  />
-                                </td>
-                              </tr>
-                            </tbody>
-                            <tfoot>
-                              <tr class="font-weight-bold">
-                                <td>TOTAL</td>
-                                <td>{{ formatarMoeda(totalRateadoValor) }}</td>
-                                <td>{{ Number(totalRateadoPercent).toFixed(2) }}%</td>
-                                <td></td>
-                              </tr>
-                            </tfoot>
-                          </v-table>
-                        </v-card-text>
-                      </v-card>
-                    </v-col>
+                                </div>
+                              </v-alert>
+                            </v-card-text>
+                          </v-card>
+                        </v-col>
+                      </v-row>
+                    </v-form>
+                  </v-card-text>
 
-                    <!-- Anexar Documento -->
-                    <v-col cols="12">
-                      <v-card variant="outlined" class="mb-4" elevation="1">
-                        <v-card-title class="text-h6 pa-4 d-flex align-center">
-                          <v-icon icon="mdi-file-image" class="mr-2" color="orange"></v-icon>
-                          Anexar um Documento
-                        </v-card-title>
+                  <v-card-actions class="pa-4">
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        color="grey"
+                        variant="text"
+                        @click="cancelarFormulario"
+                    >
+                      Cancelar
+                    </v-btn>
+                    <v-btn
+                        color="var(--text-color-laranja)"
+                        :loading="loading"
+                        :disabled="!formValido"
+                        @click="salvarContaPagar"
+                        variant="flat"
+                        class="text-white"
+                    >
+                      {{ editando ? 'Atualizar' : 'Salvar' }}
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </div>
+            </v-expand-transition>
 
-                        <v-card-text class="pa-4">
-                          <MediaSave
-                            id-saas="1"
-                            id-usuario="1"
-                            :on-upload-success="handleMediaUpload"
-                            @upload-success="onMediaSuccess"
-                            @upload-error="onMediaError"
-                          />
-                          
-                          <!-- Indicador de imagem anexada -->
-                          <v-alert
-                            v-if="formData.id_media || financeiroStore.getMediaKeyTemporaria()"
-                            type="success"
-                            variant="tonal"
-                            density="compact"
-                            class="mt-3"
-                          >
-                            <div class="d-flex align-center">
-                              <v-icon icon="mdi-check-circle" class="mr-2"></v-icon>
-                              <div>
-                                <strong>Documento anexado com sucesso!</strong>
-                                <br>
-                                <small class="text-medium-emphasis">Key: {{ financeiroStore.getMediaKeyTemporaria() || formData.id_media }}</small>
-                              </div>
-                            </div>
-                          </v-alert>
-                        </v-card-text>
-                      </v-card>
-                    </v-col>
-                  </v-row>
-                </v-form>
-              </v-card-text>
+            <!-- Busca Avançada -->
+            <div v-if="!formularioAberto" class="my-4">
+              <BuscaAvancada
+                  v-model="filtrosAvancados"
+                  @aplicar="aplicarFiltrosAvancados"
+              />
+            </div>
 
-              <v-card-actions class="pa-4">
-                <v-spacer></v-spacer>
-                <v-btn
-                  color="grey"
-                  variant="text"
-                  @click="cancelarFormulario"
-                >
-                  Cancelar
-                </v-btn>
-                <v-btn
-                  color="var(--text-color-laranja)"
-                  :loading="loading"
-                  :disabled="!formValido"
-                  @click="salvarContaPagar"
-                  variant="flat"
-                  class="text-white"
-                >
-                  {{ editando ? 'Atualizar' : 'Salvar' }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </div>
-        </v-expand-transition>
-
-        <!-- Busca Avançada -->
-        <div v-if="!formularioAberto" class="my-4">
-          <BuscaAvancada
-            v-model="filtrosAvancados"
-            @aplicar="aplicarFiltrosAvancados"
-          />
-        </div>
-
-        <!-- Tabela de Contas a Pagar -->
-        <TabelaPadrao
-          :formulario-aberto="formularioAberto"
-          :headers="headers"
-          :items="contasPagarFiltradas"
-          :loading="loading"
-          :search="search"
-          @update:search="(value) => search = value"
-          search-label="Pesquisar Parcelas"
-          item-key="id"
-          no-data-icon="mdi-credit-card-outline"
-          no-data-text="Nenhuma registro encontrado."
-          :show-custom-action="false"
-          delete-dialog-message="Esta ação excluirá esta parcela específica. Não pode ser desfeita."
-          delete-item-display-field="nrdocumento"
-          @edit-item="editarContaPagar"
-          @confirm-delete="excluirContaPagar"
-        >
-          <!-- Coluna de Imagem -->
-          <template v-slot:[`item.imagem`]="{ item }">
-            <MediaShow
-              v-if="item.id_media"
-              :image-key="item.id_media"
-              height="40"
-              width="40"
-              :show-actions="false"
-              :show-loading-text="false"
-              no-image-text=""
-              class="rounded"
-            />
-            <v-icon
-              v-else
-              icon="mdi-image-off-outline"
-              size="20"
-              color="grey"
-            ></v-icon>
-          </template>
-
-          <!-- Formatação para Valor do Documento -->
-          <template v-slot:[`item.vlrdocumento`]="{ item }">
-            <span class="font-weight-medium">{{ formatarMoeda(item.vlrdocumento) }}</span>
-          </template>
-
-          <!-- Formatação para Valor da Parcela -->
-          <template v-slot:[`item.vlrparcela`]="{ item }">
-            <v-chip 
-              :color="parseFloat(item.vlrparcela) > 1000 ? 'orange' : 'primary'"
-              variant="tonal"
-              size="small"
+            <!-- Tabela de Contas a Pagar -->
+            <TabelaPadrao
+                :formulario-aberto="formularioAberto"
+                :headers="headers"
+                :items="contasPagarFiltradas"
+                :loading="loading"
+                :search="search"
+                @update:search="(value) => search = value"
+                search-label="Pesquisar Parcelas"
+                item-key="id"
+                no-data-icon="mdi-credit-card-outline"
+                no-data-text="Nenhuma registro encontrado."
+                :show-custom-action="false"
+                delete-dialog-message="Esta ação excluirá esta parcela específica. Não pode ser desfeita."
+                delete-item-display-field="nrdocumento"
+                @edit-item="editarContaPagar"
+                @confirm-delete="excluirContaPagar"
             >
-              {{ formatarMoeda(item.vlrparcela) }}
-            </v-chip>
-          </template>
+              <!-- Coluna de Imagem -->
+              <template v-slot:[`item.imagem`]="{ item }">
+                <MediaShow
+                    v-if="item.id_media"
+                    :image-key="item.id_media"
+                    height="40"
+                    width="40"
+                    :show-actions="false"
+                    :show-loading-text="false"
+                    no-image-text=""
+                    class="rounded"
+                />
+                <v-icon
+                    v-else
+                    icon="mdi-image-off-outline"
+                    size="20"
+                    color="grey"
+                ></v-icon>
+              </template>
 
-          <!-- Formatação para Saldo Devedor -->
-          <template v-slot:[`item.saldo_devedor`]="{ item }">
+              <!-- Formatação para Valor do Documento -->
+              <template v-slot:[`item.vlrdocumento`]="{ item }">
+                <span class="font-weight-medium">{{ formatarMoeda(item.vlrdocumento) }}</span>
+              </template>
+
+              <!-- Formatação para Valor da Parcela -->
+              <template v-slot:[`item.vlrparcela`]="{ item }">
+                <v-chip
+                    :color="parseFloat(item.vlrparcela) > 1000 ? 'orange' : 'primary'"
+                    variant="tonal"
+                    size="small"
+                >
+                  {{ formatarMoeda(item.vlrparcela) }}
+                </v-chip>
+              </template>
+
+              <!-- Formatação para Saldo Devedor -->
+              <template v-slot:[`item.saldo_devedor`]="{ item }">
             <span v-if="item.pag_utiliza_aut_pagto === 'N'" class="font-weight-medium">
               {{ formatarMoeda(item.saldo_devedor) }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Formatação para Valor Quitado -->
-          <template v-slot:[`item.vlrquitado`]="{ item }">
+              <!-- Formatação para Valor Quitado -->
+              <template v-slot:[`item.vlrquitado`]="{ item }">
             <span v-if="item.pag_utiliza_aut_pagto === 'N'" class="font-weight-medium text-success">
               {{ formatarMoeda(item.vlrquitado) }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Autorizado Por -->
-          <template v-slot:[`item.user_liberou`]="{ item }">
+              <!-- Autorizado Por -->
+              <template v-slot:[`item.user_liberou`]="{ item }">
             <span v-if="item.pag_utiliza_aut_pagto === 'S' && item.user_liberou" class="font-weight-medium">
               {{ item.user_liberou }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Valor Autorizado -->
-          <template v-slot:[`item.vlrliberadopagto`]="{ item }">
+              <!-- Valor Autorizado -->
+              <template v-slot:[`item.vlrliberadopagto`]="{ item }">
             <span v-if="item.pag_utiliza_aut_pagto === 'S' && item.vlrliberadopagto > 0" class="font-weight-medium text-success">
               {{ formatarMoeda(item.vlrliberadopagto) }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Data de Autorização -->
-          <template v-slot:[`item.dhliberacaopagto`]="{ item }">
+              <!-- Data de Autorização -->
+              <template v-slot:[`item.dhliberacaopagto`]="{ item }">
             <span v-if="item.pag_utiliza_aut_pagto === 'S' && item.dhliberacaopagto">
               {{ formatarDataHora(item.dhliberacaopagto) }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Formatação para Data de Emissão -->
-          <template v-slot:[`item.dtemissao`]="{ item }">
+              <!-- Formatação para Data de Emissão -->
+              <template v-slot:[`item.dtemissao`]="{ item }">
             <span v-if="item.dtemissao">
               {{ new Date(item.dtemissao).toLocaleDateString('pt-BR') }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Formatação para Data de Vencimento -->
-          <template v-slot:[`item.dtvencimento`]="{ item }">
+              <!-- Formatação para Data de Vencimento -->
+              <template v-slot:[`item.dtvencimento`]="{ item }">
             <span v-if="item.dtvencimento">
               {{ new Date(item.dtvencimento).toLocaleDateString('pt-BR') }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Formatação para Data de Inclusão -->
-          <template v-slot:[`item.dhinc`]="{ item }">
+              <!-- Formatação para Data de Inclusão -->
+              <template v-slot:[`item.dhinc`]="{ item }">
             <span v-if="item.dhinc">
               {{ formatarDataHora(item.dhinc) }}
             </span>
-            <span v-else class="text-grey">-</span>
-          </template>
+                <span v-else class="text-grey">-</span>
+              </template>
 
-          <!-- Ações personalizadas -->
-          <template v-slot:[`item.actions`]="{ item }">
-            <div class="d-flex gap-1">
-              <!-- Editar -->
+              <!-- Ações personalizadas -->
+              <template v-slot:[`item.actions`]="{ item }">
+                <div class="d-flex gap-1">
+                  <!-- Editar -->
+                  <v-btn
+                      icon="mdi-pencil"
+                      size="small"
+                      color="primary"
+                      variant="text"
+                      title="Editar"
+                      @click="editarContaPagar(item)"
+                  ></v-btn>
+
+                  <!-- Excluir -->
+                  <v-btn
+                      icon="mdi-delete"
+                      size="small"
+                      color="error"
+                      variant="text"
+                      title="Excluir"
+                      @click="confirmarExclusao(item)"
+                  ></v-btn>
+                </div>
+              </template>
+            </TabelaPadrao>
+          </v-card-text>
+        </v-card>
+
+
+
+
+
+        <!-- Dialog de Confirmação de Exclusão -->
+        <v-dialog
+            v-model="dialogExclusao.aberto"
+            max-width="400px"
+            persistent
+        >
+          <v-card>
+            <v-card-title class="text-h6">
+              <v-icon icon="mdi-delete-alert" color="error" class="mr-2"></v-icon>
+              Confirmar Exclusão
+            </v-card-title>
+            <v-card-text>
+              Tem certeza que deseja excluir a parcela do documento
+              <strong>{{ dialogExclusao.item?.nrdocumento }}</strong>?
+              <br><br>
+              Esta ação não pode ser desfeita.
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
               <v-btn
-                icon="mdi-pencil"
-                size="small"
-                color="primary"
-                variant="text"
-                title="Editar"
-                @click="editarContaPagar(item)"
-              ></v-btn>
-              
-              <!-- Excluir -->
+                  color="grey"
+                  variant="text"
+                  @click="dialogExclusao.aberto = false"
+              >
+                Cancelar
+              </v-btn>
               <v-btn
-                icon="mdi-delete"
-                size="small"
-                color="error"
-                variant="text"
-                title="Excluir"
-                @click="confirmarExclusao(item)"
-              ></v-btn>
-            </div>
-          </template>
-        </TabelaPadrao>
-      </v-card-text>
-    </v-card>
+                  color="error"
+                  variant="flat"
+                  @click="confirmarExclusaoFinal"
+                  :loading="loading"
+              >
+                Excluir
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
 
+        <!-- Modal de Exportação/Impressão -->
+        <ExportacaoModal
+            v-model="modalExportacaoAberto"
+            :dados="contasPagarFiltradas"
+            :filtros="filtrosAvancados"
+            nome-relatorio="Contas a Pagar"
+            @exportar-pdf="handleExportarPDF"
+            @exportar-csv="handleExportarCSV"
+            @exportar-excel="handleExportarExcel"
+            @imprimir="handleImprimir"
+        ></ExportacaoModal>
 
+        <!-- Modal de Preview do PDF -->
+        <PdfPreviewModal
+            v-model="modalPreviewPDF"
+            :html-content="previewHTMLContent"
+            :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Contas_a_Pagar'"
+        />
 
+        <!-- Modal de Importar XML NFe -->
+        <v-dialog
+            v-model="modalImportarXML"
+            max-width="900px"
+            persistent
+        >
+          <v-card>
+            <v-card-title class="text-h6 pa-4 d-flex align-center">
+              <v-icon icon="mdi-file-xml-box" color="orange" class="mr-2"></v-icon>
+              Importar Conta a Pagar de XML (NFe)
+              <v-spacer></v-spacer>
+              <v-btn icon="mdi-close" variant="text" @click="fecharModalImportarXML"></v-btn>
+            </v-card-title>
 
+            <v-divider></v-divider>
 
-    <!-- Dialog de Confirmação de Exclusão -->
-    <v-dialog 
-      v-model="dialogExclusao.aberto" 
-      max-width="400px"
-      persistent
-    >
-      <v-card>
-        <v-card-title class="text-h6">
-          <v-icon icon="mdi-delete-alert" color="error" class="mr-2"></v-icon>
-          Confirmar Exclusão
-        </v-card-title>
-        <v-card-text>
-          Tem certeza que deseja excluir a parcela do documento 
-          <strong>{{ dialogExclusao.item?.nrdocumento }}</strong>?
-          <br><br>
-          Esta ação não pode ser desfeita.
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="dialogExclusao.aberto = false"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            color="error"
-            variant="flat"
-            @click="confirmarExclusaoFinal"
-            :loading="loading"
-          >
-            Excluir
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+            <v-card-text class="pa-4">
+              <!-- Upload do arquivo XML -->
+              <div v-if="!dadosXMLImportado">
+                <v-file-input
+                    v-model="arquivoXML"
+                    label="Selecione o arquivo XML da NFe"
+                    accept=".xml"
+                    prepend-icon="mdi-file-xml-box"
+                    variant="outlined"
+                    density="comfortable"
+                    @update:modelValue="processarArquivoXML"
+                    :loading="processandoXML"
+                    show-size
+                ></v-file-input>
 
-    <!-- Modal de Exportação/Impressão -->
-    <ExportacaoModal
-      v-model="modalExportacaoAberto"
-      :dados="contasPagarFiltradas"
-      :filtros="filtrosAvancados"
-      nome-relatorio="Contas a Pagar"
-      @exportar-pdf="handleExportarPDF"
-      @exportar-csv="handleExportarCSV"
-      @exportar-excel="handleExportarExcel"
-      @imprimir="handleImprimir"
-    ></ExportacaoModal>
+                <v-alert
+                    v-if="erroXML"
+                    type="error"
+                    variant="tonal"
+                    class="mt-3"
+                    closable
+                    @click:close="erroXML = ''"
+                >
+                  {{ erroXML }}
+                </v-alert>
+              </div>
 
-    <!-- Modal de Preview do PDF -->
-    <PdfPreviewModal
-      v-model="modalPreviewPDF"
-      :html-content="previewHTMLContent"
-      :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Contas_a_Pagar'"
-    />
+              <!-- Dados extraídos do XML -->
+              <div v-else>
+                <v-alert type="success" variant="tonal" class="mb-4" density="compact">
+                  <div class="d-flex align-center">
+                    <v-icon icon="mdi-check-circle" class="mr-2"></v-icon>
+                    XML processado com sucesso!
+                  </div>
+                </v-alert>
 
-    <!-- Snackbar para feedback -->
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      :timeout="3000"
-    >
-      {{ snackbar.message }}
-    </v-snackbar>
-  </div>
+                <!-- Informações do Emitente (Fornecedor) -->
+                <v-card variant="outlined" class="mb-4">
+                  <v-card-title class="text-subtitle-1 pa-3 d-flex align-center">
+                    <v-icon icon="mdi-account-box" class="mr-2" color="orange"></v-icon>
+                    Emitente (Fornecedor)
+                  </v-card-title>
+                  <v-card-text class="pa-3">
+                    <v-row dense>
+                      <v-col cols="12" md="6">
+                        <div class="text-caption text-grey">Razão Social</div>
+                        <div class="text-body-1 font-weight-medium">{{ dadosXMLImportado.emitente.razaoSocial }}</div>
+                      </v-col>
+                      <v-col cols="12" md="3">
+                        <div class="text-caption text-grey">CNPJ</div>
+                        <div class="text-body-1">{{ formatarCNPJ(dadosXMLImportado.emitente.cnpj) }}</div>
+                      </v-col>
+                      <v-col cols="12" md="3">
+                        <div class="text-caption text-grey">IE</div>
+                        <div class="text-body-1">{{ dadosXMLImportado.emitente.ie || 'N/A' }}</div>
+                      </v-col>
+                      <v-col cols="12">
+                        <div class="text-caption text-grey">Endereço</div>
+                        <div class="text-body-2">
+                          {{ dadosXMLImportado.emitente.endereco.logradouro }}, {{ dadosXMLImportado.emitente.endereco.numero }} -
+                          {{ dadosXMLImportado.emitente.endereco.bairro }}, {{ dadosXMLImportado.emitente.endereco.cidade }}/{{ dadosXMLImportado.emitente.endereco.uf }}
+                        </div>
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+
+                <!-- Alerta: Fornecedor não encontrado -->
+                <v-alert
+                    v-if="fornecedorNaoEncontrado"
+                    type="warning"
+                    variant="tonal"
+                    class="mb-4"
+                    density="compact"
+                    icon="mdi-alert-circle"
+                >
+                  <strong>Fornecedor não cadastrado!</strong>
+                  O fornecedor <strong>{{ dadosFornecedorNovo?.razaoSocial || dadosFornecedorNovo?.nomeFantasia }}</strong>
+                  (CNPJ: {{ formatarCNPJ(dadosFornecedorNovo?.cnpj) }}) será criado automaticamente ao confirmar.
+                </v-alert>
+
+                <!-- Dados da NFe -->
+                <v-card variant="outlined" class="mb-4">
+                  <v-card-title class="text-subtitle-1 pa-3 d-flex align-center">
+                    <v-icon icon="mdi-file-document" class="mr-2" color="orange"></v-icon>
+                    Dados da Nota Fiscal
+                  </v-card-title>
+                  <v-card-text class="pa-3">
+                    <v-row dense>
+                      <v-col cols="6" md="2">
+                        <div class="text-caption text-grey">Número NF</div>
+                        <div class="text-body-1 font-weight-medium">{{ dadosXMLImportado.nfe.numero }}</div>
+                      </v-col>
+                      <v-col cols="6" md="2">
+                        <div class="text-caption text-grey">Série</div>
+                        <div class="text-body-1">{{ dadosXMLImportado.nfe.serie }}</div>
+                      </v-col>
+                      <v-col cols="12" md="3">
+                        <div class="text-caption text-grey">Data Emissão</div>
+                        <div class="text-body-1">{{ formatarDataHora(dadosXMLImportado.nfe.dataEmissao) }}</div>
+                      </v-col>
+                      <v-col cols="12" md="5">
+                        <div class="text-caption text-grey">Chave de Acesso</div>
+                        <div class="text-body-2" style="word-break: break-all;">{{ dadosXMLImportado.nfe.chaveAcesso }}</div>
+                      </v-col>
+                      <v-col cols="12" md="6">
+                        <div class="text-caption text-grey">Natureza da Operação</div>
+                        <div class="text-body-1">{{ dadosXMLImportado.nfe.naturezaOperacao }}</div>
+                      </v-col>
+                      <v-col cols="6" md="3">
+                        <div class="text-caption text-grey">Modelo</div>
+                        <div class="text-body-1">{{ dadosXMLImportado.nfe.modelo }} (NFe)</div>
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+
+                <!-- Valores -->
+                <v-card variant="outlined" class="mb-4">
+                  <v-card-title class="text-subtitle-1 pa-3 d-flex align-center">
+                    <v-icon icon="mdi-currency-usd" class="mr-2" color="orange"></v-icon>
+                    Valores
+                  </v-card-title>
+                  <v-card-text class="pa-3">
+                    <v-row dense>
+                      <v-col cols="6" md="3">
+                        <div class="text-caption text-grey">Valor Produtos</div>
+                        <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorProdutos) }}</div>
+                      </v-col>
+                      <v-col cols="6" md="2">
+                        <div class="text-caption text-grey">Frete</div>
+                        <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorFrete) }}</div>
+                      </v-col>
+                      <v-col cols="6" md="2">
+                        <div class="text-caption text-grey">Desconto</div>
+                        <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorDesconto) }}</div>
+                      </v-col>
+                      <v-col cols="6" md="2">
+                        <div class="text-caption text-grey">Outros</div>
+                        <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorOutro) }}</div>
+                      </v-col>
+                      <v-col cols="12" md="3">
+                        <div class="text-caption text-grey">Valor Total NF</div>
+                        <div class="text-h6 font-weight-bold" style="color: var(--text-color-laranja)">
+                          {{ formatarMoeda(dadosXMLImportado.valores.valorTotalNF) }}
+                        </div>
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+
+                <!-- Pagamento -->
+                <v-card variant="outlined" class="mb-4" v-if="dadosXMLImportado.pagamento && dadosXMLImportado.pagamento.length > 0">
+                  <v-card-title class="text-subtitle-1 pa-3 d-flex align-center">
+                    <v-icon icon="mdi-credit-card" class="mr-2" color="orange"></v-icon>
+                    Pagamento
+                  </v-card-title>
+                  <v-card-text class="pa-3">
+                    <v-table density="compact">
+                      <thead>
+                        <tr>
+                          <th>Forma de Pagamento</th>
+                          <th>Valor</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(pag, index) in dadosXMLImportado.pagamento" :key="index">
+                          <td>{{ getDescricaoFormaPagamento(pag.tipo) }}</td>
+                          <td>{{ formatarMoeda(pag.valor) }}</td>
+                        </tr>
+                      </tbody>
+                    </v-table>
+                  </v-card-text>
+                </v-card>
+
+                <!-- Produtos (collapsible) -->
+                <v-expansion-panels class="mb-4">
+                  <v-expansion-panel>
+                    <v-expansion-panel-title>
+                      <v-icon icon="mdi-package-variant-closed" class="mr-2" color="orange"></v-icon>
+                      Produtos/Itens ({{ dadosXMLImportado.produtos.length }})
+                    </v-expansion-panel-title>
+                    <v-expansion-panel-text>
+                      <v-table density="compact">
+                        <thead>
+                          <tr>
+                            <th>Cód.</th>
+                            <th>Descrição</th>
+                            <th>NCM</th>
+                            <th class="text-right">Qtd</th>
+                            <th>Unid.</th>
+                            <th class="text-right">Vlr Unit.</th>
+                            <th class="text-right">Vlr Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="(prod, index) in dadosXMLImportado.produtos" :key="index">
+                            <td>{{ prod.codigo }}</td>
+                            <td>{{ prod.descricao }}</td>
+                            <td>{{ prod.ncm }}</td>
+                            <td class="text-right">{{ prod.quantidade }}</td>
+                            <td>{{ prod.unidade }}</td>
+                            <td class="text-right">{{ formatarMoeda(prod.valorUnitario) }}</td>
+                            <td class="text-right">{{ formatarMoeda(prod.valorTotal) }}</td>
+                          </tr>
+                        </tbody>
+                      </v-table>
+                    </v-expansion-panel-text>
+                  </v-expansion-panel>
+                </v-expansion-panels>
+
+                <!-- Opções para importação -->
+                <v-card variant="outlined">
+                  <v-card-title class="text-subtitle-1 pa-3 d-flex align-center">
+                    <v-icon icon="mdi-cog" class="mr-2" color="orange"></v-icon>
+                    Opções de Importação
+                  </v-card-title>
+                  <v-card-text class="pa-3">
+                    <v-row>
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            v-model.number="opcoesImportXML.qtdParcelas"
+                            label="Quantidade de Parcelas"
+                            type="number"
+                            min="1"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-format-list-numbered"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            v-model="opcoesImportXML.dataVencimento"
+                            label="Data Primeiro Vencimento"
+                            type="date"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-calendar"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            v-model.number="opcoesImportXML.intervaloParcelas"
+                            label="Intervalo entre Parcelas (dias)"
+                            type="number"
+                            min="1"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-calendar-range"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+              </div>
+            </v-card-text>
+
+            <v-divider></v-divider>
+
+            <v-card-actions class="pa-4">
+              <v-btn
+                  color="grey"
+                  variant="text"
+                  @click="fecharModalImportarXML"
+              >
+                Cancelar
+              </v-btn>
+              <v-spacer></v-spacer>
+              <v-btn
+                  v-if="dadosXMLImportado"
+                  color="grey"
+                  variant="outlined"
+                  prepend-icon="mdi-refresh"
+                  @click="limparDadosXML"
+              >
+                Importar Outro
+              </v-btn>
+              <v-btn
+                  v-if="dadosXMLImportado"
+                  color="var(--text-color-laranja)"
+                  variant="flat"
+                  class="text-white"
+                  prepend-icon="mdi-check"
+                  @click="confirmarImportacaoXML"
+                  :loading="loading"
+              >
+                Usar Dados para Nova Conta
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <!-- Snackbar para feedback -->
+        <v-snackbar
+            v-model="snackbar.show"
+            :color="snackbar.color"
+            :timeout="3000"
+        >
+          {{ snackbar.message }}
+        </v-snackbar>
+      </div>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
@@ -998,7 +1310,6 @@ import { toast } from 'vue3-toastify'
 import { abrirImpressaoTitulos, gerarHTMLTitulos } from '@/components/impressos/titulos'
 import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
 import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
-import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import BuscaAvancada from '@/components/base/padrao-paginas/BuscaAvancada.vue'
 import TipoDocumentoMenu from '@/components/base/menu/TipoDocumentoMenu.vue'
@@ -1010,6 +1321,7 @@ import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
 import CadastrarModal from '@/components/base/modais/CadastrarModal.vue'
 // eslint-disable-next-line no-unused-vars
 import numeric from 'numeric'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -1070,6 +1382,22 @@ const modalPreviewPDF = ref(false)
 const previewHTMLContent = ref('')
 const dadosPDFAtual = ref(null)
 
+// Modal de Importar XML
+const modalImportarXML = ref(false)
+const arquivoXML = ref(null)
+const processandoXML = ref(false)
+const erroXML = ref('')
+const dadosXMLImportado = ref(null)
+const opcoesImportXML = reactive({
+  qtdParcelas: 1,
+  dataVencimento: '',
+  intervaloParcelas: 30
+})
+
+// Status do fornecedor durante importação XML
+const fornecedorNaoEncontrado = ref(false)
+const dadosFornecedorNovo = ref(null)
+
 // Dialog de confirmação de exclusão
 const dialogExclusao = reactive({
   aberto: false,
@@ -1096,22 +1424,22 @@ const headers = computed(() => {
 
   // Verificar se algum item tem autorização ativa para mostrar as colunas de autorização
   const temAutorizacao = contasPagar.value.some(item => item.pag_utiliza_aut_pagto === 'S')
-  
+
   if (temAutorizacao) {
     baseHeaders.push(
-      { title: 'Autorizado Por', key: 'user_liberou', sortable: true },
-      { title: 'Vlr Autorizado', key: 'vlrliberadopagto', sortable: true },
-      { title: 'Data Autorização', key: 'dhliberacaopagto', sortable: true }
+        { title: 'Autorizado Por', key: 'user_liberou', sortable: true },
+        { title: 'Vlr Autorizado', key: 'vlrliberadopagto', sortable: true },
+        { title: 'Data Autorização', key: 'dhliberacaopagto', sortable: true }
     )
   }
 
   baseHeaders.push(
-    { title: 'Origem', key: 'origem', sortable: true },
-    { title: 'Tipo Doc.', key: 'abreviatura', sortable: true },
-    { title: 'Local Cobrança', key: 'desclocalcobranca', sortable: true },
-    { title: 'Usuário', key: 'user_inc', sortable: true },
-    { title: 'Data Inclusão', key: 'dhinc', sortable: true },
-    { title: 'Ações', key: 'actions', sortable: false }
+      { title: 'Origem', key: 'origem', sortable: true },
+      { title: 'Tipo Doc.', key: 'abreviatura', sortable: true },
+      { title: 'Local Cobrança', key: 'desclocalcobranca', sortable: true },
+      { title: 'Usuário', key: 'user_inc', sortable: true },
+      { title: 'Data Inclusão', key: 'dhinc', sortable: true },
+      { title: 'Ações', key: 'actions', sortable: false }
   )
 
   return baseHeaders
@@ -1192,27 +1520,27 @@ const fornecedorLabel = ref('')
 const buscarFornecedorPorId = async (idFornecedor) => {
   try {
     fornecedorLoading.value = true
-    
+
     // Busca o fornecedor pelo ID na API - isso faz GET /pessoafor/:idempresa?find=ID
     const items = await financeiroStore.buscarPessoasFornecedores(String(idFornecedor), idEmpresa.value)
-    
+
     if (items && items.length > 0) {
       const fornecedor = items[0]
-      
+
       // Atualizar a lista de pessoas com o fornecedor encontrado
       pessoas.value = [fornecedor]
-      
+
       // Preencher o label do fornecedor
       fornecedorLabel.value = fornecedor.apelido_fantasia || fornecedor.nome_razao || fornecedor.nome || ''
-      
+
       // Atualizar o valor de busca para exibir no autocomplete
       fornecedorSearch.value = fornecedorLabel.value
-      
+
       // IMPORTANTE: Capturar id_red_ctb_for da resposta da API
       if (fornecedor.id_red_ctb_for || fornecedor.id_red_ctb) {
         formData.id_red_ctb_for = fornecedor.id_red_ctb_for || fornecedor.id_red_ctb
       }
-      
+
       return fornecedor
     } else {
       console.warn('⚠️ Fornecedor não encontrado com ID:', idFornecedor)
@@ -1231,11 +1559,11 @@ watch(fornecedorSearch, (val) => {
   if (fornecedorSearchTimer) clearTimeout(fornecedorSearchTimer)
 
   const searchValue = String(val || '').trim()
-  
+
   // Validação: se for numérico, aceita 1+ dígito; se for texto, precisa 3+ caracteres
   const isNumeric = /^\d+$/.test(searchValue)
   const minLength = isNumeric ? 1 : 3
-  
+
   if (!searchValue || searchValue.length < minLength) {
     pessoas.value = []
     fornecedorLoading.value = false
@@ -1263,10 +1591,10 @@ watch(fornecedorSearch, (val) => {
 // Função para formatação monetária brasileira
 const formatarMoeda = (valor) => {
   if (!valor && valor !== 0) return 'R$ 0,00'
-  
+
   const numero = parseFloat(valor)
   if (isNaN(numero)) return 'R$ 0,00'
-  
+
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
@@ -1304,7 +1632,7 @@ const rules = {
 const contasPagarFiltradas = computed(() => {
   const dados = contasPagar.value || []
   if (!Array.isArray(dados)) return []
-  
+
   // Toda filtragem é feita pela API
   return dados
 })
@@ -1336,7 +1664,7 @@ watch([() => formData.qtdparcelas, () => formData.vlroriginal], () => {
   parcelas.value = []
   totalParcelas.value = 0
   parcelasCalculadas.value = false
-  
+
   // Se for parcela única e tiver valor, gerar automaticamente
   if (formData.qtdparcelas === 1 && formData.vlroriginal) {
     // Usar timeout para garantir que a UI atualize
@@ -1376,13 +1704,13 @@ watch(() => parcelasCalculadas.value, (val) => {
 const carregarContasPagar = async (filtrosApi = null) => {
   try {
     loading.value = true
-    
+
     // Se filtros foram passados, usa eles; senão busca todos
     const dados = await financeiroStore.buscarContasPagar(
-      idEmpresa.value,
-      filtrosApi || {}
+        idEmpresa.value,
+        filtrosApi || {}
     )
-    
+
     // Esses sao os dados expandidos da tabela
     contasPagar.value = dados?.map(item => ({
       id: item.id || null,
@@ -1411,7 +1739,7 @@ const carregarContasPagar = async (filtrosApi = null) => {
       pag_utiliza_aut_pagto: item.pag_utiliza_aut_pagto || 'N',
       id_media: item.id_media || ''
     })) || []
-    
+
   } catch (error) {
     console.error('Erro ao carregar contas a pagar:', error)
     mostrarMensagem('Erro ao carregar contas a pagar', 'error')
@@ -1428,7 +1756,7 @@ const carregarDadosAuxiliares = async () => {
     const tiposDoc = await financeiroStore.buscarTiposDocumento()
     tiposDocumento.value = tiposDoc
 
-    // Carregar locais de cobrança  
+    // Carregar locais de cobrança
     const locaisCobrancaData = await financeiroStore.buscarLocaisCobranca()
     locaisCobranca.value = locaisCobrancaData
 
@@ -1480,10 +1808,10 @@ const removerCentro = (index) => {
 const onRateioValorChange = (index) => {
   const total = parseFloat(totalParcelas.value) || 0
   if (total === 0) return
-  
+
   const r = ccustosRateio.value[index]
   if (!r) return
-  
+
   const valorAtual = parseFloat(r.valor) || 0
   r.porcentagem = ((valorAtual / total) * 100).toFixed(2)
 }
@@ -1492,10 +1820,10 @@ const onRateioValorChange = (index) => {
 const onRateioPercentChange = (index) => {
   const total = parseFloat(totalParcelas.value) || 0
   if (total === 0) return
-  
+
   const r = ccustosRateio.value[index]
   if (!r) return
-  
+
   const porcAtual = parseFloat(r.porcentagem) || 0
   r.valor = ((porcAtual * total) / 100).toFixed(2)
 }
@@ -1504,7 +1832,7 @@ const onRateioPercentChange = (index) => {
 const recalcularPorcentagens = () => {
   const total = parseFloat(totalParcelas.value) || 0
   if (total === 0) return
-  
+
   ccustosRateio.value.forEach(r => {
     const valorNum = parseFloat(r.valor) || 0
     r.porcentagem = ((valorNum / total) * 100).toFixed(2)
@@ -1515,12 +1843,12 @@ const recalcularPorcentagens = () => {
 const distribuirIgualmente = () => {
   const total = parseFloat(totalParcelas.value) || 0
   const count = ccustosRateio.value.length || 1
-  
+
   if (count === 0 || total === 0) return
-  
+
   const valorPorCentro = total / count
   let valorAcumulado = 0
-  
+
   ccustosRateio.value.forEach((r, index) => {
     // Para o último centro, ajustar para garantir que a soma seja exatamente o total
     if (index === count - 1) {
@@ -1529,7 +1857,7 @@ const distribuirIgualmente = () => {
       r.valor = valorPorCentro.toFixed(2)
       valorAcumulado += parseFloat(r.valor)
     }
-    
+
     // Calcular porcentagem
     r.porcentagem = ((parseFloat(r.valor) / total) * 100).toFixed(2)
   })
@@ -1547,7 +1875,7 @@ const abrirFormulario = () => {
   editando.value = false
   resetarForm()
   formularioAberto.value = true
-  
+
   // Se for parcela única, gerar automaticamente após um pequeno delay
   setTimeout(() => {
     if (formData.qtdparcelas === 1) {
@@ -1557,7 +1885,7 @@ const abrirFormulario = () => {
 }
 
 const editarContaPagar = async (item) => {
-  
+
   editando.value = true
   // esconder imediatamente o card de configurações de parcelas antes do template renderizar
   parcelasCalculadas.value = true
@@ -1567,7 +1895,7 @@ const editarContaPagar = async (item) => {
     // Tentar obter o documento completo via API (deve retornar o payload criado)
     // Suprimir o watcher que limpa parcelas enquanto fazemos o mapeamento
     suppressParcelWatcher.value = true
-    
+
     const documento = await financeiroStore.buscarContaPagarPorId(idEmpresa.value, item.id)
 
     // documento pode ter a forma { data: [...], parcela: [...], ccusto: [...], media: [...] }
@@ -1585,18 +1913,18 @@ const editarContaPagar = async (item) => {
       formData.qtdparcelas = parseInt(dados.qtdparcelas || formData.qtdparcelas || 1)
       formData.dtemissao = dados.dtemissao || formData.dtemissao
       formData.id_media = (dados.id_media || (documento && documento.media && documento.media[0] && documento.media[0].id_media)) || formData.id_media
-      
+
       // Buscar campos contábeis no array contabil (documento.contabil ou dados.contabil)
       const contabil = documento?.contabil || dados?.contabil || []
       if (Array.isArray(contabil) && contabil.length > 0) {
         // Procurar id_red_ctb_for no array (priorizar o primeiro não-nulo)
         const contabilComRedCtb = contabil.find(c => c.id_red_ctb_for != null || c.id_red_ctb_cli != null)
         formData.id_red_ctb_for = contabilComRedCtb?.id_red_ctb_for || contabilComRedCtb?.id_red_ctb_cli || null
-        
+
         // Procurar id_planoconta no array (priorizar o primeiro não-nulo)
         const contabilComPlano = contabil.find(c => c.id_planoconta != null)
         formData.id_planoconta = contabilComPlano?.id_planoconta || null
-        
+
         // id_historico_ctb geralmente é o mesmo em todos, pegar do primeiro
         formData.id_historicocontabil = contabil[0]?.id_historico_ctb || null
       } else {
@@ -1637,72 +1965,72 @@ const editarContaPagar = async (item) => {
         histContabilLabel.value = found ? (found.deschistorico || found.descricao || `(${histId})`) : (dados.deschistorico || dados.descricao || `(${histId})`)
       }
 
-        // Resolver labels de Tipo de Documento, Plano de Conta e Fornecedor quando API retornar apenas ids
-        try {
-          // Tipo de documento
-          const tipoId = dados.id_tipodocumento || dados.id_tipodocumen || dados.id_tipo || null
-          if (tipoId) {
-            const tipo = (tiposDocumento.value || []).find(t => String(t.id) === String(tipoId))
-            if (tipo) {
-              tipoDocumentoSelecionado.value = tipo.abreviatura || tipo.desctipodocumento || tipo.descricao || ''
-              formData.id_tipodocumen = tipo.id
-            } else if (dados.abreviatura) {
-              tipoDocumentoSelecionado.value = dados.abreviatura
-            }
+      // Resolver labels de Tipo de Documento, Plano de Conta e Fornecedor quando API retornar apenas ids
+      try {
+        // Tipo de documento
+        const tipoId = dados.id_tipodocumento || dados.id_tipodocumen || dados.id_tipo || null
+        if (tipoId) {
+          const tipo = (tiposDocumento.value || []).find(t => String(t.id) === String(tipoId))
+          if (tipo) {
+            tipoDocumentoSelecionado.value = tipo.abreviatura || tipo.desctipodocumento || tipo.descricao || ''
+            formData.id_tipodocumen = tipo.id
+          } else if (dados.abreviatura) {
+            tipoDocumentoSelecionado.value = dados.abreviatura
           }
-
-          // Plano de conta (já foi carregado do array contabil acima)
-          const planoId = formData.id_planoconta
-          const planos = financeiroStore.planosConta || []
-          if (planoId) {
-            const plano = (planos || []).find(p => String(p.id) === String(planoId))
-            if (plano) {
-              planoContaSelecionado.value = plano.descconta || plano.descricao || plano.abreviatura || ''
-            } else if (dados.abreviatura_planoconta || dados.descplanoconta) {
-              planoContaSelecionado.value = dados.abreviatura_planoconta || dados.descplanoconta
-            }
-          }
-
-          // Fornecedor: buscar por ID quando disponível
-          if (formData.id_fornecedor) {
-            // Primeiro tenta encontrar na lista já carregada
-            const foundPessoa = (pessoas.value || []).find(p => String(p.id) === String(formData.id_fornecedor))
-            
-            if (foundPessoa) {
-              fornecedorLabel.value = foundPessoa.apelido_fantasia || foundPessoa.nome_razao || foundPessoa.nome || ''
-              fornecedorSelecionado.value = fornecedorLabel.value
-            } else {
-              // Se não encontrar, busca na API pelo ID
-              await buscarFornecedorPorId(formData.id_fornecedor)
-              
-              // Se ainda assim não encontrou mas tem o nome no dados, usar como fallback
-              if (!fornecedorLabel.value && dados.fornecedor) {
-                const novo = {
-                  id: formData.id_fornecedor,
-                  apelido_fantasia: dados.fornecedor || '',
-                  nome_razao: dados.nome_razao || dados.fornecedor || ''
-                }
-                pessoas.value = [...(pessoas.value || []), novo]
-                fornecedorLabel.value = novo.apelido_fantasia || novo.nome_razao || ''
-                fornecedorSelecionado.value = fornecedorLabel.value
-              }
-            }
-          }
-        } catch (e) {
-          // não bloquear o fluxo por erro na resolução de labels
-          console.warn('Erro ao resolver labels a partir dos ids:', e)
         }
+
+        // Plano de conta (já foi carregado do array contabil acima)
+        const planoId = formData.id_planoconta
+        const planos = financeiroStore.planosConta || []
+        if (planoId) {
+          const plano = (planos || []).find(p => String(p.id) === String(planoId))
+          if (plano) {
+            planoContaSelecionado.value = plano.descconta || plano.descricao || plano.abreviatura || ''
+          } else if (dados.abreviatura_planoconta || dados.descplanoconta) {
+            planoContaSelecionado.value = dados.abreviatura_planoconta || dados.descplanoconta
+          }
+        }
+
+        // Fornecedor: buscar por ID quando disponível
+        if (formData.id_fornecedor) {
+          // Primeiro tenta encontrar na lista já carregada
+          const foundPessoa = (pessoas.value || []).find(p => String(p.id) === String(formData.id_fornecedor))
+
+          if (foundPessoa) {
+            fornecedorLabel.value = foundPessoa.apelido_fantasia || foundPessoa.nome_razao || foundPessoa.nome || ''
+            fornecedorSelecionado.value = fornecedorLabel.value
+          } else {
+            // Se não encontrar, busca na API pelo ID
+            await buscarFornecedorPorId(formData.id_fornecedor)
+
+            // Se ainda assim não encontrou mas tem o nome no dados, usar como fallback
+            if (!fornecedorLabel.value && dados.fornecedor) {
+              const novo = {
+                id: formData.id_fornecedor,
+                apelido_fantasia: dados.fornecedor || '',
+                nome_razao: dados.nome_razao || dados.fornecedor || ''
+              }
+              pessoas.value = [...(pessoas.value || []), novo]
+              fornecedorLabel.value = novo.apelido_fantasia || novo.nome_razao || ''
+              fornecedorSelecionado.value = fornecedorLabel.value
+            }
+          }
+        }
+      } catch (e) {
+        // não bloquear o fluxo por erro na resolução de labels
+        console.warn('Erro ao resolver labels a partir dos ids:', e)
+      }
     }
 
     // Parcelas: a API pode retornar `pagparcela` aninhado em `data[0]` (dados) ou no objeto raiz (documento).
     // Priorizar os campos dentro de `dados` (documento.data[0]) quando presentes.
     const parcelasRet = (dados && dados.pagparcela) ? dados.pagparcela
-      : (dados && dados.parcela) ? dados.parcela
-      : (dados && dados.parcelas) ? dados.parcelas
-      : (documento && documento.pagparcela) ? documento.pagparcela
-      : (documento && documento.parcela) ? documento.parcela
-      : (documento && documento.parcelas) ? documento.parcelas
-      : []
+        : (dados && dados.parcela) ? dados.parcela
+            : (dados && dados.parcelas) ? dados.parcelas
+                : (documento && documento.pagparcela) ? documento.pagparcela
+                    : (documento && documento.parcela) ? documento.parcela
+                        : (documento && documento.parcelas) ? documento.parcelas
+                            : []
     if (Array.isArray(parcelasRet) && parcelasRet.length > 0) {
       parcelas.value = parcelasRet.map((p, idx) => {
         const nr = p.id || p.id_parcela || p.id_pagconta || (idx + 1)
@@ -1735,10 +2063,10 @@ const editarContaPagar = async (item) => {
       suppressParcelWatcher.value = false
     } else {
       // fallback: manter lógica anterior (buscar por documento na lista local)
-      const parcelasDoDocumento = contasPagar.value.filter(cp => 
-        cp.nrdocumento === item.nrdocumento && 
-        cp.serie === item.serie && 
-        cp.especie === item.especie
+      const parcelasDoDocumento = contasPagar.value.filter(cp =>
+          cp.nrdocumento === item.nrdocumento &&
+          cp.serie === item.serie &&
+          cp.especie === item.especie
       )
       parcelas.value = parcelasDoDocumento.map(parcela => ({
         nrparcela: parcela.id_parcela,
@@ -1773,12 +2101,12 @@ const editarContaPagar = async (item) => {
     // Rateios (centros de custo) — API returns `ccusto` as array of { id_ccusto, valor, desccentrocusto }
     // A API retorna a estrutura: { data: [...], pagparcela: [...], media: [...], ccusto: [...] }
     // O ccusto está no nível raiz do documento, NÃO dentro de data[0]
-    
+
     // Buscar ccusto no nível raiz do documento (estrutura correta da API)
     const ccustos = documento?.ccusto || []
-    
+
     if (Array.isArray(ccustos) && ccustos.length > 0) {
-      
+
       // Ensure centrosCusto list is loaded
       if ((centrosCusto.value || []).length === 0) {
         try {
@@ -1787,28 +2115,28 @@ const editarContaPagar = async (item) => {
         } catch (e) {
           console.warn('Não foi possível carregar centros de custo ao editar documento', e)
         }
-      } else 
-      
-      // Mapear ccustos diretamente para o array de rateio
-      ccustosRateio.value = ccustos.map(c => {
-        const linha = {
-          id_ccusto: Number(c.id_ccusto || c.id_ccusto_prev_lote || c.id),
-          valor: parseFloat(c.valor) || 0,
-          desccentrocusto: c.desccentrocusto || '',
-          porcentagem: 0
-        }
-        return linha
-      })
-      
+      } else
+
+          // Mapear ccustos diretamente para o array de rateio
+        ccustosRateio.value = ccustos.map(c => {
+          const linha = {
+            id_ccusto: Number(c.id_ccusto || c.id_ccusto_prev_lote || c.id),
+            valor: parseFloat(c.valor) || 0,
+            desccentrocusto: c.desccentrocusto || '',
+            porcentagem: 0
+          }
+          return linha
+        })
+
       // Aguardar nextTick para garantir reatividade
       await nextTick()
-      
+
       // Calcular as porcentagens baseadas no total das parcelas
       recalcularPorcentagens()
-      
+
     } else
 
-    // Media: API returns `media` as array (e.g. ["key"]) — persist first element into formData.id_media
+        // Media: API returns `media` as array (e.g. ["key"]) — persist first element into formData.id_media
     if (documento && Array.isArray(documento.media) && documento.media.length > 0) {
       formData.id_media = documento.media[0] || formData.id_media
     } else if (dados && Array.isArray(dados.media) && dados.media.length > 0) {
@@ -1835,7 +2163,7 @@ const cancelarFormulario = () => {
 const resetarForm = () => {
   // Limpar key do Pinia
   financeiroStore.clearMediaKeyTemporaria()
-  
+
   Object.assign(formData, {
     id: null,
     nrdocumento: '',
@@ -1868,14 +2196,14 @@ const resetarForm = () => {
   totalParcelas.value = 0
   valorEntrada.value = 0
   parcelasCalculadas.value = false
-  
+
   // Limpar rateios
   ccustosRateio.value = []
 
   if (formRef.value) {
     formRef.value.resetValidation()
   }
-  
+
   // Gerar parcela única automaticamente após reset se tiver valor
   setTimeout(() => {
     if (formData.qtdparcelas === 1 && formData.vlroriginal) {
@@ -1887,13 +2215,13 @@ const resetarForm = () => {
 const salvarContaPagar = async () => {
   try {
     loading.value = true
-    
+
     // Validar se há parcelas calculadas
     if (parcelas.value.length === 0) {
       mostrarMensagem('É necessário calcular as parcelas antes de salvar', 'warning')
       return
     }
-    
+
     // Dados principais da conta a pagar
     // Determinar nome do fornecedor a partir do id selecionado
     const fornecedorObj = (pessoas.value || []).find(p => p.id === formData.id_fornecedor) || {}
@@ -1917,7 +2245,7 @@ const salvarContaPagar = async () => {
       qtdparcelas: parseInt(formData.qtdparcelas),
       dtemissao: formData.dtemissao
     }
-    
+
     // Preparar parcelas no formato esperado pelo THorse
     const parcelasFormatadas = parcelas.value.map((parcela, index) => ({
       id: String(parcela.nrparcela || (index + 1)),
@@ -1928,18 +2256,18 @@ const salvarContaPagar = async () => {
       perc_desconto: String(parseFloat(formData.desconto) || 0),
       perc_multa: String(parseFloat(formData.multa) || 0)
     }))
-    
+
     // Usar key do Pinia para o payload
     const mediaValue = financeiroStore.getMediaKeyTemporaria() || null
-    
+
     // Montar array ccusto no formato solicitado: [{ id_ccusto, valor, perc_ccusto }]
     const ccustoArray = ccustosRateio.value
-      .filter(r => r.id_ccusto) // Só incluir linhas com centro selecionado
-      .map(r => ({
-        id_ccusto: r.id_ccusto,
-        valor: (parseFloat(r.valor) || 0).toFixed(2),
-        perc_ccusto: (parseFloat(r.porcentagem) || 0).toFixed(2)
-      }))
+        .filter(r => r.id_ccusto) // Só incluir linhas com centro selecionado
+        .map(r => ({
+          id_ccusto: r.id_ccusto,
+          valor: (parseFloat(r.valor) || 0).toFixed(2),
+          perc_ccusto: (parseFloat(r.porcentagem) || 0).toFixed(2)
+        }))
 
     // Validar soma do rateio (se houver rateios) contra o total das parcelas
     if (ccustoArray.length > 0) {
@@ -1969,10 +2297,10 @@ const salvarContaPagar = async () => {
       await financeiroStore.criarContaPagar(payloadCompleto)
       mostrarMensagem('Conta a pagar cadastrada com sucesso!', 'success')
     }
-    
+
     // Limpar key do Pinia após salvar com sucesso
     financeiroStore.clearMediaKeyTemporaria()
-    
+
     await carregarContasPagar(filtrosAvancados.value)
     cancelarFormulario()
   } catch (error) {
@@ -2003,15 +2331,428 @@ const mostrarMensagem = (mensagem, tipo) => {
   snackbar.show = true
 }
 
+// ========================================
+// Funções para Importação de XML (NFe)
+// ========================================
+
+// Abrir modal de importação
+const abrirModalImportarXML = () => {
+  modalImportarXML.value = true
+  limparDadosXML()
+}
+
+// Fechar modal de importação
+const fecharModalImportarXML = () => {
+  modalImportarXML.value = false
+  limparDadosXML()
+}
+
+// Limpar dados do XML
+const limparDadosXML = () => {
+  arquivoXML.value = null
+  dadosXMLImportado.value = null
+  erroXML.value = ''
+  processandoXML.value = false
+  opcoesImportXML.qtdParcelas = 1
+  opcoesImportXML.dataVencimento = ''
+  opcoesImportXML.intervaloParcelas = 30
+}
+
+// Processar arquivo XML
+const processarArquivoXML = async (files) => {
+  if (!files || files.length === 0) {
+    return
+  }
+
+  const file = Array.isArray(files) ? files[0] : files
+
+  if (!file || !file.name.endsWith('.xml')) {
+    erroXML.value = 'Por favor, selecione um arquivo XML válido'
+    return
+  }
+
+  processandoXML.value = true
+  erroXML.value = ''
+  fornecedorNaoEncontrado.value = false
+  dadosFornecedorNovo.value = null
+
+  try {
+    const conteudo = await file.text()
+    const parser = new DOMParser()
+    const xmlDoc = parser.parseFromString(conteudo, 'text/xml')
+
+    // Verificar se houve erro no parse
+    const parseError = xmlDoc.getElementsByTagName('parsererror')
+    if (parseError.length > 0) {
+      throw new Error('Arquivo XML inválido ou corrompido')
+    }
+
+    // Extrair dados da NFe
+    dadosXMLImportado.value = extrairDadosNFe(xmlDoc)
+
+    // Verificar se fornecedor existe na base
+    await verificarFornecedorXML(dadosXMLImportado.value.emitente)
+
+    // Preencher data de vencimento padrão (30 dias após emissão)
+    if (dadosXMLImportado.value?.nfe?.dataEmissao) {
+      const dataEmissao = new Date(dadosXMLImportado.value.nfe.dataEmissao)
+      dataEmissao.setDate(dataEmissao.getDate() + 30)
+      opcoesImportXML.dataVencimento = dataEmissao.toISOString().split('T')[0]
+    }
+
+  } catch (error) {
+    console.error('Erro ao processar XML:', error)
+    erroXML.value = error.message || 'Erro ao processar o arquivo XML'
+    dadosXMLImportado.value = null
+  } finally {
+    processandoXML.value = false
+  }
+}
+
+// Extrair dados da NFe do XML parseado
+const extrairDadosNFe = (xmlDoc) => {
+  // Helper para obter texto de um elemento
+  const getText = (parent, tagName) => {
+    const elements = parent.getElementsByTagName(tagName)
+    return elements.length > 0 ? elements[0].textContent : ''
+  }
+
+  // Buscar elemento NFe
+  const nfeElements = xmlDoc.getElementsByTagName('NFe')
+  if (nfeElements.length === 0) {
+    throw new Error('Elemento NFe não encontrado no XML')
+  }
+  const nfe = nfeElements[0]
+
+  // Buscar infNFe
+  const infNFeElements = nfe.getElementsByTagName('infNFe')
+  if (infNFeElements.length === 0) {
+    throw new Error('Elemento infNFe não encontrado no XML')
+  }
+  const infNFe = infNFeElements[0]
+
+  // Dados de identificação (ide)
+  const ideElements = infNFe.getElementsByTagName('ide')
+  const ide = ideElements.length > 0 ? ideElements[0] : null
+
+  // Dados do emitente (emit)
+  const emitElements = infNFe.getElementsByTagName('emit')
+  const emit = emitElements.length > 0 ? emitElements[0] : null
+
+  // Dados do destinatário (dest)
+  const destElements = infNFe.getElementsByTagName('dest')
+  const dest = destElements.length > 0 ? destElements[0] : null
+
+  // Produtos (det)
+  const detElements = infNFe.getElementsByTagName('det')
+  const produtos = []
+  for (let i = 0; i < detElements.length; i++) {
+    const det = detElements[i]
+    const prod = det.getElementsByTagName('prod')[0]
+    if (prod) {
+      produtos.push({
+        item: det.getAttribute('nItem'),
+        codigo: getText(prod, 'cProd'),
+        ean: getText(prod, 'cEAN'),
+        descricao: getText(prod, 'xProd'),
+        ncm: getText(prod, 'NCM'),
+        cfop: getText(prod, 'CFOP'),
+        unidade: getText(prod, 'uCom'),
+        quantidade: parseFloat(getText(prod, 'qCom')) || 0,
+        valorUnitario: parseFloat(getText(prod, 'vUnCom')) || 0,
+        valorTotal: parseFloat(getText(prod, 'vProd')) || 0
+      })
+    }
+  }
+
+  // Totais (total/ICMSTot)
+  const totalElements = infNFe.getElementsByTagName('total')
+  const total = totalElements.length > 0 ? totalElements[0] : null
+  const icmsTot = total ? total.getElementsByTagName('ICMSTot')[0] : null
+
+  // Pagamento (pag/detPag)
+  const pagElements = infNFe.getElementsByTagName('pag')
+  const pagamentos = []
+  if (pagElements.length > 0) {
+    const detPagElements = pagElements[0].getElementsByTagName('detPag')
+    for (let i = 0; i < detPagElements.length; i++) {
+      const detPag = detPagElements[i]
+      pagamentos.push({
+        indicador: getText(detPag, 'indPag'),
+        tipo: getText(detPag, 'tPag'),
+        valor: parseFloat(getText(detPag, 'vPag')) || 0
+      })
+    }
+  }
+
+  // Chave de acesso
+  const chaveAcesso = infNFe.getAttribute('Id')?.replace('NFe', '') || ''
+
+  // Endereço do emitente
+  const enderEmit = emit ? emit.getElementsByTagName('enderEmit')[0] : null
+
+  return {
+    nfe: {
+      numero: ide ? getText(ide, 'nNF') : '',
+      serie: ide ? getText(ide, 'serie') : '',
+      modelo: ide ? getText(ide, 'mod') : '',
+      dataEmissao: ide ? getText(ide, 'dhEmi') : '',
+      naturezaOperacao: ide ? getText(ide, 'natOp') : '',
+      chaveAcesso: chaveAcesso
+    },
+    emitente: {
+      cnpj: emit ? getText(emit, 'CNPJ') : '',
+      cpf: emit ? getText(emit, 'CPF') : '',
+      razaoSocial: emit ? getText(emit, 'xNome') : '',
+      nomeFantasia: emit ? getText(emit, 'xFant') : '',
+      ie: emit ? getText(emit, 'IE') : '',
+      fone: enderEmit ? getText(enderEmit, 'fone') : '',
+      endereco: {
+        logradouro: enderEmit ? getText(enderEmit, 'xLgr') : '',
+        numero: enderEmit ? getText(enderEmit, 'nro') : '',
+        bairro: enderEmit ? getText(enderEmit, 'xBairro') : '',
+        cidade: enderEmit ? getText(enderEmit, 'xMun') : '',
+        uf: enderEmit ? getText(enderEmit, 'UF') : '',
+        cep: enderEmit ? getText(enderEmit, 'CEP') : ''
+      }
+    },
+    destinatario: {
+      cnpj: dest ? getText(dest, 'CNPJ') : '',
+      cpf: dest ? getText(dest, 'CPF') : '',
+      razaoSocial: dest ? getText(dest, 'xNome') : ''
+    },
+    valores: {
+      valorProdutos: icmsTot ? parseFloat(getText(icmsTot, 'vProd')) || 0 : 0,
+      valorFrete: icmsTot ? parseFloat(getText(icmsTot, 'vFrete')) || 0 : 0,
+      valorSeguro: icmsTot ? parseFloat(getText(icmsTot, 'vSeg')) || 0 : 0,
+      valorDesconto: icmsTot ? parseFloat(getText(icmsTot, 'vDesc')) || 0 : 0,
+      valorOutro: icmsTot ? parseFloat(getText(icmsTot, 'vOutro')) || 0 : 0,
+      valorIPI: icmsTot ? parseFloat(getText(icmsTot, 'vIPI')) || 0 : 0,
+      valorICMS: icmsTot ? parseFloat(getText(icmsTot, 'vICMS')) || 0 : 0,
+      valorTotalNF: icmsTot ? parseFloat(getText(icmsTot, 'vNF')) || 0 : 0
+    },
+    produtos: produtos,
+    pagamento: pagamentos
+  }
+}
+
+// Formatar CNPJ
+const formatarCNPJ = (cnpj) => {
+  if (!cnpj) return ''
+  const numeros = cnpj.replace(/\D/g, '')
+  if (numeros.length !== 14) return cnpj
+  return numeros.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+}
+
+
+// Detectar tipo de pessoa pela quantidade de dígitos do CPF/CNPJ
+const detectarTipoPessoa = (cpfCnpj) => {
+  if (!cpfCnpj) return 'J'
+  const numeros = String(cpfCnpj).replace(/\D/g, '')
+  // 11 dígitos = CPF (Física), 14 dígitos = CNPJ (Jurídica)
+  return numeros.length === 11 ? 'F' : 'J'
+}
+
+// Obter descrição da forma de pagamento
+const getDescricaoFormaPagamento = (codigo) => {
+  const formas = {
+    '01': 'Dinheiro',
+    '02': 'Cheque',
+    '03': 'Cartão de Crédito',
+    '04': 'Cartão de Débito',
+    '05': 'Crédito Loja',
+    '10': 'Vale Alimentação',
+    '11': 'Vale Refeição',
+    '12': 'Vale Presente',
+    '13': 'Vale Combustível',
+    '14': 'Duplicata Mercantil',
+    '15': 'Boleto Bancário',
+    '16': 'Depósito Bancário',
+    '17': 'PIX',
+    '18': 'Transferência bancária',
+    '19': 'Programa de fidelidade',
+    '90': 'Sem pagamento',
+    '99': 'Outros'
+  }
+  return formas[codigo] || `Código ${codigo}`
+}
+
+// Confirmar importação e preencher formulário
+const confirmarImportacaoXML = async () => {
+  if (!dadosXMLImportado.value) return
+
+  try {
+    loading.value = true
+    const dados = dadosXMLImportado.value
+
+    // ===== PASSO 1: Criar fornecedor se não existe =====
+    if (fornecedorNaoEncontrado.value && dadosFornecedorNovo.value) {
+      console.log('📝 Criando novo fornecedor antes de fechar modal...')
+      try {
+        const emitente = dados.emitente
+        const tipoPessoa = detectarTipoPessoa(emitente.cnpj)
+
+        toast.info('Criando fornecedor...')
+
+        const novoFornecedor = await financeiroStore.cadastrarFornecedor({
+          tipo_pessoa: tipoPessoa,
+          nome_razao: emitente.razaoSocial,
+          apelido_fantasia: emitente.nomeFantasia || emitente.razaoSocial,
+          cpf_cnpj: emitente.cnpj,
+          rg_inscricao: emitente.ie,
+          telefone: emitente.fone,
+          cliente: 'N',
+          fornecedor: 'S',
+          transportadora: 'N',
+          colaborador: 'N',
+          representante: 'N',
+          ativo: 'S'
+        })
+
+        // Validar se fornecedor foi criado com sucesso
+        console.log('📦 Resposta do cadastro de fornecedor:', novoFornecedor)
+
+        if (!novoFornecedor) {
+          throw new Error('Nenhuma resposta retornada ao criar fornecedor')
+        }
+
+        // API retorna id_pessoa - aceitar diretamente
+        const idFornecedor = novoFornecedor.id_pessoa || novoFornecedor.id
+        console.log('🔑 ID do fornecedor extraído:', idFornecedor)
+
+        if (!idFornecedor) {
+          console.error('❌ Objeto retornado não contém id_pessoa nem id:', novoFornecedor)
+          throw new Error('Fornecedor criado mas sem ID retornado')
+        }
+
+        // Preencher ID do fornecedor
+        formData.id_fornecedor = idFornecedor
+
+        // Buscar dados completos do fornecedor via GET /pessoa/:id
+        try {
+          console.log('🔍 Buscando dados completos do fornecedor ID:', idFornecedor)
+          const dadosFornecedor = await financeiroStore.buscarPessoasFornecedores(String(idFornecedor), idEmpresa.value)
+          console.log('📋 Dados do fornecedor encontrados:', dadosFornecedor)
+
+          if (dadosFornecedor && dadosFornecedor.length > 0) {
+            const fornecedorCompleto = dadosFornecedor[0]
+            fornecedorSelecionado.value = fornecedorCompleto.apelido_fantasia || fornecedorCompleto.nome_razao || fornecedorCompleto.nome || ''
+            fornecedorLabel.value = fornecedorSelecionado.value
+            fornecedorSearch.value = fornecedorSelecionado.value
+            pessoas.value = [fornecedorCompleto]
+
+            if (fornecedorCompleto.id_red_ctb_for || fornecedorCompleto.id_red_ctb) {
+              formData.id_red_ctb_for = fornecedorCompleto.id_red_ctb_for || fornecedorCompleto.id_red_ctb
+            }
+
+            toast.success(`✅ Fornecedor ${fornecedorSelecionado.value} criado!`)
+          } else {
+            fornecedorSelecionado.value = `Fornecedor ID: ${idFornecedor}`
+            fornecedorLabel.value = fornecedorSelecionado.value
+            pessoas.value = [{ id: idFornecedor, id_pessoa: idFornecedor }]
+            toast.success(`✅ Fornecedor criado (ID: ${idFornecedor})!`)
+          }
+        } catch (errBusca) {
+          console.warn('⚠️ Erro ao buscar dados do fornecedor:', errBusca)
+          fornecedorSelecionado.value = `Fornecedor ID: ${idFornecedor}`
+          fornecedorLabel.value = fornecedorSelecionado.value
+          pessoas.value = [{ id: idFornecedor, id_pessoa: idFornecedor }]
+          toast.success(`✅ Fornecedor criado (ID: ${idFornecedor})!`)
+        }
+
+        console.log('✅ Fornecedor configurado com ID:', idFornecedor)
+      } catch (errFornecedor) {
+        console.error('❌ Erro ao criar fornecedor:', errFornecedor)
+        toast.error('Erro ao criar fornecedor. Tente novamente.')
+        loading.value = false
+        return
+      }
+    }
+
+    // ===== PASSO 2: Preencher dados do formulário =====
+    console.log('📋 Preenchendo dados do formulário...')
+    formData.nrdocumento = dados.nfe.numero
+    formData.serie = dados.nfe.serie
+    formData.especie = 'NFe'
+    formData.vlroriginal = dados.valores.valorTotalNF
+    formData.qtdparcelas = opcoesImportXML.qtdParcelas
+    formData.dtemissao = dados.nfe.dataEmissao ? dados.nfe.dataEmissao.split('T')[0] : ''
+    formData.desconto = dados.valores.valorDesconto || 0
+    formData.venc_primeira_parcela = opcoesImportXML.dataVencimento
+    formData.intervalo_parcelas = opcoesImportXML.intervaloParcelas
+    formData.valor_primeira_parcela = dados.valores.valorTotalNF / opcoesImportXML.qtdParcelas
+
+    // ===== PASSO 3: Fechar modal e abrir formulário =====
+    console.log('🚀 Fechando modal e abrindo formulário...')
+    fecharModalImportarXML()
+    formularioAberto.value = true
+    editando.value = false
+
+    // Gerar parcelas após preencher
+    await nextTick()
+    if (formData.qtdparcelas === 1) {
+      gerarParcelaUnica()
+    }
+
+    toast.success('✅ Revise os dados e clique em Salvar')
+  } catch (error) {
+    console.error('Erro ao confirmar importação:', error)
+    toast.error('Erro ao processar importação')
+  } finally {
+    loading.value = false
+  }
+}
+
+// Verificar se fornecedor já existe na base
+const verificarFornecedorXML = async (emitente) => {
+  if (!emitente || !emitente.cnpj) {
+    fornecedorNaoEncontrado.value = true
+    dadosFornecedorNovo.value = emitente
+    return
+  }
+
+  try {
+    // Fazer GET em /pessoa?cpf_cnpj=
+    const response = await financeiroStore.buscarPessoasFornecedores(emitente.cnpj, idEmpresa.value)
+
+    if (response && Array.isArray(response) && response.length > 0) {
+      // Fornecedor encontrado - preencher dados
+      formData.id_fornecedor = response[0].id
+      formData.id_red_ctb_for = response[0].id_red_ctb_for || response[0].id_red_ctb
+      fornecedorSelecionado.value = response[0].apelido_fantasia || response[0].nome_razao || response[0].nome || ''
+      fornecedorLabel.value = fornecedorSelecionado.value
+      fornecedorSearch.value = fornecedorSelecionado.value
+      pessoas.value = [response[0]]
+      fornecedorNaoEncontrado.value = false
+      dadosFornecedorNovo.value = null
+      console.log('✅ Fornecedor encontrado:', response[0])
+    } else {
+      // Fornecedor não encontrado - preparar para criar
+      fornecedorNaoEncontrado.value = true
+      dadosFornecedorNovo.value = emitente
+      console.log('⚠️ Fornecedor não encontrado - será criado ao confirmar')
+    }
+  } catch (error) {
+    console.warn('Erro ao buscar fornecedor:', error)
+    // Em caso de erro, marcar como não encontrado para criar
+    fornecedorNaoEncontrado.value = true
+    dadosFornecedorNovo.value = emitente
+  }
+}
+
+// ========================================
+// Fim das funções de Importação de XML
+// ========================================
+
 // Função para aplicar filtros avançados
 const aplicarFiltrosAvancados = async (filtros) => {
   try {
     // Guardar filtros para aplicação local dos filtros de valor
     filtrosAvancados.value = filtros
-    
+
     // Montar objeto de filtros para API (remover valores vazios)
     const filtrosApi = {}
-    
+
     if (filtros.tpperiodo !== undefined) filtrosApi.tpperiodo = filtros.tpperiodo
     if (filtros.dtini) filtrosApi.dtini = filtros.dtini
     if (filtros.dtfim) filtrosApi.dtfim = filtros.dtfim
@@ -2021,7 +2762,7 @@ const aplicarFiltrosAvancados = async (filtros) => {
     if (filtros.idtpdocumento) filtrosApi.idtpdocumento = filtros.idtpdocumento
     if (filtros.idlocalcobranca) filtrosApi.idlocalcobranca = filtros.idlocalcobranca
     if (filtros.baixado) filtrosApi.baixado = filtros.baixado
-    
+
     // Chamar API com filtros
     await carregarContasPagar(filtrosApi)
   } catch (error) {
@@ -2037,10 +2778,10 @@ const handleMediaUpload = async () => {
 
 const onMediaSuccess = (data) => {
   try {
-    
+
     // Tentar extrair a key de múltiplos caminhos possíveis
     let key = null
-    
+
     if (data.key) {
       key = data.key
     } else if (data.data?.key) {
@@ -2050,15 +2791,15 @@ const onMediaSuccess = (data) => {
     } else if (data.response?.key) {
       key = data.response.key
     }
-    
+
     if (key) {
-      
+
       // Armazenar a key no Pinia para usar no payload
       financeiroStore.setMediaKeyTemporaria(key)
-      
+
       // Também salvar no formData para mostrar o indicador visual
       formData.id_media = key
-      
+
       mostrarMensagem('Documento anexado e pronto para envio!', 'success')
     } else {
       console.error('❌ Key não encontrada em nenhum caminho. Estrutura recebida:', JSON.stringify(data, null, 2))
@@ -2130,12 +2871,12 @@ const pesquisarFornecedores = async () => {
   try {
     // usar lista já carregada ou buscar fornecedores via financeiroStore
     let dados = pessoas.value && pessoas.value.length > 0 ? pessoas.value : null
-    
+
     if (!dados) {
       // Buscar fornecedores usando o mesmo método que já funciona no código
       dados = await financeiroStore.buscarPessoasFornecedores('', idEmpresa.value)
     }
-    
+
     if (!termoFornecedor.value || termoFornecedor.value.length < 2) {
       fornecedorResultados.value = dados || []
       return
@@ -2186,10 +2927,10 @@ const cadastrarHistorico = async () => {
 const selecionarLocalCobranca = (localCobranca, item) => {
   item.id_localcobranca = localCobranca.id
   item.localCobrancaTexto = localCobranca.desclocalcobranca || localCobranca.descricao
-  
+
   // Aplicar a lógica de propagação da primeira parcela
   if (item.nrparcela === 1) {
-    
+
     // Propagar para todas as outras parcelas que não foram editadas manualmente
     for (let i = 0; i < parcelas.value.length; i++) {
       if (parcelas.value[i].nrparcela !== 1 && !parcelas.value[i]._localcobrancaEdited) {
@@ -2223,9 +2964,9 @@ const calcularTotalParcelas = () => {
 const calcularParcelas = async () => {
   try {
     loading.value = true
-    
+
     const qtdParcelas = parseInt(formData.qtdparcelas) || 1
-    
+
     // Se for apenas 1 parcela, fazer cálculo local sem chamar API
     if (qtdParcelas === 1) {
       gerarParcelaUnica()
@@ -2233,7 +2974,7 @@ const calcularParcelas = async () => {
       loading.value = false
       return
     }
-    
+
     // Preparar dados conforme payload esperado pelo backend (apenas para múltiplas parcelas)
     const dadosCalculo = {
       vlrdocumento: parseFloat(formData.vlroriginal),
@@ -2242,10 +2983,10 @@ const calcularParcelas = async () => {
       primeirovencimento: formData.venc_primeira_parcela || formData.dtemissao,
       intervalo: parseInt(formData.intervalo_parcelas) || 30
     }
-    
+
     // Chamar API do backend apenas para múltiplas parcelas
     const parcelasCalculadas = await financeiroStore.calcularParcelasContaPagar(dadosCalculo)
-    
+
     // Processar resultado e atualizar a tabela de parcelas
     if (parcelasCalculadas && Array.isArray(parcelasCalculadas)) {
       parcelas.value = parcelasCalculadas.map((parcela, index) => {
@@ -2254,7 +2995,7 @@ const calcularParcelas = async () => {
         if (typeof valorParcela === 'string') {
           valorParcela = valorParcela.replace(',', '.')
         }
-        
+
         return {
           nrparcela: parcela.id_parcela || (index + 1),
           dtvencimento: parcela.dtvencimento || parcela.data_vencimento || '',
@@ -2265,7 +3006,7 @@ const calcularParcelas = async () => {
           observacao: parcela.observacao || `Parcela ${parcela.id_parcela || (index + 1)} de ${dadosCalculo.qtdparcelas}`
         }
       })
-      
+
       calcularTotalParcelas()
       // Após cálculo, esconder o painel de configurações
       parcelasCalculadas.value = true
@@ -2278,11 +3019,11 @@ const calcularParcelas = async () => {
       parcelasCalculadas.value = true
       mostrarMensagem('Parcelas calculadas localmente!', 'warning')
     }
-    
+
   } catch (error) {
     console.error('Erro ao calcular parcelas:', error)
     mostrarMensagem('Erro ao calcular parcelas. Usando cálculo local.', 'warning')
-    
+
     // Fallback para geração local em caso de erro
     gerarParcelasTemporario()
   } finally {
@@ -2295,11 +3036,11 @@ const gerarParcelaUnica = () => {
   const valorOriginal = parseFloat(formData.vlroriginal) || 0
   const valorPrimeiraParcela = parseFloat(formData.valor_primeira_parcela) || 0
   const dataVencimento = formData.venc_primeira_parcela || formData.dtemissao
-  
+
   if (valorOriginal > 0) {
     // Para parcela única, usar valor da primeira parcela se informado, senão usar o valor original
     const valorFinal = valorPrimeiraParcela > 0 ? valorPrimeiraParcela : valorOriginal
-    
+
     parcelas.value = [{
       nrparcela: 1,
       dtvencimento: dataVencimento || '',
@@ -2309,7 +3050,7 @@ const gerarParcelaUnica = () => {
       _localcobrancaEdited: false,
       observacao: 'Parcela única'
     }]
-    
+
     calcularTotalParcelas()
   } else {
     // Mesmo sem valor, mostrar estrutura da parcela para deixar claro que é única
@@ -2332,14 +3073,14 @@ const gerarParcelasTemporario = () => {
   const valorOriginal = parseFloat(formData.vlroriginal) || 0
   const valorPrimeiraParcela = parseFloat(formData.valor_primeira_parcela) || 0
   const dataVencPrimeira = formData.venc_primeira_parcela || formData.dtemissao
-  
+
   if (qtd > 0 && valorOriginal > 0) {
     parcelas.value = []
-    
+
     for (let i = 1; i <= qtd; i++) {
       let valorParcela = valorOriginal / qtd
       let dataVencimento = dataVencPrimeira
-      
+
       // Se é a primeira parcela e tem valor específico
       if (i === 1 && valorPrimeiraParcela > 0) {
         valorParcela = valorPrimeiraParcela
@@ -2347,14 +3088,14 @@ const gerarParcelasTemporario = () => {
         // Distribuir o restante nas outras parcelas
         valorParcela = (valorOriginal - valorPrimeiraParcela) / (qtd - 1)
       }
-      
+
       // Calcular data de vencimento
       if (dataVencPrimeira && i > 1) {
         const data = new Date(dataVencPrimeira)
         data.setMonth(data.getMonth() + (i - 1))
         dataVencimento = data.toISOString().split('T')[0]
       }
-      
+
       parcelas.value.push({
         nrparcela: i,
         dtvencimento: dataVencimento || '',
@@ -2365,7 +3106,7 @@ const gerarParcelasTemporario = () => {
         observacao: `Parcela ${i} de ${qtd}`
       })
     }
-    
+
     calcularTotalParcelas()
     // Marcar como calculadas para esconder o card de configurações
     parcelasCalculadas.value = true
@@ -2374,13 +3115,13 @@ const gerarParcelasTemporario = () => {
 
 // ========== EXPORTAÇÃO E IMPRESSÃO ==========
 
-const abrirModalExportacao = () => {
-  if (contasPagarFiltradas.value.length === 0) {
-    toast.warning('Nenhuma conta a pagar para exportar. Aplique filtros primeiro.')
-    return
-  }
-  modalExportacaoAberto.value = true
-}
+// const abrirModalExportacao = () => {
+//   if (contasPagarFiltradas.value.length === 0) {
+//     toast.warning('Nenhuma conta a pagar para exportar. Aplique filtros primeiro.')
+//     return
+//   }
+//   modalExportacaoAberto.value = true
+// }
 
 // Função para exportar CSV
 const handleExportarCSV = ({ dados, nomeRelatorio }) => {

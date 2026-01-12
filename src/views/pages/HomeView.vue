@@ -1,17 +1,11 @@
 <template>
-  <main class="pa-4">
-    <!-- Header -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-view-dashboard" class="mr-3" color="var(--text-color-laranja)"></v-icon>
-          Dashboard
-        </div>
-        <div class="text-subtitle-2" style="color: var(--text-color)">
-          {{ dataAtual }}
-        </div>
-      </v-card-title>
-    </v-card>
+  <top-all-pages icon="mdi-view-dashboard">
+    <template #titulo>
+      <div class="text-h5 flex justify-between items-center w-100">
+        <p>Dashboard</p>
+        <p class="text-subtitle-2 ml-3" style="color: var(--text-color)">{{ dataAtual }}</p>
+      </div>
+    </template>
 
     <!-- Cards Resumo -->
     <v-row class="mb-4">
@@ -215,148 +209,150 @@
         </v-card>
       </v-col>
 
-      <!-- Movimentação do Caixa -->
-      <v-col cols="12" md="6">
-        <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center">
-            <v-icon icon="mdi-cash-multiple" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-            Movimentação do Caixa
-          </v-card-title>
-          <v-card-text class="pa-4">
-            <apexchart
-              type="bar"
-              height="280"
-              :options="movimentacaoCaixaOptions"
-              :series="movimentacaoCaixaSeries"
-            ></apexchart>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+          <!-- Movimentação do Caixa -->
+          <v-col cols="12" md="6">
+            <v-card class="background-secondary" elevation="2">
+              <v-card-title class="pa-4 d-flex align-center">
+                <v-icon icon="mdi-cash-multiple" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                Movimentação do Caixa
+              </v-card-title>
+              <v-card-text class="pa-4">
+                <apexchart
+                    type="bar"
+                    height="280"
+                    :options="movimentacaoCaixaOptions"
+                    :series="movimentacaoCaixaSeries"
+                ></apexchart>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
 
-    <!-- Terceira linha -->
-    <v-row class="mb-4">
-      <!-- Estoque por Grupo -->
-      <v-col cols="12" md="4">
-        <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center">
-            <v-icon icon="mdi-chart-pie" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-            Estoque por Grupo
-          </v-card-title>
-          <v-card-text class="pa-4">
-            <apexchart
-              type="pie"
-              height="280"
-              :options="estoqueGrupoOptions"
-              :series="estoqueGrupoSeries"
-            ></apexchart>
-          </v-card-text>
-        </v-card>
-      </v-col>
+        <!-- Terceira linha -->
+        <v-row class="mb-4">
+          <!-- Estoque por Grupo -->
+          <v-col cols="12" md="4">
+            <v-card class="background-secondary" elevation="2">
+              <v-card-title class="pa-4 d-flex align-center">
+                <v-icon icon="mdi-chart-pie" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                Estoque por Grupo
+              </v-card-title>
+              <v-card-text class="pa-4">
+                <apexchart
+                    type="pie"
+                    height="280"
+                    :options="estoqueGrupoOptions"
+                    :series="estoqueGrupoSeries"
+                ></apexchart>
+              </v-card-text>
+            </v-card>
+          </v-col>
 
-      <!-- Adiantamentos -->
-      <v-col cols="12" md="4">
-        <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center">
-            <v-icon icon="mdi-account-cash" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-            Adiantamentos de Clientes
-          </v-card-title>
-          <v-card-text class="pa-4">
-            <apexchart
-              type="radialBar"
-              height="280"
-              :options="adiantamentoOptions"
-              :series="adiantamentoSeries"
-            ></apexchart>
-          </v-card-text>
-        </v-card>
-      </v-col>
+          <!-- Adiantamentos -->
+          <v-col cols="12" md="4">
+            <v-card class="background-secondary" elevation="2">
+              <v-card-title class="pa-4 d-flex align-center">
+                <v-icon icon="mdi-account-cash" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                Adiantamentos de Clientes
+              </v-card-title>
+              <v-card-text class="pa-4">
+                <apexchart
+                    type="radialBar"
+                    height="280"
+                    :options="adiantamentoOptions"
+                    :series="adiantamentoSeries"
+                ></apexchart>
+              </v-card-text>
+            </v-card>
+          </v-col>
 
-      <!-- Top Clientes/Fornecedores -->
-      <v-col cols="12" md="4">
-        <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center">
-            <v-icon icon="mdi-account-group" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-            Top 5 Clientes
-          </v-card-title>
-          <v-card-text class="pa-4">
-            <v-list density="compact" class="bg-transparent">
-              <v-list-item
-                v-for="(cliente, index) in topClientes"
-                :key="index"
-                class="px-0"
-              >
-                <template v-slot:prepend>
-                  <v-avatar size="32" :color="getAvatarColor(index)">
-                    <span class="text-white text-caption">{{ index + 1 }}º</span>
-                  </v-avatar>
-                </template>
-                <v-list-item-title class="text-body-2">{{ cliente.nome }}</v-list-item-title>
-                <v-list-item-subtitle class="text-caption">
-                  R$ {{ formatarMoeda(cliente.valor) }}
-                </v-list-item-subtitle>
-                <template v-slot:append>
-                  <v-chip size="x-small" :color="getAvatarColor(index)" variant="tonal">
-                    {{ cliente.percentual }}%
-                  </v-chip>
-                </template>
-              </v-list-item>
-            </v-list>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+          <!-- Top Clientes/Fornecedores -->
+          <v-col cols="12" md="4">
+            <v-card class="background-secondary" elevation="2">
+              <v-card-title class="pa-4 d-flex align-center">
+                <v-icon icon="mdi-account-group" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                Top 5 Clientes
+              </v-card-title>
+              <v-card-text class="pa-4">
+                <v-list density="compact" class="bg-transparent">
+                  <v-list-item
+                      v-for="(cliente, index) in topClientes"
+                      :key="index"
+                      class="px-0"
+                  >
+                    <template v-slot:prepend>
+                      <v-avatar size="32" :color="getAvatarColor(index)">
+                        <span class="text-white text-caption">{{ index + 1 }}º</span>
+                      </v-avatar>
+                    </template>
+                    <v-list-item-title class="text-body-2">{{ cliente.nome }}</v-list-item-title>
+                    <v-list-item-subtitle class="text-caption">
+                      R$ {{ formatarMoeda(cliente.valor) }}
+                    </v-list-item-subtitle>
+                    <template v-slot:append>
+                      <v-chip size="x-small" :color="getAvatarColor(index)" variant="tonal">
+                        {{ cliente.percentual }}%
+                      </v-chip>
+                    </template>
+                  </v-list-item>
+                </v-list>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
 
-    <!-- Últimas Movimentações -->
-    <v-row>
-      <v-col cols="12">
-        <v-card class="background-secondary" elevation="2">
-          <v-card-title class="pa-4 d-flex align-center justify-space-between">
-            <div class="d-flex align-center">
-              <v-icon icon="mdi-history" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-              Últimas Movimentações
-            </div>
-            <v-btn variant="text" color="var(--text-color-laranja)" size="small">
-              Ver todas
-              <v-icon icon="mdi-chevron-right" end></v-icon>
-            </v-btn>
-          </v-card-title>
-          <v-card-text class="pa-0">
-            <v-data-table
-              :headers="headersMovimentacoes"
-              :items="ultimasMovimentacoes"
-              density="comfortable"
-              :items-per-page="5"
-              class="bg-transparent"
-            >
-              <template #[`item.tipo`]="{ item }">
-                <v-chip
-                  size="small"
-                  :color="item.tipo === 'entrada' ? 'success' : 'error'"
-                  variant="tonal"
+        <!-- Últimas Movimentações -->
+        <v-row>
+          <v-col cols="12">
+            <v-card class="background-secondary" elevation="2">
+              <v-card-title class="pa-4 d-flex align-center justify-space-between">
+                <div class="d-flex align-center">
+                  <v-icon icon="mdi-history" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                  Últimas Movimentações
+                </div>
+                <v-btn variant="text" color="var(--text-color-laranja)" size="small">
+                  Ver todas
+                  <v-icon icon="mdi-chevron-right" end></v-icon>
+                </v-btn>
+              </v-card-title>
+              <v-card-text class="pa-0">
+                <v-data-table
+                    :headers="headersMovimentacoes"
+                    :items="ultimasMovimentacoes"
+                    density="comfortable"
+                    :items-per-page="5"
+                    class="bg-transparent"
                 >
-                  <v-icon
-                    size="x-small"
-                    :icon="item.tipo === 'entrada' ? 'mdi-arrow-down' : 'mdi-arrow-up'"
-                    class="mr-1"
-                  ></v-icon>
-                  {{ item.tipo === 'entrada' ? 'Entrada' : 'Saída' }}
-                </v-chip>
-              </template>
-              <template #[`item.valor`]="{ item }">
+                  <template #[`item.tipo`]="{ item }">
+                    <v-chip
+                        size="small"
+                        :color="item.tipo === 'entrada' ? 'success' : 'error'"
+                        variant="tonal"
+                    >
+                      <v-icon
+                          size="x-small"
+                          :icon="item.tipo === 'entrada' ? 'mdi-arrow-down' : 'mdi-arrow-up'"
+                          class="mr-1"
+                      ></v-icon>
+                      {{ item.tipo === 'entrada' ? 'Entrada' : 'Saída' }}
+                    </v-chip>
+                  </template>
+                  <template #[`item.valor`]="{ item }">
                 <span :class="item.tipo === 'entrada' ? 'text-success' : 'text-error'">
                   {{ item.tipo === 'entrada' ? '+' : '-' }} R$ {{ formatarMoeda(item.valor) }}
                 </span>
-              </template>
-              <template #[`item.data`]="{ item }">
-                {{ formatarData(item.data) }}
-              </template>
-            </v-data-table>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </main>
+                  </template>
+                  <template #[`item.data`]="{ item }">
+                    {{ formatarData(item.data) }}
+                  </template>
+                </v-data-table>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </main>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
