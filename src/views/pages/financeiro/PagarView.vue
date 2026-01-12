@@ -26,12 +26,28 @@
         <!-- Lista de Contas a Pagar -->
         <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
           <v-card-text class="pa-4">
-            <BotaoExpandTransition
-                :formulario-aberto="formularioAberto"
-                texto-abrir="Nova Conta a Pagar"
-                texto-fechar="Cancelar"
-                @toggle="toggleFormulario"
-            />
+            <div class="d-flex justify-end align-center mb-3">
+              <v-btn
+                  color="var(--text-color-laranja)"
+                  variant="outlined"
+                  size="small"
+                  prepend-icon="mdi-file-xml-box"
+                  class="mr-3"
+                  @click="abrirModalImportarXML"
+              >
+                Importar XML
+              </v-btn>
+              <v-btn
+                  color="var(--text-color-laranja)"
+                  :prepend-icon="formularioAberto ? 'mdi-minus' : 'mdi-plus'"
+                  variant="flat"
+                  size="small"
+                  class="text-white"
+                  @click="toggleFormulario"
+              >
+                {{ formularioAberto ? 'Cancelar' : 'Nova Conta a Pagar' }}
+              </v-btn>
+            </div>
 
             <!-- Formulário Expansível -->
             <v-expand-transition>
@@ -964,6 +980,314 @@
             :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Contas_a_Pagar'"
         />
 
+        <!-- Modal de Importar XML NFe -->
+        <v-dialog
+            v-model="modalImportarXML"
+            max-width="900px"
+            persistent
+        >
+          <v-card>
+            <v-card-title class="text-h6 pa-4 d-flex align-center">
+              <v-icon icon="mdi-file-xml-box" color="orange" class="mr-2"></v-icon>
+              Importar Conta a Pagar de XML (NFe)
+              <v-spacer></v-spacer>
+              <v-btn icon="mdi-close" variant="text" @click="fecharModalImportarXML"></v-btn>
+            </v-card-title>
+
+            <v-divider></v-divider>
+
+            <v-card-text class="pa-4">
+              <!-- Upload do arquivo XML -->
+              <div v-if="!dadosXMLImportado">
+                <v-file-input
+                    v-model="arquivoXML"
+                    label="Selecione o arquivo XML da NFe"
+                    accept=".xml"
+                    prepend-icon="mdi-file-xml-box"
+                    variant="outlined"
+                    density="comfortable"
+                    @update:modelValue="processarArquivoXML"
+                    :loading="processandoXML"
+                    show-size
+                ></v-file-input>
+
+                <v-alert
+                    v-if="erroXML"
+                    type="error"
+                    variant="tonal"
+                    class="mt-3"
+                    closable
+                    @click:close="erroXML = ''"
+                >
+                  {{ erroXML }}
+                </v-alert>
+              </div>
+
+              <!-- Dados extraídos do XML -->
+              <div v-else>
+                <v-alert type="success" variant="tonal" class="mb-4" density="compact">
+                  <div class="d-flex align-center">
+                    <v-icon icon="mdi-check-circle" class="mr-2"></v-icon>
+                    XML processado com sucesso!
+                  </div>
+                </v-alert>
+
+                <!-- Informações do Emitente (Fornecedor) -->
+                <v-card variant="outlined" class="mb-4">
+                  <v-card-title class="text-subtitle-1 pa-3 d-flex align-center">
+                    <v-icon icon="mdi-account-box" class="mr-2" color="orange"></v-icon>
+                    Emitente (Fornecedor)
+                  </v-card-title>
+                  <v-card-text class="pa-3">
+                    <v-row dense>
+                      <v-col cols="12" md="6">
+                        <div class="text-caption text-grey">Razão Social</div>
+                        <div class="text-body-1 font-weight-medium">{{ dadosXMLImportado.emitente.razaoSocial }}</div>
+                      </v-col>
+                      <v-col cols="12" md="3">
+                        <div class="text-caption text-grey">CNPJ</div>
+                        <div class="text-body-1">{{ formatarCNPJ(dadosXMLImportado.emitente.cnpj) }}</div>
+                      </v-col>
+                      <v-col cols="12" md="3">
+                        <div class="text-caption text-grey">IE</div>
+                        <div class="text-body-1">{{ dadosXMLImportado.emitente.ie || 'N/A' }}</div>
+                      </v-col>
+                      <v-col cols="12">
+                        <div class="text-caption text-grey">Endereço</div>
+                        <div class="text-body-2">
+                          {{ dadosXMLImportado.emitente.endereco.logradouro }}, {{ dadosXMLImportado.emitente.endereco.numero }} -
+                          {{ dadosXMLImportado.emitente.endereco.bairro }}, {{ dadosXMLImportado.emitente.endereco.cidade }}/{{ dadosXMLImportado.emitente.endereco.uf }}
+                        </div>
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+
+                <!-- Alerta: Fornecedor não encontrado -->
+                <v-alert
+                    v-if="fornecedorNaoEncontrado"
+                    type="warning"
+                    variant="tonal"
+                    class="mb-4"
+                    density="compact"
+                    icon="mdi-alert-circle"
+                >
+                  <strong>Fornecedor não cadastrado!</strong>
+                  O fornecedor <strong>{{ dadosFornecedorNovo?.razaoSocial || dadosFornecedorNovo?.nomeFantasia }}</strong>
+                  (CNPJ: {{ formatarCNPJ(dadosFornecedorNovo?.cnpj) }}) será criado automaticamente ao confirmar.
+                </v-alert>
+
+                <!-- Dados da NFe -->
+                <v-card variant="outlined" class="mb-4">
+                  <v-card-title class="text-subtitle-1 pa-3 d-flex align-center">
+                    <v-icon icon="mdi-file-document" class="mr-2" color="orange"></v-icon>
+                    Dados da Nota Fiscal
+                  </v-card-title>
+                  <v-card-text class="pa-3">
+                    <v-row dense>
+                      <v-col cols="6" md="2">
+                        <div class="text-caption text-grey">Número NF</div>
+                        <div class="text-body-1 font-weight-medium">{{ dadosXMLImportado.nfe.numero }}</div>
+                      </v-col>
+                      <v-col cols="6" md="2">
+                        <div class="text-caption text-grey">Série</div>
+                        <div class="text-body-1">{{ dadosXMLImportado.nfe.serie }}</div>
+                      </v-col>
+                      <v-col cols="12" md="3">
+                        <div class="text-caption text-grey">Data Emissão</div>
+                        <div class="text-body-1">{{ formatarDataHora(dadosXMLImportado.nfe.dataEmissao) }}</div>
+                      </v-col>
+                      <v-col cols="12" md="5">
+                        <div class="text-caption text-grey">Chave de Acesso</div>
+                        <div class="text-body-2" style="word-break: break-all;">{{ dadosXMLImportado.nfe.chaveAcesso }}</div>
+                      </v-col>
+                      <v-col cols="12" md="6">
+                        <div class="text-caption text-grey">Natureza da Operação</div>
+                        <div class="text-body-1">{{ dadosXMLImportado.nfe.naturezaOperacao }}</div>
+                      </v-col>
+                      <v-col cols="6" md="3">
+                        <div class="text-caption text-grey">Modelo</div>
+                        <div class="text-body-1">{{ dadosXMLImportado.nfe.modelo }} (NFe)</div>
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+
+                <!-- Valores -->
+                <v-card variant="outlined" class="mb-4">
+                  <v-card-title class="text-subtitle-1 pa-3 d-flex align-center">
+                    <v-icon icon="mdi-currency-usd" class="mr-2" color="orange"></v-icon>
+                    Valores
+                  </v-card-title>
+                  <v-card-text class="pa-3">
+                    <v-row dense>
+                      <v-col cols="6" md="3">
+                        <div class="text-caption text-grey">Valor Produtos</div>
+                        <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorProdutos) }}</div>
+                      </v-col>
+                      <v-col cols="6" md="2">
+                        <div class="text-caption text-grey">Frete</div>
+                        <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorFrete) }}</div>
+                      </v-col>
+                      <v-col cols="6" md="2">
+                        <div class="text-caption text-grey">Desconto</div>
+                        <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorDesconto) }}</div>
+                      </v-col>
+                      <v-col cols="6" md="2">
+                        <div class="text-caption text-grey">Outros</div>
+                        <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorOutro) }}</div>
+                      </v-col>
+                      <v-col cols="12" md="3">
+                        <div class="text-caption text-grey">Valor Total NF</div>
+                        <div class="text-h6 font-weight-bold" style="color: var(--text-color-laranja)">
+                          {{ formatarMoeda(dadosXMLImportado.valores.valorTotalNF) }}
+                        </div>
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+
+                <!-- Pagamento -->
+                <v-card variant="outlined" class="mb-4" v-if="dadosXMLImportado.pagamento && dadosXMLImportado.pagamento.length > 0">
+                  <v-card-title class="text-subtitle-1 pa-3 d-flex align-center">
+                    <v-icon icon="mdi-credit-card" class="mr-2" color="orange"></v-icon>
+                    Pagamento
+                  </v-card-title>
+                  <v-card-text class="pa-3">
+                    <v-table density="compact">
+                      <thead>
+                        <tr>
+                          <th>Forma de Pagamento</th>
+                          <th>Valor</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(pag, index) in dadosXMLImportado.pagamento" :key="index">
+                          <td>{{ getDescricaoFormaPagamento(pag.tipo) }}</td>
+                          <td>{{ formatarMoeda(pag.valor) }}</td>
+                        </tr>
+                      </tbody>
+                    </v-table>
+                  </v-card-text>
+                </v-card>
+
+                <!-- Produtos (collapsible) -->
+                <v-expansion-panels class="mb-4">
+                  <v-expansion-panel>
+                    <v-expansion-panel-title>
+                      <v-icon icon="mdi-package-variant-closed" class="mr-2" color="orange"></v-icon>
+                      Produtos/Itens ({{ dadosXMLImportado.produtos.length }})
+                    </v-expansion-panel-title>
+                    <v-expansion-panel-text>
+                      <v-table density="compact">
+                        <thead>
+                          <tr>
+                            <th>Cód.</th>
+                            <th>Descrição</th>
+                            <th>NCM</th>
+                            <th class="text-right">Qtd</th>
+                            <th>Unid.</th>
+                            <th class="text-right">Vlr Unit.</th>
+                            <th class="text-right">Vlr Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="(prod, index) in dadosXMLImportado.produtos" :key="index">
+                            <td>{{ prod.codigo }}</td>
+                            <td>{{ prod.descricao }}</td>
+                            <td>{{ prod.ncm }}</td>
+                            <td class="text-right">{{ prod.quantidade }}</td>
+                            <td>{{ prod.unidade }}</td>
+                            <td class="text-right">{{ formatarMoeda(prod.valorUnitario) }}</td>
+                            <td class="text-right">{{ formatarMoeda(prod.valorTotal) }}</td>
+                          </tr>
+                        </tbody>
+                      </v-table>
+                    </v-expansion-panel-text>
+                  </v-expansion-panel>
+                </v-expansion-panels>
+
+                <!-- Opções para importação -->
+                <v-card variant="outlined">
+                  <v-card-title class="text-subtitle-1 pa-3 d-flex align-center">
+                    <v-icon icon="mdi-cog" class="mr-2" color="orange"></v-icon>
+                    Opções de Importação
+                  </v-card-title>
+                  <v-card-text class="pa-3">
+                    <v-row>
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            v-model.number="opcoesImportXML.qtdParcelas"
+                            label="Quantidade de Parcelas"
+                            type="number"
+                            min="1"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-format-list-numbered"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            v-model="opcoesImportXML.dataVencimento"
+                            label="Data Primeiro Vencimento"
+                            type="date"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-calendar"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            v-model.number="opcoesImportXML.intervaloParcelas"
+                            label="Intervalo entre Parcelas (dias)"
+                            type="number"
+                            min="1"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-calendar-range"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+              </div>
+            </v-card-text>
+
+            <v-divider></v-divider>
+
+            <v-card-actions class="pa-4">
+              <v-btn
+                  color="grey"
+                  variant="text"
+                  @click="fecharModalImportarXML"
+              >
+                Cancelar
+              </v-btn>
+              <v-spacer></v-spacer>
+              <v-btn
+                  v-if="dadosXMLImportado"
+                  color="grey"
+                  variant="outlined"
+                  prepend-icon="mdi-refresh"
+                  @click="limparDadosXML"
+              >
+                Importar Outro
+              </v-btn>
+              <v-btn
+                  v-if="dadosXMLImportado"
+                  color="var(--text-color-laranja)"
+                  variant="flat"
+                  class="text-white"
+                  prepend-icon="mdi-check"
+                  @click="confirmarImportacaoXML"
+                  :loading="loading"
+              >
+                Usar Dados para Nova Conta
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
         <!-- Snackbar para feedback -->
         <v-snackbar
             v-model="snackbar.show"
@@ -986,7 +1310,6 @@ import { toast } from 'vue3-toastify'
 import { abrirImpressaoTitulos, gerarHTMLTitulos } from '@/components/impressos/titulos'
 import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
 import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
-import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import BuscaAvancada from '@/components/base/padrao-paginas/BuscaAvancada.vue'
 import TipoDocumentoMenu from '@/components/base/menu/TipoDocumentoMenu.vue'
@@ -1058,6 +1381,22 @@ const modalExportacaoAberto = ref(false)
 const modalPreviewPDF = ref(false)
 const previewHTMLContent = ref('')
 const dadosPDFAtual = ref(null)
+
+// Modal de Importar XML
+const modalImportarXML = ref(false)
+const arquivoXML = ref(null)
+const processandoXML = ref(false)
+const erroXML = ref('')
+const dadosXMLImportado = ref(null)
+const opcoesImportXML = reactive({
+  qtdParcelas: 1,
+  dataVencimento: '',
+  intervaloParcelas: 30
+})
+
+// Status do fornecedor durante importação XML
+const fornecedorNaoEncontrado = ref(false)
+const dadosFornecedorNovo = ref(null)
 
 // Dialog de confirmação de exclusão
 const dialogExclusao = reactive({
@@ -1991,6 +2330,419 @@ const mostrarMensagem = (mensagem, tipo) => {
   snackbar.color = tipo
   snackbar.show = true
 }
+
+// ========================================
+// Funções para Importação de XML (NFe)
+// ========================================
+
+// Abrir modal de importação
+const abrirModalImportarXML = () => {
+  modalImportarXML.value = true
+  limparDadosXML()
+}
+
+// Fechar modal de importação
+const fecharModalImportarXML = () => {
+  modalImportarXML.value = false
+  limparDadosXML()
+}
+
+// Limpar dados do XML
+const limparDadosXML = () => {
+  arquivoXML.value = null
+  dadosXMLImportado.value = null
+  erroXML.value = ''
+  processandoXML.value = false
+  opcoesImportXML.qtdParcelas = 1
+  opcoesImportXML.dataVencimento = ''
+  opcoesImportXML.intervaloParcelas = 30
+}
+
+// Processar arquivo XML
+const processarArquivoXML = async (files) => {
+  if (!files || files.length === 0) {
+    return
+  }
+
+  const file = Array.isArray(files) ? files[0] : files
+
+  if (!file || !file.name.endsWith('.xml')) {
+    erroXML.value = 'Por favor, selecione um arquivo XML válido'
+    return
+  }
+
+  processandoXML.value = true
+  erroXML.value = ''
+  fornecedorNaoEncontrado.value = false
+  dadosFornecedorNovo.value = null
+
+  try {
+    const conteudo = await file.text()
+    const parser = new DOMParser()
+    const xmlDoc = parser.parseFromString(conteudo, 'text/xml')
+
+    // Verificar se houve erro no parse
+    const parseError = xmlDoc.getElementsByTagName('parsererror')
+    if (parseError.length > 0) {
+      throw new Error('Arquivo XML inválido ou corrompido')
+    }
+
+    // Extrair dados da NFe
+    dadosXMLImportado.value = extrairDadosNFe(xmlDoc)
+
+    // Verificar se fornecedor existe na base
+    await verificarFornecedorXML(dadosXMLImportado.value.emitente)
+
+    // Preencher data de vencimento padrão (30 dias após emissão)
+    if (dadosXMLImportado.value?.nfe?.dataEmissao) {
+      const dataEmissao = new Date(dadosXMLImportado.value.nfe.dataEmissao)
+      dataEmissao.setDate(dataEmissao.getDate() + 30)
+      opcoesImportXML.dataVencimento = dataEmissao.toISOString().split('T')[0]
+    }
+
+  } catch (error) {
+    console.error('Erro ao processar XML:', error)
+    erroXML.value = error.message || 'Erro ao processar o arquivo XML'
+    dadosXMLImportado.value = null
+  } finally {
+    processandoXML.value = false
+  }
+}
+
+// Extrair dados da NFe do XML parseado
+const extrairDadosNFe = (xmlDoc) => {
+  // Helper para obter texto de um elemento
+  const getText = (parent, tagName) => {
+    const elements = parent.getElementsByTagName(tagName)
+    return elements.length > 0 ? elements[0].textContent : ''
+  }
+
+  // Buscar elemento NFe
+  const nfeElements = xmlDoc.getElementsByTagName('NFe')
+  if (nfeElements.length === 0) {
+    throw new Error('Elemento NFe não encontrado no XML')
+  }
+  const nfe = nfeElements[0]
+
+  // Buscar infNFe
+  const infNFeElements = nfe.getElementsByTagName('infNFe')
+  if (infNFeElements.length === 0) {
+    throw new Error('Elemento infNFe não encontrado no XML')
+  }
+  const infNFe = infNFeElements[0]
+
+  // Dados de identificação (ide)
+  const ideElements = infNFe.getElementsByTagName('ide')
+  const ide = ideElements.length > 0 ? ideElements[0] : null
+
+  // Dados do emitente (emit)
+  const emitElements = infNFe.getElementsByTagName('emit')
+  const emit = emitElements.length > 0 ? emitElements[0] : null
+
+  // Dados do destinatário (dest)
+  const destElements = infNFe.getElementsByTagName('dest')
+  const dest = destElements.length > 0 ? destElements[0] : null
+
+  // Produtos (det)
+  const detElements = infNFe.getElementsByTagName('det')
+  const produtos = []
+  for (let i = 0; i < detElements.length; i++) {
+    const det = detElements[i]
+    const prod = det.getElementsByTagName('prod')[0]
+    if (prod) {
+      produtos.push({
+        item: det.getAttribute('nItem'),
+        codigo: getText(prod, 'cProd'),
+        ean: getText(prod, 'cEAN'),
+        descricao: getText(prod, 'xProd'),
+        ncm: getText(prod, 'NCM'),
+        cfop: getText(prod, 'CFOP'),
+        unidade: getText(prod, 'uCom'),
+        quantidade: parseFloat(getText(prod, 'qCom')) || 0,
+        valorUnitario: parseFloat(getText(prod, 'vUnCom')) || 0,
+        valorTotal: parseFloat(getText(prod, 'vProd')) || 0
+      })
+    }
+  }
+
+  // Totais (total/ICMSTot)
+  const totalElements = infNFe.getElementsByTagName('total')
+  const total = totalElements.length > 0 ? totalElements[0] : null
+  const icmsTot = total ? total.getElementsByTagName('ICMSTot')[0] : null
+
+  // Pagamento (pag/detPag)
+  const pagElements = infNFe.getElementsByTagName('pag')
+  const pagamentos = []
+  if (pagElements.length > 0) {
+    const detPagElements = pagElements[0].getElementsByTagName('detPag')
+    for (let i = 0; i < detPagElements.length; i++) {
+      const detPag = detPagElements[i]
+      pagamentos.push({
+        indicador: getText(detPag, 'indPag'),
+        tipo: getText(detPag, 'tPag'),
+        valor: parseFloat(getText(detPag, 'vPag')) || 0
+      })
+    }
+  }
+
+  // Chave de acesso
+  const chaveAcesso = infNFe.getAttribute('Id')?.replace('NFe', '') || ''
+
+  // Endereço do emitente
+  const enderEmit = emit ? emit.getElementsByTagName('enderEmit')[0] : null
+
+  return {
+    nfe: {
+      numero: ide ? getText(ide, 'nNF') : '',
+      serie: ide ? getText(ide, 'serie') : '',
+      modelo: ide ? getText(ide, 'mod') : '',
+      dataEmissao: ide ? getText(ide, 'dhEmi') : '',
+      naturezaOperacao: ide ? getText(ide, 'natOp') : '',
+      chaveAcesso: chaveAcesso
+    },
+    emitente: {
+      cnpj: emit ? getText(emit, 'CNPJ') : '',
+      cpf: emit ? getText(emit, 'CPF') : '',
+      razaoSocial: emit ? getText(emit, 'xNome') : '',
+      nomeFantasia: emit ? getText(emit, 'xFant') : '',
+      ie: emit ? getText(emit, 'IE') : '',
+      fone: enderEmit ? getText(enderEmit, 'fone') : '',
+      endereco: {
+        logradouro: enderEmit ? getText(enderEmit, 'xLgr') : '',
+        numero: enderEmit ? getText(enderEmit, 'nro') : '',
+        bairro: enderEmit ? getText(enderEmit, 'xBairro') : '',
+        cidade: enderEmit ? getText(enderEmit, 'xMun') : '',
+        uf: enderEmit ? getText(enderEmit, 'UF') : '',
+        cep: enderEmit ? getText(enderEmit, 'CEP') : ''
+      }
+    },
+    destinatario: {
+      cnpj: dest ? getText(dest, 'CNPJ') : '',
+      cpf: dest ? getText(dest, 'CPF') : '',
+      razaoSocial: dest ? getText(dest, 'xNome') : ''
+    },
+    valores: {
+      valorProdutos: icmsTot ? parseFloat(getText(icmsTot, 'vProd')) || 0 : 0,
+      valorFrete: icmsTot ? parseFloat(getText(icmsTot, 'vFrete')) || 0 : 0,
+      valorSeguro: icmsTot ? parseFloat(getText(icmsTot, 'vSeg')) || 0 : 0,
+      valorDesconto: icmsTot ? parseFloat(getText(icmsTot, 'vDesc')) || 0 : 0,
+      valorOutro: icmsTot ? parseFloat(getText(icmsTot, 'vOutro')) || 0 : 0,
+      valorIPI: icmsTot ? parseFloat(getText(icmsTot, 'vIPI')) || 0 : 0,
+      valorICMS: icmsTot ? parseFloat(getText(icmsTot, 'vICMS')) || 0 : 0,
+      valorTotalNF: icmsTot ? parseFloat(getText(icmsTot, 'vNF')) || 0 : 0
+    },
+    produtos: produtos,
+    pagamento: pagamentos
+  }
+}
+
+// Formatar CNPJ
+const formatarCNPJ = (cnpj) => {
+  if (!cnpj) return ''
+  const numeros = cnpj.replace(/\D/g, '')
+  if (numeros.length !== 14) return cnpj
+  return numeros.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+}
+
+
+// Detectar tipo de pessoa pela quantidade de dígitos do CPF/CNPJ
+const detectarTipoPessoa = (cpfCnpj) => {
+  if (!cpfCnpj) return 'J'
+  const numeros = String(cpfCnpj).replace(/\D/g, '')
+  // 11 dígitos = CPF (Física), 14 dígitos = CNPJ (Jurídica)
+  return numeros.length === 11 ? 'F' : 'J'
+}
+
+// Obter descrição da forma de pagamento
+const getDescricaoFormaPagamento = (codigo) => {
+  const formas = {
+    '01': 'Dinheiro',
+    '02': 'Cheque',
+    '03': 'Cartão de Crédito',
+    '04': 'Cartão de Débito',
+    '05': 'Crédito Loja',
+    '10': 'Vale Alimentação',
+    '11': 'Vale Refeição',
+    '12': 'Vale Presente',
+    '13': 'Vale Combustível',
+    '14': 'Duplicata Mercantil',
+    '15': 'Boleto Bancário',
+    '16': 'Depósito Bancário',
+    '17': 'PIX',
+    '18': 'Transferência bancária',
+    '19': 'Programa de fidelidade',
+    '90': 'Sem pagamento',
+    '99': 'Outros'
+  }
+  return formas[codigo] || `Código ${codigo}`
+}
+
+// Confirmar importação e preencher formulário
+const confirmarImportacaoXML = async () => {
+  if (!dadosXMLImportado.value) return
+
+  try {
+    loading.value = true
+    const dados = dadosXMLImportado.value
+
+    // ===== PASSO 1: Criar fornecedor se não existe =====
+    if (fornecedorNaoEncontrado.value && dadosFornecedorNovo.value) {
+      console.log('📝 Criando novo fornecedor antes de fechar modal...')
+      try {
+        const emitente = dados.emitente
+        const tipoPessoa = detectarTipoPessoa(emitente.cnpj)
+
+        toast.info('Criando fornecedor...')
+
+        const novoFornecedor = await financeiroStore.cadastrarFornecedor({
+          tipo_pessoa: tipoPessoa,
+          nome_razao: emitente.razaoSocial,
+          apelido_fantasia: emitente.nomeFantasia || emitente.razaoSocial,
+          cpf_cnpj: emitente.cnpj,
+          rg_inscricao: emitente.ie,
+          telefone: emitente.fone,
+          cliente: 'N',
+          fornecedor: 'S',
+          transportadora: 'N',
+          colaborador: 'N',
+          representante: 'N',
+          ativo: 'S'
+        })
+
+        // Validar se fornecedor foi criado com sucesso
+        console.log('📦 Resposta do cadastro de fornecedor:', novoFornecedor)
+
+        if (!novoFornecedor) {
+          throw new Error('Nenhuma resposta retornada ao criar fornecedor')
+        }
+
+        // API retorna id_pessoa - aceitar diretamente
+        const idFornecedor = novoFornecedor.id_pessoa || novoFornecedor.id
+        console.log('🔑 ID do fornecedor extraído:', idFornecedor)
+
+        if (!idFornecedor) {
+          console.error('❌ Objeto retornado não contém id_pessoa nem id:', novoFornecedor)
+          throw new Error('Fornecedor criado mas sem ID retornado')
+        }
+
+        // Preencher ID do fornecedor
+        formData.id_fornecedor = idFornecedor
+
+        // Buscar dados completos do fornecedor via GET /pessoa/:id
+        try {
+          console.log('🔍 Buscando dados completos do fornecedor ID:', idFornecedor)
+          const dadosFornecedor = await financeiroStore.buscarPessoasFornecedores(String(idFornecedor), idEmpresa.value)
+          console.log('📋 Dados do fornecedor encontrados:', dadosFornecedor)
+
+          if (dadosFornecedor && dadosFornecedor.length > 0) {
+            const fornecedorCompleto = dadosFornecedor[0]
+            fornecedorSelecionado.value = fornecedorCompleto.apelido_fantasia || fornecedorCompleto.nome_razao || fornecedorCompleto.nome || ''
+            fornecedorLabel.value = fornecedorSelecionado.value
+            fornecedorSearch.value = fornecedorSelecionado.value
+            pessoas.value = [fornecedorCompleto]
+
+            if (fornecedorCompleto.id_red_ctb_for || fornecedorCompleto.id_red_ctb) {
+              formData.id_red_ctb_for = fornecedorCompleto.id_red_ctb_for || fornecedorCompleto.id_red_ctb
+            }
+
+            toast.success(`✅ Fornecedor ${fornecedorSelecionado.value} criado!`)
+          } else {
+            fornecedorSelecionado.value = `Fornecedor ID: ${idFornecedor}`
+            fornecedorLabel.value = fornecedorSelecionado.value
+            pessoas.value = [{ id: idFornecedor, id_pessoa: idFornecedor }]
+            toast.success(`✅ Fornecedor criado (ID: ${idFornecedor})!`)
+          }
+        } catch (errBusca) {
+          console.warn('⚠️ Erro ao buscar dados do fornecedor:', errBusca)
+          fornecedorSelecionado.value = `Fornecedor ID: ${idFornecedor}`
+          fornecedorLabel.value = fornecedorSelecionado.value
+          pessoas.value = [{ id: idFornecedor, id_pessoa: idFornecedor }]
+          toast.success(`✅ Fornecedor criado (ID: ${idFornecedor})!`)
+        }
+
+        console.log('✅ Fornecedor configurado com ID:', idFornecedor)
+      } catch (errFornecedor) {
+        console.error('❌ Erro ao criar fornecedor:', errFornecedor)
+        toast.error('Erro ao criar fornecedor. Tente novamente.')
+        loading.value = false
+        return
+      }
+    }
+
+    // ===== PASSO 2: Preencher dados do formulário =====
+    console.log('📋 Preenchendo dados do formulário...')
+    formData.nrdocumento = dados.nfe.numero
+    formData.serie = dados.nfe.serie
+    formData.especie = 'NFe'
+    formData.vlroriginal = dados.valores.valorTotalNF
+    formData.qtdparcelas = opcoesImportXML.qtdParcelas
+    formData.dtemissao = dados.nfe.dataEmissao ? dados.nfe.dataEmissao.split('T')[0] : ''
+    formData.desconto = dados.valores.valorDesconto || 0
+    formData.venc_primeira_parcela = opcoesImportXML.dataVencimento
+    formData.intervalo_parcelas = opcoesImportXML.intervaloParcelas
+    formData.valor_primeira_parcela = dados.valores.valorTotalNF / opcoesImportXML.qtdParcelas
+
+    // ===== PASSO 3: Fechar modal e abrir formulário =====
+    console.log('🚀 Fechando modal e abrindo formulário...')
+    fecharModalImportarXML()
+    formularioAberto.value = true
+    editando.value = false
+
+    // Gerar parcelas após preencher
+    await nextTick()
+    if (formData.qtdparcelas === 1) {
+      gerarParcelaUnica()
+    }
+
+    toast.success('✅ Revise os dados e clique em Salvar')
+  } catch (error) {
+    console.error('Erro ao confirmar importação:', error)
+    toast.error('Erro ao processar importação')
+  } finally {
+    loading.value = false
+  }
+}
+
+// Verificar se fornecedor já existe na base
+const verificarFornecedorXML = async (emitente) => {
+  if (!emitente || !emitente.cnpj) {
+    fornecedorNaoEncontrado.value = true
+    dadosFornecedorNovo.value = emitente
+    return
+  }
+
+  try {
+    // Fazer GET em /pessoa?cpf_cnpj=
+    const response = await financeiroStore.buscarPessoasFornecedores(emitente.cnpj, idEmpresa.value)
+
+    if (response && Array.isArray(response) && response.length > 0) {
+      // Fornecedor encontrado - preencher dados
+      formData.id_fornecedor = response[0].id
+      formData.id_red_ctb_for = response[0].id_red_ctb_for || response[0].id_red_ctb
+      fornecedorSelecionado.value = response[0].apelido_fantasia || response[0].nome_razao || response[0].nome || ''
+      fornecedorLabel.value = fornecedorSelecionado.value
+      fornecedorSearch.value = fornecedorSelecionado.value
+      pessoas.value = [response[0]]
+      fornecedorNaoEncontrado.value = false
+      dadosFornecedorNovo.value = null
+      console.log('✅ Fornecedor encontrado:', response[0])
+    } else {
+      // Fornecedor não encontrado - preparar para criar
+      fornecedorNaoEncontrado.value = true
+      dadosFornecedorNovo.value = emitente
+      console.log('⚠️ Fornecedor não encontrado - será criado ao confirmar')
+    }
+  } catch (error) {
+    console.warn('Erro ao buscar fornecedor:', error)
+    // Em caso de erro, marcar como não encontrado para criar
+    fornecedorNaoEncontrado.value = true
+    dadosFornecedorNovo.value = emitente
+  }
+}
+
+// ========================================
+// Fim das funções de Importação de XML
+// ========================================
 
 // Função para aplicar filtros avançados
 const aplicarFiltrosAvancados = async (filtros) => {
