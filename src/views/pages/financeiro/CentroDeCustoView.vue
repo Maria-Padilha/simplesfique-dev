@@ -1,16 +1,32 @@
 <template>
   <top-all-pages icon="mdi-file-tree">
     <template #titulo>Centro de Custo</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          Imprimir / Exportar
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <!-- Lista de Centros de Custo -->
       <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
         <v-card-text class="pa-4">
-          <BotaoExpandTransition
-              :formulario-aberto="formularioAberto"
-              texto-abrir="Novo Centro de Custo"
-              texto-fechar="Cancelar"
-              @toggle="toggleFormulario"
-          />
+          <div class="d-flex justify-space-between align-center mb-3 gap-2">
+            <BotaoExpandTransition
+                :formulario-aberto="formularioAberto"
+                texto-abrir="Novo Centro de Custo"
+                texto-fechar="Cancelar"
+                @toggle="toggleFormulario"
+            />
+          </div>
 
           <!-- Formulário Expansível -->
           <v-expand-transition>
@@ -113,6 +129,25 @@
       >
         {{ snackbar.message }}
       </v-snackbar>
+
+      <!-- Modal de Exportação -->
+      <ExportacaoModal
+          v-model="modalExportacaoAberto"
+          :dados="centrosCustoFiltrados"
+          :filtros="{}"
+          nome-relatorio="Centros de Custo"
+          @exportar-pdf="() => {}"
+          @exportar-csv="() => {}"
+          @exportar-excel="() => {}"
+          @imprimir="() => {}"
+      ></ExportacaoModal>
+
+      <!-- Modal de Preview do PDF -->
+      <PdfPreviewModal
+          v-model="modalPreviewPDF"
+          :html-content="previewHTMLContent"
+          :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Centros_de_Custo'"
+      />
     </template>
   </top-all-pages>
 </template>
@@ -125,6 +160,8 @@ import { useCCustoStore } from '@/stores/APIs/ccusto'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
 
 const themeStore = useThemeStore()
 const ccustoStore = useCCustoStore()
@@ -142,6 +179,12 @@ const snackbar = reactive({
   message: '',
   color: 'success'
 })
+
+// Modais
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
 
 // Headers da tabela
 const headers = [

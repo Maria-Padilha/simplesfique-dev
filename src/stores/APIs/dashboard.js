@@ -3,11 +3,7 @@ import api from '@/services/api'
 
 export const useDashboardStore = defineStore('dashboard', {
   state: () => ({
-    pagarReceber: {
-      pagarmeses: 0,
-      receberemeses: 0,
-      detalhes: []
-    },
+    pagarReceber: [],
     saldosBancarios: [],
     fluxoCaixaMensal: [],
     fluxoCaixaDiario: [],
@@ -53,20 +49,24 @@ export const useDashboardStore = defineStore('dashboard', {
 
         const resposta = response.data
 
-        // Garantir estrutura de dados válida
+        // Garantir estrutura de dados válida como array
         let dados
-        if (resposta && resposta.data) {
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
           dados = resposta.data
-        } else if (resposta && typeof resposta === 'object') {
+        } else if (Array.isArray(resposta)) {
           dados = resposta
+        } else if (resposta && typeof resposta === 'object') {
+          dados = [resposta]
         } else {
-          dados = {}
+          dados = []
         }
 
         this.pagarReceber = dados
+        console.log(`✅ Dados de pagar/receber carregados:`, this.pagarReceber)
         return this.pagarReceber
       } catch (error) {
         this.error = error.response?.data?.message || 'Erro ao buscar dados de pagar/receber'
+        console.error(`❌ Erro ao buscar pagar/receber:`, error)
         return null
       } finally {
         this.loading = false

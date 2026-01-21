@@ -216,6 +216,7 @@ import {useThemeStore} from "@/stores/config-temas/theme";
 import {useSidebarStore} from "@/stores/Sidebar";
 import {useEmpresaStore} from "@/stores/APIs/empresa";
 import {useConfigParfinStore} from "@/stores/APIs/config";
+import {useAcessoStore} from "@/stores/APIs/acesso";
 import {ref, onMounted, onBeforeUnmount, mergeProps, computed, watchEffect} from 'vue'
 import ErrorAlertModal from "@/components/base/modais/ErrorAlertModal.vue";
 
@@ -228,6 +229,9 @@ const themeStore = useThemeStore();
 // Store de empresas
 const empresaStore = useEmpresaStore();
 const empresas = computed(() => empresaStore.empresas?.data || []);
+
+// Store de acessos
+const acessoStore = useAcessoStore();
 
 // Store de configurações
 const configStore = useConfigParfinStore();
@@ -262,8 +266,22 @@ const alterarTema = () => {
 }
 
 // Função para selecionar empresa
-const selecionarEmpresa = (empresa) => {
+const selecionarEmpresa = async (empresa) => {
+  console.log('[SidebarComponent] Empresa selecionada:', empresa);
+
   empresaStore.selecionarEmpresa(empresa);
+
+  // Buscar acessos do usuário quando empresa for selecionada
+  const idEmpresa = empresa?.id;
+  console.log('[SidebarComponent] Buscando acessos para empresa:', idEmpresa);
+
+  if (idEmpresa) {
+    console.log('[SidebarComponent] Iniciando requisição de acessos...');
+    await acessoStore.buscarAcessos(idEmpresa);
+    console.log('[SidebarComponent] Acessos carregados com sucesso');
+  } else {
+    console.warn('[SidebarComponent] ID da empresa não encontrado');
+  }
 };
 
 // Função para buscar configurações do sistema
@@ -319,42 +337,52 @@ const buscarConfiguracoes = async () => {
 }
 
 // Consolidar todos os onMounted em um único
-onMounted(() => {  
+onMounted(async () => {
+  console.log('[SidebarComponent] Inicializando aplicação...');
+
+  // Primeiro carrega a empresa salva
   empresaStore.carregarEmpresaSelecionada();
+  console.log('[SidebarComponent] Empresa carregada:', empresaStore.empresaSelecionada?.razao_social);
 
   // Event listener para resize
   window.addEventListener('resize', onResize);
   onResize();
+
+  // Aguarda um pouco para carregar configurações
+  setTimeout(async () => {
+    await buscarConfiguracoes();
+  }, 2000);
 });
 
 watchEffect(async () => {
-  if (empresas.value.length === 0) {
-    await empresaStore.buscarTodasEmpresas();
+  console.log('[SidebarComponent] watchEffect disparado - Carregando lista de empresas...');
 
-    // Se não houver empresa selecionada no localStorage
-    if (!empresaStore.empresaSelecionada) {
-      // Seleciona a primeira empresa da lista se existir
-      const primeiraEmpresa = empresaStore.empresas?.data?.[0];
-      if (primeiraEmpresa) {
-        empresaStore.selecionarEmpresa(primeiraEmpresa);
-      }
+  // Sempre carregar todas as empresas
+  if (empresas.value.length === 0) {
+    console.log('[SidebarComponent] Buscando empresas da API...');
+    await empresaStore.buscarTodasEmpresas();
+  }
+
+  // Verificar se tem empresa selecionada e buscar acessos
+  const empresaSelecionada = empresaStore.empresaSelecionada;
+  console.log('[SidebarComponent] Empresa selecionada agora:', empresaSelecionada?.razao_social);
+
+  if (empresaSelecionada && empresaSelecionada.id) {
+    console.log('[SidebarComponent] Buscando acessos para empresa:', empresaSelecionada.id);
+    await acessoStore.buscarAcessos(empresaSelecionada.id);
+    console.log('[SidebarComponent] Acessos carregados com sucesso');
+  } else {
+    console.log('[SidebarComponent] Nenhuma empresa selecionada ainda');
+
+    // Se não tem empresa selecionada, selecionar a primeira
+    if (empresas.value.length > 0 && !empresaSelecionada) {
+      const primeiraEmpresa = empresas.value[0];
+      console.log('[SidebarComponent] Selecionando primeira empresa automaticamente:', primeiraEmpresa.razao_social);
+      await selecionarEmpresa(primeiraEmpresa);
     }
   }
 });
 
-// Modifique o onMounted para garantir a ordem correta de carregamento
-onMounted(async () => {
-  // Primeiro tenta carregar a empresa salva
-  empresaStore.carregarEmpresaSelecionada();
-
-  // Aguarda 2 segundos para garantir que o idEmpresa esteja disponível no localStorage
-  setTimeout(async () => {
-    await buscarConfiguracoes();
-  }, 2000);
-
-  window.addEventListener('resize', onResize);
-  onResize();
-});
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onResize);
 });

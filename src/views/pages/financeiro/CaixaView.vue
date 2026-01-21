@@ -1,17 +1,34 @@
 <template>
   <top-all-pages icon="mdi-cash-register">
     <template #titulo>Caixa</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          :disabled="!podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA)"
+          @click="abrirExportacao"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          {{ !podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA) ? 'Sem permissão' : 'Imprimir / Exportar' }}
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
         <v-card-text class="pa-4">
-          <BotaoExpandTransition
-              :formulario-aberto="formularioAberto"
-              texto-abrir="Nova Caixa"
-              texto-fechar="Cancelar"
-              size="default"
-              @toggle="toggleFormulario"
-          />
+          <div class="d-flex justify-space-between align-center mb-3 gap-2">
 
+            <BotaoExpandTransition
+                :formulario-aberto="formularioAberto"
+                texto-abrir="Novo Caixa"
+                texto-fechar="Cancelar"
+                @toggle="toggleFormulario"
+            />
+
+          </div>
           <!-- Formulário Expansível -->
           <v-expand-transition>
             <div v-if="formularioAberto">
@@ -261,6 +278,32 @@
       >
         {{ snackbar.message }}
       </v-snackbar>
+
+      <!-- Modal de Exportação -->
+      <ExportacaoModal
+          v-model="modalExportacaoAberto"
+          :dados="filteredCaixas"
+          :filtros="{}"
+          nome-relatorio="Caixas"
+          @exportar-pdf="() => {}"
+          @exportar-csv="() => {}"
+          @exportar-excel="() => {}"
+          @imprimir="() => {}"
+      />
+
+      <!-- Modal de Preview do PDF -->
+      <PdfPreviewModal
+          v-model="modalPreviewPDF"
+          :html-content="previewHTMLContent"
+          :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Caixas'"
+      />
+
+      <!-- Modal de Acesso Negado -->
+      <AcessoNegadoModal
+          v-model="acessoNegadoModal"
+          :nome-programa="'Cadastro de Caixa'"
+          :tipo-acesso="tipoAcessoNegado"
+      />
     </template>
   </top-all-pages>
 </template>
@@ -269,18 +312,36 @@
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
+import { usePermissoes } from '@/utils/usePermissoes'
+import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import PlanoContaMenu from '@/components/base/menu/PlanoContaMenu.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
+
+// ID do programa desta tela
+const ID_PROGRAMA = 'FFIN002C'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
+const { podeVisualizar, podeIncluir, podeAlterar, podeExcluir, podeExportar, podePDF } = usePermissoes()
+
+// Modal de acesso negado
+const acessoNegadoModal = ref(false)
+const tipoAcessoNegado = ref('')
 
 const caixas = ref([])
 const loading = ref(false)
 const error = ref(null)
 const search = ref('')
+
+// Modais
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
 
 const headers = [
   { title: 'ID', key: 'id' },
@@ -338,6 +399,13 @@ const filteredCaixas = computed(() => {
 // Form visibility for the expandable create form (keeps same pattern as other pages)
 const formularioAberto = ref(false)
 const toggleFormulario = () => {
+  // Verificar permissão para incluir
+  if (!formularioAberto.value && !podeIncluir(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'incluir'
+    acessoNegadoModal.value = true
+    return
+  }
+
   if (formularioAberto.value) {
     formularioAberto.value = false
     editando.value = false
@@ -374,6 +442,17 @@ const cancelarFormulario = () => {
 }
 
 onMounted(() => {
+  // Verificar se o usuário tem permissão para visualizar este programa
+  console.log('[CaixaView] Verificando permissão para FFIN002C')
+  console.log('[CaixaView] Pode visualizar:', podeVisualizar(ID_PROGRAMA))
+
+  if (!podeVisualizar(ID_PROGRAMA)) {
+    console.warn('[CaixaView] Usuário sem permissão para visualizar caixas')
+    tipoAcessoNegado.value = 'visualizar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   fetchCaixas().catch(() => {})
 })
 
@@ -453,6 +532,13 @@ const salvarNovoCaixa = async () => {
 
 // Funções de edição
 const editarCaixa = (caixa) => {
+  // Verificar permissão para alterar
+  if (!podeAlterar(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'alterar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   editando.value = true
   caixaEdicao.value = { ...caixa }
   novoCaixa.value = { ...caixa }
@@ -467,6 +553,13 @@ const editarCaixa = (caixa) => {
 
 // Função de exclusão
 const excluirCaixa = async (caixa) => {
+  // Verificar permissão para excluir
+  if (!podeExcluir(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'excluir'
+    acessoNegadoModal.value = true
+    return
+  }
+
   try {
     const idEmpresa = localStorage.getItem('id_empresa') || '1'
     const idCaixa = caixa.id
@@ -528,8 +621,7 @@ const abrirModalUsuarios = async (caixa) => {
       // Inicializar o mapa de acessos a partir do campo ativo ('S' = tem acesso, 'N' = não tem acesso)
       usuariosList.value.forEach(u => {
         if (u.ID) {
-          const isActive = u.ativo === 'S'
-          userAccessMap[String(u.ID)] = isActive
+          userAccessMap[String(u.ID)] = u.ativo === 'S'
         }
       })
     } else {
@@ -592,6 +684,17 @@ const mostrarSnackbar = (msg, color = 'success') => {
   snackbar.message = msg
   snackbar.color = color
   snackbar.show = true
+}
+
+// Função para abrir modal de exportação com verificação de permissão
+const abrirExportacao = () => {
+  if (!podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'exportar'
+    acessoNegadoModal.value = true
+    return
+  }
+
+  modalExportacaoAberto.value = true
 }
 </script>
 

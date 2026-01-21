@@ -1,6 +1,20 @@
 <template>
   <top-all-pages icon="mdi-credit-card-outline">
     <template #titulo>Contas a Pagar</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          Imprimir / Exportar
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <div>
         <!-- Card com Total das Parcelas -->
@@ -26,17 +40,7 @@
         <!-- Lista de Contas a Pagar -->
         <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
           <v-card-text class="pa-4">
-            <div class="d-flex justify-end align-center mb-3">
-              <v-btn
-                  color="var(--text-color-laranja)"
-                  variant="outlined"
-                  size="small"
-                  prepend-icon="mdi-file-xml-box"
-                  class="mr-3"
-                  @click="abrirModalImportarXML"
-              >
-                Importar XML
-              </v-btn>
+            <div class="d-flex justify-end align-center mb-3 gap-2">
               <v-btn
                   color="var(--text-color-laranja)"
                   :prepend-icon="formularioAberto ? 'mdi-minus' : 'mdi-plus'"
@@ -59,6 +63,30 @@
                   </v-card-title>
 
                   <v-card-text class="pa-4">
+                    <!-- Opção de Importar XML -->
+                    <v-card variant="outlined" class="mb-4 pa-3">
+                      <v-card-title class="text-subtitle-2 pa-2">
+                        <v-icon icon="mdi-xml" class="mr-2" color="black"></v-icon>
+                        Importar dados de XML
+                      </v-card-title>
+                      <v-card-text class="pa-2 d-flex flex-column align-center">
+                        <div class="text-caption text-grey mb-2 text-center" style="max-width: 300px;">
+                          Importe dados de uma Nota Fiscal de Produto (NFe) ou Nota Fiscal de Serviço (NFSe) para preencher automaticamente o formulário.
+                        </div>
+                        <v-btn
+                            color="var(--text-color-laranja)"
+                            variant="outlined"
+                            size="small"
+                            prepend-icon="mdi-cloud-upload-outline"
+                            @click="abrirModalImportarXML"
+                        >
+                          Selecionar arquivo XML
+                        </v-btn>
+                      </v-card-text>
+                    </v-card>
+
+                    <v-divider class="my-4"></v-divider>
+
                     <v-form ref="formRef" v-model="formValido">
                       <v-row>
                         <!-- Número do Documento (Obrigatório) -->
@@ -70,7 +98,7 @@
                               maxlength="20"
                               variant="outlined"
                               density="compact"
-                              class=""
+                              class="required-left-border"
                               prepend-inner-icon="mdi-file-document"
                           ></v-text-field>
                         </v-col>
@@ -110,7 +138,7 @@
                               density="compact"
                               hide-details="auto"
                               :rules="[rules.required]"
-                              class=""
+                              class="required-left-border"
                               prepend-inner-icon="mdi-file-document-outline"
                           >
                             <template #append-inner>
@@ -128,7 +156,7 @@
                               density="compact"
                               hide-details="auto"
                               :rules="[rules.required]"
-                              class=""
+                              class="required-left-border"
                               prepend-inner-icon="mdi-account-box"
                               readonly
                               placeholder="Selecione um fornecedor"
@@ -173,7 +201,7 @@
                               density="compact"
                               hide-details="auto"
                               :rules="[rules.required]"
-                              class=""
+                              class="required-left-border"
                               prepend-inner-icon="mdi-chart-tree"
                           >
                             <template #append-inner>
@@ -190,7 +218,7 @@
                               variant="outlined"
                               density="compact"
                               hide-details="auto"
-                              class=""
+                              class="required-left-border"
                               prepend-inner-icon="mdi-file-document"
                               readonly
                               placeholder="Selecione um histórico"
@@ -262,7 +290,7 @@
                               step="0.01"
                               variant="outlined"
                               density="compact"
-                              class=""
+                              class="required-left-border"
                               prepend-inner-icon="mdi-currency-usd"
                               prefix="R$"
                               :hint="formData.vlroriginal ? formatarMoeda(formData.vlroriginal) : ''"
@@ -293,7 +321,7 @@
                               type="date"
                               variant="outlined"
                               density="compact"
-                              class=""
+                              class="required-left-border"
                               prepend-inner-icon="mdi-calendar"
                           ></v-text-field>
                         </v-col>
@@ -643,10 +671,11 @@
                                         :items="centrosCusto"
                                         item-title="desccentrocusto"
                                         item-value="id"
-                                        label="Selecione"
+                                        label="Selecione *"
                                         variant="outlined"
                                         density="compact"
                                         hide-details
+                                        :class="ccustoParametro.utiliza_ccusto === 'S' ? 'required-left-border' : ''"
                                     />
                                     <div v-if="linha.desccentrocusto" class="text-caption text-grey mt-1">
                                       API: {{ linha.desccentrocusto }}
@@ -661,6 +690,7 @@
                                         density="compact"
                                         prefix="R$"
                                         hide-details
+                                        :class="ccustoParametro.utiliza_ccusto === 'S' ? 'required-left-border' : ''"
                                         @input="onRateioValorChange(index)"
                                     />
                                   </td>
@@ -753,7 +783,7 @@
                     <v-btn
                         color="var(--text-color-laranja)"
                         :loading="loading"
-                        :disabled="!formValido"
+                        :disabled="!formValidoComCCusto"
                         @click="salvarContaPagar"
                         variant="flat"
                         class="text-white"
@@ -986,7 +1016,7 @@
             max-width="900px"
             persistent
         >
-          <v-card>
+          <v-card class="align-center justify-center d-flex">
             <v-card-title class="text-h6 pa-4 d-flex align-center">
               <v-icon icon="mdi-file-xml-box" color="orange" class="mr-2"></v-icon>
               Importar Conta a Pagar de XML (NFe)
@@ -1029,6 +1059,9 @@
                   <div class="d-flex align-center">
                     <v-icon icon="mdi-check-circle" class="mr-2"></v-icon>
                     XML processado com sucesso!
+                    <v-chip size="small" class="ml-2" :color="dadosXMLImportado.tipoNota === 'NFSe' ? 'blue' : 'green'" variant="flat">
+                      {{ dadosXMLImportado.tipoNota === 'NFSe' ? 'Nota de Serviço' : 'Nota de Produto' }}
+                    </v-chip>
                   </div>
                 </v-alert>
 
@@ -1045,18 +1078,24 @@
                         <div class="text-body-1 font-weight-medium">{{ dadosXMLImportado.emitente.razaoSocial }}</div>
                       </v-col>
                       <v-col cols="12" md="3">
-                        <div class="text-caption text-grey">CNPJ</div>
-                        <div class="text-body-1">{{ formatarCNPJ(dadosXMLImportado.emitente.cnpj) }}</div>
+                        <div class="text-caption text-grey">CNPJ/CPF</div>
+                        <div class="text-body-1">{{ formatarCNPJ(dadosXMLImportado.emitente.cnpj || dadosXMLImportado.emitente.cpf) }}</div>
                       </v-col>
                       <v-col cols="12" md="3">
-                        <div class="text-caption text-grey">IE</div>
-                        <div class="text-body-1">{{ dadosXMLImportado.emitente.ie || 'N/A' }}</div>
+                        <div class="text-caption text-grey">{{ dadosXMLImportado.tipoNota === 'NFSe' ? 'IM' : 'IE' }}</div>
+                        <div class="text-body-1">{{ dadosXMLImportado.emitente.im || dadosXMLImportado.emitente.ie || 'N/A' }}</div>
+                      </v-col>
+                      <v-col cols="12" v-if="dadosXMLImportado.emitente.email">
+                        <div class="text-caption text-grey">E-mail</div>
+                        <div class="text-body-2">{{ dadosXMLImportado.emitente.email }}</div>
                       </v-col>
                       <v-col cols="12">
                         <div class="text-caption text-grey">Endereço</div>
                         <div class="text-body-2">
-                          {{ dadosXMLImportado.emitente.endereco.logradouro }}, {{ dadosXMLImportado.emitente.endereco.numero }} -
-                          {{ dadosXMLImportado.emitente.endereco.bairro }}, {{ dadosXMLImportado.emitente.endereco.cidade }}/{{ dadosXMLImportado.emitente.endereco.uf }}
+                          {{ dadosXMLImportado.emitente.endereco.logradouro }}, {{ dadosXMLImportado.emitente.endereco.numero }}
+                          <template v-if="dadosXMLImportado.emitente.endereco.complemento"> - {{ dadosXMLImportado.emitente.endereco.complemento }}</template>
+                          - {{ dadosXMLImportado.emitente.endereco.bairro }},
+                          {{ dadosXMLImportado.emitente.endereco.cidade || dadosXMLImportado.emitente.endereco.codigoMunicipio }}/{{ dadosXMLImportado.emitente.endereco.uf }}
                         </div>
                       </v-col>
                     </v-row>
@@ -1077,16 +1116,16 @@
                   (CNPJ: {{ formatarCNPJ(dadosFornecedorNovo?.cnpj) }}) será criado automaticamente ao confirmar.
                 </v-alert>
 
-                <!-- Dados da NFe -->
+                <!-- Dados da NFe/NFSe -->
                 <v-card variant="outlined" class="mb-4">
                   <v-card-title class="text-subtitle-1 pa-3 d-flex align-center">
                     <v-icon icon="mdi-file-document" class="mr-2" color="orange"></v-icon>
-                    Dados da Nota Fiscal
+                    Dados da {{ dadosXMLImportado.tipoNota === 'NFSe' ? 'Nota Fiscal de Serviço' : 'Nota Fiscal' }}
                   </v-card-title>
                   <v-card-text class="pa-3">
                     <v-row dense>
                       <v-col cols="6" md="2">
-                        <div class="text-caption text-grey">Número NF</div>
+                        <div class="text-caption text-grey">Número</div>
                         <div class="text-body-1 font-weight-medium">{{ dadosXMLImportado.nfe.numero }}</div>
                       </v-col>
                       <v-col cols="6" md="2">
@@ -1097,17 +1136,21 @@
                         <div class="text-caption text-grey">Data Emissão</div>
                         <div class="text-body-1">{{ formatarDataHora(dadosXMLImportado.nfe.dataEmissao) }}</div>
                       </v-col>
-                      <v-col cols="12" md="5">
+                      <v-col cols="12" md="5" v-if="dadosXMLImportado.nfe.chaveAcesso">
                         <div class="text-caption text-grey">Chave de Acesso</div>
                         <div class="text-body-2" style="word-break: break-all;">{{ dadosXMLImportado.nfe.chaveAcesso }}</div>
                       </v-col>
                       <v-col cols="12" md="6">
-                        <div class="text-caption text-grey">Natureza da Operação</div>
+                        <div class="text-caption text-grey">{{ dadosXMLImportado.tipoNota === 'NFSe' ? 'Descrição do Serviço' : 'Natureza da Operação' }}</div>
                         <div class="text-body-1">{{ dadosXMLImportado.nfe.naturezaOperacao }}</div>
                       </v-col>
                       <v-col cols="6" md="3">
-                        <div class="text-caption text-grey">Modelo</div>
-                        <div class="text-body-1">{{ dadosXMLImportado.nfe.modelo }} (NFe)</div>
+                        <div class="text-caption text-grey">Tipo</div>
+                        <div class="text-body-1">{{ dadosXMLImportado.nfe.modelo }} ({{ dadosXMLImportado.tipoNota }})</div>
+                      </v-col>
+                      <v-col cols="6" md="3" v-if="dadosXMLImportado.nfe.localEmissao">
+                        <div class="text-caption text-grey">Local Emissão</div>
+                        <div class="text-body-1">{{ dadosXMLImportado.nfe.localEmissao }}</div>
                       </v-col>
                     </v-row>
                   </v-card-text>
@@ -1121,33 +1164,96 @@
                   </v-card-title>
                   <v-card-text class="pa-3">
                     <v-row dense>
-                      <v-col cols="6" md="3">
-                        <div class="text-caption text-grey">Valor Produtos</div>
-                        <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorProdutos) }}</div>
-                      </v-col>
-                      <v-col cols="6" md="2">
-                        <div class="text-caption text-grey">Frete</div>
-                        <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorFrete) }}</div>
-                      </v-col>
-                      <v-col cols="6" md="2">
-                        <div class="text-caption text-grey">Desconto</div>
-                        <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorDesconto) }}</div>
-                      </v-col>
-                      <v-col cols="6" md="2">
-                        <div class="text-caption text-grey">Outros</div>
-                        <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorOutro) }}</div>
-                      </v-col>
+                      <!-- Para NFe (Produtos) -->
+                      <template v-if="dadosXMLImportado.tipoNota !== 'NFSe'">
+                        <v-col cols="6" md="3">
+                          <div class="text-caption text-grey">Valor Produtos</div>
+                          <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorProdutos) }}</div>
+                        </v-col>
+                        <v-col cols="6" md="2">
+                          <div class="text-caption text-grey">Frete</div>
+                          <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorFrete) }}</div>
+                        </v-col>
+                        <v-col cols="6" md="2">
+                          <div class="text-caption text-grey">Desconto</div>
+                          <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorDesconto) }}</div>
+                        </v-col>
+                        <v-col cols="6" md="2">
+                          <div class="text-caption text-grey">Outros</div>
+                          <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorOutro) }}</div>
+                        </v-col>
+                      </template>
+                      <!-- Para NFSe (Serviços) -->
+                      <template v-else>
+                        <v-col cols="6" md="3">
+                          <div class="text-caption text-grey">Valor Serviços</div>
+                          <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorServicos) }}</div>
+                        </v-col>
+                        <v-col cols="6" md="2">
+                          <div class="text-caption text-grey">Base Cálculo</div>
+                          <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.baseCalculo) }}</div>
+                        </v-col>
+                        <v-col cols="6" md="2">
+                          <div class="text-caption text-grey">Alíquota ISS</div>
+                          <div class="text-body-1">{{ dadosXMLImportado.valores.aliquotaISS }}%</div>
+                        </v-col>
+                        <v-col cols="6" md="2">
+                          <div class="text-caption text-grey">Valor ISS</div>
+                          <div class="text-body-1">{{ formatarMoeda(dadosXMLImportado.valores.valorISS) }}</div>
+                        </v-col>
+                      </template>
                       <v-col cols="12" md="3">
-                        <div class="text-caption text-grey">Valor Total NF</div>
+                        <div class="text-caption text-grey">Valor Total</div>
                         <div class="text-h6 font-weight-bold" style="color: var(--text-color-laranja)">
-                          {{ formatarMoeda(dadosXMLImportado.valores.valorTotalNF) }}
+                          {{ formatarMoeda(dadosXMLImportado.valores.valorTotalNF || dadosXMLImportado.valores.valorServicos) }}
                         </div>
                       </v-col>
                     </v-row>
+
+                    <!-- Tributos Retidos (somente para NFSe) -->
+                    <template v-if="dadosXMLImportado.tipoNota === 'NFSe' && dadosXMLImportado.valores.valorRetencoes > 0">
+                      <v-divider class="my-3"></v-divider>
+                      <div class="text-subtitle-2 mb-2">
+                        <v-icon icon="mdi-receipt-text-minus" size="small" class="mr-1"></v-icon>
+                        Tributos Retidos
+                      </div>
+                      <v-row dense>
+                        <v-col cols="6" md="2" v-if="dadosXMLImportado.valores.valorPIS > 0">
+                          <div class="text-caption text-grey">PIS</div>
+                          <div class="text-body-2 text-error">{{ formatarMoeda(dadosXMLImportado.valores.valorPIS) }}</div>
+                        </v-col>
+                        <v-col cols="6" md="2" v-if="dadosXMLImportado.valores.valorCOFINS > 0">
+                          <div class="text-caption text-grey">COFINS</div>
+                          <div class="text-body-2 text-error">{{ formatarMoeda(dadosXMLImportado.valores.valorCOFINS) }}</div>
+                        </v-col>
+                        <v-col cols="6" md="2" v-if="dadosXMLImportado.valores.valorIRRF > 0">
+                          <div class="text-caption text-grey">IRRF</div>
+                          <div class="text-body-2 text-error">{{ formatarMoeda(dadosXMLImportado.valores.valorIRRF) }}</div>
+                        </v-col>
+                        <v-col cols="6" md="2" v-if="dadosXMLImportado.valores.valorCSLL > 0">
+                          <div class="text-caption text-grey">CSLL</div>
+                          <div class="text-body-2 text-error">{{ formatarMoeda(dadosXMLImportado.valores.valorCSLL) }}</div>
+                        </v-col>
+                        <v-col cols="6" md="2" v-if="dadosXMLImportado.valores.valorINSS > 0">
+                          <div class="text-caption text-grey">INSS</div>
+                          <div class="text-body-2 text-error">{{ formatarMoeda(dadosXMLImportado.valores.valorINSS) }}</div>
+                        </v-col>
+                        <v-col cols="6" md="2">
+                          <div class="text-caption text-grey">Total Retido</div>
+                          <div class="text-body-1 font-weight-bold text-error">{{ formatarMoeda(dadosXMLImportado.valores.valorRetencoes) }}</div>
+                        </v-col>
+                        <v-col cols="12" md="3">
+                          <div class="text-caption text-grey">Valor Líquido</div>
+                          <div class="text-h6 font-weight-bold" style="color: #4CAF50;">
+                            {{ formatarMoeda(dadosXMLImportado.valores.valorLiquido) }}
+                          </div>
+                        </v-col>
+                      </v-row>
+                    </template>
                   </v-card-text>
                 </v-card>
 
-                <!-- Pagamento -->
+                <!-- Pagamento (somente para NFe) -->
                 <v-card variant="outlined" class="mb-4" v-if="dadosXMLImportado.pagamento && dadosXMLImportado.pagamento.length > 0">
                   <v-card-title class="text-subtitle-1 pa-3 d-flex align-center">
                     <v-icon icon="mdi-credit-card" class="mr-2" color="orange"></v-icon>
@@ -1171,12 +1277,12 @@
                   </v-card-text>
                 </v-card>
 
-                <!-- Produtos (collapsible) -->
-                <v-expansion-panels class="mb-4">
+                <!-- Produtos/Serviços (collapsible) -->
+                <v-expansion-panels class="mb-4" v-if="dadosXMLImportado.produtos && dadosXMLImportado.produtos.length > 0">
                   <v-expansion-panel>
                     <v-expansion-panel-title>
-                      <v-icon icon="mdi-package-variant-closed" class="mr-2" color="orange"></v-icon>
-                      Produtos/Itens ({{ dadosXMLImportado.produtos.length }})
+                      <v-icon :icon="dadosXMLImportado.tipoNota === 'NFSe' ? 'mdi-briefcase' : 'mdi-package-variant-closed'" class="mr-2" color="orange"></v-icon>
+                      {{ dadosXMLImportado.tipoNota === 'NFSe' ? 'Serviços' : 'Produtos/Itens' }} ({{ dadosXMLImportado.produtos.length }})
                     </v-expansion-panel-title>
                     <v-expansion-panel-text>
                       <v-table density="compact">
@@ -1184,20 +1290,20 @@
                           <tr>
                             <th>Cód.</th>
                             <th>Descrição</th>
-                            <th>NCM</th>
+                            <th v-if="dadosXMLImportado.tipoNota !== 'NFSe'">NCM</th>
                             <th class="text-right">Qtd</th>
-                            <th>Unid.</th>
+                            <th v-if="dadosXMLImportado.tipoNota !== 'NFSe'">Unid.</th>
                             <th class="text-right">Vlr Unit.</th>
                             <th class="text-right">Vlr Total</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr v-for="(prod, index) in dadosXMLImportado.produtos" :key="index">
-                            <td>{{ prod.codigo }}</td>
+                            <td>{{ prod.codigo || prod.codigoMunicipal || '-' }}</td>
                             <td>{{ prod.descricao }}</td>
-                            <td>{{ prod.ncm }}</td>
+                            <td v-if="dadosXMLImportado.tipoNota !== 'NFSe'">{{ prod.ncm }}</td>
                             <td class="text-right">{{ prod.quantidade }}</td>
-                            <td>{{ prod.unidade }}</td>
+                            <td v-if="dadosXMLImportado.tipoNota !== 'NFSe'">{{ prod.unidade }}</td>
                             <td class="text-right">{{ formatarMoeda(prod.valorUnitario) }}</td>
                             <td class="text-right">{{ formatarMoeda(prod.valorTotal) }}</td>
                           </tr>
@@ -1349,6 +1455,11 @@ const suppressParcelWatcher = ref(false)
 
 // Rateio por centro de custo
 const centrosCusto = ref([])
+
+// Parâmetro de centro de custo (obrigatoriedade)
+const ccustoParametro = ref({
+  utiliza_ccusto: 'N'
+})
 
 // Array direto de rateios (simplificado)
 const ccustosRateio = ref([])
@@ -1543,11 +1654,11 @@ const buscarFornecedorPorId = async (idFornecedor) => {
 
       return fornecedor
     } else {
-      console.warn('⚠️ Fornecedor não encontrado com ID:', idFornecedor)
+      console.warn('Fornecedor não encontrado com ID:', idFornecedor)
       return null
     }
   } catch (err) {
-    console.error('❌ Erro ao buscar fornecedor por ID:', err)
+    console.error('Erro ao buscar fornecedor por ID:', err)
     return null
   } finally {
     fornecedorLoading.value = false
@@ -1643,6 +1754,39 @@ const totalParcelasFiltradas = computed(() => {
     const valor = parseFloat(item.vlrparcela || 0)
     return total + valor
   }, 0)
+})
+
+// Validar se o formulário está realmente válido (inclui ccusto obrigatório)
+const formValidoComCCusto = computed(() => {
+  // Primeiro verificar se o formulário está válido
+  if (!formValido.value) {
+    console.log('Formulário inválido - preencha todos os campos obrigatórios')
+    return false
+  }
+
+  // Se centro de custo é obrigatório, verificar se foi selecionado com valor válido
+  const utilizaCCusto = ccustoParametro.value?.utiliza_ccusto?.trim?.() === 'S' || ccustoParametro.value?.utiliza_ccusto === 'S'
+
+  if (utilizaCCusto) {
+    const temCCustoValido = ccustosRateio.value && ccustosRateio.value.some(cc => {
+      const valido = cc.id_ccusto && parseFloat(cc.valor) > 0
+      if (valido) {
+        console.log('Centro de custo válido encontrado:', cc.desccentrocusto, 'valor:', cc.valor)
+      }
+      return valido
+    })
+
+    if (!temCCustoValido) {
+      console.log('Centro de custo é obrigatório e não foi selecionado ou sem valor válido')
+      return false
+    }
+
+    console.log('Todos os validações passadas - Centro de custo obrigatório OK, Formulário OK')
+    return true
+  }
+
+  console.log('Centro de custo não é obrigatório - apenas validação de formulário OK')
+  return true
 })
 
 // Ciclo de vida
@@ -1749,9 +1893,48 @@ const carregarContasPagar = async (filtrosApi = null) => {
   }
 }
 
+// Carregar parâmetros de centro de custo
+const carregarCCustoParametro = async () => {
+  try {
+    console.log('Iniciando carregamento de ccustoparametro...')
+    const token = localStorage.getItem('token')
+
+    // Importar api para fazer a requisição diretamente
+    const api = (await import('@/services/api')).default
+
+    const response = await api.get('/ccustoparametro', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+
+    console.log('Resposta de ccustoparametro:', response)
+
+    if (response && response.data && response.data.data && response.data.data.length > 0) {
+      ccustoParametro.value = response.data.data[0]
+      console.log('Centro de custo parâmetro carregado com sucesso:', ccustoParametro.value)
+      console.log('utiliza_ccusto value:', ccustoParametro.value.utiliza_ccusto)
+    } else if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
+      ccustoParametro.value = response.data[0]
+      console.log('Centro de custo parâmetro carregado com sucesso:', ccustoParametro.value)
+      console.log('utiliza_ccusto value:', ccustoParametro.value.utiliza_ccusto)
+    } else {
+      console.warn('Nenhum parâmetro de centro de custo retornado, usando padrão N')
+      ccustoParametro.value = { utiliza_ccusto: 'N' }
+    }
+  } catch (error) {
+    console.error('Erro ao carregar parâmetro de centro de custo:', error)
+    ccustoParametro.value = { utiliza_ccusto: 'N' }
+  }
+}
+
 // Carregar dados auxiliares dos dropdowns
 const carregarDadosAuxiliares = async () => {
   try {
+    // Carregar parâmetro de centro de custo
+    await carregarCCustoParametro()
+
     // Carregar tipos de documento
     const tiposDoc = await financeiroStore.buscarTiposDocumento()
     tiposDocumento.value = tiposDoc
@@ -2216,9 +2399,23 @@ const salvarContaPagar = async () => {
   try {
     loading.value = true
 
+    // Validar se centro de custo é obrigatório
+    const utilizaCCusto = ccustoParametro.value?.utiliza_ccusto?.trim?.() === 'S' || ccustoParametro.value?.utiliza_ccusto === 'S'
+
+    if (utilizaCCusto) {
+      const temCCustoValido = ccustosRateio.value && ccustosRateio.value.some(cc => cc.id_ccusto && parseFloat(cc.valor) > 0)
+      if (!temCCustoValido) {
+        console.warn('Bloqueando salvar: Centro de custo obrigatório não preenchido')
+        mostrarMensagem('Centro de custo é obrigatório. Por favor, selecione um centro de custo com valor maior que zero.', 'warning')
+        loading.value = false
+        return
+      }
+    }
+
     // Validar se há parcelas calculadas
     if (parcelas.value.length === 0) {
       mostrarMensagem('É necessário calcular as parcelas antes de salvar', 'warning')
+      loading.value = false
       return
     }
 
@@ -2409,20 +2606,207 @@ const processarArquivoXML = async (files) => {
   }
 }
 
-// Extrair dados da NFe do XML parseado
+// Extrair dados da NFe ou NFSe do XML parseado
 const extrairDadosNFe = (xmlDoc) => {
-  // Helper para obter texto de um elemento
+  // Helper para obter texto de um elemento (busca recursiva)
   const getText = (parent, tagName) => {
+    if (!parent) return ''
     const elements = parent.getElementsByTagName(tagName)
-    return elements.length > 0 ? elements[0].textContent : ''
+    return elements.length > 0 ? elements[0].textContent?.trim() : ''
   }
 
-  // Buscar elemento NFe
+  // Detectar tipo de documento: NFSe (Serviço) ou NFe (Produto)
+  const nfseElements = xmlDoc.getElementsByTagName('NFSe')
   const nfeElements = xmlDoc.getElementsByTagName('NFe')
-  if (nfeElements.length === 0) {
-    throw new Error('Elemento NFe não encontrado no XML')
+
+  if (nfseElements.length > 0) {
+    // ========== PROCESSAMENTO DE NFSe (NOTA FISCAL DE SERVIÇO) ==========
+    return extrairDadosNFSe(xmlDoc, getText)
+  } else if (nfeElements.length > 0) {
+    // ========== PROCESSAMENTO DE NFe (NOTA FISCAL DE PRODUTO) ==========
+    return extrairDadosNFeProduto(xmlDoc, getText)
+  } else {
+    throw new Error('Formato de XML não reconhecido. Esperado NFe ou NFSe.')
   }
-  const nfe = nfeElements[0]
+}
+
+// Extrair dados de NFSe (Nota Fiscal de Serviço Eletrônica)
+const extrairDadosNFSe = (xmlDoc, getText) => {
+  const nfse = xmlDoc.getElementsByTagName('NFSe')[0]
+
+  // Buscar infNFSe
+  const infNFSeElements = nfse.getElementsByTagName('infNFSe')
+  if (infNFSeElements.length === 0) {
+    throw new Error('Elemento infNFSe não encontrado no XML')
+  }
+  const infNFSe = infNFSeElements[0]
+
+  // Dados do emitente (emit) - prestador do serviço
+  const emitElements = infNFSe.getElementsByTagName('emit')
+  const emit = emitElements.length > 0 ? emitElements[0] : null
+
+  // Endereço do emitente (enderNac dentro de emit)
+  const enderEmit = emit ? emit.getElementsByTagName('enderNac')[0] : null
+
+  // Buscar DPS (Declaração de Prestação de Serviços)
+  const dpsElements = infNFSe.getElementsByTagName('DPS')
+  const dps = dpsElements.length > 0 ? dpsElements[0] : null
+
+  // Buscar infDPS dentro do DPS
+  const infDPSElements = dps ? dps.getElementsByTagName('infDPS') : []
+  const infDPS = infDPSElements.length > 0 ? infDPSElements[0] : null
+
+  // Dados do prestador (prest) dentro do infDPS
+  const prestElements = infDPS ? infDPS.getElementsByTagName('prest') : []
+  const prest = prestElements.length > 0 ? prestElements[0] : null
+
+  // Dados do tomador (toma) dentro do infDPS - é o destinatário/cliente
+  const tomaElements = infDPS ? infDPS.getElementsByTagName('toma') : []
+  const toma = tomaElements.length > 0 ? tomaElements[0] : null
+
+  // Dados do serviço (serv)
+  const servElements = infDPS ? infDPS.getElementsByTagName('serv') : []
+  const serv = servElements.length > 0 ? servElements[0] : null
+
+  // Descrição do serviço (xDescServ dentro de cServ)
+  const cServElements = serv ? serv.getElementsByTagName('cServ') : []
+  const cServ = cServElements.length > 0 ? cServElements[0] : null
+
+  // Valores da NFSe (valores dentro de infNFSe)
+  const valoresNFSeElements = infNFSe.getElementsByTagName('valores')
+  const valoresNFSe = valoresNFSeElements.length > 0 ? valoresNFSeElements[0] : null
+
+  // Valores do DPS (valores dentro de infDPS)
+  const valoresDPSElements = infDPS ? infDPS.getElementsByTagName('valores') : []
+  const valoresDPS = valoresDPSElements.length > 0 ? valoresDPSElements[0] : null
+
+  // Valor do serviço (vServPrest ou vServ)
+  let valorServico = 0
+  if (valoresDPS) {
+    const vServPrest = valoresDPS.getElementsByTagName('vServPrest')[0]
+    if (vServPrest) {
+      valorServico = parseFloat(getText(vServPrest, 'vServ')) || 0
+    }
+  }
+  if (!valorServico && valoresNFSe) {
+    valorServico = parseFloat(getText(valoresNFSe, 'vLiq')) || 0
+  }
+
+  // Tributos (dentro de valores do DPS)
+  const tribElements = valoresDPS ? valoresDPS.getElementsByTagName('trib') : []
+  const trib = tribElements.length > 0 ? tribElements[0] : null
+
+  // Tributos federais
+  const tribFedElements = trib ? trib.getElementsByTagName('tribFed') : []
+  const tribFed = tribFedElements.length > 0 ? tribFedElements[0] : null
+
+  // PIS/COFINS
+  const piscofinsElements = tribFed ? tribFed.getElementsByTagName('piscofins') : []
+  const piscofins = piscofinsElements.length > 0 ? piscofinsElements[0] : null
+
+  // Chave de acesso (ID do infNFSe)
+  const chaveAcesso = infNFSe.getAttribute('Id')?.replace('NFS', '') || ''
+
+  // Número da NFSe
+  const numeroNFSe = getText(infNFSe, 'nNFSe') || getText(infNFSe, 'nDFSe') || ''
+
+  // Série (do DPS)
+  const serie = infDPS ? getText(infDPS, 'serie') : ''
+
+  // Data de emissão
+  const dataEmissao = infDPS ? getText(infDPS, 'dhEmi') : getText(infNFSe, 'dhProc') || ''
+
+  // Data de competência
+  const dataCompetencia = infDPS ? getText(infDPS, 'dCompet') : ''
+
+  // Descrição do serviço
+  const descricaoServico = cServ ? getText(cServ, 'xDescServ') : ''
+
+  // Tributos nacionais
+  const tribNacional = getText(infNFSe, 'xTribNac') || ''
+  const tribMunicipal = getText(infNFSe, 'xTribMun') || ''
+
+  // Montar serviços como array (similar a produtos)
+  const servicos = []
+  if (descricaoServico || tribNacional) {
+    servicos.push({
+      item: '1',
+      codigo: cServ ? getText(cServ, 'cTribNac') : '',
+      codigoMunicipal: cServ ? getText(cServ, 'cTribMun') : '',
+      descricao: descricaoServico || tribNacional || tribMunicipal,
+      quantidade: 1,
+      valorUnitario: valorServico,
+      valorTotal: valorServico
+    })
+  }
+
+  return {
+    tipoNota: 'NFSe',
+    nfe: {
+      numero: numeroNFSe,
+      serie: serie,
+      modelo: 'NFSe',
+      dataEmissao: dataEmissao,
+      dataCompetencia: dataCompetencia,
+      naturezaOperacao: tribNacional || tribMunicipal || 'Prestação de Serviço',
+      chaveAcesso: chaveAcesso,
+      localEmissao: getText(infNFSe, 'xLocEmi') || '',
+      localPrestacao: getText(infNFSe, 'xLocPrestacao') || ''
+    },
+    emitente: {
+      cnpj: emit ? getText(emit, 'CNPJ') : (prest ? getText(prest, 'CNPJ') : ''),
+      cpf: emit ? getText(emit, 'CPF') : (prest ? getText(prest, 'CPF') : ''),
+      razaoSocial: emit ? getText(emit, 'xNome') : (prest ? getText(prest, 'xNome') : ''),
+      nomeFantasia: emit ? getText(emit, 'xFant') : '',
+      ie: emit ? getText(emit, 'IE') : '',
+      im: emit ? getText(emit, 'IM') : (prest ? getText(prest, 'IM') : ''),
+      fone: emit ? getText(emit, 'fone') : (prest ? getText(prest, 'fone') : ''),
+      email: emit ? getText(emit, 'email') : (prest ? getText(prest, 'email') : ''),
+      endereco: {
+        logradouro: enderEmit ? getText(enderEmit, 'xLgr') : '',
+        numero: enderEmit ? getText(enderEmit, 'nro') : '',
+        complemento: enderEmit ? getText(enderEmit, 'xCpl') : '',
+        bairro: enderEmit ? getText(enderEmit, 'xBairro') : '',
+        codigoMunicipio: enderEmit ? getText(enderEmit, 'cMun') : '',
+        uf: enderEmit ? getText(enderEmit, 'UF') : '',
+        cep: enderEmit ? getText(enderEmit, 'CEP') : ''
+      }
+    },
+    destinatario: {
+      cnpj: toma ? getText(toma, 'CNPJ') : '',
+      cpf: toma ? getText(toma, 'CPF') : '',
+      razaoSocial: toma ? getText(toma, 'xNome') : '',
+      email: toma ? getText(toma, 'email') : ''
+    },
+    valores: {
+      valorServicos: valorServico,
+      valorProdutos: 0,
+      baseCalculo: valoresNFSe ? parseFloat(getText(valoresNFSe, 'vBC')) || 0 : 0,
+      aliquotaISS: valoresNFSe ? parseFloat(getText(valoresNFSe, 'pAliqAplic')) || 0 : 0,
+      valorISS: valoresNFSe ? parseFloat(getText(valoresNFSe, 'vISSQN')) || 0 : 0,
+      valorRetencoes: valoresNFSe ? parseFloat(getText(valoresNFSe, 'vTotalRet')) || 0 : 0,
+      valorLiquido: valoresNFSe ? parseFloat(getText(valoresNFSe, 'vLiq')) || 0 : valorServico,
+      valorTotalNF: valorServico,
+      // Tributos federais
+      valorPIS: piscofins ? parseFloat(getText(piscofins, 'vPis')) || 0 : 0,
+      valorCOFINS: piscofins ? parseFloat(getText(piscofins, 'vCofins')) || 0 : 0,
+      valorIRRF: tribFed ? parseFloat(getText(tribFed, 'vRetIRRF')) || 0 : 0,
+      valorCSLL: tribFed ? parseFloat(getText(tribFed, 'vRetCSLL')) || 0 : 0,
+      valorINSS: tribFed ? parseFloat(getText(tribFed, 'vRetCP')) || 0 : 0,
+      // Frete, seguro, etc - geralmente não se aplica a serviços
+      valorFrete: 0,
+      valorSeguro: 0,
+      valorDesconto: 0,
+      valorOutro: 0
+    },
+    produtos: servicos,
+    pagamento: []
+  }
+}
+
+// Extrair dados de NFe (Nota Fiscal de Produto)
+const extrairDadosNFeProduto = (xmlDoc, getText) => {
+  const nfe = xmlDoc.getElementsByTagName('NFe')[0]
 
   // Buscar infNFe
   const infNFeElements = nfe.getElementsByTagName('infNFe')
@@ -2492,6 +2876,7 @@ const extrairDadosNFe = (xmlDoc) => {
   const enderEmit = emit ? emit.getElementsByTagName('enderEmit')[0] : null
 
   return {
+    tipoNota: 'NFe',
     nfe: {
       numero: ide ? getText(ide, 'nNF') : '',
       serie: ide ? getText(ide, 'serie') : '',
@@ -2523,6 +2908,7 @@ const extrairDadosNFe = (xmlDoc) => {
     },
     valores: {
       valorProdutos: icmsTot ? parseFloat(getText(icmsTot, 'vProd')) || 0 : 0,
+      valorServicos: 0,
       valorFrete: icmsTot ? parseFloat(getText(icmsTot, 'vFrete')) || 0 : 0,
       valorSeguro: icmsTot ? parseFloat(getText(icmsTot, 'vSeg')) || 0 : 0,
       valorDesconto: icmsTot ? parseFloat(getText(icmsTot, 'vDesc')) || 0 : 0,
@@ -2590,7 +2976,8 @@ const confirmarImportacaoXML = async () => {
       console.log('📝 Criando novo fornecedor antes de fechar modal...')
       try {
         const emitente = dados.emitente
-        const tipoPessoa = detectarTipoPessoa(emitente.cnpj)
+        const cpfCnpj = emitente.cnpj || emitente.cpf
+        const tipoPessoa = detectarTipoPessoa(cpfCnpj)
 
         toast.info('Criando fornecedor...')
 
@@ -2598,8 +2985,8 @@ const confirmarImportacaoXML = async () => {
           tipo_pessoa: tipoPessoa,
           nome_razao: emitente.razaoSocial,
           apelido_fantasia: emitente.nomeFantasia || emitente.razaoSocial,
-          cpf_cnpj: emitente.cnpj,
-          rg_inscricao: emitente.ie,
+          cpf_cnpj: cpfCnpj,
+          rg_inscricao: emitente.ie || emitente.im || '', // IE para produtos, IM para serviços
           telefone: emitente.fone,
           cliente: 'N',
           fornecedor: 'S',
@@ -2610,7 +2997,7 @@ const confirmarImportacaoXML = async () => {
         })
 
         // Validar se fornecedor foi criado com sucesso
-        console.log('📦 Resposta do cadastro de fornecedor:', novoFornecedor)
+        console.log('Resposta do cadastro de fornecedor:', novoFornecedor)
 
         if (!novoFornecedor) {
           throw new Error('Nenhuma resposta retornada ao criar fornecedor')
@@ -2618,10 +3005,10 @@ const confirmarImportacaoXML = async () => {
 
         // API retorna id_pessoa - aceitar diretamente
         const idFornecedor = novoFornecedor.id_pessoa || novoFornecedor.id
-        console.log('🔑 ID do fornecedor extraído:', idFornecedor)
+        console.log('ID do fornecedor extraído:', idFornecedor)
 
         if (!idFornecedor) {
-          console.error('❌ Objeto retornado não contém id_pessoa nem id:', novoFornecedor)
+          console.error('Objeto retornado não contém id_pessoa nem id:', novoFornecedor)
           throw new Error('Fornecedor criado mas sem ID retornado')
         }
 
@@ -2630,9 +3017,9 @@ const confirmarImportacaoXML = async () => {
 
         // Buscar dados completos do fornecedor via GET /pessoa/:id
         try {
-          console.log('🔍 Buscando dados completos do fornecedor ID:', idFornecedor)
+          console.log('Buscando dados completos do fornecedor ID:', idFornecedor)
           const dadosFornecedor = await financeiroStore.buscarPessoasFornecedores(String(idFornecedor), idEmpresa.value)
-          console.log('📋 Dados do fornecedor encontrados:', dadosFornecedor)
+          console.log('Dados do fornecedor encontrados:', dadosFornecedor)
 
           if (dadosFornecedor && dadosFornecedor.length > 0) {
             const fornecedorCompleto = dadosFornecedor[0]
@@ -2645,22 +3032,22 @@ const confirmarImportacaoXML = async () => {
               formData.id_red_ctb_for = fornecedorCompleto.id_red_ctb_for || fornecedorCompleto.id_red_ctb
             }
 
-            toast.success(`✅ Fornecedor ${fornecedorSelecionado.value} criado!`)
+            toast.success(`Fornecedor ${fornecedorSelecionado.value} criado!`)
           } else {
             fornecedorSelecionado.value = `Fornecedor ID: ${idFornecedor}`
             fornecedorLabel.value = fornecedorSelecionado.value
             pessoas.value = [{ id: idFornecedor, id_pessoa: idFornecedor }]
-            toast.success(`✅ Fornecedor criado (ID: ${idFornecedor})!`)
+            toast.success(`Fornecedor criado (ID: ${idFornecedor})!`)
           }
         } catch (errBusca) {
-          console.warn('⚠️ Erro ao buscar dados do fornecedor:', errBusca)
+          console.warn('Erro ao buscar dados do fornecedor:', errBusca)
           fornecedorSelecionado.value = `Fornecedor ID: ${idFornecedor}`
           fornecedorLabel.value = fornecedorSelecionado.value
           pessoas.value = [{ id: idFornecedor, id_pessoa: idFornecedor }]
-          toast.success(`✅ Fornecedor criado (ID: ${idFornecedor})!`)
+          toast.success(`Fornecedor criado (ID: ${idFornecedor})!`)
         }
 
-        console.log('✅ Fornecedor configurado com ID:', idFornecedor)
+        console.log('Fornecedor configurado com ID:', idFornecedor)
       } catch (errFornecedor) {
         console.error('❌ Erro ao criar fornecedor:', errFornecedor)
         toast.error('Erro ao criar fornecedor. Tente novamente.')
@@ -2670,20 +3057,38 @@ const confirmarImportacaoXML = async () => {
     }
 
     // ===== PASSO 2: Preencher dados do formulário =====
-    console.log('📋 Preenchendo dados do formulário...')
+    console.log('Preenchendo dados do formulário...')
+
+    // Determinar o valor total baseado no tipo de nota
+    const valorTotal = dados.tipoNota === 'NFSe'
+      ? (dados.valores.valorLiquido || dados.valores.valorServicos || dados.valores.valorTotalNF)
+      : dados.valores.valorTotalNF
+
     formData.nrdocumento = dados.nfe.numero
     formData.serie = dados.nfe.serie
-    formData.especie = 'NFe'
-    formData.vlroriginal = dados.valores.valorTotalNF
+    formData.especie = dados.tipoNota || 'NFe'
+    formData.vlroriginal = valorTotal
     formData.qtdparcelas = opcoesImportXML.qtdParcelas
     formData.dtemissao = dados.nfe.dataEmissao ? dados.nfe.dataEmissao.split('T')[0] : ''
     formData.desconto = dados.valores.valorDesconto || 0
     formData.venc_primeira_parcela = opcoesImportXML.dataVencimento
     formData.intervalo_parcelas = opcoesImportXML.intervaloParcelas
-    formData.valor_primeira_parcela = dados.valores.valorTotalNF / opcoesImportXML.qtdParcelas
+    formData.valor_primeira_parcela = valorTotal / opcoesImportXML.qtdParcelas
+
+    // Preencher tipo de documento com ID 1 (Nota fiscal) que vem da API /tipodocumento
+    const tipoDocumentoNotaFiscal = (tiposDocumento.value || []).find(tipo => tipo.id === 1)
+    if (tipoDocumentoNotaFiscal) {
+      formData.id_tipodocumen = 1
+      tipoDocumentoSelecionado.value = tipoDocumentoNotaFiscal.abreviatura || tipoDocumentoNotaFiscal.desctipodocumento || tipoDocumentoNotaFiscal.descricao || 'Nota Fiscal'
+      console.log('Tipo de documento preenchido com ID 1:', tipoDocumentoSelecionado.value)
+    } else {
+      formData.id_tipodocumen = 1
+      tipoDocumentoSelecionado.value = 'Nota Fiscal'
+      console.log('Tipo de documento preenchido com ID 1 (padrão)')
+    }
 
     // ===== PASSO 3: Fechar modal e abrir formulário =====
-    console.log('🚀 Fechando modal e abrindo formulário...')
+    console.log('Fechando modal e abrindo formulário...')
     fecharModalImportarXML()
     formularioAberto.value = true
     editando.value = false
@@ -2694,7 +3099,7 @@ const confirmarImportacaoXML = async () => {
       gerarParcelaUnica()
     }
 
-    toast.success('✅ Revise os dados e clique em Salvar')
+    toast.success('Revise os dados e clique em Salvar')
   } catch (error) {
     console.error('Erro ao confirmar importação:', error)
     toast.error('Erro ao processar importação')
@@ -2705,15 +3110,18 @@ const confirmarImportacaoXML = async () => {
 
 // Verificar se fornecedor já existe na base
 const verificarFornecedorXML = async (emitente) => {
-  if (!emitente || !emitente.cnpj) {
+  // Obter CPF ou CNPJ do emitente
+  const cpfCnpj = emitente?.cnpj || emitente?.cpf
+
+  if (!emitente || !cpfCnpj) {
     fornecedorNaoEncontrado.value = true
     dadosFornecedorNovo.value = emitente
     return
   }
 
   try {
-    // Fazer GET em /pessoa?cpf_cnpj=
-    const response = await financeiroStore.buscarPessoasFornecedores(emitente.cnpj, idEmpresa.value)
+    // Fazer GET em /pessoa?cpf_cnpj= (funciona para CPF ou CNPJ)
+    const response = await financeiroStore.buscarPessoasFornecedores(cpfCnpj, idEmpresa.value)
 
     if (response && Array.isArray(response) && response.length > 0) {
       // Fornecedor encontrado - preencher dados
@@ -2725,7 +3133,7 @@ const verificarFornecedorXML = async (emitente) => {
       pessoas.value = [response[0]]
       fornecedorNaoEncontrado.value = false
       dadosFornecedorNovo.value = null
-      console.log('✅ Fornecedor encontrado:', response[0])
+      console.log('Fornecedor encontrado:', response[0])
     } else {
       // Fornecedor não encontrado - preparar para criar
       fornecedorNaoEncontrado.value = true
@@ -3309,12 +3717,12 @@ const handleImprimir = ({ dados, filtros, nomeRelatorio }) => {
       return
     }
 
-    console.log('🖨️ Imprimindo:', dados.length, 'registros')
+    console.log('Imprimindo:', dados.length, 'registros')
 
     // Chamar função de impressão do template
     abrirImpressaoTitulos(nomeRelatorio, dados, filtros)
   } catch (err) {
-    console.error('❌ Erro ao imprimir:', err)
+    console.error('Erro ao imprimir:', err)
     toast.error('Erro ao imprimir')
   }
 }
@@ -3383,4 +3791,23 @@ const handleImprimir = ({ dados, filtros, nomeRelatorio }) => {
 .v-list--two-line {
   background-color: transparent;
 }
+
+/* Estilos para borda esquerda vermelha nos campos obrigatórios */
+.required-left-border :deep(.v-field) {
+  border-left: 4px solid #ef5350 !important;
+  border-radius: 8px !important;
+  padding-left: 12px !important;
+  transition: all 0.2s ease !important;
+  box-shadow: inset 4px 0 0 transparent !important;
+}
+
+.required-left-border :deep(.v-field:hover) {
+  border-left-color: #e53935 !important;
+}
+
+.required-left-border :deep(.v-field.v-field--focused) {
+  border-left-color: #d32f2f !important;
+  box-shadow: inset 4px 0 8px rgba(211, 47, 47, 0.08) !important;
+}
 </style>
+

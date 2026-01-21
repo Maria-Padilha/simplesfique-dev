@@ -1,6 +1,20 @@
 <template>
   <top-all-pages icon="mdi-cash-plus">
     <template #titulo>Baixa de Recebimentos</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          Imprimir / Exportar
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <div>
         <!-- Card com Total das Parcelas e Ações de Baixa -->
@@ -235,6 +249,25 @@
         >
           {{ snackbar.message }}
         </v-snackbar>
+
+        <!-- Modal de Exportação -->
+        <ExportacaoModal
+            v-model="modalExportacaoAberto"
+            :dados="contasReceber"
+            :filtros="{}"
+            nome-relatorio="Baixa de Recebimentos"
+            @exportar-pdf="() => {}"
+            @exportar-csv="() => {}"
+            @exportar-excel="() => {}"
+            @imprimir="() => {}"
+        />
+
+        <!-- Modal de Preview do PDF -->
+        <PdfPreviewModal
+            v-model="modalPreviewPDF"
+            :html-content="previewHTMLContent"
+            :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Baixa_Recebimentos'"
+        />
       </div>
     </template>
   </top-all-pages>
@@ -250,6 +283,8 @@ import BuscaAvancadaBaixa from '@/components/base/padrao-paginas/BuscaAvancadaBa
 import BaixaCaixaModal from '@/components/base/modais/BaixaCaixaModal.vue'
 import BaixaBancoModal from '@/components/base/modais/BaixaBancoModal.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -278,6 +313,12 @@ const snackbar = reactive({
   message: '',
   color: 'success'
 })
+
+// Modais de exportação
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
 
 // ID da empresa
 const idEmpresa = ref(1)

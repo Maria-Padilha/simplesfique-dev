@@ -1,4 +1,5 @@
 // Template HTML para impressão de Títulos a Pagar/Receber
+// Template HTML para impressão de Títulos a Pagar/Receber
 export const TEMPLATE_TITULOS = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -6,6 +7,11 @@ export const TEMPLATE_TITULOS = `<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Títulos a Pagar/Receber - SimplesFique</title>
     <style>
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,17 +20,16 @@ export const TEMPLATE_TITULOS = `<!DOCTYPE html>
 
         body {
             font-family: 'Roboto', Arial, sans-serif;
-            font-size: 12px;
+            font-size: 10px;
             color: #2b2b2b;
-            padding: 20px;
-            max-width: 900px;
-            margin: 0 auto;
+            padding: 10px;
             background: #fff;
+            width: 100%;
         }
 
         .header {
-            margin-bottom: 20px;
-            padding-bottom: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
             border-bottom: 3px solid #F57C00;
             display: flex;
             justify-content: space-between;
@@ -32,7 +37,7 @@ export const TEMPLATE_TITULOS = `<!DOCTYPE html>
         }
 
         .logo-text {
-            font-size: 26px;
+            font-size: 22px;
             font-weight: bold;
             color: #F57C00;
         }
@@ -42,8 +47,8 @@ export const TEMPLATE_TITULOS = `<!DOCTYPE html>
         }
 
         .info-relatorio {
-            font-size: 12px;
-            line-height: 1.6;
+            font-size: 10px;
+            line-height: 1.4;
             text-align: right;
         }
 
@@ -53,16 +58,16 @@ export const TEMPLATE_TITULOS = `<!DOCTYPE html>
 
         .section-title {
             color: #F57C00;
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
-            margin: 25px 0 15px 0;
+            margin: 15px 0 10px 0;
             display: flex;
             align-items: baseline;
             gap: 10px;
         }
 
         .section-title span {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: normal;
             color: #666;
         }
@@ -70,10 +75,11 @@ export const TEMPLATE_TITULOS = `<!DOCTYPE html>
         .table-titulos {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             border-radius: 8px;
-            overflow: hidden;
+            overflow: visible;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            font-size: 8px;
         }
 
         .table-titulos thead {
@@ -82,15 +88,16 @@ export const TEMPLATE_TITULOS = `<!DOCTYPE html>
         }
 
         .table-titulos th {
-            padding: 12px 10px !important;
+            padding: 6px 3px !important;
             text-align: left !important;
             font-weight: 600 !important;
-            font-size: 11px !important;
+            font-size: 7px !important;
             text-transform: uppercase !important;
-            letter-spacing: 0.5px !important;
+            letter-spacing: 0.3px !important;
             color: white !important;
             background: transparent !important;
             border: none !important;
+            white-space: nowrap;
         }
 
         .table-titulos th.text-right {
@@ -102,9 +109,10 @@ export const TEMPLATE_TITULOS = `<!DOCTYPE html>
         }
 
         .table-titulos td {
-            padding: 10px;
+            padding: 4px 3px;
             border-bottom: 1px solid #f0f0f0;
-            font-size: 11px;
+            font-size: 8px;
+            word-break: break-word;
         }
 
         .table-titulos td.text-right {
@@ -136,10 +144,11 @@ export const TEMPLATE_TITULOS = `<!DOCTYPE html>
         .table-resumo {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             background: #fafafa;
             border-radius: 8px;
             overflow: hidden;
+            font-size: 9px;
         }
 
         .table-resumo tr {
@@ -151,8 +160,8 @@ export const TEMPLATE_TITULOS = `<!DOCTYPE html>
         }
 
         .table-resumo td {
-            padding: 10px 12px;
-            font-size: 11px;
+            padding: 6px 10px;
+            font-size: 8px;
         }
 
         .table-resumo td:last-child {
@@ -178,11 +187,11 @@ export const TEMPLATE_TITULOS = `<!DOCTYPE html>
         }
 
         .footer-note {
-            font-size: 10px;
+            font-size: 9px;
             color: #888;
             text-align: center;
-            margin-top: 25px;
-            padding-top: 15px;
+            margin-top: 15px;
+            padding-top: 10px;
             border-top: 1px solid #e8e8e8;
         }
 
@@ -224,14 +233,26 @@ export const TEMPLATE_TITULOS = `<!DOCTYPE html>
     <table class="table-titulos">
         <thead style="background: linear-gradient(135deg, #F57C00 0%, #de7e3e 100%); color: white;">
             <tr>
-                <th style="width: 80px; background: transparent; color: white; padding: 12px 10px;">Data Cad.</th>
-                <th style="width: 80px; background: transparent; color: white; padding: 12px 10px;">Vencimento</th>
-                <th style="background: transparent; color: white; padding: 12px 10px;">{{CONTRAPARTE_HEADER}}</th>
-                <th style="width: 80px; text-align: center; background: transparent; color: white; padding: 12px 10px;" class="text-center">Documento</th>
-                <th style="width: 100px; text-align: right; background: transparent; color: white; padding: 12px 10px;" class="text-right">Valor (R$)</th>
-                <th style="width: 80px; text-align: right; background: transparent; color: white; padding: 12px 10px;" class="text-right">Juros (R$)</th>
-                <th style="width: 80px; text-align: right; background: transparent; color: white; padding: 12px 10px;" class="text-right">Multa (R$)</th>
-                <th style="width: 100px; text-align: right; background: transparent; color: white; padding: 12px 10px;" class="text-right">Líquido (R$)</th>
+                <th style="width: 45px; background: transparent; color: white; padding: 6px 3px;">Doc.</th>
+                <th style="width: 35px; background: transparent; color: white; padding: 6px 3px;">Série</th>
+                <th style="width: 40px; background: transparent; color: white; padding: 6px 3px;">Espécie</th>
+                <th style="width: 35px; text-align: center; background: transparent; color: white; padding: 6px 3px;">Parc.</th>
+                <th style="width: 30px; text-align: center; background: transparent; color: white; padding: 6px 3px;">Qtd</th>
+                <th style="width: 60px; background: transparent; color: white; padding: 6px 3px;">Emissão</th>
+                <th style="width: 60px; background: transparent; color: white; padding: 6px 3px;">Vencimento</th>
+                <th style="min-width: 100px; background: transparent; color: white; padding: 6px 3px;">{{CONTRAPARTE_HEADER}}</th>
+                <th style="width: 65px; text-align: right; background: transparent; color: white; padding: 6px 3px;">Vlr Doc.</th>
+                <th style="width: 65px; text-align: right; background: transparent; color: white; padding: 6px 3px;">Vlr Parc.</th>
+                <th style="width: 50px; text-align: right; background: transparent; color: white; padding: 6px 3px;">Juros</th>
+                <th style="width: 50px; text-align: right; background: transparent; color: white; padding: 6px 3px;">Multa</th>
+                <th style="width: 55px; text-align: right; background: transparent; color: white; padding: 6px 3px;">Desconto</th>
+                <th style="width: 55px; text-align: right; background: transparent; color: white; padding: 6px 3px;">Quitado</th>
+                <th style="width: 60px; text-align: right; background: transparent; color: white; padding: 6px 3px;">Saldo Dev.</th>
+                <th style="width: 80px; background: transparent; color: white; padding: 6px 3px;">Local Cobr.</th>
+                <th style="width: 45px; background: transparent; color: white; padding: 6px 3px;">Tipo Doc.</th>
+                <th style="width: 45px; background: transparent; color: white; padding: 6px 3px;">Origem</th>
+                <th style="width: 60px; background: transparent; color: white; padding: 6px 3px;">Usuário</th>
+                <th style="width: 75px; background: transparent; color: white; padding: 6px 3px;">Data Inc.</th>
             </tr>
         </thead>
         <tbody>
@@ -299,6 +320,12 @@ export const gerarHTMLTitulos = (tipoRelatorio, dados, filtros = {}) => {
     return d.toLocaleDateString('pt-BR')
   }
 
+  const formatarDataHora = (dataHora) => {
+    if (!dataHora) return ''
+    const d = new Date(dataHora)
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  }
+
   const formatarMoeda = (valor) => {
     if (!valor) return '0,00'
     return parseFloat(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -312,9 +339,13 @@ export const gerarHTMLTitulos = (tipoRelatorio, dados, filtros = {}) => {
 
   const titulos = (dados || []).map(item => {
     const valor = parseFloat(item.vlrparcela || item.vltitulo || 0)
+    const vlrDocumento = parseFloat(item.vlrdocumento || item.vltitulo || 0)
     const juros = parseFloat(item.vljuros || item.juros || 0)
     const multa = parseFloat(item.vlmulta || item.multa || 0)
-    const liquido = valor + juros + multa
+    const desconto = parseFloat(item.desconto || 0)
+    const quitado = parseFloat(item.vlrquitado || 0)
+    const saldoDevedor = parseFloat(item.saldo_devedor || vlrDocumento - quitado || 0)
+    const liquido = valor + juros + multa - desconto
 
     totalValor += valor
     totalJuros += juros
@@ -327,14 +358,26 @@ export const gerarHTMLTitulos = (tipoRelatorio, dados, filtros = {}) => {
       : (item.cliente || item.nome_razao || item.descpessoa || item.nome || 'N/A')
 
     return {
+      documento: item.nrdocumento || item.documento || 'N/A',
+      serie: item.serie || '-',
+      especie: item.especie || '-',
+      parcela: item.id_pagparcela || item.nrparcela || '-',
+      qtdParcelas: item.qtdparcelas || '-',
       dataCadastro: formatarData(item.dtemissao || item.dtcadastro || item.data),
       dataVencimento: formatarData(item.dtvencimento || item.vencimento),
       contraparte: nomeContraparte,
-      documento: item.nrdocumento || item.documento || 'N/A',
+      vlrDocumento: formatarMoeda(vlrDocumento),
       valor: formatarMoeda(valor),
       juros: juros > 0 ? formatarMoeda(juros) : '0,00',
       multa: multa > 0 ? formatarMoeda(multa) : '0,00',
-      liquido: formatarMoeda(liquido)
+      desconto: desconto > 0 ? formatarMoeda(desconto) : '0,00',
+      quitado: formatarMoeda(quitado),
+      saldoDevedor: formatarMoeda(saldoDevedor),
+      localCobranca: item.desclocalcobranca || '-',
+      tipoDoc: item.abreviatura || '-',
+      origem: item.origem || '-',
+      usuario: item.user_inc || '-',
+      dataInclusao: formatarDataHora(item.dhinc || item.dtcadastro)
     }
   })
 
@@ -365,14 +408,26 @@ export const gerarHTMLTitulos = (tipoRelatorio, dados, filtros = {}) => {
   titulos.forEach(titulo => {
     linhasTitulos += `
       <tr>
+        <td class="text-center">${titulo.documento}</td>
+        <td class="text-center">${titulo.serie}</td>
+        <td class="text-center">${titulo.especie}</td>
+        <td class="text-center">${titulo.parcela}</td>
+        <td class="text-center">${titulo.qtdParcelas}</td>
         <td>${titulo.dataCadastro}</td>
         <td>${titulo.dataVencimento}</td>
         <td>${titulo.contraparte}</td>
-        <td class="text-center">${titulo.documento}</td>
-        <td class="text-right valor-positivo">${titulo.valor}</td>
+        <td class="text-right valor-positivo"><strong>${titulo.vlrDocumento}</strong></td>
+        <td class="text-right valor-positivo"><strong>${titulo.valor}</strong></td>
         <td class="text-right ${parseFloat(titulo.juros) > 0 ? 'valor-negativo' : ''}">${titulo.juros}</td>
         <td class="text-right ${parseFloat(titulo.multa) > 0 ? 'valor-negativo' : ''}">${titulo.multa}</td>
-        <td class="text-right valor-positivo"><strong>${titulo.liquido}</strong></td>
+        <td class="text-right ${parseFloat(titulo.desconto) > 0 ? 'valor-negativo' : ''}">${titulo.desconto}</td>
+        <td class="text-right valor-positivo">${titulo.quitado}</td>
+        <td class="text-right valor-positivo"><strong>${titulo.saldoDevedor}</strong></td>
+        <td>${titulo.localCobranca}</td>
+        <td class="text-center">${titulo.tipoDoc}</td>
+        <td class="text-center">${titulo.origem}</td>
+        <td>${titulo.usuario}</td>
+        <td>${titulo.dataInclusao}</td>
       </tr>
     `
   })
@@ -415,6 +470,12 @@ export const abrirImpressaoTitulos = (tipoRelatorio, dados, filtros) => {
       return d.toLocaleDateString('pt-BR')
     }
 
+    const formatarDataHora = (dataHora) => {
+      if (!dataHora) return ''
+      const d = new Date(dataHora)
+      return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    }
+
     const formatarMoeda = (valor) => {
       if (!valor) return '0,00'
       return parseFloat(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -428,9 +489,13 @@ export const abrirImpressaoTitulos = (tipoRelatorio, dados, filtros) => {
 
     const titulos = (dados || []).map(item => {
       const valor = parseFloat(item.vlrparcela || item.vltitulo || 0)
+      const vlrDocumento = parseFloat(item.vlrdocumento || item.vltitulo || 0)
       const juros = parseFloat(item.vljuros || item.juros || 0)
       const multa = parseFloat(item.vlmulta || item.multa || 0)
-      const liquido = valor + juros + multa
+      const desconto = parseFloat(item.desconto || 0)
+      const quitado = parseFloat(item.vlrquitado || 0)
+      const saldoDevedor = parseFloat(item.saldo_devedor || vlrDocumento - quitado || 0)
+      const liquido = valor + juros + multa - desconto
 
       totalValor += valor
       totalJuros += juros
@@ -443,14 +508,26 @@ export const abrirImpressaoTitulos = (tipoRelatorio, dados, filtros) => {
         : (item.cliente || item.nome_razao || item.descpessoa || item.nome || 'N/A')
 
       return {
+        documento: item.nrdocumento || item.documento || 'N/A',
+        serie: item.serie || '-',
+        especie: item.especie || '-',
+        parcela: item.id_pagparcela || item.nrparcela || '-',
+        qtdParcelas: item.qtdparcelas || '-',
         dataCadastro: formatarData(item.dtemissao || item.dtcadastro || item.data),
         dataVencimento: formatarData(item.dtvencimento || item.vencimento),
         contraparte: nomeContraparte,
-        documento: item.nrdocumento || item.documento || 'N/A',
+        vlrDocumento: formatarMoeda(vlrDocumento),
         valor: formatarMoeda(valor),
         juros: juros > 0 ? formatarMoeda(juros) : '0,00',
         multa: multa > 0 ? formatarMoeda(multa) : '0,00',
-        liquido: formatarMoeda(liquido)
+        desconto: desconto > 0 ? formatarMoeda(desconto) : '0,00',
+        quitado: formatarMoeda(quitado),
+        saldoDevedor: formatarMoeda(saldoDevedor),
+        localCobranca: item.desclocalcobranca || '-',
+        tipoDoc: item.abreviatura || '-',
+        origem: item.origem || '-',
+        usuario: item.user_inc || '-',
+        dataInclusao: formatarDataHora(item.dhinc || item.dtcadastro)
       }
     })
 
@@ -483,14 +560,26 @@ export const abrirImpressaoTitulos = (tipoRelatorio, dados, filtros) => {
     titulos.forEach(titulo => {
       linhasTitulos += `
         <tr>
+          <td class="text-center">${titulo.documento}</td>
+          <td class="text-center">${titulo.serie}</td>
+          <td class="text-center">${titulo.especie}</td>
+          <td class="text-center">${titulo.parcela}</td>
+          <td class="text-center">${titulo.qtdParcelas}</td>
           <td>${titulo.dataCadastro}</td>
           <td>${titulo.dataVencimento}</td>
           <td>${titulo.contraparte}</td>
-          <td class="text-center">${titulo.documento}</td>
-          <td class="text-right valor-positivo">${titulo.valor}</td>
+          <td class="text-right valor-positivo"><strong>${titulo.vlrDocumento}</strong></td>
+          <td class="text-right valor-positivo"><strong>${titulo.valor}</strong></td>
           <td class="text-right ${parseFloat(titulo.juros) > 0 ? 'valor-negativo' : ''}">${titulo.juros}</td>
           <td class="text-right ${parseFloat(titulo.multa) > 0 ? 'valor-negativo' : ''}">${titulo.multa}</td>
-          <td class="text-right valor-positivo"><strong>${titulo.liquido}</strong></td>
+          <td class="text-right ${parseFloat(titulo.desconto) > 0 ? 'valor-negativo' : ''}">${titulo.desconto}</td>
+          <td class="text-right valor-positivo">${titulo.quitado}</td>
+          <td class="text-right valor-positivo"><strong>${titulo.saldoDevedor}</strong></td>
+          <td>${titulo.localCobranca}</td>
+          <td class="text-center">${titulo.tipoDoc}</td>
+          <td class="text-center">${titulo.origem}</td>
+          <td>${titulo.usuario}</td>
+          <td>${titulo.dataInclusao}</td>
         </tr>
       `
     })

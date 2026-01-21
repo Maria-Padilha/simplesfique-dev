@@ -1,6 +1,20 @@
 <template>
   <top-all-pages icon="mdi-bank-transfer">
     <template #titulo>Movimentações Bancárias</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          Imprimir / Exportar
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <div>
         <!-- Conteúdo Principal -->
@@ -567,6 +581,25 @@
 
 
       </div>
+
+      <!-- Modal de Exportação -->
+      <ExportacaoModal
+          v-model="modalExportacaoAberto"
+          :dados="movimentacoesFiltradas"
+          :filtros="{}"
+          nome-relatorio="Movimentações Bancárias"
+          @exportar-pdf="() => {}"
+          @exportar-csv="() => {}"
+          @exportar-excel="() => {}"
+          @imprimir="() => {}"
+      />
+
+      <!-- Modal de Preview do PDF -->
+      <PdfPreviewModal
+          v-model="modalPreviewPDF"
+          :html-content="previewHTMLContent"
+          :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Movimentacoes_Bancarias'"
+      />
     </template>
   </top-all-pages>
 </template>
@@ -579,8 +612,10 @@ import { useEmpresaStore } from '@/stores/APIs/empresa'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import html2pdf from 'html2pdf.js'
-import logoImg from '@/assets/img/logo/logo-2.png'
+
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -609,6 +644,12 @@ const centrosCusto = ref([])
 const ccustosRateio = ref([])
 const mostrarRateio = ref(false)
 const loadingCentros = ref(false)
+
+// Modais de exportação
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
 
 // Template HTML para impressão
 const templateMovimentacoes = ref('')
@@ -1300,7 +1341,6 @@ const prepararDadosRelatorio = () => {
 
   // Usar dados da API: titular, numero_ccorrente, limite, dtvenctolimite, nome (operador)
   return {
-    logoUrl: logoImg,
     associado: primeiraMovimentacao.titular || contaSelecionada?.titular || 'N/A',
     empresa: empresa?.razao || empresa?.fantasia || 'Empresa',
     conta: primeiraMovimentacao.numero_ccorrente

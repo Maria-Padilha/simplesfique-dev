@@ -35,6 +35,7 @@
           <div
             ref="pdfContainer"
             class="pdf-page-preview"
+            :class="{ 'pdf-page-landscape': isLandscape }"
             v-html="htmlContent"
           ></div>
         </div>
@@ -45,7 +46,7 @@
 
 <script setup>
 /* eslint-disable no-undef */
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import html2pdf from 'html2pdf.js'
 import { toast } from 'vue3-toastify'
 
@@ -62,6 +63,12 @@ const emit = defineEmits(['update:modelValue'])
 
 const pdfContainer = ref(null)
 const gerando = ref(false)
+
+// Detectar se o conteúdo está em landscape
+const isLandscape = computed(() => {
+  return props.htmlContent?.includes('size: A4 landscape') ||
+         props.htmlContent?.includes('landscape')
+})
 
 const fechar = () => {
   emit('update:modelValue', false)
@@ -93,7 +100,11 @@ const baixarPDF = async () => {
         windowWidth: pdfContainer.value.scrollWidth,
         windowHeight: pdfContainer.value.scrollHeight
       },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: isLandscape.value ? 'landscape' : 'portrait'
+      }
     }
 
     // Gerar e baixar PDF a partir do container de preview
@@ -130,13 +141,15 @@ const baixarPDF = async () => {
   min-height: 297mm;
   padding: 20mm;
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.05),
-    0 4px 8px rgba(0, 0, 0, 0.1),
-    0 12px 24px rgba(0, 0, 0, 0.15),
-    0 24px 48px rgba(0, 0, 0, 0.1);
-  border-radius: 2px;
-  position: relative;
-  color: #2b2b2b;
+    0 0 0 1px rgba(0, 0, 0, 0.1),
+    0 10px 20px rgba(0, 0, 0, 0.15);
+  page-break-after: always;
+}
+
+/* Estilo para landscape */
+.pdf-page-preview.pdf-page-landscape {
+  width: 297mm;
+  min-height: 210mm;
 }
 
 /* Garantir que o conteúdo interno tenha fundo branco */

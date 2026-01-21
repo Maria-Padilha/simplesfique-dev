@@ -1,6 +1,20 @@
 <template>
   <top-all-pages icon="mdi-cash-minus">
     <template #titulo>Baixa de Pagamentos</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          Imprimir / Exportar
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <div>
         <!-- Card com Total das Parcelas e Ações de Baixa -->
@@ -68,10 +82,12 @@
         <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
           <v-card-text class="pa-4">
             <!-- Busca Avançada -->
-            <BuscaAvancadaBaixa
-                entidade="contaspagar"
-                @aplicar="aplicarFiltrosAvancados"
-            />
+            <div class="mb-4">
+              <BuscaAvancadaBaixa
+                  entidade="contaspagar"
+                  @aplicar="aplicarFiltrosAvancados"
+              />
+            </div>
 
             <!-- Tabela de Contas a Pagar -->
             <TabelaPadrao
@@ -235,6 +251,25 @@
         >
           {{ snackbar.message }}
         </v-snackbar>
+
+        <!-- Modal de Exportação -->
+        <ExportacaoModal
+            v-model="modalExportacaoAberto"
+            :dados="contasPagarFiltradas"
+            :filtros="filtrosAvancados"
+            nome-relatorio="Baixa de Pagamentos"
+            @exportar-pdf="() => {}"
+            @exportar-csv="() => {}"
+            @exportar-excel="() => {}"
+            @imprimir="() => {}"
+        />
+
+        <!-- Modal de Preview do PDF -->
+        <PdfPreviewModal
+            v-model="modalPreviewPDF"
+            :html-content="previewHTMLContent"
+            :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Baixa_Pagamentos'"
+        />
       </div>
     </template>
   </top-all-pages>
@@ -250,6 +285,8 @@ import BuscaAvancadaBaixa from '@/components/base/padrao-paginas/BuscaAvancadaBa
 import BaixaCaixaModal from '@/components/base/modais/BaixaCaixaModal.vue'
 import BaixaBancoModal from '@/components/base/modais/BaixaBancoModal.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -278,6 +315,12 @@ const snackbar = reactive({
   message: '',
   color: 'success'
 })
+
+// Modais de exportação
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
 
 // ID da empresa (temporário - deve vir do contexto/autenticação)
 const idEmpresa = ref(1)
@@ -373,23 +416,21 @@ const montarPayloadBaixa = async (tipo, dadosBaixa) => {
 
 // Headers da tabela - incluindo checkbox e colunas conforme solicitado
 const headers = computed(() => {
-    const baseHeaders = [
-      { title: '', key: 'checkbox', sortable: false, width: '60px' },
-      { title: 'DT Vencimento', key: 'dtvencimento', sortable: true },
-      { title: 'Nr Documento', key: 'nrdocumento', sortable: true },
-      { title: 'Nr Parcela', key: 'nrparcela', sortable: true },
-      { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
-      { title: 'Juros', key: 'juros', sortable: true },
-      { title: 'Multa', key: 'multa', sortable: true },
-      { title: 'Desconto', key: 'desconto', sortable: true },
-      { title: 'Vlr Quitado', key: 'vlrquitado', sortable: true },
-      { title: 'Vlr Saldo', key: 'saldo_devedor', sortable: true },
-      { title: 'Vlr a Pagar', key: 'vlrapagar', sortable: true },
-      { title: 'Vlr Liberado', key: 'vlrliberado', sortable: true },
-      { title: 'Fornecedor', key: 'fornecedor', sortable: true }
-    ]
-
-  return baseHeaders
+  return [
+    { title: '', key: 'checkbox', sortable: false, width: '60px' },
+    { title: 'DT Vencimento', key: 'dtvencimento', sortable: true },
+    { title: 'Nr Documento', key: 'nrdocumento', sortable: true },
+    { title: 'Nr Parcela', key: 'nrparcela', sortable: true },
+    { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
+    { title: 'Juros', key: 'juros', sortable: true },
+    { title: 'Multa', key: 'multa', sortable: true },
+    { title: 'Desconto', key: 'desconto', sortable: true },
+    { title: 'Vlr Quitado', key: 'vlrquitado', sortable: true },
+    { title: 'Vlr Saldo', key: 'saldo_devedor', sortable: true },
+    { title: 'Vlr a Pagar', key: 'vlrapagar', sortable: true },
+    { title: 'Vlr Liberado', key: 'vlrliberado', sortable: true },
+    { title: 'Fornecedor', key: 'fornecedor', sortable: true }
+  ]
 })
 
 // Computed

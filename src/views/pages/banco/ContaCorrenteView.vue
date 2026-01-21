@@ -1,6 +1,20 @@
 <template>
   <top-all-pages icon="mdi-bank-outline">
     <template #titulo>Contas Corrente</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          Imprimir / Exportar
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <!-- Lista de Contas -->
       <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
@@ -107,6 +121,7 @@
                             <agenciacc-menu
                                 :id-banco="formData.id_banco"
                                 @selecionar="selecionarAgencia"
+                                @criar-nova="abrirModalAgencia"
                             />
                           </template>
                         </v-text-field>
@@ -540,6 +555,25 @@
       >
         {{ snackbar.message }}
       </v-snackbar>
+
+      <!-- Modal de Exportação -->
+      <ExportacaoModal
+          v-model="modalExportacaoAberto"
+          :dados="contas"
+          :filtros="{}"
+          nome-relatorio="Contas Corrente"
+          @exportar-pdf="() => {}"
+          @exportar-csv="() => {}"
+          @exportar-excel="() => {}"
+          @imprimir="() => {}"
+      />
+
+      <!-- Modal de Preview do PDF -->
+      <PdfPreviewModal
+          v-model="modalPreviewPDF"
+          :html-content="previewHTMLContent"
+          :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Contas_Corrente'"
+      />
     </template>
   </top-all-pages>
 </template>
@@ -552,7 +586,9 @@ import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandT
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import AgenciaccMenu from "@/components/base/menu/financeiro/AgenciaccMenu.vue";
-// BuscaPadraoMenu removed for agency inline autocomplete; keep modal for cadastrar
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
+// ...existing code...
 
 const themeStore = useThemeStore();
 
@@ -570,6 +606,12 @@ const openAgenciaModal = ref(false)
 // banco selecionado (objeto) to improve typing UX
 const bancoSelecionado = ref(null)
 const loadingPlanosConta = ref(false)
+
+// Modais de exportação
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
 
 // form for creating agency in modal
 const agenciaForm = reactive({
@@ -646,15 +688,17 @@ const toggleFormulario = () => {
 
 // Quando o banco for alterado, resetar agência e focar no select de agência
 const onBancoChange = async (val) => {
-  // val can be object (selected item) or primitive id
-  let id = val
-  if (val && typeof val === 'object') {
-    id = val.ID ?? val.id ?? val.ID_BANCO ?? ''
-  }
-  formData.id_banco = id || ''
+  // val vem como primitivo (ID) porque item-value="id" no autocomplete
+  // Se for um objeto (por algum motivo), extrai o ID
+  const id = normalizeId(val)
+
+  // Garantir que id_banco receba apenas o valor primitivo
+  formData.id_banco = id
+  agenciaForm.id_banco = id
   formData.id_agencia = ''
-  agenciaForm.id_banco = id || ''
-  
+
+  console.log('Banco selecionado - ID:', id, 'Valor original:', val) // Debug
+
   // Buscar agências do banco selecionado
   if (id) {
     try {
@@ -677,8 +721,38 @@ watch(bancoSelecionado, (val) => {
   onBancoChange(val)
 })
 
+const abrirModalAgencia = () => {
+  // Debug
+  console.log('Abrindo modal - formData.id_banco:', formData.id_banco)
+  console.log('Abrindo modal - bancoSelecionado:', bancoSelecionado.value)
+
+  // Normalizar id_banco para garantir que é um valor primitivo
+  const idBanco = normalizeId(formData.id_banco)
+
+  console.log('ID normalizado:', idBanco)
+
+  if (!idBanco) {
+    mostrarSnackbar('Selecione um banco primeiro', 'warning')
+    return
+  }
+
+  agenciaForm.id_banco = idBanco
+  console.log('Modal aberto com id_banco:', agenciaForm.id_banco)
+  openAgenciaModal.value = true
+}
+
 const fecharModalAgencia = () => {
   openAgenciaModal.value = false
+  // Limpar formulário da agência
+  Object.assign(agenciaForm, {
+    id: '',
+    digito_ag: '',
+    descagencia: '',
+    id_banco: '',
+    id_uf: '',
+    contato: '',
+    telefone: ''
+  })
 }
 
 // === Modal de Controle de Usuários (Acesso a Contas) ===
@@ -888,8 +962,13 @@ const editarConta = async (conta) => {
 
 // Normaliza possíveis objetos de id para primitives (ID, id, etc.)
 const normalizeId = (val) => {
-  if (val === null || val === undefined) return val
-  if (typeof val === 'object') return val.ID ?? val.id ?? val.id_agencia ?? val.ID_AGENCIA ?? ''
+  if (val === null || val === undefined || val === '') return null
+  if (typeof val === 'object') {
+    // Tenta extrair ID de um objeto
+    const id = val.ID ?? val.id ?? val.id_banco ?? val.ID_BANCO ?? val.id_agencia ?? val.ID_AGENCIA ?? null
+    return id
+  }
+  // Se já é primitivo (string/number), retornar como está
   return val
 }
 

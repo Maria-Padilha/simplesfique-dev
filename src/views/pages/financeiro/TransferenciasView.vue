@@ -1,6 +1,20 @@
 <template>
   <top-all-pages icon="mdi-swap-horizontal">
     <template #titulo>Transferências Financeiras</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          Imprimir / Exportar
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <div>
         <!-- Conteúdo Principal -->
@@ -91,6 +105,25 @@
         >
           {{ snackbar.message }}
         </v-snackbar>
+
+        <!-- Modal de Exportação -->
+        <ExportacaoModal
+            v-model="modalExportacaoAberto"
+            :dados="transferencias"
+            :filtros="{}"
+            nome-relatorio="Transferências Financeiras"
+            @exportar-pdf="() => {}"
+            @exportar-csv="() => {}"
+            @exportar-excel="() => {}"
+            @imprimir="() => {}"
+        />
+
+        <!-- Modal de Preview do PDF -->
+        <PdfPreviewModal
+            v-model="modalPreviewPDF"
+            :html-content="previewHTMLContent"
+            :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Transferencias'"
+        />
       </div>
     </template>
   </top-all-pages>
@@ -106,6 +139,8 @@ import TransferenciaBancoCaixa from '@/components/base/transferencias/Transferen
 import TransferenciaInterbancaria from '@/components/base/transferencias/TransferenciaInterbancaria.vue'
 import HistoricoTransferencias from '@/components/base/transferencias/HistoricoTransferencias.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
 
 const themeStore = useThemeStore()
 const formularioAberto = ref(false)
@@ -117,6 +152,15 @@ const snackbar = reactive({
   message: '',
   color: 'success'
 })
+
+// Modais de exportação
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
+
+// Data
+const transferencias = ref([])
 
 const tiposTransferencia = [
   { text: 'Caixa → Banco', value: 4, icon: 'mdi-cash-fast' },

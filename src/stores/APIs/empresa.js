@@ -90,6 +90,28 @@ export const useEmpresaStore = defineStore('empresa', {
             if (empresa) {
                 this.empresaSelecionada = JSON.parse(empresa);
             }
+        },
+
+        async buscarAcessoUsuario(idEmpresa) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/useraccess/${idEmpresa}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                this.errorMessage = '';
+                console.log('Acesso do usuário carregado:', response.data);
+                return response.data;
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar acesso do usuário:', error);
+            } finally {
+                this.loading = false;
+            }
         }
     }
 })

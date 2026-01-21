@@ -64,6 +64,7 @@ const props = defineProps({
   pesquisar: Function,
   modalCadastrar: Function,
   modelInput: String,
+  idBanco: {type: [String, Number], default: null}, // Passa o ID do banco
   resultados: {
     type: Array,
     default: () => [],

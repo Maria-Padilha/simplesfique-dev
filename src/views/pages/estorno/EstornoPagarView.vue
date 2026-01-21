@@ -1,6 +1,20 @@
 <template>
   <top-all-pages icon="mdi-undo-variant">
     <template #titulo>Estorno de Títulos a Pagar</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          Imprimir / Exportar
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <div>
         <!-- Content Card -->
@@ -231,6 +245,25 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
+
+        <!-- Modal de Exportação -->
+        <ExportacaoModal
+            v-model="modalExportacaoAberto"
+            :dados="estornosPagar"
+            :filtros="{}"
+            nome-relatorio="Estorno de Títulos a Pagar"
+            @exportar-pdf="() => {}"
+            @exportar-csv="() => {}"
+            @exportar-excel="() => {}"
+            @imprimir="() => {}"
+        />
+
+        <!-- Modal de Preview do PDF -->
+        <PdfPreviewModal
+            v-model="modalPreviewPDF"
+            :html-content="previewHTMLContent"
+            :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Estorno_Pagar'"
+        />
       </div>
     </template>
   </top-all-pages>
@@ -242,6 +275,8 @@ import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { toast } from 'vue3-toastify'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -250,6 +285,17 @@ const loading = ref(false)
 const loadingEstorno = ref(false)
 const dialogEstorno = ref(false)
 const itemParaEstornar = ref(null)
+
+// Modais de exportação
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
+
+// Data
+const estornosPagar = ref([])
+
+// ...existing code...
 
 // Obter primeiro e último dia do mês atual
 const obterDatasDoMesAtual = () => {
