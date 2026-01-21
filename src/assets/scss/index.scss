@@ -4,3 +4,32 @@
 @import "1-components/auth";
 
 @import "2-utilities/media_screen";
+
+/* ✅ Vuetify 3: o scroll fica no wrapper */
+.minha-tabela .v-table__wrapper{
+  overflow: auto;              /* já vem, mas deixo explícito */
+  scrollbar-width: thin;       /* Firefox */
+  scrollbar-color: #6b7280 transparent; /* Firefox */
+}
+
+/* ✅ Chrome / Edge / Safari */
+.minha-tabela .v-table__wrapper::-webkit-scrollbar{
+  width: 10px;   /* vertical */
+  height: 10px;  /* horizontal */
+}
+
+.minha-tabela .v-table__wrapper::-webkit-scrollbar-track{
+  background: transparent;     /* trilho */
+}
+
+.minha-tabela .v-table__wrapper::-webkit-scrollbar-thumb{
+  background: #6b7280;         /* “barra” */
+  border-radius: 999px;
+  border: 2px solid transparent; /* dá “respiro” */
+  background-clip: content-box;
+}
+
+.minha-tabela .v-table__wrapper::-webkit-scrollbar-thumb:hover{
+  background: #9ca3af;
+  background-clip: content-box;
+}

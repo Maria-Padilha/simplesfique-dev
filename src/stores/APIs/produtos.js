@@ -570,7 +570,7 @@ export const useProdutosStore = defineStore('produtos', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/entradadfe/${idEmpresa}`, {
+                const response = await api.get(`/entrada/${idEmpresa}`, {
                     headers: {
                         'Authorization': `Bearer ${this.token}`
                     }
@@ -600,7 +600,7 @@ export const useProdutosStore = defineStore('produtos', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/entradadfe/${idEmpresa}/${id}`, {
+                const response = await api.get(`/entrada/${idEmpresa}/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${this.token}`
                     }
@@ -626,7 +626,7 @@ export const useProdutosStore = defineStore('produtos', {
         async cadastrarEntradaDfe(entradadfeData, idEmpresa) {
             this.loading = true;
             try {
-                await apiStore.executarAcao('entradadfe', 'post', entradadfeData);
+                await apiStore.executarAcao('entrada', 'post', entradadfeData);
                 await this.buscarEntradasDfe(idEmpresa);
             } catch (error) {
                 console.error('Erro ao cadastrar entrada dfe:', error);
@@ -644,7 +644,7 @@ export const useProdutosStore = defineStore('produtos', {
         async deletarEntradaDfe(idEmpresa, id) {
             this.loading = true;
             try {
-                await apiStore.executarAcao(`entradadfe/${idEmpresa}/${id}`, 'delete');
+                await apiStore.executarAcao(`entrada/${idEmpresa}/${id}`, 'delete');
                 await this.buscarEntradasDfe(idEmpresa);
             } catch (error) {
                 console.error('Erro ao deletar entrada dfe:', error);
@@ -664,7 +664,7 @@ export const useProdutosStore = defineStore('produtos', {
         async atualizarEntradaDfe(idEmpresa, id, entradadfeData) {
             this.loading = true;
             try {
-                await apiStore.executarAcao(`entradadfe/${idEmpresa}/${id}`, 'put', entradadfeData);
+                await apiStore.executarAcao(`entrada/${idEmpresa}/${id}`, 'put', entradadfeData);
                 await this.buscarEntradaDfePorId(idEmpresa, id);
                 await this.buscarEntradasDfe(idEmpresa);
             } catch (error) {
