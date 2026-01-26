@@ -74,6 +74,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     icon: 'mdi-format-list-bulleted-type',
                     route: '/paginas/contabil/notadeservico'
                 },
+                {
+                    text: 'Plano de contas',
+                    icon: 'mdi-file-tree',
+                    route: '/paginas/contabil/planodecontas'
+                },
             ]
 
 

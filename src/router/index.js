@@ -7,27 +7,27 @@ import HomeSiteView from "@/views/site/HomeSiteView.vue";
 import FuncionalidadesSiteView from "@/views/site/FuncionalidadesSiteView.vue";
 import IntegracoesView from "@/views/site/IntegracoesSiteView.vue";
 import PlanosSiteView from "@/views/site/PlanosSiteView.vue";
-import PagarView from "@/views/pages/financeiro/PagarView.vue";
-import ReceberView from "@/views/pages/financeiro/ReceberView.vue";
-import ContaCorrenteView from "@/views/pages/banco/ContaCorrenteView.vue";
-import CentroDeCustoView from "@/views/pages/financeiro/CentroDeCustoView.vue";
-import PrevisaoDebitosView from "@/views/pages/financeiro/PrevisaoDebitosView.vue";
+import PagarView from "@/views/pages/financeiro/pagar/PagarView.vue";
+import ReceberView from "@/views/pages/financeiro/receber/ReceberView.vue";
+import ContaCorrenteView from "@/views/pages/financeiro/banco/ContaCorrenteView.vue";
+import CentroDeCustoView from "@/views/pages/financeiro/pagar/CentroDeCustoView.vue";
+import PrevisaoDebitosView from "@/views/pages/financeiro/pagar/PrevisaoDebitosView.vue";
 import PessoasView from '@/views/pages/PessoasView.vue';
-import PlanoContaView from '@/views/pages/financeiro/PlanoContaView.vue';
-import DebitoRealView from '@/views/pages/financeiro/DebitoRealView.vue';
+import PlanoContaView from '@/views/pages/contabil/PlanoContaView.vue';
+import DebitoRealView from '@/views/pages/financeiro/pagar/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
 import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
 import PdvView from '@/views/pages/pdv/PdvView.vue';
 import PagamentoView from '@/views/pages/pdv/PagamentoView.vue';
-import MovimentacaoView from '@/views/pages/banco/MovimentacaoView.vue';
+import MovimentacaoView from '@/views/pages/financeiro/banco/MovimentacaoView.vue';
 import AdiantamentoClienteView from '@/views/pages/adiantamento/AdiantamentoClienteView.vue';
 import AdiantamentoFornecedorView from '@/views/pages/adiantamento/AdiantamentoFornecedorView.vue';
-import AutorizacaoPagtoView from '@/views/pages/financeiro/AutorizacaoPagtoView.vue';
-import BaixaPagtoView from '@/views/pages/financeiro/BaixaPagtoView.vue';
-import BaixaRecebView from '@/views/pages/financeiro/BaixaRecebView.vue';
+import AutorizacaoPagtoView from '@/views/pages/financeiro/pagar/AutorizacaoPagtoView.vue';
+import BaixaPagtoView from '@/views/pages/financeiro/pagar/BaixaPagtoView.vue';
+import BaixaRecebView from '@/views/pages/financeiro/receber/BaixaRecebView.vue';
 import FinanceiroRelatorioView from '@/views/pages/relatorios/FinanceiroRelatorioView.vue';
-import TransferenciasView from '@/views/pages/financeiro/TransferenciasView.vue';
+import TransferenciasView from '@/views/pages/financeiro/banco/TransferenciasView.vue';
 import EstornoPagarView from '@/views/pages/estorno/EstornoPagarView.vue';
 import EstornoReceberView from '@/views/pages/estorno/EstornoReceberView.vue';
 import GrupoUsuarioView from '@/views/pages/manutencao/GrupoUsuarioView.vue';
@@ -136,21 +136,21 @@ const routes = [
     {
         path: '/paginas/financeiro/caixa',
         name: 'financeiro_caixa',
-        component: () => import('@/views/pages/financeiro/CaixaView.vue')
+        component: () => import('@/views/pages/financeiro/caixa/CaixaView.vue')
     },
     {
         path: '/paginas/financeiro/caixa/abertura',
         name: 'financeiro_caixa_abertura',
-        component: () => import('@/views/pages/caixa/AberCaixaView.vue')
+        component: () => import('@/views/pages/financeiro/caixa/AberCaixaView.vue')
     },
     {
         path: '/paginas/financeiro/caixa/lancamento',
         name: 'financeiro_caixa_lancamento',
-        component: () => import('@/views/pages/caixa/LancCaixaView.vue')
+        component: () => import('@/views/pages/financeiro/caixa/LancCaixaView.vue')
     },
     {
-        path: '/paginas/financeiro/planoconta',
-        name: 'financeiro_planoconta',
+        path: '/paginas/contabil/planoconta',
+        name: 'contabil_planoconta',
         component: PlanoContaView
     },
     {

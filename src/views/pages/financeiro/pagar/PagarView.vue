@@ -1971,6 +1971,14 @@ const carregarDadosAuxiliares = async () => {
     // Carregar planos de conta
     await financeiroStore.buscarPlanosConta()
 
+    // Carregar históricos contábeis
+    try {
+      const historicosRes = await financeiroStore.buscarHistoricosContabil()
+      historicoContabilResultados.value = historicosRes || []
+    } catch (err) {
+      console.warn('Não foi possível carregar históricos contábeis:', err)
+    }
+
     // Carregar centros de custo
     try {
       await ccustoStore.listarCCusto()
