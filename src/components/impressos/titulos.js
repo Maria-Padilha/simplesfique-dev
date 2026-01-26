@@ -236,12 +236,10 @@ export const TEMPLATE_TITULOS = `<!DOCTYPE html>
                 <th style="width: 45px; background: transparent; color: white; padding: 6px 3px;">Doc.</th>
                 <th style="width: 35px; background: transparent; color: white; padding: 6px 3px;">Série</th>
                 <th style="width: 40px; background: transparent; color: white; padding: 6px 3px;">Espécie</th>
-                <th style="width: 35px; text-align: center; background: transparent; color: white; padding: 6px 3px;">Parc.</th>
-                <th style="width: 30px; text-align: center; background: transparent; color: white; padding: 6px 3px;">Qtd</th>
+                <th style="width: 55px; text-align: center; background: transparent; color: white; padding: 6px 3px;">Parc./Qtd</th>
                 <th style="width: 60px; background: transparent; color: white; padding: 6px 3px;">Emissão</th>
                 <th style="width: 60px; background: transparent; color: white; padding: 6px 3px;">Vencimento</th>
                 <th style="min-width: 100px; background: transparent; color: white; padding: 6px 3px;">{{CONTRAPARTE_HEADER}}</th>
-                <th style="width: 65px; text-align: right; background: transparent; color: white; padding: 6px 3px;">Vlr Doc.</th>
                 <th style="width: 65px; text-align: right; background: transparent; color: white; padding: 6px 3px;">Vlr Parc.</th>
                 <th style="width: 50px; text-align: right; background: transparent; color: white; padding: 6px 3px;">Juros</th>
                 <th style="width: 50px; text-align: right; background: transparent; color: white; padding: 6px 3px;">Multa</th>
@@ -563,12 +561,10 @@ export const abrirImpressaoTitulos = (tipoRelatorio, dados, filtros) => {
           <td class="text-center">${titulo.documento}</td>
           <td class="text-center">${titulo.serie}</td>
           <td class="text-center">${titulo.especie}</td>
-          <td class="text-center">${titulo.parcela}</td>
-          <td class="text-center">${titulo.qtdParcelas}</td>
+          <td class="text-center">${titulo.parcela}/${titulo.qtdParcelas}</td>
           <td>${titulo.dataCadastro}</td>
           <td>${titulo.dataVencimento}</td>
           <td>${titulo.contraparte}</td>
-          <td class="text-right valor-positivo"><strong>${titulo.vlrDocumento}</strong></td>
           <td class="text-right valor-positivo"><strong>${titulo.valor}</strong></td>
           <td class="text-right ${parseFloat(titulo.juros) > 0 ? 'valor-negativo' : ''}">${titulo.juros}</td>
           <td class="text-right ${parseFloat(titulo.multa) > 0 ? 'valor-negativo' : ''}">${titulo.multa}</td>
