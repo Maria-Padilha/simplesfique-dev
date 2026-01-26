@@ -7,11 +7,12 @@
           color="var(--text-color-laranja)"
           variant="outlined"
           size="small"
+          :disabled="!podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA)"
           @click="modalExportacaoAberto = true"
       >
         <v-icon icon="mdi-printer"></v-icon>
         <v-tooltip activator="parent" location="top">
-          Imprimir / Exportar
+          {{ !podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA) ? 'Sem permissão' : 'Imprimir / Exportar' }}
         </v-tooltip>
       </v-btn>
     </template>
@@ -264,6 +265,13 @@
             :html-content="previewHTMLContent"
             :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Estorno_Pagar'"
         />
+
+        <!-- Modal de Acesso Negado -->
+        <AcessoNegadoModal
+            v-model="acessoNegadoModal"
+            :nome-programa="'Rotina Estorno de Títulos Pagos'"
+            :tipo-acesso="tipoAcessoNegado"
+        />
       </div>
     </template>
   </top-all-pages>
@@ -273,13 +281,23 @@
 import { ref, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
+import { usePermissoes } from '@/utils/usePermissoes'
 import { toast } from 'vue3-toastify'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
 import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
+import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
+
+// ID do programa desta tela
+const ID_PROGRAMA = 'FFIN208E'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
+const { podeVisualizar, podeAlterar, podeExportar, podePDF } = usePermissoes()
+
+// Modal de acesso negado
+const acessoNegadoModal = ref(false)
+const tipoAcessoNegado = ref('')
 
 const loading = ref(false)
 const loadingEstorno = ref(false)
@@ -410,6 +428,13 @@ const pesquisarBaixas = async () => {
 
 // Confirmar estorno do lote
 const confirmarEstornoLote = (lote) => {
+  // Verificar permissão para alterar (fazer estorno é uma alteração)
+  if (!podeAlterar(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'alterar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   itemParaEstornar.value = lote
   dialogEstorno.value = true
 }
@@ -475,6 +500,14 @@ const formatarData = (dataISO) => {
 
 // Buscar baixas ao montar o componente
 onMounted(async () => {
+  // Verificar se o usuário tem permissão para visualizar este programa
+  if (!podeVisualizar(ID_PROGRAMA)) {
+    console.warn('[EstornoPagarView] Usuário sem permissão para visualizar')
+    tipoAcessoNegado.value = 'visualizar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   await pesquisarBaixas()
 })
 </script>

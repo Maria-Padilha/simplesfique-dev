@@ -1402,6 +1402,13 @@
         >
           {{ snackbar.message }}
         </v-snackbar>
+
+        <!-- Modal de Acesso Negado -->
+        <AcessoNegadoModal
+            v-model="acessoNegadoModal"
+            :nome-programa="'Lançamentos de Contas a Pagar'"
+            :tipo-acesso="tipoAcessoNegado"
+        />
       </div>
     </template>
   </top-all-pages>
@@ -1412,10 +1419,13 @@ import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
+import { usePermissoes } from '@/utils/usePermissoes'
 import { toast } from 'vue3-toastify'
 import { abrirImpressaoTitulos, gerarHTMLTitulos } from '@/components/impressos/titulos'
 import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
 import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
+// eslint-disable-next-line no-unused-vars
+import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import BuscaAvancada from '@/components/base/padrao-paginas/BuscaAvancada.vue'
 import TipoDocumentoMenu from '@/components/base/menu/TipoDocumentoMenu.vue'
@@ -1429,9 +1439,21 @@ import CadastrarModal from '@/components/base/modais/CadastrarModal.vue'
 import numeric from 'numeric'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
+// ID do programa desta tela
+// eslint-disable-next-line no-unused-vars
+const ID_PROGRAMA = 'FFIN205E'
+
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
 const ccustoStore = useCCustoStore()
+// eslint-disable-next-line no-unused-vars
+const { podeVisualizar, podeIncluir, podeAlterar, podeExcluir, podeExportar, podePDF } = usePermissoes()
+
+// Modal de acesso negado
+// eslint-disable-next-line no-unused-vars
+const acessoNegadoModal = ref(false)
+// eslint-disable-next-line no-unused-vars
+const tipoAcessoNegado = ref('')
 
 // Refs
 const formularioAberto = ref(false)

@@ -7,11 +7,12 @@
           color="var(--text-color-laranja)"
           variant="outlined"
           size="small"
+          :disabled="!podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA)"
           @click="modalExportacaoAberto = true"
       >
         <v-icon icon="mdi-printer"></v-icon>
         <v-tooltip activator="parent" location="top">
-          Imprimir / Exportar
+          {{ !podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA) ? 'Sem permissão' : 'Imprimir / Exportar' }}
         </v-tooltip>
       </v-btn>
     </template>
@@ -274,6 +275,13 @@
             :html-content="previewHTMLContent"
             :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Debitos_Realizados'"
         />
+
+        <!-- Modal de Acesso Negado -->
+        <AcessoNegadoModal
+            v-model="acessoNegadoModal"
+            :nome-programa="'Movimentação Centro de Custo Realizado'"
+            :tipo-acesso="tipoAcessoNegado"
+        />
       </div>
     </template>
   </top-all-pages>
@@ -284,18 +292,29 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
 import { useEmpresaStore } from '@/stores/APIs/empresa'
+import { usePermissoes } from '@/utils/usePermissoes'
 import { toast } from 'vue3-toastify'
 import { gerarHTMLCentroCusto, abrirImpressaoCentroCusto } from '@/components/impressos/centrodecusto'
 import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
 import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
+import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
 import VueApexCharts from 'vue3-apexcharts'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+
+// ID do programa desta tela
+const ID_PROGRAMA = 'FFIN401P'
 
 const apexchart = VueApexCharts
 
 const themeStore = useThemeStore()
 const ccustoStore = useCCustoStore()
 const empresaStore = useEmpresaStore()
+// eslint-disable-next-line no-unused-vars
+const { podeVisualizar, podeIncluir, podeAlterar, podeExcluir, podeExportar, podePDF } = usePermissoes()
+
+// Modal de acesso negado
+const acessoNegadoModal = ref(false)
+const tipoAcessoNegado = ref('')
 
 // Estado
 const loading = ref(false)
@@ -887,6 +906,14 @@ const carregarDebitosRealizados = async () => {
 
 // Lifecycle
 onMounted(async () => {
+  // Verificar se o usuário tem permissão para visualizar este programa
+  if (!podeVisualizar(ID_PROGRAMA)) {
+    console.warn('[DebitoRealView] Usuário sem permissão para visualizar')
+    tipoAcessoNegado.value = 'visualizar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   console.log('🚀 Iniciando carregamento de débitos realizados...')
   await carregarDebitosRealizados()
   console.log('✅ Carregamento completo')

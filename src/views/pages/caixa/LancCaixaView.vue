@@ -7,11 +7,12 @@
           color="var(--text-color-laranja)"
           variant="outlined"
           size="small"
+          :disabled="!podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA)"
           @click="modalExportacaoAberto = true"
       >
         <v-icon icon="mdi-printer"></v-icon>
         <v-tooltip activator="parent" location="top">
-          Imprimir / Exportar
+          {{ !podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA) ? 'Sem permissão' : 'Imprimir / Exportar' }}
         </v-tooltip>
       </v-btn>
     </template>
@@ -637,6 +638,13 @@
           :html-content="previewHTMLContent"
           :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Lancamentos_Caixa'"
       />
+
+      <!-- Modal de Acesso Negado -->
+      <AcessoNegadoModal
+          v-model="acessoNegadoModal"
+          :nome-programa="'Rotina Encerramento de Caixa'"
+          :tipo-acesso="tipoAcessoNegado"
+      />
     </template>
   </top-all-pages>
 </template>
@@ -649,11 +657,17 @@ import { useEmpresaStore } from '@/stores/APIs/empresa'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useConfigParfinStore } from '@/stores/APIs/config'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
+import { usePermissoes } from '@/utils/usePermissoes'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import html2pdf from 'html2pdf.js'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
 import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
+// eslint-disable-next-line no-unused-vars
+import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
+
+// ID do programa desta tela (Rotina Encerramento de Caixa)
+const ID_PROGRAMA = 'FFIN204E'
 
 const themeStore = useThemeStore()
 const caixaStore = useCaixaStore()
@@ -661,6 +675,11 @@ const empresaStore = useEmpresaStore()
 const financeiroStore = useFinanceiroStore()
 const configStore = useConfigParfinStore()
 const ccustoStore = useCCustoStore()
+const { podeVisualizar, podeIncluir, podeAlterar, podeExcluir, podeExportar, podePDF } = usePermissoes()
+
+// Modal de acesso negado
+const acessoNegadoModal = ref(false)
+const tipoAcessoNegado = ref('')
 
 // Estado
 const formularioAberto = ref(false)
@@ -895,6 +914,13 @@ const aplicarPeriodo = (periodo) => {
 
 // Métodos de ação
 const toggleFormulario = () => {
+  // Verificar permissão para incluir
+  if (!formularioAberto.value && !podeIncluir(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'incluir'
+    acessoNegadoModal.value = true
+    return
+  }
+
   formularioAberto.value = !formularioAberto.value
   if (!formularioAberto.value) {
     limparFormulario()
@@ -1327,6 +1353,13 @@ const mostrarMensagem = (mensagem, tipo) => {
 
 // Editar lançamento
 const editarLancamento = async (item) => {
+  // Verificar permissão para alterar
+  if (!podeAlterar(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'alterar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   // Só permite editar lançamentos de caixa (CAI)
   if (item.origem !== 'CAI') {
     return
@@ -1425,6 +1458,13 @@ const confirmarExclusao = (item) => {
 
 // Excluir lançamento
 const excluirLancamento = async (item) => {
+  // Verificar permissão para excluir
+  if (!podeExcluir(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'excluir'
+    acessoNegadoModal.value = true
+    return
+  }
+
   loading.value = true
   try {
     const idParaExcluir = item?.id || formData.id
@@ -1685,6 +1725,14 @@ const exportarExcel = () => {
 
 // Lifecycle
 onMounted(async () => {
+  // Verificar se o usuário tem permissão para visualizar este programa
+  if (!podeVisualizar(ID_PROGRAMA)) {
+    console.warn('[LancCaixaView] Usuário sem permissão para visualizar')
+    tipoAcessoNegado.value = 'visualizar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   console.log('🚀 Iniciando carregamento de dados...')
 
   // Carregar template HTML

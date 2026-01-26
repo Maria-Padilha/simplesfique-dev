@@ -7,11 +7,12 @@
           color="var(--text-color-laranja)"
           variant="outlined"
           size="small"
+          :disabled="!podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA)"
           @click="modalExportacaoAberto = true"
       >
         <v-icon icon="mdi-printer"></v-icon>
         <v-tooltip activator="parent" location="top">
-          Imprimir / Exportar
+          {{ !podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA) ? 'Sem permissão' : 'Imprimir / Exportar' }}
         </v-tooltip>
       </v-btn>
     </template>
@@ -832,6 +833,13 @@
         >
           {{ snackbar.message }}
         </v-snackbar>
+
+        <!-- Modal de Acesso Negado -->
+        <AcessoNegadoModal
+            v-model="acessoNegadoModal"
+            :nome-programa="'Lançamentos de Contas a Receber'"
+            :tipo-acesso="tipoAcessoNegado"
+        />
       </div>
     </template>
   </top-all-pages>
@@ -841,10 +849,13 @@
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
+import { usePermissoes } from '@/utils/usePermissoes'
 import { toast } from 'vue3-toastify'
 import { abrirImpressaoTitulos, gerarHTMLTitulos } from '@/components/impressos/titulos'
 import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
 import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
+// eslint-disable-next-line no-unused-vars
+import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import BuscaAvancada from '@/components/base/padrao-paginas/BuscaAvancada.vue'
@@ -859,8 +870,20 @@ import CadastrarModal from '@/components/base/modais/CadastrarModal.vue'
 import numeric from 'numeric'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
+// ID do programa desta tela
+// eslint-disable-next-line no-unused-vars
+const ID_PROGRAMA = 'FFIN210E'
+
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
+// eslint-disable-next-line no-unused-vars
+const { podeVisualizar, podeIncluir, podeAlterar, podeExcluir, podeExportar, podePDF } = usePermissoes()
+
+// Modal de acesso negado
+// eslint-disable-next-line no-unused-vars
+const acessoNegadoModal = ref(false)
+// eslint-disable-next-line no-unused-vars
+const tipoAcessoNegado = ref('')
 
 // Refs
 const formularioAberto = ref(false)
@@ -1114,6 +1137,14 @@ const totalParcelasFiltradas = computed(() => {
 
 // Ciclo de vida
 onMounted(async () => {
+  // Verificar se o usuário tem permissão para visualizar este programa
+  if (!podeVisualizar(ID_PROGRAMA)) {
+    console.warn('[ReceberView] Usuário sem permissão para visualizar')
+    tipoAcessoNegado.value = 'visualizar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   // Carregar apenas dados auxiliares no mount
   // As Contas a Receber só serão carregadas após aplicar filtros obrigatórios
   await carregarDadosAuxiliares()
@@ -1213,6 +1244,13 @@ const carregarDadosAuxiliares = async () => {
 }
 
 const toggleFormulario = () => {
+  // Verificar permissão para incluir
+  if (!formularioAberto.value && !podeIncluir(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'incluir'
+    acessoNegadoModal.value = true
+    return
+  }
+
   if (formularioAberto.value) {
     cancelarFormulario()
   } else {

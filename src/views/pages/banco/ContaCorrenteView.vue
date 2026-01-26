@@ -7,11 +7,12 @@
           color="var(--text-color-laranja)"
           variant="outlined"
           size="small"
+          :disabled="!podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA)"
           @click="modalExportacaoAberto = true"
       >
         <v-icon icon="mdi-printer"></v-icon>
         <v-tooltip activator="parent" location="top">
-          Imprimir / Exportar
+          {{ !podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA) ? 'Sem permissão' : 'Imprimir / Exportar' }}
         </v-tooltip>
       </v-btn>
     </template>
@@ -574,6 +575,13 @@
           :html-content="previewHTMLContent"
           :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Contas_Corrente'"
       />
+
+      <!-- Modal de Acesso Negado -->
+      <AcessoNegadoModal
+          v-model="acessoNegadoModal"
+          :nome-programa="'Cadastro de Conta Corrente'"
+          :tipo-acesso="tipoAcessoNegado"
+      />
     </template>
   </top-all-pages>
 </template>
@@ -582,18 +590,28 @@
 import { ref, reactive, onMounted, nextTick, watch } from 'vue'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useThemeStore } from '@/stores/config-temas/theme'
+import { usePermissoes } from '@/utils/usePermissoes'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import AgenciaccMenu from "@/components/base/menu/financeiro/AgenciaccMenu.vue";
 import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
 import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
-// ...existing code...
+import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
+
+// ID do programa desta tela
+const ID_PROGRAMA = 'FFIN001C'
 
 const themeStore = useThemeStore();
 
 // Store
 const financeiroStore = useFinanceiroStore()
+// eslint-disable-next-line no-unused-vars
+const { podeVisualizar, podeIncluir, podeAlterar, podeExcluir, podeExportar, podePDF } = usePermissoes()
+
+// Modal de acesso negado
+const acessoNegadoModal = ref(false)
+const tipoAcessoNegado = ref('')
 
 // Refs
 const formularioAberto = ref(false)
@@ -679,6 +697,13 @@ const rules = {
 
 // Métodos
 const toggleFormulario = () => {
+  // Verificar permissão para incluir
+  if (!formularioAberto.value && !podeIncluir(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'incluir'
+    acessoNegadoModal.value = true
+    return
+  }
+
   if (formularioAberto.value) {
     cancelarFormulario()
   } else {
@@ -894,6 +919,13 @@ const abrirFormulario = () => {
 }
 
 const editarConta = async (conta) => {
+  // Verificar permissão para alterar
+  if (!podeAlterar(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'alterar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   editando.value = true
   // Copiar os campos do registro para o formData
   Object.assign(formData, conta)
@@ -1023,6 +1055,13 @@ const salvarConta = async () => {
 }
 
 const excluirConta = async (conta) => {
+  // Verificar permissão para excluir
+  if (!podeExcluir(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'excluir'
+    acessoNegadoModal.value = true
+    return
+  }
+
   try {
     const contaId = conta?.id
     await financeiroStore.deletarConta(contaId)
@@ -1074,6 +1113,14 @@ const getBancoNome = (idBanco) => {
 
 // Lifecycle
 onMounted(async () => {
+  // Verificar se o usuário tem permissão para visualizar este programa
+  if (!podeVisualizar(ID_PROGRAMA)) {
+    console.warn('[ContaCorrenteView] Usuário sem permissão para visualizar')
+    tipoAcessoNegado.value = 'visualizar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   try {
     // Carregar dados em paralelo para melhor performance
     await Promise.all([

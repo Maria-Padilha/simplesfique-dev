@@ -7,11 +7,12 @@
           color="var(--text-color-laranja)"
           variant="outlined"
           size="small"
+          :disabled="!podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA)"
           @click="modalExportacaoAberto = true"
       >
         <v-icon icon="mdi-printer"></v-icon>
         <v-tooltip activator="parent" location="top">
-          Imprimir / Exportar
+          {{ !podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA) ? 'Sem permissão' : 'Imprimir / Exportar' }}
         </v-tooltip>
       </v-btn>
     </template>
@@ -148,6 +149,13 @@
           :html-content="previewHTMLContent"
           :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Centros_de_Custo'"
       />
+
+      <!-- Modal de Acesso Negado -->
+      <AcessoNegadoModal
+          v-model="acessoNegadoModal"
+          :nome-programa="'Cadastro de Centro de Custo'"
+          :tipo-acesso="tipoAcessoNegado"
+      />
     </template>
   </top-all-pages>
 </template>
@@ -157,14 +165,25 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
+import { usePermissoes } from '@/utils/usePermissoes'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
 import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
+import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
+
+// ID do programa desta tela
+const ID_PROGRAMA = 'FFIN003C'
 
 const themeStore = useThemeStore()
 const ccustoStore = useCCustoStore()
+// eslint-disable-next-line no-unused-vars
+const { podeVisualizar, podeIncluir, podeAlterar, podeExcluir, podeExportar, podePDF } = usePermissoes()
+
+// Modal de acesso negado
+const acessoNegadoModal = ref(false)
+const tipoAcessoNegado = ref('')
 
 // Refs
 const formularioAberto = ref(false)
@@ -222,11 +241,26 @@ const centrosCustoFiltrados = computed(() => {
 
 // Ciclo de vida
 onMounted(async () => {
+  // Verificar se o usuário tem permissão para visualizar este programa
+  if (!podeVisualizar(ID_PROGRAMA)) {
+    console.warn('[CentroDeCustoView] Usuário sem permissão para visualizar')
+    tipoAcessoNegado.value = 'visualizar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   await ccustoStore.listarCCusto()
 })
 
 // Métodos
 const toggleFormulario = () => {
+  // Verificar permissão para incluir
+  if (!formularioAberto.value && !podeIncluir(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'incluir'
+    acessoNegadoModal.value = true
+    return
+  }
+
   if (formularioAberto.value) {
     cancelarFormulario()
   } else {
@@ -241,6 +275,13 @@ const abrirFormulario = () => {
 }
 
 const editarCentroCusto = (item) => {
+  // Verificar permissão para alterar
+  if (!podeAlterar(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'alterar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   editando.value = true
   Object.assign(formData, {
     id: item.id,
@@ -287,6 +328,13 @@ const salvarCentroCusto = async () => {
 }
 
 const excluirCentroCusto = async (item) => {
+  // Verificar permissão para excluir
+  if (!podeExcluir(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'excluir'
+    acessoNegadoModal.value = true
+    return
+  }
+
   try {
     await ccustoStore.deletarCCusto(item.id)
   } catch (error) {
