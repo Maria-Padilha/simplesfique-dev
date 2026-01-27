@@ -730,6 +730,8 @@ const salvarFormulario = async () => {
   forms.arquivoxml = forms.arquivoxml ? forms.arquivoxml.name : null;
   forms.id_uf = forms.id_uf ? forms.id_uf.sigla : null;
 
+  // produtos.value.vlr_unitario = Number(produtos.value.vlr_unitario.toFixed(2));
+
   console.log(normalizarForm(forms));
 
   // const payload = normalizarForm(forms);
@@ -1047,21 +1049,21 @@ function preencherForms(ide, total, emit, xml, dest, itens, transp, pag, infAdic
       return {
         id_seq: Number(item?.nItem ?? (idx + 1)),
         id_produto: null,
-        id_cor: null,
-        id_tamanho: null,
+        id_cor: 0,
+        id_tamanho: 0,
 
         descprodutovst: null,
         descprodutoxml: prod?.xProd ?? null,
 
         quantidade: Number(String(prod?.qCom ?? 0).replace(",", ".")),
-        vlr_unitario: normalizarMoeda(prod?.vUnCom),
-        desconto_total_item: normalizarMoeda(prod?.vDesc ?? 0), // se não tiver no XML, fica 0
-        vlr_total_item: normalizarMoeda(prod?.vProd),
+        vlr_unitario: Number(prod?.vUnCom).toFixed(4) ?? 0.00,
+        desconto_total_item: normalizarMoeda(prod?.vDesc ?? 0.00), // se não tiver no XML, fica 0
+        vlr_total_item: Number(prod?.vProd).toFixed(2) ?? 0.00,
 
-        vlr_seguro_item: normalizarMoeda(prod?.vSeg ?? 0),
-        vlr_frete_item: normalizarMoeda(prod?.vFrete ?? 0),
+        vlr_seguro_item: normalizarMoeda(prod?.vSeg ?? 0.00),
+        vlr_frete_item: normalizarMoeda(prod?.vFrete ?? 0.00),
 
-        custo_medio: normalizarMoeda(null),
+        custo_medio: Number(prod?.vUnCom).toFixed(4) ?? 0.00,
         id_movimentoalmox: forms.id_almoxarifado ?? null,
 
         // ===== Fiscal (geral)
@@ -1100,9 +1102,9 @@ function preencherForms(ide, total, emit, xml, dest, itens, transp, pag, infAdic
 
         // ===== Outros / contábil / bases
         id_reduzido_ctb: null,
-        vlr_outras_item: normalizarMoeda(prod?.vOutro ?? 0),
+        vlr_outras_item: normalizarMoeda(prod?.vOutro ?? 0.00),
         reducao_base_calc: normalizarMoeda(icmsGroup?.pRedBC),
-        vlr_outras_item_foranf: normalizarMoeda(0),
+        vlr_outras_item_foranf: normalizarMoeda(0.00),
 
         aliq_mva: normalizarMoeda(icmsGroup?.pMVAST),
         pmva_item: normalizarMoeda(icmsGroup?.pMVAST),
@@ -1118,11 +1120,11 @@ function preencherForms(ide, total, emit, xml, dest, itens, transp, pag, infAdic
         incidenciafiscal_item: null,
 
         // ===== II (Importação) — se não existir no XML, deixa 0
-        aliquota_ii_item: normalizarMoeda(icmsGroup?.pII ?? 0),
-        base_ii_item: normalizarMoeda(icmsGroup?.vBC ?? 0),
-        vlr_ii_item: normalizarMoeda(icmsGroup?.vII ?? 0),
-        vlr_siscomex_item: normalizarMoeda(icmsGroup?.vDespAdu ?? 0),
-        vlr_afrmm_item: normalizarMoeda(icmsGroup?.vAFRMM ?? 0),
+        aliquota_ii_item: normalizarMoeda(icmsGroup?.pII ?? 0.00),
+        base_ii_item: normalizarMoeda(icmsGroup?.vBC ?? 0.00),
+        vlr_ii_item: normalizarMoeda(icmsGroup?.vII ?? 0.00),
+        vlr_siscomex_item: normalizarMoeda(icmsGroup?.vDespAdu ?? 0.00),
+        vlr_afrmm_item: normalizarMoeda(icmsGroup?.vAFRMM ?? 0.00),
 
         // ===== IBS/CBS (reforma) — nomes CERTOS da sua lista
         cclasstrib_item: imp?.IBSCBS?.cClassTrib ?? null,
@@ -1159,22 +1161,32 @@ function formatarReal(valor) {
       });
 }
 
-function normalizarMoeda(valor) {
-  if (valor === null || valor === undefined || valor === "") return 0;
+function normalizarMoeda(valor, casas = 2) {
+  if (valor === null || valor === undefined || valor === "") {
+    return "0." + "0".repeat(casas);
+  }
 
-  // se vier "R$ 1.234,56"
+  // número gigante vindo do XML (ex: 262900000000)
+  if (typeof valor === "number") {
+    return (valor / Math.pow(10, casas)).toFixed(casas);
+  }
+
+  // string tipo "R$ 1.234,56"
   if (typeof valor === "string") {
-    return Number(
+    const num = Number(
         valor
-            .replaceAll("R$", "")
+            .replace("R$", "")
             .replaceAll(".", "")
             .replace(",", ".")
             .trim()
-    ) || 0;
+    );
+
+    return isNaN(num) ? "0." + "0".repeat(casas) : num.toFixed(casas);
   }
 
-  return Number(valor) || 0;
+  return "0." + "0".repeat(casas);
 }
+
 
 /**
  * ADICIONANDO ITENS

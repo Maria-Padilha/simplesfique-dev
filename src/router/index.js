@@ -234,12 +234,12 @@ const routes = [
     {
         path: '/paginas/entradadfe',
         name: 'entradadfe',
-        component: () => import('@/views/pages/produtos/EntradaDfeView.vue')
+        component: () => import('@/views/pages/produtos/entrada/EntradaDfeView.vue')
     },
     {
         path: '/paginas/entradadfe/nova',
         name: 'entradadfe-nova',
-        component: () => import('@/views/pages/produtos/EntradaDfeNovaView.vue')
+        component: () => import('@/views/pages/produtos/entrada/EntradaDfeNovaView.vue')
     },
     {
         path: '/paginas/entradadfe/visualizar/:id',
