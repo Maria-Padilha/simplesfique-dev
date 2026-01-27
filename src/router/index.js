@@ -30,6 +30,7 @@ import FinanceiroRelatorioView from '@/views/pages/relatorios/FinanceiroRelatori
 import TransferenciasView from '@/views/pages/financeiro/TransferenciasView.vue';
 import EstornoPagarView from '@/views/pages/estorno/EstornoPagarView.vue';
 import EstornoReceberView from '@/views/pages/estorno/EstornoReceberView.vue';
+import GrupoUsuarioView from '@/views/pages/manutencao/GrupoUsuarioView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
@@ -59,6 +60,11 @@ const routes = [
         path: '/paginas/manutencao/usuarios',
         name: 'manutencao_usuarios',
         component: UsuariosView
+    },
+    {
+        path: '/paginas/manutencao/grupousuario',
+        name: 'manutencao_grupousuario',
+        component: GrupoUsuarioView
     },
 
     //   paginas de autenticação

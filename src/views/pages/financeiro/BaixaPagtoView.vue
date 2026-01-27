@@ -1,6 +1,21 @@
 <template>
   <top-all-pages icon="mdi-cash-minus">
     <template #titulo>Baixa de Pagamentos</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          :disabled="!podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA)"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          {{ !podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA) ? 'Sem permissão' : 'Imprimir / Exportar' }}
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <div>
         <!-- Card com Total das Parcelas e Ações de Baixa -->
@@ -68,10 +83,12 @@
         <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
           <v-card-text class="pa-4">
             <!-- Busca Avançada -->
-            <BuscaAvancadaBaixa
-                entidade="contaspagar"
-                @aplicar="aplicarFiltrosAvancados"
-            />
+            <div class="mb-4">
+              <BuscaAvancadaBaixa
+                  entidade="contaspagar"
+                  @aplicar="aplicarFiltrosAvancados"
+              />
+            </div>
 
             <!-- Tabela de Contas a Pagar -->
             <TabelaPadrao
@@ -235,6 +252,32 @@
         >
           {{ snackbar.message }}
         </v-snackbar>
+
+        <!-- Modal de Exportação -->
+        <ExportacaoModal
+            v-model="modalExportacaoAberto"
+            :dados="contasPagarFiltradas"
+            :filtros="filtrosAvancados"
+            nome-relatorio="Baixa de Pagamentos"
+            @exportar-pdf="() => {}"
+            @exportar-csv="() => {}"
+            @exportar-excel="() => {}"
+            @imprimir="() => {}"
+        />
+
+        <!-- Modal de Preview do PDF -->
+        <PdfPreviewModal
+            v-model="modalPreviewPDF"
+            :html-content="previewHTMLContent"
+            :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Baixa_Pagamentos'"
+        />
+
+        <!-- Modal de Acesso Negado -->
+        <AcessoNegadoModal
+            v-model="acessoNegadoModal"
+            :nome-programa="'Rotina Baixa de Títulos a Pagar'"
+            :tipo-acesso="tipoAcessoNegado"
+        />
       </div>
     </template>
   </top-all-pages>
@@ -245,15 +288,27 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useConfigParfinStore } from '@/stores/APIs/config'
+import { usePermissoes } from '@/utils/usePermissoes'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import BuscaAvancadaBaixa from '@/components/base/padrao-paginas/BuscaAvancadaBaixa.vue'
 import BaixaCaixaModal from '@/components/base/modais/BaixaCaixaModal.vue'
 import BaixaBancoModal from '@/components/base/modais/BaixaBancoModal.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
+import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
+
+// ID do programa desta tela
+const ID_PROGRAMA = 'FFIN207E'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
 const configParfinStore = useConfigParfinStore()
+const { podeVisualizar, podeAlterar, podeExportar, podePDF } = usePermissoes()
+
+// Modal de acesso negado
+const acessoNegadoModal = ref(false)
+const tipoAcessoNegado = ref('')
 
 // Refs
 const search = ref('')
@@ -278,6 +333,12 @@ const snackbar = reactive({
   message: '',
   color: 'success'
 })
+
+// Modais de exportação
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
 
 // ID da empresa (temporário - deve vir do contexto/autenticação)
 const idEmpresa = ref(1)
@@ -373,23 +434,21 @@ const montarPayloadBaixa = async (tipo, dadosBaixa) => {
 
 // Headers da tabela - incluindo checkbox e colunas conforme solicitado
 const headers = computed(() => {
-    const baseHeaders = [
-      { title: '', key: 'checkbox', sortable: false, width: '60px' },
-      { title: 'DT Vencimento', key: 'dtvencimento', sortable: true },
-      { title: 'Nr Documento', key: 'nrdocumento', sortable: true },
-      { title: 'Nr Parcela', key: 'nrparcela', sortable: true },
-      { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
-      { title: 'Juros', key: 'juros', sortable: true },
-      { title: 'Multa', key: 'multa', sortable: true },
-      { title: 'Desconto', key: 'desconto', sortable: true },
-      { title: 'Vlr Quitado', key: 'vlrquitado', sortable: true },
-      { title: 'Vlr Saldo', key: 'saldo_devedor', sortable: true },
-      { title: 'Vlr a Pagar', key: 'vlrapagar', sortable: true },
-      { title: 'Vlr Liberado', key: 'vlrliberado', sortable: true },
-      { title: 'Fornecedor', key: 'fornecedor', sortable: true }
-    ]
-
-  return baseHeaders
+  return [
+    { title: '', key: 'checkbox', sortable: false, width: '60px' },
+    { title: 'DT Vencimento', key: 'dtvencimento', sortable: true },
+    { title: 'Nr Documento', key: 'nrdocumento', sortable: true },
+    { title: 'Nr Parcela', key: 'nrparcela', sortable: true },
+    { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
+    { title: 'Juros', key: 'juros', sortable: true },
+    { title: 'Multa', key: 'multa', sortable: true },
+    { title: 'Desconto', key: 'desconto', sortable: true },
+    { title: 'Vlr Quitado', key: 'vlrquitado', sortable: true },
+    { title: 'Vlr Saldo', key: 'saldo_devedor', sortable: true },
+    { title: 'Vlr a Pagar', key: 'vlrapagar', sortable: true },
+    { title: 'Vlr Liberado', key: 'vlrliberado', sortable: true },
+    { title: 'Fornecedor', key: 'fornecedor', sortable: true }
+  ]
 })
 
 // Computed
@@ -593,6 +652,13 @@ const limparSelecoes = () => {
 
 // Confirmar baixa
 const confirmarBaixaPagamento = () => {
+  // Verificar permissão para alterar (fazer a baixa é uma alteração)
+  if (!podeAlterar(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'alterar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   if (contasSelecionadas.value.length === 0) {
     mostrarMensagem('Selecione pelo menos uma conta para baixar', 'warning')
     return
@@ -663,6 +729,14 @@ const mostrarMensagem = (mensagem, tipo) => {
 
 // Ciclo de vida
 onMounted(async () => {
+  // Verificar se o usuário tem permissão para visualizar este programa
+  if (!podeVisualizar(ID_PROGRAMA)) {
+    console.warn('[BaixaPagtoView] Usuário sem permissão para visualizar')
+    tipoAcessoNegado.value = 'visualizar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   // Não carregar dados automaticamente - aguardar filtros com datas obrigatórias
   console.log('Tela de baixa de pagamento carregada. Aguardando filtros com datas para buscar dados.')
 })

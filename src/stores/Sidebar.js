@@ -24,63 +24,43 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     icon: 'mdi-bank-outline',
                     submenus: [
                         { text: 'Conta Corrente', icon: 'mdi-bank', route: '/paginas/financeiro/contacorrente' },
-                        { text: 'Movimentação Bancária', icon: 'mdi-bank-transfer', route: '/paginas/banco/movimentacao' },
-                    ]
-                },
-                {
-                    text: 'Centro de Custo',
-                    icon: 'mdi-warehouse',
-                    submenus: [
-                        { text: 'Cadastro', icon: 'mdi-file-tree', route: '/paginas/financeiro/centrodecusto/cadastro' },
-                        { text: 'Previsão de Débitos', icon: 'mdi-chart-timeline-variant', route: '/paginas/financeiro/centrodecusto/previsao' },
-                        { text: 'Débito Realizado', icon: 'mdi-chart-bar', route: '/paginas/financeiro/centrodecusto/debitoreal' }
+                        { text: 'Lançamentos', icon: 'mdi-bank-transfer', route: '/paginas/banco/movimentacao' },
+                        { text: 'Transf. Financeira', icon: 'mdi-swap-horizontal', route: '/paginas/financeiro/transferencia' }
                     ]
                 },
                 {
                     text: 'Caixa',
                     icon: 'mdi-cash-register',
                     submenus: [
-                        {
-                            text: 'Cadastro de Caixa',
-                            icon: 'mdi-cash-register',
-                            route: '/paginas/financeiro/caixa'
-                        },
-                        {
-                            text: 'Abertura de Caixa',
-                            icon: 'mdi-cash-multiple',
-                            route: '/paginas/financeiro/caixa/abertura'
-                        },
-                        {
-                            text: 'Lançamento de Caixa',
-                            icon: 'mdi-cash-plus',
-                            route: '/paginas/financeiro/caixa/lancamento'
-                        }
-                    ]
-                },
-
-                {
-                    text: 'Adiantamento',
-                    icon: 'mdi-account-cash',
-                    submenus: [
-                        { text: 'Cliente', icon: 'mdi-account-multiple', route: '/paginas/adiantamento/cliente' },
-                        { text: 'Fornecedor', icon: 'mdi-account-tie', route: '/paginas/adiantamento/fornecedor' },
+                        { text: 'Cadastro', icon: 'mdi-cash-register', route: '/paginas/financeiro/caixa' },
+                        { text: 'Abertura', icon: 'mdi-cash-multiple', route: '/paginas/financeiro/caixa/abertura' },
+                        { text: 'Lançamentos', icon: 'mdi-cash-plus', route: '/paginas/financeiro/caixa/lancamento' }
                     ]
                 },
                 {
-                    text: 'Estorno',
-                    icon: 'mdi-backspace-outline',
+                    text: 'Pagar',
+                    icon: 'mdi-credit-card-outline',
                     submenus: [
-                        { text: 'Estorno a Pagar', icon: 'mdi-credit-card-refund', route: '/paginas/estorno/pagar' },
-                        { text: 'Estorno a Receber', icon: 'mdi-cash-refund', route: '/paginas/estorno/receber' },
+                        { text: 'Lancamentos', icon: 'mdi-file-document-outline', route: '/paginas/financeiro/pagar' },
+                        { text: 'Autorização', icon: 'mdi-shield-check', route: '/paginas/financeiro/autorizacao' },
+                        { text: 'Baixa', icon: 'mdi-cash-minus', route: '/paginas/financeiro/baixa' },
+                        { text: 'Estorno Baixa', icon: 'mdi-undo-variant', route: '/paginas/estorno/pagar' },
+                        { text: 'Adt Fornecedores', icon: 'mdi-account-tie', route: '/paginas/adiantamento/fornecedor' },
+                        { text: 'Centro de Custo', icon: 'mdi-file-tree', route: '/paginas/financeiro/centrodecusto/cadastro' },
+                        { text: 'Previsão C. Custo', icon: 'mdi-chart-timeline-variant', route: '/paginas/financeiro/centrodecusto/previsao' },
+                        { text: 'Realizado C. Custo', icon: 'mdi-chart-bar', route: '/paginas/financeiro/centrodecusto/debitoreal' }
                     ]
                 },
-                { text: 'Pagar', icon: 'mdi-credit-card-outline', route: '/paginas/financeiro/pagar' },
-                { text: 'Receber', icon: 'mdi-cash-plus', route: '/paginas/financeiro/receber' },
-                { text: 'Autorização de Pagamento', icon: 'mdi-shield-check', route: '/paginas/financeiro/autorizacao' },
-                { text: 'Baixa de Pagamento', icon: 'mdi-cash-minus', route: '/paginas/financeiro/baixa' },
-                { text: 'Baixa de Recebimento', icon: 'mdi-cash-plus', route: '/paginas/financeiro/baixareceb' },
-                { text: 'Transferencia entre Contas', icon: 'mdi-swap-horizontal', route: '/paginas/financeiro/transferencia' },
-                { text: 'Plano de Conta', icon: 'mdi-format-list-bulleted-type', route: '/paginas/financeiro/planoconta' },
+                {
+                    text: 'Receber',
+                    icon: 'mdi-cash-plus',
+                    submenus: [
+                        { text: 'Lancamentos', icon: 'mdi-file-document-outline', route: '/paginas/financeiro/receber' },
+                        { text: 'Baixa', icon: 'mdi-cash-check', route: '/paginas/financeiro/baixareceb' },
+                        { text: 'Estorno Baixa', icon: 'mdi-undo-variant', route: '/paginas/estorno/receber' },
+                        { text: 'Adt Cliente', icon: 'mdi-account-multiple', route: '/paginas/adiantamento/cliente' }
+                    ]
+                }
             ]
         },
         
@@ -113,6 +93,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     text: 'Usuários',
                     icon: 'mdi-account-cog',
                     route: '/paginas/manutencao/usuarios'
+                },
+                {
+                    text: 'Grupos de Usuários',
+                    icon: 'mdi-account-multiple',
+                    route: '/paginas/manutencao/grupousuario'
                 }
             ]
         },

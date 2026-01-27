@@ -1,6 +1,21 @@
 <template>
   <top-all-pages icon="mdi-undo-variant">
     <template #titulo>Estorno de Títulos Recebidos</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          :disabled="!podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA)"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          {{ !podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA) ? 'Sem permissão' : 'Imprimir / Exportar' }}
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <div>
         <!-- Content Card -->
@@ -231,6 +246,32 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
+
+        <!-- Modal de Exportação -->
+        <ExportacaoModal
+            v-model="modalExportacaoAberto"
+            :dados="estornosReceber"
+            :filtros="{}"
+            nome-relatorio="Estorno de Títulos Recebidos"
+            @exportar-pdf="() => {}"
+            @exportar-csv="() => {}"
+            @exportar-excel="() => {}"
+            @imprimir="() => {}"
+        />
+
+        <!-- Modal de Preview do PDF -->
+        <PdfPreviewModal
+            v-model="modalPreviewPDF"
+            :html-content="previewHTMLContent"
+            :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Estorno_Receber'"
+        />
+
+        <!-- Modal de Acesso Negado -->
+        <AcessoNegadoModal
+            v-model="acessoNegadoModal"
+            :nome-programa="'Rotina Estorno de Títulos Recebidos'"
+            :tipo-acesso="tipoAcessoNegado"
+        />
       </div>
     </template>
   </top-all-pages>
@@ -240,16 +281,40 @@
 import { ref, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
+import { usePermissoes } from '@/utils/usePermissoes'
 import { toast } from 'vue3-toastify'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
+// eslint-disable-next-line no-unused-vars
+import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
+
+// ID do programa desta tela
+const ID_PROGRAMA = 'FFIN212E'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
+const { podeVisualizar, podeAlterar, podeExportar, podePDF } = usePermissoes()
+
+// Modal de acesso negado
+const acessoNegadoModal = ref(false)
+const tipoAcessoNegado = ref('')
 
 const loading = ref(false)
 const loadingEstorno = ref(false)
 const dialogEstorno = ref(false)
 const itemParaEstornar = ref(null)
+
+// Modais de exportação
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
+
+// Data
+const estornosReceber = ref([])
+
+// ...existing code...
 
 // Obter primeiro e último dia do mês atual
 const obterDatasDoMesAtual = () => {
@@ -364,6 +429,13 @@ const pesquisarBaixas = async () => {
 
 // Confirmar estorno do lote
 const confirmarEstornoLote = (lote) => {
+  // Verificar permissão para alterar (fazer estorno é uma alteração)
+  if (!podeAlterar(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'alterar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   itemParaEstornar.value = lote
   dialogEstorno.value = true
 }
@@ -429,6 +501,14 @@ const formatarData = (dataISO) => {
 
 // Buscar baixas ao montar o componente
 onMounted(async () => {
+  // Verificar se o usuário tem permissão para visualizar este programa
+  if (!podeVisualizar(ID_PROGRAMA)) {
+    console.warn('[EstornoReceberView] Usuário sem permissão para visualizar')
+    tipoAcessoNegado.value = 'visualizar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   await pesquisarBaixas()
 })
 </script>

@@ -1,6 +1,20 @@
 <template>
   <top-all-pages icon="mdi-shield-check">
     <template #titulo>Autorização de Pagamentos</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          Imprimir / Exportar
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <div>
         <!-- Card com Total das Autorizações -->
@@ -293,6 +307,25 @@
         >
           {{ snackbar.message }}
         </v-snackbar>
+
+        <!-- Modal de Exportação -->
+        <ExportacaoModal
+            v-model="modalExportacaoAberto"
+            :dados="autorizacoesFiltradas"
+            :filtros="{}"
+            nome-relatorio="Autorizações de Pagamento"
+            @exportar-pdf="() => {}"
+            @exportar-csv="() => {}"
+            @exportar-excel="() => {}"
+            @imprimir="() => {}"
+        />
+
+        <!-- Modal de Preview do PDF -->
+        <PdfPreviewModal
+            v-model="modalPreviewPDF"
+            :html-content="previewHTMLContent"
+            :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Autorizacoes_Pagamento'"
+        />
       </div>
     </template>
   </top-all-pages>
@@ -306,6 +339,8 @@ import { useEmpresaStore } from '@/stores/APIs/empresa'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import BuscaAvancadaAutorizacao from '@/components/base/padrao-paginas/BuscaAvancadaAutorizacao.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
@@ -328,6 +363,12 @@ const snackbar = reactive({
   message: '',
   color: 'success'
 })
+
+// Modais
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
 
 // Dialogs de confirmação
 const dialogAutorizacao = reactive({
@@ -426,11 +467,9 @@ const limparSelecao = () => {
 const autorizarSelecionados = () => {
   if (itensSelecionados.value.length === 0) return
   
-  const itensSelecionadosData = autorizacoesFiltradas.value.filter(item => 
+  dialogAutorizacao.item = autorizacoesFiltradas.value.filter(item =>
     itensSelecionados.value.includes(item.id_parcela)
   )
-  
-  dialogAutorizacao.item = itensSelecionadosData
   observacaoAutorizacao.value = ''
   dialogAutorizacao.aberto = true
 }
@@ -438,11 +477,9 @@ const autorizarSelecionados = () => {
 const rejeitarSelecionados = () => {
   if (itensSelecionados.value.length === 0) return
   
-  const itensSelecionadosData = autorizacoesFiltradas.value.filter(item => 
+  dialogRejeicao.item = autorizacoesFiltradas.value.filter(item =>
     itensSelecionados.value.includes(item.id_parcela)
   )
-  
-  dialogRejeicao.item = itensSelecionadosData
   observacaoRejeicao.value = ''
   dialogRejeicao.aberto = true
 }
@@ -552,7 +589,8 @@ const carregarAutorizacoes = async () => {
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
     
     if (!idEmpresa) {
-      throw new Error('ID da empresa não encontrado')
+      mostrarSnackbar('ID da empresa não encontrado', 'error')
+      return
     }
     
     console.log('ID da empresa:', idEmpresa)

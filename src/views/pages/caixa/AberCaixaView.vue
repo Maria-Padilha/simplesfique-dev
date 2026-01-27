@@ -1,6 +1,20 @@
 <template>
   <top-all-pages icon="mdi-cash-register">
     <template #titulo>Abertura de Caixa</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          Imprimir / Exportar
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <!-- Card de Resumo do Caixa Aberto -->
       <v-card v-if="caixaAberto" class="background-secondary mb-4" elevation="2">
@@ -235,8 +249,27 @@
           </TabelaPadrao>
         </v-card-text>
       </v-card>
+
+      <!-- Modal de Exportação -->
+      <ExportacaoModal
+          v-model="modalExportacaoAberto"
+          :dados="aberturasCaixa"
+          :filtros="{}"
+          nome-relatorio="Abertura de Caixa"
+          @exportar-pdf="() => {}"
+          @exportar-csv="() => {}"
+          @exportar-excel="() => {}"
+          @imprimir="() => {}"
+      />
+
+      <!-- Modal de Preview do PDF -->
+      <PdfPreviewModal
+          v-model="modalPreviewPDF"
+          :html-content="previewHTMLContent"
+          :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Abertura_Caixa'"
+      />
     </template>
-  </top-all-pages>>
+  </top-all-pages>
 </template>
 
 <script setup>
@@ -247,6 +280,8 @@ import { useEmpresaStore } from '@/stores/APIs/empresa'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
 
 const themeStore = useThemeStore()
 const caixaStore = useCaixaStore()
@@ -265,6 +300,15 @@ const caixasDisponiveis = ref([])
 const aberturas = ref([])
 const caixaAberto = ref(null)
 const historicoMovimentacao = ref([])
+
+// Modais de exportação
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
+
+// Data para modais
+const aberturasCaixa = ref([])
 
 // Formulário
 const formData = reactive({

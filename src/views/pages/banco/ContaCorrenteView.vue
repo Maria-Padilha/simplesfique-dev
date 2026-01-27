@@ -1,6 +1,21 @@
 <template>
   <top-all-pages icon="mdi-bank-outline">
     <template #titulo>Contas Corrente</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          :disabled="!podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA)"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          {{ !podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA) ? 'Sem permissão' : 'Imprimir / Exportar' }}
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <!-- Lista de Contas -->
       <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
@@ -25,7 +40,7 @@
                   <v-form ref="formRef" v-model="formValido">
                     <v-row dense>
                       <!-- Número da Conta (Obrigatório) -->
-                      <v-col cols="12" md="8">
+                      <v-col cols="12" md="4">
                         <v-text-field
                             v-model="formData.numero_ccorrente"
                             label="Número da Conta *"
@@ -39,7 +54,7 @@
                       </v-col>
 
                       <!-- Dígito CC (Obrigatório) -->
-                      <v-col cols="12" md="4">
+                      <v-col cols="12" md="2">
                         <v-text-field
                             v-model="formData.digito_cc"
                             label="Dígito *"
@@ -53,7 +68,7 @@
                       </v-col>
 
                       <!-- Titular (Obrigatório) -->
-                      <v-col cols="12" md="12">
+                      <v-col cols="12" md="6">
                         <v-text-field
                             v-model="formData.titular"
                             label="Titular *"
@@ -67,7 +82,7 @@
                       </v-col>
 
                       <!-- Banco (Obrigatório) -->
-                      <v-col cols="12" md="6">
+                      <v-col cols="12" md="4">
                         <v-autocomplete
                             v-model="bancoSelecionado"
                             :items="financeiroStore.bancos"
@@ -90,7 +105,7 @@
                         </v-autocomplete>
                       </v-col>
 
-                      <v-col cols="12" md="6" class="d-flex align-center">
+                      <v-col cols="12" md="4" class="d-flex align-center">
                         <v-text-field
                             ref="agenciaRef"
                             v-model="descagencia"
@@ -107,13 +122,14 @@
                             <agenciacc-menu
                                 :id-banco="formData.id_banco"
                                 @selecionar="selecionarAgencia"
+                                @criar-nova="abrirModalAgencia"
                             />
                           </template>
                         </v-text-field>
                       </v-col>
 
                       <!-- Plano de Conta (Obrigatório) -->
-                      <v-col cols="12" md="12">
+                      <v-col cols="12" md="4">
                         <v-autocomplete
                             v-model="formData.id_reduzido_ctb"
                             :items="financeiroStore.planosConta"
@@ -155,7 +171,7 @@
                       </v-col>
 
                       <!-- Limite (Obrigatório) -->
-                      <v-col cols="12" md="6">
+                      <v-col cols="12" md="4">
                         <v-text-field
                             v-model="formData.limite"
                             label="Limite *"
@@ -173,7 +189,7 @@
                       </v-col>
 
                       <!-- Data Abertura (Obrigatório) -->
-                      <v-col cols="12" md="6">
+                      <v-col cols="12" md="4">
                         <v-text-field
                             v-model="formData.dtabertura"
                             label="Data Abertura *"
@@ -188,7 +204,7 @@
                       </v-col>
 
                       <!-- Data Vencimento do Limite (Opcional) -->
-                      <v-col cols="12" md="6">
+                      <v-col cols="12" md="4">
                         <v-text-field
                             v-model="formData.dtvenctolimite"
                             label="Data Vencimento do Limite"
@@ -540,6 +556,32 @@
       >
         {{ snackbar.message }}
       </v-snackbar>
+
+      <!-- Modal de Exportação -->
+      <ExportacaoModal
+          v-model="modalExportacaoAberto"
+          :dados="contas"
+          :filtros="{}"
+          nome-relatorio="Contas Corrente"
+          @exportar-pdf="() => {}"
+          @exportar-csv="() => {}"
+          @exportar-excel="() => {}"
+          @imprimir="() => {}"
+      />
+
+      <!-- Modal de Preview do PDF -->
+      <PdfPreviewModal
+          v-model="modalPreviewPDF"
+          :html-content="previewHTMLContent"
+          :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Contas_Corrente'"
+      />
+
+      <!-- Modal de Acesso Negado -->
+      <AcessoNegadoModal
+          v-model="acessoNegadoModal"
+          :nome-programa="'Cadastro de Conta Corrente'"
+          :tipo-acesso="tipoAcessoNegado"
+      />
     </template>
   </top-all-pages>
 </template>
@@ -548,16 +590,28 @@
 import { ref, reactive, onMounted, nextTick, watch } from 'vue'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useThemeStore } from '@/stores/config-temas/theme'
+import { usePermissoes } from '@/utils/usePermissoes'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import AgenciaccMenu from "@/components/base/menu/financeiro/AgenciaccMenu.vue";
-// BuscaPadraoMenu removed for agency inline autocomplete; keep modal for cadastrar
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
+import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
+
+// ID do programa desta tela
+const ID_PROGRAMA = 'FFIN001C'
 
 const themeStore = useThemeStore();
 
 // Store
 const financeiroStore = useFinanceiroStore()
+// eslint-disable-next-line no-unused-vars
+const { podeVisualizar, podeIncluir, podeAlterar, podeExcluir, podeExportar, podePDF } = usePermissoes()
+
+// Modal de acesso negado
+const acessoNegadoModal = ref(false)
+const tipoAcessoNegado = ref('')
 
 // Refs
 const formularioAberto = ref(false)
@@ -570,6 +624,12 @@ const openAgenciaModal = ref(false)
 // banco selecionado (objeto) to improve typing UX
 const bancoSelecionado = ref(null)
 const loadingPlanosConta = ref(false)
+
+// Modais de exportação
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
 
 // form for creating agency in modal
 const agenciaForm = reactive({
@@ -637,6 +697,13 @@ const rules = {
 
 // Métodos
 const toggleFormulario = () => {
+  // Verificar permissão para incluir
+  if (!formularioAberto.value && !podeIncluir(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'incluir'
+    acessoNegadoModal.value = true
+    return
+  }
+
   if (formularioAberto.value) {
     cancelarFormulario()
   } else {
@@ -646,15 +713,17 @@ const toggleFormulario = () => {
 
 // Quando o banco for alterado, resetar agência e focar no select de agência
 const onBancoChange = async (val) => {
-  // val can be object (selected item) or primitive id
-  let id = val
-  if (val && typeof val === 'object') {
-    id = val.ID ?? val.id ?? val.ID_BANCO ?? ''
-  }
-  formData.id_banco = id || ''
+  // val vem como primitivo (ID) porque item-value="id" no autocomplete
+  // Se for um objeto (por algum motivo), extrai o ID
+  const id = normalizeId(val)
+
+  // Garantir que id_banco receba apenas o valor primitivo
+  formData.id_banco = id
+  agenciaForm.id_banco = id
   formData.id_agencia = ''
-  agenciaForm.id_banco = id || ''
-  
+
+  console.log('Banco selecionado - ID:', id, 'Valor original:', val) // Debug
+
   // Buscar agências do banco selecionado
   if (id) {
     try {
@@ -677,8 +746,38 @@ watch(bancoSelecionado, (val) => {
   onBancoChange(val)
 })
 
+const abrirModalAgencia = () => {
+  // Debug
+  console.log('Abrindo modal - formData.id_banco:', formData.id_banco)
+  console.log('Abrindo modal - bancoSelecionado:', bancoSelecionado.value)
+
+  // Normalizar id_banco para garantir que é um valor primitivo
+  const idBanco = normalizeId(formData.id_banco)
+
+  console.log('ID normalizado:', idBanco)
+
+  if (!idBanco) {
+    mostrarSnackbar('Selecione um banco primeiro', 'warning')
+    return
+  }
+
+  agenciaForm.id_banco = idBanco
+  console.log('Modal aberto com id_banco:', agenciaForm.id_banco)
+  openAgenciaModal.value = true
+}
+
 const fecharModalAgencia = () => {
   openAgenciaModal.value = false
+  // Limpar formulário da agência
+  Object.assign(agenciaForm, {
+    id: '',
+    digito_ag: '',
+    descagencia: '',
+    id_banco: '',
+    id_uf: '',
+    contato: '',
+    telefone: ''
+  })
 }
 
 // === Modal de Controle de Usuários (Acesso a Contas) ===
@@ -820,6 +919,13 @@ const abrirFormulario = () => {
 }
 
 const editarConta = async (conta) => {
+  // Verificar permissão para alterar
+  if (!podeAlterar(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'alterar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   editando.value = true
   // Copiar os campos do registro para o formData
   Object.assign(formData, conta)
@@ -888,8 +994,13 @@ const editarConta = async (conta) => {
 
 // Normaliza possíveis objetos de id para primitives (ID, id, etc.)
 const normalizeId = (val) => {
-  if (val === null || val === undefined) return val
-  if (typeof val === 'object') return val.ID ?? val.id ?? val.id_agencia ?? val.ID_AGENCIA ?? ''
+  if (val === null || val === undefined || val === '') return null
+  if (typeof val === 'object') {
+    // Tenta extrair ID de um objeto
+    const id = val.ID ?? val.id ?? val.id_banco ?? val.ID_BANCO ?? val.id_agencia ?? val.ID_AGENCIA ?? null
+    return id
+  }
+  // Se já é primitivo (string/number), retornar como está
   return val
 }
 
@@ -944,6 +1055,13 @@ const salvarConta = async () => {
 }
 
 const excluirConta = async (conta) => {
+  // Verificar permissão para excluir
+  if (!podeExcluir(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'excluir'
+    acessoNegadoModal.value = true
+    return
+  }
+
   try {
     const contaId = conta?.id
     await financeiroStore.deletarConta(contaId)
@@ -995,6 +1113,14 @@ const getBancoNome = (idBanco) => {
 
 // Lifecycle
 onMounted(async () => {
+  // Verificar se o usuário tem permissão para visualizar este programa
+  if (!podeVisualizar(ID_PROGRAMA)) {
+    console.warn('[ContaCorrenteView] Usuário sem permissão para visualizar')
+    tipoAcessoNegado.value = 'visualizar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   try {
     // Carregar dados em paralelo para melhor performance
     await Promise.all([

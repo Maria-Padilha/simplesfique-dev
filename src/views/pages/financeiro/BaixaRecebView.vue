@@ -1,6 +1,21 @@
 <template>
   <top-all-pages icon="mdi-cash-plus">
     <template #titulo>Baixa de Recebimentos</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          :disabled="!podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA)"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          {{ !podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA) ? 'Sem permissão' : 'Imprimir / Exportar' }}
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <div>
         <!-- Card com Total das Parcelas e Ações de Baixa -->
@@ -235,6 +250,32 @@
         >
           {{ snackbar.message }}
         </v-snackbar>
+
+        <!-- Modal de Exportação -->
+        <ExportacaoModal
+            v-model="modalExportacaoAberto"
+            :dados="contasReceber"
+            :filtros="{}"
+            nome-relatorio="Baixa de Recebimentos"
+            @exportar-pdf="() => {}"
+            @exportar-csv="() => {}"
+            @exportar-excel="() => {}"
+            @imprimir="() => {}"
+        />
+
+        <!-- Modal de Preview do PDF -->
+        <PdfPreviewModal
+            v-model="modalPreviewPDF"
+            :html-content="previewHTMLContent"
+            :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Baixa_Recebimentos'"
+        />
+
+        <!-- Modal de Acesso Negado -->
+        <AcessoNegadoModal
+            v-model="acessoNegadoModal"
+            :nome-programa="'Rotina Baixa de Títulos a Receber'"
+            :tipo-acesso="tipoAcessoNegado"
+        />
       </div>
     </template>
   </top-all-pages>
@@ -245,15 +286,27 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useConfigParfinStore } from '@/stores/APIs/config'
+import { usePermissoes } from '@/utils/usePermissoes'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import BuscaAvancadaBaixa from '@/components/base/padrao-paginas/BuscaAvancadaBaixa.vue'
 import BaixaCaixaModal from '@/components/base/modais/BaixaCaixaModal.vue'
 import BaixaBancoModal from '@/components/base/modais/BaixaBancoModal.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
+import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
+
+// ID do programa desta tela
+const ID_PROGRAMA = 'FFIN211E'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
 const configParfinStore = useConfigParfinStore()
+const { podeVisualizar, podeAlterar, podeExportar, podePDF } = usePermissoes()
+
+// Modal de acesso negado
+const acessoNegadoModal = ref(false)
+const tipoAcessoNegado = ref('')
 
 // Refs
 const search = ref('')
@@ -278,6 +331,12 @@ const snackbar = reactive({
   message: '',
   color: 'success'
 })
+
+// Modais de exportação
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
 
 // ID da empresa
 const idEmpresa = ref(1)
@@ -569,6 +628,13 @@ const limparSelecoes = () => {
 }
 
 const confirmarBaixaRecebimento = () => {
+  // Verificar permissão para alterar (fazer a baixa é uma alteração)
+  if (!podeAlterar(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'alterar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   if (contasSelecionadas.value.length === 0) {
     mostrarMensagem('Selecione pelo menos uma conta para baixar', 'warning')
     return
@@ -632,6 +698,14 @@ const mostrarMensagem = (mensagem, tipo) => {
 }
 
 onMounted(async () => {
+  // Verificar se o usuário tem permissão para visualizar este programa
+  if (!podeVisualizar(ID_PROGRAMA)) {
+    console.warn('[BaixaRecebView] Usuário sem permissão para visualizar')
+    tipoAcessoNegado.value = 'visualizar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   console.log('Tela de baixa de recebimento carregada. Aguardando filtros com datas para buscar dados.')
 })
 </script>

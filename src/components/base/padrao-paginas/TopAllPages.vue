@@ -1,22 +1,22 @@
 <template>
-  <v-virtual-scroll height="90vh" :items="['main']">
-    <template v-slot:default>
-      <main class="my-10 mx-3">
-        <v-card elevation="0" class="background-secondary mb-4">
-          <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center w-100">
-            <div class="d-flex align-center w-100">
-              <v-icon :icon="props.icon" class="mr-3"></v-icon>
-              <div class="w-100">
-                <slot name="titulo" />
-              </div>
-            </div>
-          </v-card-title>
-        </v-card>
+  <main class="my-10 mx-3">
+    <v-card elevation="0" class="background-secondary mb-4">
+      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center w-100">
+        <div class="d-flex align-center w-100">
+          <v-icon :icon="props.icon" class="mr-3"></v-icon>
+          <div class="w-100">
+            <slot name="titulo" />
+          </div>
+        </div>
+        <div class="d-flex gap-2">
+          <slot name="acoes" />
+        </div>
+      </v-card-title>
+    </v-card>
 
-        <slot name="section"></slot>
-      </main>
-    </template>
-  </v-virtual-scroll>
+    <slot name="section"></slot>
+    <slot></slot>
+  </main>
 </template>
 
 <script setup>

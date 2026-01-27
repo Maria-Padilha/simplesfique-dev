@@ -6,6 +6,7 @@
       :modalCadastrar="abrirModalCadastrar"
       :modelInput="termoPesquisa"
       :resultados="agenciasFiltradas"
+      :id-banco="idBanco"
       @update:modelInput="termoPesquisa = $event"
       @selecionar="selecionarAgencia"
       :cadastrar-btn="true"
@@ -115,7 +116,7 @@ import CadastrarModal from '@/components/base/modais/CadastrarModal.vue'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import {toast} from "vue3-toastify";
 
-const emit = defineEmits(['selecionar'])
+const emit = defineEmits(['selecionar', 'criar-nova'])
 
 const props = defineProps({
   idBanco: {
@@ -193,6 +194,13 @@ const selecionarAgencia = (agencia) => {
 }
 
 const abrirModalCadastrar = () => {
+  // Garantir que id_banco seja setado ao abrir o modal
+  agenciaForm.value.id_banco = props.idBanco || null
+  console.log('Modal aberto com id_banco:', agenciaForm.value.id_banco) // Debug
+
+  // Emitir evento para notificar o pai
+  emit('criar-nova')
+
   openAgenciaModal.value = true
 }
 
@@ -202,6 +210,7 @@ const fecharModalAgencia = () => {
     id: '',
     digito_ag: '',
     descagencia: '',
+    id_banco: null,
     id_uf: '',
     contato: '',
     telefone: ''
@@ -214,11 +223,20 @@ const salvarAgencia = async () => {
     return
   }
 
+  if (!agenciaForm.value.id_banco) {
+    toast.error('Banco não selecionado')
+    return
+  }
+
   try {
-    await financeiroStore.criarAgencia({
+    const payload = {
       ...agenciaForm.value,
-      id: String(agenciaForm.value.id)
-    })
+      id: String(agenciaForm.value.id),
+      id_banco: agenciaForm.value.id_banco // Garantir que id_banco é enviado
+    }
+
+    console.log('Salvando agência com payload:', payload) // Debug
+    await financeiroStore.criarAgencia(payload)
 
     await financeiroStore.buscarAgencias()
     toast.success('Agência cadastrada com sucesso')
@@ -227,6 +245,4 @@ const salvarAgencia = async () => {
     toast.error('Erro ao cadastrar agência')
   }
 }
-</script>
-<script setup lang="ts">
 </script>

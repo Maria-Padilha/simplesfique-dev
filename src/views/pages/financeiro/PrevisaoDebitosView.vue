@@ -1,6 +1,21 @@
 <template>
   <top-all-pages icon="mdi-chart-timeline-variant">
     <template #titulo>Previsão de Débitos por Centro de Custo</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          :disabled="!podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA)"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          {{ !podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA) ? 'Sem permissão' : 'Imprimir / Exportar' }}
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <div>
         <!-- Filtros -->
@@ -220,6 +235,13 @@
             :html-content="previewHTMLContent"
             :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Previsao_Debitos'"
         />
+
+        <!-- Modal de Acesso Negado -->
+        <AcessoNegadoModal
+            v-model="acessoNegadoModal"
+            :nome-programa="'Movimentação Centro de Custo Previsto'"
+            :tipo-acesso="tipoAcessoNegado"
+        />
       </div>
     </template>
   </top-all-pages>
@@ -229,17 +251,27 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
+import { usePermissoes } from '@/utils/usePermissoes'
 import { toast } from 'vue3-toastify'
 import { gerarHTMLCentroCusto, abrirImpressaoCentroCusto } from '@/components/impressos/centrodecusto'
 import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
 import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
+import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
 import VueApexCharts from 'vue3-apexcharts'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+
+// ID do programa desta tela
+const ID_PROGRAMA = 'FFIN400P'
 
 const apexchart = VueApexCharts
 
 const themeStore = useThemeStore()
 const ccustoStore = useCCustoStore()
+const { podeVisualizar, podeExportar, podePDF } = usePermissoes()
+
+// Modal de acesso negado
+const acessoNegadoModal = ref(false)
+const tipoAcessoNegado = ref('')
 
 // Refs
 const loading = ref(false)
@@ -776,6 +808,14 @@ const handleImprimir = ({ nomeRelatorio }) => {
 
 // Lifecycle
 onMounted(async () => {
+  // Verificar se o usuário tem permissão para visualizar este programa
+  if (!podeVisualizar(ID_PROGRAMA)) {
+    console.warn('[PrevisaoDebitosView] Usuário sem permissão para visualizar')
+    tipoAcessoNegado.value = 'visualizar'
+    acessoNegadoModal.value = true
+    return
+  }
+
   await ccustoStore.listarCCusto()
 })
 </script>

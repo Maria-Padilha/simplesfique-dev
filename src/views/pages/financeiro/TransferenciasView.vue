@@ -1,6 +1,21 @@
 <template>
   <top-all-pages icon="mdi-swap-horizontal">
     <template #titulo>Transferências Financeiras</template>
+    <template #acoes>
+      <v-btn
+          icon
+          color="var(--text-color-laranja)"
+          variant="outlined"
+          size="small"
+          :disabled="!podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA)"
+          @click="modalExportacaoAberto = true"
+      >
+        <v-icon icon="mdi-printer"></v-icon>
+        <v-tooltip activator="parent" location="top">
+          {{ !podeExportar(ID_PROGRAMA) && !podePDF(ID_PROGRAMA) ? 'Sem permissão' : 'Imprimir / Exportar' }}
+        </v-tooltip>
+      </v-btn>
+    </template>
     <template #section>
       <div>
         <!-- Conteúdo Principal -->
@@ -91,6 +106,32 @@
         >
           {{ snackbar.message }}
         </v-snackbar>
+
+        <!-- Modal de Exportação -->
+        <ExportacaoModal
+            v-model="modalExportacaoAberto"
+            :dados="transferencias"
+            :filtros="{}"
+            nome-relatorio="Transferências Financeiras"
+            @exportar-pdf="() => {}"
+            @exportar-csv="() => {}"
+            @exportar-excel="() => {}"
+            @imprimir="() => {}"
+        />
+
+        <!-- Modal de Preview do PDF -->
+        <PdfPreviewModal
+            v-model="modalPreviewPDF"
+            :html-content="previewHTMLContent"
+            :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Transferencias'"
+        />
+
+        <!-- Modal de Acesso Negado -->
+        <AcessoNegadoModal
+            v-model="acessoNegadoModal"
+            :nome-programa="'Rotina Transferências Financeira'"
+            :tipo-acesso="tipoAcessoNegado"
+        />
       </div>
     </template>
   </top-all-pages>
@@ -99,6 +140,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
+import { usePermissoes } from '@/utils/usePermissoes'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TransferenciaCaixaBanco from '@/components/base/transferencias/TransferenciaCaixaBanco.vue'
 import TransferenciaIntercaixa from '@/components/base/transferencias/TransferenciaIntercaixa.vue'
@@ -106,8 +148,25 @@ import TransferenciaBancoCaixa from '@/components/base/transferencias/Transferen
 import TransferenciaInterbancaria from '@/components/base/transferencias/TransferenciaInterbancaria.vue'
 import HistoricoTransferencias from '@/components/base/transferencias/HistoricoTransferencias.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
+import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
+import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
+// eslint-disable-next-line no-unused-vars
+import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
+
+// ID do programa desta tela
+// eslint-disable-next-line no-unused-vars
+const ID_PROGRAMA = 'FFIN201E'
 
 const themeStore = useThemeStore()
+// eslint-disable-next-line no-unused-vars
+const { podeVisualizar, podeIncluir, podeAlterar, podeExcluir, podeExportar, podePDF } = usePermissoes()
+
+// Modal de acesso negado
+// eslint-disable-next-line no-unused-vars
+const acessoNegadoModal = ref(false)
+// eslint-disable-next-line no-unused-vars
+const tipoAcessoNegado = ref('')
+
 const formularioAberto = ref(false)
 const tipoTransferencia = ref(null)
 const historicoRef = ref(null)
@@ -117,6 +176,15 @@ const snackbar = reactive({
   message: '',
   color: 'success'
 })
+
+// Modais de exportação
+const modalExportacaoAberto = ref(false)
+const modalPreviewPDF = ref(false)
+const previewHTMLContent = ref('')
+const dadosPDFAtual = ref(null)
+
+// Data
+const transferencias = ref([])
 
 const tiposTransferencia = [
   { text: 'Caixa → Banco', value: 4, icon: 'mdi-cash-fast' },
@@ -130,6 +198,13 @@ const rules = {
 }
 
 const toggleFormulario = () => {
+  // Verificar permissão para incluir
+  if (!formularioAberto.value && !podeIncluir(ID_PROGRAMA)) {
+    tipoAcessoNegado.value = 'incluir'
+    acessoNegadoModal.value = true
+    return
+  }
+
   formularioAberto.value = !formularioAberto.value
   if (!formularioAberto.value) {
     tipoTransferencia.value = null
