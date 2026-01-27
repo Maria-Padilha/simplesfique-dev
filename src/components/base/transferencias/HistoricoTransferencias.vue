@@ -2,8 +2,8 @@
   <div>
     <!-- Filtros -->
     <v-card 
-      class="background-secondary mb-4" 
-      elevation="1"
+      class="background-secondary mb-1"
+      elevation="0"
       :class="{ 'mt-4': formularioAberto }"
     >
       <v-card-text class="pa-4">
@@ -68,7 +68,7 @@
         :headers="headers"
         :items="transferencias"
         :loading="loading"
-        class="elevation-1"
+        class="background-card"
         density="compact"
         :items-per-page="10"
         :items-per-page-options="[10, 25, 50, 100]"
@@ -120,10 +120,10 @@
         </template>
 
         <template #no-data>
-          <div class="text-center pa-4">
-            <v-icon icon="mdi-transfer" size="48" class="mb-2 text-medium-emphasis"></v-icon>
-            <p class="text-body-1 text-medium-emphasis">Nenhuma transferência encontrada</p>
-            <p class="text-caption text-medium-emphasis">Ajuste os filtros e clique em Buscar</p>
+          <div class="text-center pa-4 texto-color-primary">
+            <v-icon icon="mdi-transfer" size="48" class="mb-2"></v-icon>
+            <p class="text-body-1 ">Nenhuma transferência encontrada</p>
+            <p class="text-caption ">Ajuste os filtros e clique em Buscar</p>
           </div>
         </template>
 

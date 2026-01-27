@@ -31,6 +31,7 @@
                       label="Descrição da Classe"
                       hide-details="auto"
                       :rules="validacao"
+                      class="required-left-border"
                       v-model="forms.descclasse"
                       :theme="themeStore.darkMode ? 'dark' : 'light'"
                       prepend-inner-icon="mdi-text"

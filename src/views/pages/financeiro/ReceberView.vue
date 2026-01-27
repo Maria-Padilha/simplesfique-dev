@@ -19,7 +19,7 @@
     <template #section>
       <div>
         <!-- Card com Total das Parcelas -->
-        <v-card class="background-secondary mb-4" elevation="2">
+        <v-card class="background-secondary mb-4" elevation="0">
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="d-flex align-center">
@@ -39,7 +39,7 @@
         </v-card>
 
         <!-- Lista de Contas a Receber -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
           <v-card-text class="pa-4">
             <BotaoExpandTransition
                 :formulario-aberto="formularioAberto"
@@ -51,7 +51,7 @@
             <!-- Formulário Expansível -->
             <v-expand-transition>
               <div v-if="formularioAberto">
-                <v-card class="background-card mb-7" elevation="2">
+                <v-card class="background-card mb-7" elevation="0">
                   <v-card-title class="text-h6 pa-4">
                     <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
                     {{ editando ? 'Editar Conta a Receber' : 'Nova Conta a Receber' }}
@@ -69,7 +69,7 @@
                               maxlength="20"
                               variant="outlined"
                               density="compact"
-                              class=""
+                              class="required-left-border"
                               prepend-inner-icon="mdi-file-document"
                           ></v-text-field>
                         </v-col>
@@ -109,7 +109,7 @@
                               density="compact"
                               hide-details="auto"
                               :rules="[rules.required]"
-                              class=""
+                              class="required-left-border"
                               prepend-inner-icon="mdi-file-document-outline"
                           >
                             <template #append-inner>
@@ -127,7 +127,7 @@
                               density="compact"
                               hide-details="auto"
                               :rules="[rules.required]"
-                              class=""
+                              class="required-left-border"
                               prepend-inner-icon="mdi-account-box"
                               readonly
                               placeholder="Selecione um cliente"
@@ -172,7 +172,7 @@
                               density="compact"
                               hide-details="auto"
                               :rules="[rules.required]"
-                              class=""
+                              class="required-left-border"
                               prepend-inner-icon="mdi-chart-tree"
                           >
                             <template #append-inner>
@@ -289,10 +289,10 @@
                               v-model="formData.dtemissao"
                               label="Data Emissão *"
                               :rules="[rules.required]"
+                              class="required-left-border"
                               type="date"
                               variant="outlined"
                               density="compact"
-                              class=""
                               prepend-inner-icon="mdi-calendar"
                           ></v-text-field>
                         </v-col>

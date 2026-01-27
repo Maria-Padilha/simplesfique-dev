@@ -12,10 +12,10 @@ import ReceberView from "@/views/pages/financeiro/ReceberView.vue";
 import ContaCorrenteView from "@/views/pages/banco/ContaCorrenteView.vue";
 import CentroDeCustoView from "@/views/pages/financeiro/CentroDeCustoView.vue";
 import PrevisaoDebitosView from "@/views/pages/financeiro/PrevisaoDebitosView.vue";
-import PessoasView from '@/views/pages/PessoasView.vue';
+import PessoasView from '@/views/pages/manutencao/PessoasView.vue';
 import PlanoContaView from '@/views/pages/financeiro/PlanoContaView.vue';
 import DebitoRealView from '@/views/pages/financeiro/DebitoRealView.vue';
-import UsuariosView from '@/views/pages/UsuariosView.vue';
+import UsuariosView from '@/views/pages/manutencao/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
 import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
 import PdvView from '@/views/pages/pdv/PdvView.vue';
@@ -240,12 +240,12 @@ const routes = [
     {
         path: '/paginas/entradadfe',
         name: 'entradadfe',
-        component: () => import('@/views/pages/produtos/EntradaDfeView.vue')
+        component: () => import('@/views/pages/produtos/entrada/EntradaDfeView.vue')
     },
     {
         path: '/paginas/entradadfe/nova',
         name: 'entradadfe-nova',
-        component: () => import('@/views/pages/produtos/EntradaDfeNovaView.vue')
+        component: () => import('@/views/pages/produtos/entrada/EntradaDfeNovaView.vue')
     },
     {
         path: '/paginas/entradadfe/visualizar/:id',

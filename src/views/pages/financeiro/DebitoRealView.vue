@@ -19,10 +19,10 @@
     <template #section>
       <div>
         <!-- Conteúdo Principal -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
           <v-card-text class="pa-4">
             <!-- Filtros de Período -->
-            <v-card class="mb-4 background-card" elevation="1">
+            <v-card class="mb-4 background-card" elevation="0">
               <v-card-title class="text-h6 pa-4">
                 <v-icon icon="mdi-filter" class="mr-2"></v-icon>
                 Filtros de Período
@@ -85,14 +85,14 @@
             </v-card>
 
             <!-- Tabela de Débitos Realizados -->
-            <v-card class="background-card" elevation="1">
+            <v-card class="background-card" elevation="0">
               <v-card-text class="pa-0">
                 <v-data-table
                     :headers="headers"
                     :items="debitosPorCentroCusto"
                     :loading="loading"
                     item-value="id"
-                    class="elevation-0 background-card"
+                    class="background-card"
                     :items-per-page="15"
                     :items-per-page-options="[10, 25, 50, 100]"
                     density="compact"
@@ -206,7 +206,7 @@
             </v-card>
 
             <!-- Card de Totais -->
-            <v-card class="mt-4 background-card" elevation="1">
+            <v-card class="mt-4 background-card" elevation="0">
               <v-card-text class="pa-4">
                 <v-row>
                   <v-col cols="12" md="6">
@@ -226,7 +226,7 @@
         </v-card>
 
         <!-- Gráfico de Pizza -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mt-4" v-if="debitosRealizados.length > 0">
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mt-4" v-if="debitosRealizados.length > 0" elevation="0">
           <v-card-title class="text-h6 pa-4">
             <v-icon icon="mdi-chart-pie" class="mr-2"></v-icon>
             Distribuição por Centro de Custo
@@ -242,7 +242,7 @@
         </v-card>
 
         <!-- Gráfico de Barras -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mt-4" v-if="debitosRealizados.length > 0">
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mt-4" v-if="debitosRealizados.length > 0" elevation="0">
           <v-card-title class="text-h6 pa-4">
             <v-icon icon="mdi-chart-bar" class="mr-2"></v-icon>
             Débitos por Centro de Custo

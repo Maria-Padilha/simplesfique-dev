@@ -17,7 +17,7 @@
       </v-btn>
     </template>
     <template #section>
-      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
         <v-card-text class="pa-4">
           <div class="d-flex justify-space-between align-center mb-3 gap-2">
 
@@ -32,7 +32,7 @@
           <!-- Formulário Expansível -->
           <v-expand-transition>
             <div v-if="formularioAberto">
-              <v-card class="background-card mb-7" elevation="2">
+              <v-card class="background-card mb-7" elevation="0">
                 <v-card-title class="text-h6 pa-4">
                   <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
                   {{ editando ? 'Editar Caixa' : 'Novo Caixa' }}
@@ -41,7 +41,7 @@
                   <v-form ref="novoCaixaRef" v-model="formValido">
                     <v-row>
                       <v-col cols="12" md="4">
-                        <v-text-field v-model="novoCaixa.desccaixa" label="Descrição *" :rules="[rules.required]" maxlength="120" variant="outlined" density="compact" class="custom-text-field" prepend-inner-icon="mdi-text" />
+                        <v-text-field v-model="novoCaixa.desccaixa" label="Descrição *" :rules="[rules.required]" maxlength="120" variant="outlined" density="compact" class="custom-text-field required-left-border" prepend-inner-icon="mdi-text" />
                       </v-col>
 
                       <v-col cols="12" md="4">
@@ -58,6 +58,7 @@
                             hide-details="auto"
                             :rules="[rules.required]"
                             prepend-inner-icon="mdi-chart-tree"
+                            class="required-left-border"
                         >
                           <template #append-inner>
                             <PlanoContaMenu @selecionar="selecionarPlanoConta"/>

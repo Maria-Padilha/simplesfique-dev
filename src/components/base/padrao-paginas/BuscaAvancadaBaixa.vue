@@ -1,5 +1,5 @@
 <template>
-  <v-expansion-panels v-model="expanded" class="busca-avancada-expansion">
+  <v-expansion-panels v-model="expanded" class="busca-avancada-expansion mb-4">
     <v-expansion-panel class="background-secondary" elevation="0">
       <v-expansion-panel-title class="busca-avancada-header">
         <div class="d-flex align-center">

@@ -19,7 +19,7 @@
     <template #section>
       <div>
         <!-- Conteúdo Principal -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
           <v-card-text class="pa-4">
             <!-- Botão Expandir Formulário -->
             <BotaoExpandTransition
@@ -32,7 +32,7 @@
             <!-- Formulário Expansível -->
             <v-expand-transition>
               <div v-if="formularioAberto">
-                <v-card class="background-card mb-7" elevation="2">
+                <v-card class="background-card mb-7" elevation="0">
                   <v-card-title class="text-h6 pa-4">
                     <v-icon icon="mdi-swap-horizontal" class="mr-2"></v-icon>
                     Nova Transferência
@@ -48,6 +48,7 @@
                             item-title="text"
                             item-value="value"
                             density="compact"
+                            class="required-left-border"
                             variant="outlined"
                             hide-details="auto"
                             prepend-inner-icon="mdi-swap-horizontal"
@@ -81,7 +82,6 @@
                         variant="tonal"
                         class="mt-4"
                     >
-                      <v-icon icon="mdi-information" class="mr-2"></v-icon>
                       Selecione um tipo de transferência para continuar
                     </v-alert>
                   </v-card-text>

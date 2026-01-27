@@ -18,7 +18,7 @@
     <template #section>
       <div>
         <!-- Card com Total das Autorizações -->
-        <v-card class="background-secondary mb-4" elevation="2">
+        <v-card class="background-secondary mb-4" elevation="0">
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="d-flex align-center">
@@ -38,7 +38,7 @@
         </v-card>
 
         <!-- Lista de Autorizações -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
           <v-card-text class="pa-4">
             <!-- Busca Avançada -->
             <div class="my-4">

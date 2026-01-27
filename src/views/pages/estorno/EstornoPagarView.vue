@@ -19,10 +19,10 @@
     <template #section>
       <div>
         <!-- Content Card -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
           <v-card-text class="pa-4">
             <!-- Filtros -->
-            <v-card class="background-card mb-4" elevation="2">
+            <v-card class="background-card mb-1" elevation="0">
               <v-card-title class="text-h6 pa-4">
                 <v-icon icon="mdi-filter" class="mr-2"></v-icon>
                 Período da Baixa
@@ -67,19 +67,19 @@
             </v-card>
 
             <!-- Tabela de Resultados -->
-            <v-card class="background-card" elevation="2">
+            <v-card class="background-card" elevation="0">
               <v-card-title class="text-h6 pa-4">
                 <v-icon icon="mdi-table" class="mr-2"></v-icon>
                 Lotes de Baixa
               </v-card-title>
-              <v-card-text class="pa-4">
+              <v-card-text class="pa-4 border">
                 <v-data-table
                     :headers="headers"
                     :items="baixasAgrupadas"
                     :loading="loading"
                     show-expand
                     item-value="uniqueId"
-                    class="elevation-1"
+                    class="background-card"
                     :items-per-page="10"
                     :items-per-page-options="[10, 25, 50, 100]"
                     no-data-text="Nenhum registro encontrado no período"
@@ -124,14 +124,14 @@
                   <template v-slot:expanded-row="{ item }">
                     <tr>
                       <td :colspan="headers.length" class="pa-4">
-                        <v-card flat class="background-primary">
+                        <v-card flat class="background-secondary">
                           <v-card-text>
                             <v-data-table
                                 :headers="headersDetalhes"
                                 :items="item.detalhes"
                                 hide-default-footer
                                 density="compact"
-                                class="elevation-0"
+                                class="elevation-0 background-card"
                             >
                               <!-- Número da Parcela -->
                               <template v-slot:[`item.nrparcela`]="{ item: detalhe }">

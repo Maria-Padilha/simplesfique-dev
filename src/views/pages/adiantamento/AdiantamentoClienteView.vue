@@ -4,7 +4,7 @@
     <template #section>
       <div>
         <!-- Conteúdo Principal -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
           <v-card-text class="pa-4">
             <BotaoExpandTransition
                 :formulario-aberto="formularioAberto"
@@ -16,7 +16,7 @@
             <!-- Formulário de Lançamento -->
             <v-expand-transition>
               <div v-if="formularioAberto">
-                <v-card class="background-card mb-7" elevation="2">
+                <v-card class="background-card mb-7" elevation="0">
                   <v-card-title class="text-h6 pa-4">
                     <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
                     {{ editando ? 'Editar Lançamento' : 'Novo Lançamento' }}
@@ -336,7 +336,7 @@
             </v-expand-transition>
 
             <!-- Filtros de Busca -->
-            <v-card class="mb-4 background-card" elevation="1">
+            <v-card class="mb-4 background-card" elevation="0">
               <v-card-title class="text-h6 pa-4">
                 <v-icon icon="mdi-filter" class="mr-2"></v-icon>
                 Filtros de Período e Cliente
@@ -374,7 +374,7 @@
                   </v-col>
 
                   <!-- Atalho de Período -->
-                  <v-col cols="12" md="2">
+                  <v-col cols="12" md="3">
                     <v-select
                         v-model="periodoSelecionado"
                         :items="periodos"
@@ -387,7 +387,7 @@
                   </v-col>
 
                   <!-- Data Inicial -->
-                  <v-col cols="12" md="3">
+                  <v-col cols="12" md="2">
                     <v-text-field
                         v-model="filtros.dtini"
                         label="Data Inicial *"
@@ -399,7 +399,7 @@
                   </v-col>
 
                   <!-- Data Final -->
-                  <v-col cols="12" md="3">
+                  <v-col cols="12" md="2">
                     <v-text-field
                         v-model="filtros.dtfim"
                         label="Data Final *"
@@ -411,7 +411,7 @@
                   </v-col>
 
                   <!-- Botão Buscar -->
-                  <v-col cols="12" md="1" class="d-flex">
+                  <v-col cols="12" md="2" class="d-flex">
                     <v-btn
                         color="var(--text-color-laranja)"
                         :loading="loading"
@@ -430,10 +430,10 @@
             </v-card>
 
             <!-- Tabela de Lançamentos -->
-            <v-card class="background-card" elevation="1">
+            <v-card class="background-card" elevation="0">
               <v-card-text class="pa-0">
                 <!-- Saldo Anterior -->
-                <v-card class="ma-4 mb-0 background-card" elevation="2">
+                <v-card class="ma-4 mb-1 background-card" elevation="0">
                   <v-card-text class="d-flex justify-space-between align-center pa-3">
                     <span class="text-subtitle-1 font-weight-bold">Saldo Anterior</span>
                     <span class="text-h6 font-weight-bold" :class="saldoAnterior >= 0 ? 'text-success' : 'text-error'">
@@ -447,7 +447,7 @@
                     :items="lancamentosFiltrados"
                     :loading="loading"
                     item-key="id"
-                    class="elevation-1 background-secondary"
+                    class="background-secondary border"
                     :items-per-page="15"
                     density="compact"
                 >
