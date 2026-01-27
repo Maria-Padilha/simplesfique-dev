@@ -18,7 +18,7 @@
     </template>
     <template #section>
       <!-- Lista de Centros de Custo -->
-      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
         <v-card-text class="pa-4">
           <div class="d-flex justify-space-between align-center mb-3 gap-2">
             <BotaoExpandTransition
@@ -32,7 +32,7 @@
           <!-- Formulário Expansível -->
           <v-expand-transition>
             <div v-if="formularioAberto">
-              <v-card class="background-card mb-7" elevation="2">
+              <v-card class="background-card mb-7" elevation="0">
                 <v-card-title class="text-h6 pa-4">
                   <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
                   {{ editando ? 'Editar Centro de Custo' : 'Novo Centro de Custo' }}
@@ -50,7 +50,7 @@
                             maxlength="10"
                             variant="outlined"
                             density="compact"
-                            class="custom-text-field"
+                            class="custom-text-field required-left-border"
                             prepend-inner-icon="mdi-barcode"
                             @blur="validarClassificador"
                             :loading="classificadorValidando"
@@ -67,7 +67,7 @@
                             maxlength="60"
                             variant="outlined"
                             density="compact"
-                            class="custom-text-field"
+                            class="custom-text-field required-left-border"
                             prepend-inner-icon="mdi-text"
                             :disabled="classificadorValido !== true"
                             :hint="classificadorValido !== true ? 'Valide a classificação primeiro' : ''"

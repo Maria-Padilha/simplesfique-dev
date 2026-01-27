@@ -19,8 +19,8 @@
                 label="Código do certificado *"
                 variant="outlined"
                 density="compact"
+                class="required-left-border mb-4"
                 hide-details
-                class="mb-4"
                 readonly
             />
           </v-col>
@@ -46,6 +46,7 @@
                 label="Arquivo PFX"
                 accept=".pfx"
                 variant="outlined"
+                class="required-left-border"
                 prepend-icon="mdi-file-certificate"
             />
 
@@ -57,6 +58,7 @@
                 v-model="senha"
                 label="Senha *"
                 type="password"
+                class="required-left-border"
                 variant="outlined"
             />
           </v-col>
@@ -67,6 +69,7 @@
                 label="Válido a partir de *"
                 type="date"
                 variant="outlined"
+                class="required-left-border"
                 density="compact"
             />
           </v-col>
@@ -76,6 +79,7 @@
                 v-model="validoAte"
                 label="Válido até *"
                 type="date"
+                class="required-left-border"
                 variant="outlined"
                 density="compact"
             />
@@ -86,6 +90,7 @@
                 v-model="alertaDias"
                 type="number"
                 variant="outlined"
+                class="required-left-border"
                 density="compact"
                 label="Alerta de expiração (dias) *"
             />

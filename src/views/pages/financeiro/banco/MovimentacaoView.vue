@@ -19,10 +19,331 @@
     <template #section>
       <div>
         <!-- Conteúdo Principal -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary pa-3" elevation="0">
+          <BotaoExpandTransition
+              :formulario-aberto="formularioAberto"
+              texto-abrir="Nova Movimentação"
+              texto-fechar="Cancelar"
+              @toggle="toggleFormulario"
+          />
+
+          <!-- Formulário de Movimentação -->
+          <v-expand-transition>
+            <div v-if="formularioAberto">
+              <v-card class="background-card mb-7" elevation="2">
+                <v-card-title class="text-h6 pa-4">
+                  <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
+                  {{ editando ? 'Editar Movimentação' : 'Nova Movimentação' }}
+                </v-card-title>
+
+                <v-card-text class="pa-4">
+                  <v-form ref="formRef" v-model="formValido">
+                    <v-row>
+                      <!-- Conta Bancária -->
+                      <v-col cols="12" md="4">
+                        <v-autocomplete
+                            v-model="formData.id_ccorrente"
+                            :items="contasDisponiveis"
+                            :loading="loadingContas"
+                            item-title="titular"
+                            item-value="id"
+                            label="Conta Bancária *"
+                            :rules="[rules.required]"
+                            variant="outlined"
+                            density="compact"
+                            class="required-left-border"
+                            prepend-inner-icon="mdi-bank"
+                            no-data-text="Nenhuma conta disponível"
+                        >
+                          <template v-slot:item="{ props, item }">
+                            <v-list-item v-bind="props">
+                              <template v-slot:prepend>
+                                <v-icon icon="mdi-bank" size="20" class="mr-2"></v-icon>
+                              </template>
+                              <template v-slot:title>
+                                {{ item.raw.titular }}
+                              </template>
+                              <template v-slot:subtitle>
+                              <span class="text-caption opacity-70">
+                                {{ item.raw.descbanco }} - {{ item.raw.numero_ccorrente }}-{{ item.raw.digito_cc }}
+                              </span>
+                              </template>
+                            </v-list-item>
+                          </template>
+                          <template v-slot:selection="{ item }">
+                            {{ item.raw.titular }} - {{ item.raw.numero_ccorrente }}-{{ item.raw.digito_cc }}
+                          </template>
+                        </v-autocomplete>
+                      </v-col>
+
+                      <!-- Valor -->
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            v-model="formData.valor"
+                            label="Valor *"
+                            :rules="[rules.required, rules.valorPositivo]"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-currency-usd"
+                            prefix="R$"
+                            type="number"
+                            class="required-left-border"
+                            step="0.01"
+                        ></v-text-field>
+                      </v-col>
+
+                      <!-- Tipo (Entrada/Saída) -->
+                      <v-col cols="12" md="4">
+                        <v-select
+                            v-model="formData.tipo"
+                            :items="[
+                          { title: 'Entrada', value: '+' },
+                          { title: 'Saída', value: '-' }
+                        ]"
+                            label="Tipo *"
+                            :rules="[rules.required]"
+                            variant="outlined"
+                            density="compact"
+                            class="required-left-border"
+                            prepend-inner-icon="mdi-swap-vertical"
+                        ></v-select>
+                      </v-col>
+
+                      <!-- Histórico -->
+                      <v-col cols="12" md="4">
+                        <v-autocomplete
+                            v-model="formData.id_historico"
+                            :items="historicos"
+                            :loading="loadingHistoricos"
+                            item-title="deschistorico"
+                            item-value="id"
+                            label="Histórico *"
+                            :rules="[rules.required]"
+                            variant="outlined"
+                            class="required-left-border"
+                            density="compact"
+                            prepend-inner-icon="mdi-history"
+                            no-data-text="Nenhum histórico disponível"
+                        ></v-autocomplete>
+                      </v-col>
+
+                      <!-- Número Documento -->
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            v-model="formData.nrdocumento"
+                            label="Número Documento"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-numeric"
+                            maxlength="20"
+                            counter="20"
+                        ></v-text-field>
+                      </v-col>
+
+                      <!-- Data de Lançamento -->
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            v-model="formData.dtlancamento"
+                            label="Data de Lançamento *"
+                            type="date"
+                            :rules="[rules.required]"
+                            class="required-left-border"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-calendar"
+                        ></v-text-field>
+                      </v-col>
+
+                      <!-- Plano de Conta -->
+                      <v-col cols="12" md="4">
+                        <v-autocomplete
+                            v-model="formData.id_planoconta"
+                            :items="planosConta"
+                            :loading="loadingPlanosConta"
+                            item-title="descconta"
+                            class="required-left-border"
+                            item-value="id"
+                            label="Plano de Conta *"
+                            :rules="[rules.required]"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-file-document"
+                            no-data-text="Nenhuma conta disponível"
+                        >
+                          <template v-slot:item="{ props, item }">
+                            <v-list-item v-bind="props">
+                              <template v-slot:title>
+                                {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
+                              </template>
+                            </v-list-item>
+                          </template>
+                          <template v-slot:selection="{ item }">
+                            {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
+                          </template>
+                        </v-autocomplete>
+                      </v-col>
+
+                      <!-- Histórico Contábil -->
+                      <v-col cols="12" md="4">
+                        <v-autocomplete
+                            v-model="formData.id_hist_contabil"
+                            :items="historicosContabil"
+                            :loading="loadingHistContabil"
+                            item-title="deschistorico"
+                            item-value="id"
+                            label="Histórico Contábil"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-book-open-variant"
+                            no-data-text="Nenhum histórico disponível"
+                            clearable
+                        ></v-autocomplete>
+                      </v-col>
+
+                      <!-- Observação -->
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            v-model="formData.observacao"
+                            label="Observação"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-note-text"
+                            maxlength="500"
+                        ></v-text-field>
+                      </v-col>
+
+                      <!-- Rateio por Centro de Custo -->
+                      <v-col cols="12" v-if="mostrarRateio">
+                        <v-expand-transition>
+                          <v-card variant="outlined" class="mt-4" elevation="1">
+                            <v-card-title class="text-h6 pa-4 d-flex align-center">
+                              <v-icon icon="mdi-swap-horizontal" class="mr-2" color="orange"></v-icon>
+                              Rateio por Centro de Custo
+                              <v-spacer></v-spacer>
+                              <v-btn
+                                  size="small"
+                                  color="orange"
+                                  variant="text"
+                                  prepend-icon="mdi-plus"
+                                  @click="adicionarCentro"
+                              >
+                                Adicionar Centro
+                              </v-btn>
+                              <v-btn
+                                  size="small"
+                                  color="orange"
+                                  variant="elevated"
+                                  class="ml-2"
+                                  @click="distribuirIgualmente"
+                              >
+                                Distribuir igualmente
+                              </v-btn>
+                            </v-card-title>
+
+                            <v-card-text class="pa-4">
+                              <div v-if="ccustosRateio.length === 0" class="text-center text-grey pa-4">
+                                Nenhum centro de custo adicionado. Clique em "Adicionar Centro" para começar o rateio.
+                              </div>
+
+                              <v-table v-else density="compact">
+                                <thead>
+                                <tr>
+                                  <th style="width: 40%">Centro de Custo</th>
+                                  <th style="width: 25%">Valor (R$)</th>
+                                  <th style="width: 20%">Porcentagem (%)</th>
+                                  <th style="width: 15%; text-align: center">Ações</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="(linha, index) in ccustosRateio" :key="index">
+                                  <td>
+                                    <v-select
+                                        v-model="linha.id_ccusto"
+                                        :items="centrosCusto"
+                                        item-title="desccentrocusto"
+                                        item-value="id"
+                                        label="Selecione"
+                                        variant="outlined"
+                                        density="compact"
+                                        hide-details
+                                    />
+                                  </td>
+                                  <td>
+                                    <v-text-field
+                                        v-model.number="linha.valor"
+                                        type="number"
+                                        step="0.01"
+                                        variant="outlined"
+                                        density="compact"
+                                        prefix="R$"
+                                        hide-details
+                                        @input="onRateioValorChange(index)"
+                                    />
+                                  </td>
+                                  <td>
+                                    <v-text-field
+                                        v-model.number="linha.porcentagem"
+                                        type="number"
+                                        step="0.01"
+                                        variant="outlined"
+                                        density="compact"
+                                        suffix="%"
+                                        hide-details
+                                        @input="onRateioPercentChange(index)"
+                                    />
+                                  </td>
+                                  <td style="text-align: center">
+                                    <v-btn
+                                        icon="mdi-delete"
+                                        size="small"
+                                        color="error"
+                                        variant="text"
+                                        @click="removerCentro(index)"
+                                    />
+                                  </td>
+                                </tr>
+                                </tbody>
+                                <tfoot>
+                                <tr class="font-weight-bold">
+                                  <td>TOTAL</td>
+                                  <td>{{ formatarMoeda(totalRateadoValor) }}</td>
+                                  <td>{{ Number(totalRateadoPercent).toFixed(2) }}%</td>
+                                  <td></td>
+                                </tr>
+                                </tfoot>
+                              </v-table>
+                            </v-card-text>
+                          </v-card>
+                        </v-expand-transition>
+                      </v-col>
+                    </v-row>
+                  </v-form>
+                </v-card-text>
+
+                <v-card-actions class="pa-4">
+                  <v-spacer></v-spacer>
+                  <v-btn color="grey" variant="text" @click="cancelarFormulario">
+                    Cancelar
+                  </v-btn>
+                  <v-btn
+                      color="var(--text-color-laranja)"
+                      :loading="loading"
+                      :disabled="!formValido"
+                      @click="salvarMovimentacao"
+                      variant="flat"
+                      class="text-white"
+                  >
+                    <v-icon start>mdi-content-save</v-icon>
+                    {{ editando ? 'Atualizar' : 'Salvar' }}
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </div>
+          </v-expand-transition>
+
           <v-card-text class="pa-4">
             <!-- Filtros de Busca Avançada -->
-            <v-card class="mb-4 background-card" elevation="1">
+            <v-card class="mb-1 background-card" elevation="0">
               <v-card-title class="text-h6 pa-4">
                 <v-icon icon="mdi-filter" class="mr-2"></v-icon>
                 Filtros de Busca
@@ -66,7 +387,7 @@
                   </v-col>
 
                   <!-- Período -->
-                  <v-col cols="12" md="2">
+                  <v-col cols="12" md="3">
                     <v-select
                         v-model="filtros.periodo"
                         :items="opcoesPeriodo"
@@ -105,7 +426,7 @@
                     ></v-text-field>
                   </v-col>
                   <!-- Botão Buscar -->
-                  <v-col cols="12" md="3">
+                  <v-col cols="12" md="2">
                     <v-btn
                         color="var(--text-color-laranja)"
                         variant="flat"
@@ -123,326 +444,11 @@
               </v-card-text>
             </v-card>
 
-            <BotaoExpandTransition
-                :formulario-aberto="formularioAberto"
-                texto-abrir="Nova Movimentação"
-                texto-fechar="Cancelar"
-                @toggle="toggleFormulario"
-            />
-
-            <!-- Formulário de Movimentação -->
-            <v-expand-transition>
-              <div v-if="formularioAberto">
-                <v-card class="background-card mb-7" elevation="2">
-                  <v-card-title class="text-h6 pa-4">
-                    <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-                    {{ editando ? 'Editar Movimentação' : 'Nova Movimentação' }}
-                  </v-card-title>
-
-                  <v-card-text class="pa-4">
-                    <v-form ref="formRef" v-model="formValido">
-                      <v-row>
-                        <!-- Conta Bancária -->
-                        <v-col cols="12" md="4">
-                          <v-autocomplete
-                              v-model="formData.id_ccorrente"
-                              :items="contasDisponiveis"
-                              :loading="loadingContas"
-                              item-title="titular"
-                              item-value="id"
-                              label="Conta Bancária *"
-                              :rules="[rules.required]"
-                              variant="outlined"
-                              density="compact"
-                              prepend-inner-icon="mdi-bank"
-                              no-data-text="Nenhuma conta disponível"
-                          >
-                            <template v-slot:item="{ props, item }">
-                              <v-list-item v-bind="props">
-                                <template v-slot:prepend>
-                                  <v-icon icon="mdi-bank" size="20" class="mr-2"></v-icon>
-                                </template>
-                                <template v-slot:title>
-                                  {{ item.raw.titular }}
-                                </template>
-                                <template v-slot:subtitle>
-                              <span class="text-caption opacity-70">
-                                {{ item.raw.descbanco }} - {{ item.raw.numero_ccorrente }}-{{ item.raw.digito_cc }}
-                              </span>
-                                </template>
-                              </v-list-item>
-                            </template>
-                            <template v-slot:selection="{ item }">
-                              {{ item.raw.titular }} - {{ item.raw.numero_ccorrente }}-{{ item.raw.digito_cc }}
-                            </template>
-                          </v-autocomplete>
-                        </v-col>
-
-                        <!-- Valor -->
-                        <v-col cols="12" md="4">
-                          <v-text-field
-                              v-model="formData.valor"
-                              label="Valor *"
-                              :rules="[rules.required, rules.valorPositivo]"
-                              variant="outlined"
-                              density="compact"
-                              prepend-inner-icon="mdi-currency-usd"
-                              prefix="R$"
-                              type="number"
-                              step="0.01"
-                          ></v-text-field>
-                        </v-col>
-
-                        <!-- Tipo (Entrada/Saída) -->
-                        <v-col cols="12" md="4">
-                          <v-select
-                              v-model="formData.tipo"
-                              :items="[
-                          { title: 'Entrada', value: '+' },
-                          { title: 'Saída', value: '-' }
-                        ]"
-                              label="Tipo *"
-                              :rules="[rules.required]"
-                              variant="outlined"
-                              density="compact"
-                              prepend-inner-icon="mdi-swap-vertical"
-                          ></v-select>
-                        </v-col>
-
-                        <!-- Histórico -->
-                        <v-col cols="12" md="4">
-                          <v-autocomplete
-                              v-model="formData.id_historico"
-                              :items="historicos"
-                              :loading="loadingHistoricos"
-                              item-title="deschistorico"
-                              item-value="id"
-                              label="Histórico *"
-                              :rules="[rules.required]"
-                              variant="outlined"
-                              density="compact"
-                              prepend-inner-icon="mdi-history"
-                              no-data-text="Nenhum histórico disponível"
-                          ></v-autocomplete>
-                        </v-col>
-
-                        <!-- Número Documento -->
-                        <v-col cols="12" md="4">
-                          <v-text-field
-                              v-model="formData.nrdocumento"
-                              label="Número Documento"
-                              variant="outlined"
-                              density="compact"
-                              prepend-inner-icon="mdi-numeric"
-                              maxlength="20"
-                              counter="20"
-                          ></v-text-field>
-                        </v-col>
-
-                        <!-- Data de Lançamento -->
-                        <v-col cols="12" md="4">
-                          <v-text-field
-                              v-model="formData.dtlancamento"
-                              label="Data de Lançamento *"
-                              type="date"
-                              :rules="[rules.required]"
-                              variant="outlined"
-                              density="compact"
-                              prepend-inner-icon="mdi-calendar"
-                          ></v-text-field>
-                        </v-col>
-
-                        <!-- Plano de Conta -->
-                        <v-col cols="12" md="4">
-                          <v-autocomplete
-                              v-model="formData.id_planoconta"
-                              :items="planosConta"
-                              :loading="loadingPlanosConta"
-                              item-title="descconta"
-                              item-value="id"
-                              label="Plano de Conta *"
-                              :rules="[rules.required]"
-                              variant="outlined"
-                              density="compact"
-                              prepend-inner-icon="mdi-file-document"
-                              no-data-text="Nenhuma conta disponível"
-                          >
-                            <template v-slot:item="{ props, item }">
-                              <v-list-item v-bind="props">
-                                <template v-slot:title>
-                                  {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
-                                </template>
-                              </v-list-item>
-                            </template>
-                            <template v-slot:selection="{ item }">
-                              {{ item.raw.id_classificador }} - {{ item.raw.descconta }}
-                            </template>
-                          </v-autocomplete>
-                        </v-col>
-
-                        <!-- Histórico Contábil -->
-                        <v-col cols="12" md="4">
-                          <v-autocomplete
-                              v-model="formData.id_hist_contabil"
-                              :items="historicosContabil"
-                              :loading="loadingHistContabil"
-                              item-title="deschistorico"
-                              item-value="id"
-                              label="Histórico Contábil"
-                              variant="outlined"
-                              density="compact"
-                              prepend-inner-icon="mdi-book-open-variant"
-                              no-data-text="Nenhum histórico disponível"
-                              clearable
-                          ></v-autocomplete>
-                        </v-col>
-
-                        <!-- Observação -->
-                        <v-col cols="12" md="4">
-                          <v-text-field
-                              v-model="formData.observacao"
-                              label="Observação"
-                              variant="outlined"
-                              density="compact"
-                              prepend-inner-icon="mdi-note-text"
-                              maxlength="500"
-                          ></v-text-field>
-                        </v-col>
-
-                        <!-- Rateio por Centro de Custo -->
-                        <v-col cols="12" v-if="mostrarRateio">
-                          <v-expand-transition>
-                            <v-card variant="outlined" class="mt-4" elevation="1">
-                              <v-card-title class="text-h6 pa-4 d-flex align-center">
-                                <v-icon icon="mdi-swap-horizontal" class="mr-2" color="orange"></v-icon>
-                                Rateio por Centro de Custo
-                                <v-spacer></v-spacer>
-                                <v-btn
-                                    size="small"
-                                    color="orange"
-                                    variant="text"
-                                    prepend-icon="mdi-plus"
-                                    @click="adicionarCentro"
-                                >
-                                  Adicionar Centro
-                                </v-btn>
-                                <v-btn
-                                    size="small"
-                                    color="orange"
-                                    variant="elevated"
-                                    class="ml-2"
-                                    @click="distribuirIgualmente"
-                                >
-                                  Distribuir igualmente
-                                </v-btn>
-                              </v-card-title>
-
-                              <v-card-text class="pa-4">
-                                <div v-if="ccustosRateio.length === 0" class="text-center text-grey pa-4">
-                                  Nenhum centro de custo adicionado. Clique em "Adicionar Centro" para começar o rateio.
-                                </div>
-
-                                <v-table v-else density="compact">
-                                  <thead>
-                                  <tr>
-                                    <th style="width: 40%">Centro de Custo</th>
-                                    <th style="width: 25%">Valor (R$)</th>
-                                    <th style="width: 20%">Porcentagem (%)</th>
-                                    <th style="width: 15%; text-align: center">Ações</th>
-                                  </tr>
-                                  </thead>
-                                  <tbody>
-                                  <tr v-for="(linha, index) in ccustosRateio" :key="index">
-                                    <td>
-                                      <v-select
-                                          v-model="linha.id_ccusto"
-                                          :items="centrosCusto"
-                                          item-title="desccentrocusto"
-                                          item-value="id"
-                                          label="Selecione"
-                                          variant="outlined"
-                                          density="compact"
-                                          hide-details
-                                      />
-                                    </td>
-                                    <td>
-                                      <v-text-field
-                                          v-model.number="linha.valor"
-                                          type="number"
-                                          step="0.01"
-                                          variant="outlined"
-                                          density="compact"
-                                          prefix="R$"
-                                          hide-details
-                                          @input="onRateioValorChange(index)"
-                                      />
-                                    </td>
-                                    <td>
-                                      <v-text-field
-                                          v-model.number="linha.porcentagem"
-                                          type="number"
-                                          step="0.01"
-                                          variant="outlined"
-                                          density="compact"
-                                          suffix="%"
-                                          hide-details
-                                          @input="onRateioPercentChange(index)"
-                                      />
-                                    </td>
-                                    <td style="text-align: center">
-                                      <v-btn
-                                          icon="mdi-delete"
-                                          size="small"
-                                          color="error"
-                                          variant="text"
-                                          @click="removerCentro(index)"
-                                      />
-                                    </td>
-                                  </tr>
-                                  </tbody>
-                                  <tfoot>
-                                  <tr class="font-weight-bold">
-                                    <td>TOTAL</td>
-                                    <td>{{ formatarMoeda(totalRateadoValor) }}</td>
-                                    <td>{{ Number(totalRateadoPercent).toFixed(2) }}%</td>
-                                    <td></td>
-                                  </tr>
-                                  </tfoot>
-                                </v-table>
-                              </v-card-text>
-                            </v-card>
-                          </v-expand-transition>
-                        </v-col>
-                      </v-row>
-                    </v-form>
-                  </v-card-text>
-
-                  <v-card-actions class="pa-4">
-                    <v-spacer></v-spacer>
-                    <v-btn color="grey" variant="text" @click="cancelarFormulario">
-                      Cancelar
-                    </v-btn>
-                    <v-btn
-                        color="var(--text-color-laranja)"
-                        :loading="loading"
-                        :disabled="!formValido"
-                        @click="salvarMovimentacao"
-                        variant="flat"
-                        class="text-white"
-                    >
-                      <v-icon start>mdi-content-save</v-icon>
-                      {{ editando ? 'Atualizar' : 'Salvar' }}
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
-              </div>
-            </v-expand-transition>
-
             <!-- Tabela de Movimentações -->
-            <v-card class="background-card" elevation="1">
+            <v-card class="background-card border" elevation="0">
               <v-card-text class="pa-0">
                 <!-- Saldo Anterior -->
-                <v-card class="ma-4 mb-0 background-card" elevation="2">
+                <v-card class="ma-4 mb-2 background-card" elevation="0">
                   <v-card-text class="d-flex justify-space-between align-center pa-3">
                     <span class="text-subtitle-1 font-weight-bold">Saldo Anterior</span>
                     <span class="text-h6 font-weight-bold" :class="saldoAnterior >= 0 ? 'text-success' : 'text-error'">
@@ -551,7 +557,7 @@
             </v-card>
 
             <!-- Card de Totais -->
-            <v-card class="mt-4 background-card" elevation="1">
+            <v-card class="mt-1 background-card" elevation="0">
               <v-card-text class="pa-4">
                 <v-row>
                   <v-col cols="12" md="3">
@@ -573,7 +579,8 @@
             </v-card>
           </v-card-text>
         </v-card>
-        <v-card class="background-secondary mb-4 ma-4 py-3 px-3 d-flex gap-4">
+
+        <v-card class="background-secondary mt-2 py-3 px-3 d-flex gap-4" elevation="0">
           <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-file-pdf-box" @click="exportarPDF">PDF</v-btn>
           <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-file-delimited" @click="exportarCSV">CSV</v-btn>
           <v-btn variant="outlined" color="var(--text-color-laranja)" prepend-icon="mdi-microsoft-excel" @click="exportarExcel">EXCEL</v-btn>

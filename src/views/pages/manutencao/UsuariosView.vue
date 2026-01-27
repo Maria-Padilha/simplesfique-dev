@@ -2,7 +2,7 @@
   <top-all-pages icon="mdi-account-cog">
     <template #titulo>Usuários</template>
     <template #section>
-      <v-card class="background-secondary">
+      <v-card class="background-secondary" elevation="0">
         <v-card-text class="pa-4">
           <BotaoExpandTransition
               :formulario-aberto="formularioAberto"
@@ -13,7 +13,7 @@
 
           <v-expand-transition>
             <div v-if="formularioAberto">
-              <v-card class="background-card mb-7" elevation="2">
+              <v-card class="background-card mb-7" elevation="0">
                 <v-card-title class="text-h6 pa-4">
                   <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
                   {{ editando ? 'Editar Usuário' : 'Novo Usuário' }}

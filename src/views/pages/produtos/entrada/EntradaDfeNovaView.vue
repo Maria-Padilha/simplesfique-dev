@@ -2,7 +2,7 @@
   <top-all-pages icon="mdi-file-document-outline">
     <template #titulo>Entrada de Nota</template>
     <template #section>
-      <v-form ref="formsNf" @submit="salvarFormulario">
+      <v-form ref="formsNf" @submit.prevent="salvarFormulario">
         <div class="flex items-center justify-end gap-3 mb-4">
           <v-btn size="small" color="var(--text-color-laranja)" variant="tonal" @click="cancelarFormulario">
             Cancelar
@@ -29,34 +29,36 @@
                 </v-col>
 
                 <!-- id_fornecedor -->
-                <v-col cols="12" md="4">
+                <v-col cols="12" md="2">
                   <v-autocomplete
                       density="compact" variant="outlined" label="Fornecedor" hide-details="auto"
                       v-model="forms.id_fornecedor" :rules="validacao"
                       :items="pessoas" item-title="nome_razao" item-value="id"
+                      class="required-left-border"
                   />
                 </v-col>
 
                 <!-- id_nota -->
-                <v-col cols="12" md="1">
+                <v-col cols="12" md="2">
                   <v-text-field
                       density="compact" variant="outlined" label="Nota" hide-details="auto"
                       v-model="forms.id_nota" :rules="validacao" @input="Number(forms.id_nota)"
+                      class="required-left-border"
                   />
                 </v-col>
 
                 <!-- id_serie -->
-                <v-col cols="12" md="1">
+                <v-col cols="12" md="2">
                   <v-text-field
                       density="compact" variant="outlined" label="Série" hide-details="auto"
-                      v-model="forms.id_serie" :rules="validacao"
+                      v-model="forms.id_serie" :rules="validacao" class="required-left-border"
                   />
                 </v-col>
 
                 <!-- id_almoxarifado -->
                 <v-col cols="12" md="2">
                   <v-text-field density="compact" variant="outlined" label="Almoxarifado" hide-details="auto"
-                                v-model="almoxarifadoNome" readonly :rules="validacao">
+                                v-model="almoxarifadoNome" readonly :rules="validacao" class="required-left-border">
                     <template #append-inner>
                       <almoxarifado-menu @selecionar="selecionarAlmoxarifado"/>
                     </template>
@@ -66,7 +68,7 @@
                 <!-- id_cfop -->
                 <v-col cols="12" md="2">
                   <v-text-field density="compact" variant="outlined" label="C.F.O.P" hide-details="auto"
-                                v-model="cfopNome" readonly :rules="validacao">
+                                v-model="cfopNome" readonly :rules="validacao" class="required-left-border">
                     <template #append-inner>
                       <cfop-menu @selecionar="selecionarCfop"/>
                     </template>
@@ -76,7 +78,7 @@
                 <!-- id_uf -->
                 <v-col cols="12" md="2">
                   <v-autocomplete
-                      density="compact" variant="outlined" label="UF" hide-details="auto" :rules="validacao"
+                      density="compact" variant="outlined" label="UF" hide-details="auto" :rules="validacao" class="required-left-border"
                       v-model="forms.id_uf" :items="ufs" item-title="sigla" item-value="sigla"
                   />
                 </v-col>
@@ -92,14 +94,14 @@
                 <v-col cols="12" md="3">
                   <v-text-field
                       density="compact" variant="outlined" label="Valor Total Produtos" hide-details="auto"
-                      v-model="forms.vlr_total_produto" type="number" :rules="validacao"
+                      v-model="forms.vlr_total_produto" type="number" :rules="validacao" class="required-left-border"
                   />
                 </v-col>
 
                 <v-col cols="12" md="3">
                   <v-text-field
                       density="compact" variant="outlined" label="Valor NF" hide-details="auto" type="number"
-                      v-model="forms.vlr_nf" :rules="validacao"
+                      v-model="forms.vlr_nf" :rules="validacao" class="required-left-border"
                   />
                 </v-col>
 
@@ -218,19 +220,10 @@
                                 v-model="forms.msg_nfe_nfce"/>
                 </v-col>
 
-                <!-- Fiscal -->
-                <v-col cols="12" md="4">
-                  <v-autocomplete
-                      density="compact" variant="outlined" label="Usuário Aprovou" hide-details="auto"
-                      v-model="forms.id_usuario_aprovou_fiscal"
-                      :items="pessoas" item-title="nome_razao" item-value="id"
-                  />
-                </v-col>
-
                 <!-- extras -->
                 <v-col cols="12" md="2">
                   <v-text-field density="compact" variant="outlined" label="Tipo" hide-details="auto"
-                                v-model="forms.tipo" :rules="validacao" maxlength="1"/>
+                                v-model="forms.tipo" :rules="validacao" class="required-left-border" maxlength="1"/>
                 </v-col>
 
                 <v-col cols="12" md="2">
@@ -260,28 +253,7 @@
                                 v-model="forms.vlr_afrmm"/>
                 </v-col>
 
-                <v-col cols="12" md="3">
-                  <v-text-field density="compact" variant="outlined" label="NFe Impressa" hide-details="auto"
-                                v-model="forms.nfe_impressa"/>
-                </v-col>
-
                 <!-- Booleans -->
-                <v-col cols="12" md="3">
-                  <v-switch
-                      v-model="forms.gerou_financeiro"
-                      :label="`Gerou Financeiro? ${forms.gerou_financeiro ? 'Sim' : 'Não'}`"
-                      hide-details="auto" color="var(--text-color-laranja)"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="3">
-                  <v-switch
-                      v-model="forms.gerou_estoque"
-                      :label="`Gerou Estoque? ${forms.gerou_estoque ? 'Sim' : 'Não'}`"
-                      hide-details="auto" color="var(--text-color-laranja)"
-                  />
-                </v-col>
-
                 <v-col cols="12" md="3">
                   <v-switch
                       v-model="forms.importacaoxml"
@@ -300,201 +272,268 @@
               </v-row>
             </template>
           </v-expansion-panel>
+
+          <v-expansion-panel elevation="1" class="mb-5" title="Cálculos da Nota" color="var(--bg-card)">
+            <template #text>
+              <v-row class="mt-5" dense>
+                <!-- ICMS -->
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Base ICMS" hide-details="auto" type="number"
+                      v-model="forms.base_icms" :rules="validacao" class="required-left-border"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Alíquota ICMS" hide-details="auto" type="number"
+                      v-model="forms.aliquota_icms" :rules="validacao" class="required-left-border"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Valor ICMS" hide-details="auto" type="number"
+                      v-model="forms.vlr_icms" :rules="validacao" class="required-left-border"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Isento ICMS" hide-details="auto" type="number"
+                      v-model="forms.isento_icms" :rules="validacao" class="required-left-border"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Outras Despesas" hide-details="auto" type="number"
+                      v-model="forms.outras_despesas" :rules="validacao" class="required-left-border"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Desp. Fora NF" hide-details="auto" type="number"
+                      v-model="forms.outras_despesas_foranf"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Base ICMS ST" hide-details="auto" type="number"
+                      v-model="forms.base_icms_subst" :rules="validacao" class="required-left-border"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Valor ICMS ST" hide-details="auto" type="number"
+                      v-model="forms.vlr_icms_subst" :rules="validacao" class="required-left-border"
+                  />
+                </v-col>
+
+                <!-- IPI -->
+                <v-col cols="12" md="2">
+                  <v-text-field density="compact" variant="outlined" label="Base IPI" hide-details="auto" type="number"
+                                v-model="forms.base_ipi" :rules="validacao" class="required-left-border"/>
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field density="compact" variant="outlined" label="Valor IPI" hide-details="auto" type="number"
+                                v-model="forms.vlr_ipi" :rules="validacao" class="required-left-border"/>
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field density="compact" variant="outlined" label="Isento IPI" hide-details="auto"
+                                type="number"
+                                v-model="forms.isento_ipi" :rules="validacao" class="required-left-border"/>
+                </v-col>
+
+                <!-- Impostos diversos -->
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Base II" hide-details="auto" type="number"
+                      v-model="forms.base_ii" :rules="validacao" class="required-left-border"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Valor II" hide-details="auto" type="number"
+                      v-model="forms.vlr_ii" :rules="validacao" class="required-left-border"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Base ISS" hide-details="auto" type="number"
+                      v-model="forms.base_iss" :rules="validacao" class="required-left-border"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Valor ISS" hide-details="auto" type="number"
+                      v-model="forms.vlr_iss" :rules="validacao" class="required-left-border"
+                  />
+                </v-col>
+
+                <!-- PIS/COFINS -->
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="PIS Produto" hide-details="auto" type="number"
+                      v-model="forms.vlr_pis_produto"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Cofins Produto" hide-details="auto" type="number"
+                      v-model="forms.vlr_cofins_produto"
+                  />
+                </v-col>
+
+                <!-- Plano Pagamento -->
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Plano Pagamento" hide-details="auto"
+                      v-model="forms.id_planopagto"
+                  />
+                </v-col>
+
+                <!-- Seguro / desconto / frete -->
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Valor Seguro" hide-details="auto" type="number"
+                      v-model="forms.vlr_seguro" :rules="validacao" class="required-left-border"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Valor Desconto" hide-details="auto" type="number"
+                      v-model="forms.vlr_desconto" :rules="validacao" class="required-left-border"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Tipo Frete" hide-details="auto"
+                      v-model="forms.tipo_frete"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="4">
+                  <v-autocomplete
+                      density="compact" variant="outlined" label="Transportadora" hide-details="auto"
+                      v-model="forms.id_transportadora" clearable
+                      :items="pessoas" item-title="nome_razao" item-value="id"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Valor Frete" hide-details="auto" type="number"
+                      v-model="forms.vlr_frete"
+                  />
+                </v-col>
+              </v-row>
+            </template>
+          </v-expansion-panel>
         </v-expansion-panels>
 
         <tabela-padrao
-            :formulario-aberto="formularioAberto"
+            titulo-pesquisa="Produtos da Nota"
             :headers="headers"
             :items="produtos"
-            :loading="loading"
-            :show-search="false"
-            item-key="id"
+            :show-search="true"
+            :item-key="'id_seq'"
             no-data-icon="mdi-database-off"
-            :item-por-pag="5"
+            :item-por-pag="10"
             no-data-text="Nenhum item encontrado"
+            v-model:expanded="expanded"
+            :expand-on-click="false"
+            :expandable="true"
+            v-model:search="search"
         >
-          <template v-slot:[`item.acoes`]='{ item }'>
-            <v-btn
-              variant="text"
-              icon="mdi-plus-circle-outline"
-              color="var(--text-color-laranja)"
-              @click="abrirModalAdd(item)"
-            />
+          <template #item="{ item, columns, props }">
+            <tr
+                v-bind="props"
+                :class="{ 'linha-ativa': openId === item.id_seq }"
+            >
+              <td v-for="col in columns" :key="col.key">
+                <!-- COLUNA DE EXPAND -->
+                <template v-if="col.key === 'data-table-expand'">
+                  <v-icon
+                      size="20"
+                      class="cursor-pointer"
+                      @click.stop="toggle(item)"
+                  >
+                    {{ expanded.includes(item.id_seq)
+                      ? 'mdi-chevron-up'
+                      : 'mdi-chevron-down' }}
+                  </v-icon>
+                </template>
+
+                <!-- DEMAIS COLUNAS -->
+                <template v-else>
+                  {{ item[col.key] }}
+                </template>
+              </td>
+            </tr>
+          </template>
+
+          <template v-slot:[`item.vlr_unitario`]="{ item }">
+            <span class="money">
+              {{ formatarReal(item.vlr_unitario) }}
+            </span>
+          </template>
+
+          <!-- Valor IPI -->
+          <template v-slot:[`item.vlr_ipi_item`]="{ item }">
+            <span class="money">
+              {{ formatarReal(item.vlr_ipi_item) }}
+            </span>
+          </template>
+
+          <!-- Valor ICMS -->
+          <template v-slot:[`item.vlr_icms_item`]="{ item }">
+            <span class="money">
+              {{ formatarReal(item.vlr_icms_item) }}
+            </span>
+          </template>
+
+          <!-- Total -->
+          <template v-slot:[`item.vlr_total_item`]="{ item }">
+            <span class="money">
+              {{ formatarReal(item.vlr_total_item) }}
+            </span>
+          </template>
+
+          <template #expanded-row="{ columns, item }">
+            <tr :class="{ 'linha-ativa-expand': openId === item.id_seq }" class="background-primary opacity-70 z-0">
+              <td :colspan="columns.length" class="pa-0">
+                <transition name="row-expand">
+                  <div
+                      v-show="openId === item.id_seq"
+                      class="row-expand__wrap"
+                  >
+                    <VincularProdutos
+                        titulo-pesquisa="Vincular a um produto"
+                        v-model:modalItemAberto="modalItemAberto"
+                        :todosProdutos="todosProdutos"
+                        :itemSelecionado="item"
+                        @vincular="vincularProduto"
+                        v-model:search="pesquisarProdutos"
+                    />
+                  </div>
+                </transition>
+              </td>
+            </tr>
           </template>
         </tabela-padrao>
-
-        <v-row class="mt-5" dense>
-          <!-- ICMS -->
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Base ICMS" hide-details="auto" type="number"
-                v-model="forms.base_icms" :rules="validacao"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Alíquota ICMS" hide-details="auto" type="number"
-                v-model="forms.aliquota_icms" :rules="validacao"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Valor ICMS" hide-details="auto" type="number"
-                v-model="forms.vlr_icms" :rules="validacao"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Isento ICMS" hide-details="auto" type="number"
-                v-model="forms.isento_icms" :rules="validacao"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Outras Despesas" hide-details="auto" type="number"
-                v-model="forms.outras_despesas" :rules="validacao"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Desp. Fora NF" hide-details="auto" type="number"
-                v-model="forms.outras_despesas_foranf"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Base ICMS ST" hide-details="auto" type="number"
-                v-model="forms.base_icms_subst" :rules="validacao"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Valor ICMS ST" hide-details="auto" type="number"
-                v-model="forms.vlr_icms_subst" :rules="validacao"
-            />
-          </v-col>
-
-          <!-- IPI -->
-          <v-col cols="12" md="2">
-            <v-text-field density="compact" variant="outlined" label="Base IPI" hide-details="auto" type="number"
-                          v-model="forms.base_ipi" :rules="validacao"/>
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field density="compact" variant="outlined" label="Valor IPI" hide-details="auto" type="number"
-                          v-model="forms.vlr_ipi" :rules="validacao"/>
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field density="compact" variant="outlined" label="Isento IPI" hide-details="auto"
-                          type="number"
-                          v-model="forms.isento_ipi" :rules="validacao"/>
-          </v-col>
-
-          <!-- Impostos diversos -->
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Base II" hide-details="auto" type="number"
-                v-model="forms.base_ii" :rules="validacao"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Valor II" hide-details="auto" type="number"
-                v-model="forms.vlr_ii" :rules="validacao"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Base ISS" hide-details="auto" type="number"
-                v-model="forms.base_iss" :rules="validacao"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Valor ISS" hide-details="auto" type="number"
-                v-model="forms.vlr_iss" :rules="validacao"
-            />
-          </v-col>
-
-          <!-- PIS/COFINS -->
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="PIS Produto" hide-details="auto" type="number"
-                v-model="forms.vlr_pis_produto"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Cofins Produto" hide-details="auto" type="number"
-                v-model="forms.vlr_cofins_produto"
-            />
-          </v-col>
-
-          <!-- Plano Pagamento -->
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Plano Pagamento" hide-details="auto"
-                v-model="forms.id_planopagto"
-            />
-          </v-col>
-
-          <!-- Seguro / desconto / frete -->
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Valor Seguro" hide-details="auto" type="number"
-                v-model="forms.vlr_seguro" :rules="validacao"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Valor Desconto" hide-details="auto" type="number"
-                v-model="forms.vlr_desconto" :rules="validacao"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Tipo Frete" hide-details="auto"
-                v-model="forms.tipo_frete"
-            />
-          </v-col>
-
-          <v-col cols="12" md="4">
-            <v-autocomplete
-                density="compact" variant="outlined" label="Transportadora" hide-details="auto"
-                v-model="forms.id_transportadora" clearable
-                :items="pessoas" item-title="nome_razao" item-value="id"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Valor Frete" hide-details="auto" type="number"
-                v-model="forms.vlr_frete"
-            />
-          </v-col>
-        </v-row>
       </v-form>
-
-      <VincularProdutos
-          v-model:modalItemAberto="modalItemAberto"
-          :todosProdutos="todosProdutos"
-          :itemSelecionado="itemSelecionado"
-          @vincular="vincularProduto"
-      />
     </template>
   </top-all-pages>
 </template>
@@ -505,13 +544,12 @@ import {usePessoasStore} from "@/stores/APIs/pessoas";
 import CfopMenu from "@/components/base/menu/CfopMenu.vue";
 import AlmoxarifadoMenu from "@/components/base/menu/AlmoxarifadoMenu.vue";
 import {useProdutosStore} from "@/stores/APIs/produtos";
-import {computed, onMounted, reactive, ref} from "vue";
+import {computed, onMounted, reactive, ref, } from "vue";
 import TabelaPadrao from "@/components/base/padrao-paginas/TabelaPadrao.vue";
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {toast} from "vue3-toastify";
 import {useLocalizacaoStore} from "@/stores/APIs/localizacao";
 import VincularProdutos from "@/components/base/modais/VincularProdutos.vue";
-// import router from "@/router";
 
 const themeStore = useThemeStore();
 const pessoasStore = usePessoasStore();
@@ -527,8 +565,29 @@ const todosProdutos = computed(() => produtosStore.produtos);
 const almoxarifadoNome = ref("");
 const cfopNome = ref("");
 const editando = ref(false);
-const produtos = ref([{ "descproduto": "CURVA 90 SCH 40 8", "und": "PC", "vlr_unitario": "R$ 632,30", "qtd": "5.0000", "vlr_total": "R$ 3.161,50", "icms": "R$ 12,00", "bc_icms": "2783.00", "vlr_icms": "333.96", "ipi": null, "cor": null, "tamanho": null, "bc_ii": null }]);
-const itemSelecionado = ref({});
+const produtos = ref([]);
+const search = ref("");
+const pesquisarProdutos = ref("");
+
+const expanded = ref([])        // isso é o que o v-data-table usa pra renderizar a linha
+const openId = ref(null)        // isso é o que controla "aberto/fechado" pra animação
+const ANIM_MS = 320
+
+const toggle = async (item) => {
+  const id = item.id_seq
+
+  // FECHAR
+  if (openId.value === id) {
+    openId.value = null
+    setTimeout(() => {
+      if (openId.value === null)
+        expanded.value = [] },
+        ANIM_MS)
+    return
+  }
+  openId.value = id
+  expanded.value = [id]
+}
 
 // DADOS DO XML
 const xmlData = ref(null);
@@ -543,20 +602,16 @@ const pag = ref(null);
 const infAdic = ref(null);
 
 const headers = ref([
-  {title: 'Cod. Ref', key: 'id'},
-  {title: 'Descrição do Produto', key: 'descproduto'},
-  {title: 'Unidade', key: 'und'},
+  {title: 'N. Item', key: 'id_seq'},
+  {title: 'Descrição do Produto', key: 'descprodutoxml'},
+  {title: 'Unidade', key: 'quant_item'},
   {title: 'Vlr. Unitário', key: 'vlr_unitario'},
-  {title: 'IPI', key: 'ipi'},
-  {title: 'ICMS ST', key: 'icms'},
-  {title: 'Quantidade', key: 'qtd'},
-  {title: 'Total', key: 'vlr_total'},
-  {title: 'Cor', key: 'cor'},
-  {title: 'Tamanho', key: 'tamanho'},
-  {title: 'BC ICMS', key: 'bc_icms'},
-  {title: 'Vlr ICMS', key: 'vlr_icms'},
-  {title: 'BC II', key: 'bc_ii'},
-  {title: 'Ações', key: 'acoes', sortable: false},
+  {title: 'Vlr. IPI Item', key: 'vlr_ipi_item'},
+  {title: 'Vlr ICMS Item', key: 'vlr_icms_item'},
+  {title: 'Quantidade', key: 'quantidade'},
+  {title: 'Total', key: 'vlr_total_item'},
+  {title: 'Código VST', key: 'id_produto'},
+  {title: 'Ação', key: 'data-table-expand'},
 ])
 
 const validacao = [
@@ -571,7 +626,6 @@ const forms = reactive({
   "id_almoxarifado": null,
   "id_cfop": null,
   "id_uf": null,
-  "dtcadastro": null,
   "dtemissao": null,
   "dtentrada": null,
 
@@ -579,8 +633,6 @@ const forms = reactive({
   "vlr_total_produto": null,
   "vlr_nf": null,
   "situacao": null,
-  "gerou_financeiro": false,
-  "gerou_estoque": false,
   "observacao": null,
 
   "base_icms": null,
@@ -634,15 +686,13 @@ const forms = reactive({
   "nfe_nrprotocolo_cancelamento": null,
   "msg_nfe_nfce": null,
 
-  "id_usuario_aprovou_fiscal": null,
   "arquivoxml": null,
   "tipo": null,
   "regra_cfop": null,
-  "nf_estrangeira": null,
+  "nf_estrangeira": "A", // id_uf === EX ? nf_estrangeira = S : nf_estrangeira = N
   "perc_icmsimp": null,
   "vlr_siscomex": null,
   "vlr_afrmm": null,
-  "nfe_impressa": null
 });
 
 const cancelarFormulario = () => {
@@ -670,25 +720,23 @@ const selecionarCfop = (cfop) => {
 const formsNf = ref(null);
 
 const salvarFormulario = async () => {
-  const { valid } = await formsNf.value.validate();
-
-  if (!valid) {
-    toast.error('Por favor, preencha os campos obrigatórios.');
+  if (formsNf.value && !(await formsNf.value.validate())) {
+    toast.error("Por favor, preencha os campos obrigatórios.");
     return;
   }
 
-  forms.gerou_financeiro = forms.gerou_financeiro ? 'S' : 'N';
-  forms.gerou_estoque = forms.gerou_estoque ? 'S' : 'N';
   forms.importacaoxml = forms.importacaoxml ? 'S' : 'N';
   forms.nf_origem = forms.nf_origem ? 'S' : 'N';
   forms.arquivoxml = forms.arquivoxml ? forms.arquivoxml.name : null;
   forms.id_uf = forms.id_uf ? forms.id_uf.sigla : null;
 
-  const payload = normalizarForm(forms);
-
-  await produtosStore.cadastrarEntradaDfe({
-    data: [payload]
-  }, idEmpresa?.id ?? 1);
+  await produtosStore.cadastrarEntradaDfe(
+      {
+        data: [normalizarForm(forms)],
+        item: produtos.value
+      },
+      idEmpresa?.id ?? 1
+  )
 
   // cancelarFormulario();
 
@@ -716,7 +764,7 @@ const camposInteiros = [
   "id_fornecedor", "id_nota", "id_serie",
   "id_almoxarifado",
   "id_transportadora", "qtd_volume",
-  "id_planopagto", "id_usuario_aprovou_fiscal",
+  "id_planopagto",
   "nfe_numero", "nfe_numero_serie", "nfe_acesso"
 ];
 
@@ -823,16 +871,6 @@ const lerXML = (event) => {
       itens.value.push(item);
     }
 
-    // --- CONSOLES DE DEPURAÇÃO ---
-    console.log("ide:", ide.value);
-    console.log("emit:", emit.value);
-    console.log("dest:", dest.value);
-    console.log("itens:", itens.value);
-    console.log("total:", total.value);
-    console.log("transp:", transp.value);
-    console.log("pag:", pag.value);
-    console.log("infAdic:", infAdic.value);
-
     // NÃO sobrescrever o array original — procurar correspondência
     const encontrado = pessoasStore.pessoas.find(pessoa =>
         pessoa.nome_razao === emit.value?.xNome ||
@@ -869,8 +907,6 @@ const lerXML = (event) => {
       forms.id_fornecedor = encontrado.id;
     }
     else {
-      console.log('Nenhum fornecedor encontrado. Cadastrando novo fornecedor...');
-
       payloadPessoa.value.tipo_pessoa = emit.value?.CNPJ ? 'J' : 'F';
       payloadPessoa.value.nome_razao = emit.value?.xNome || 'Fornecedor Importado';
       payloadPessoa.value.apelido_fantasia = emit.value?.xFant || emit.value?.xNome || 'Fornecedor Importado';
@@ -894,7 +930,6 @@ const lerXML = (event) => {
           // fallback: deixar nulo ou tratar conforme necessidade
           forms.id_fornecedor = null;
         }
-        console.log('Fornecedor cadastrado.', pessoasStore.pessoas);
       } catch (err) {
         console.error('Erro ao cadastrar fornecedor:', err);
         forms.id_fornecedor = null;
@@ -912,8 +947,6 @@ const lerXML = (event) => {
         forms.id_transportadora = encontradoTransp.id;
       }
       else {
-        console.log('Nenhuma transportadora encontrada. Cadastrando nova transportadora...');
-
         payloadPessoa.value.tipo_pessoa = transp.value.transporta?.CNPJ ? 'J' : 'F';
         payloadPessoa.value.nome_razao = transp.value.transporta?.xNome || 'Transportadora Importada';
         payloadPessoa.value.apelido_fantasia = transp.value.transporta?.xFant || transp.value.transporta?.xNome || 'Transportadora Importada';
@@ -936,7 +969,6 @@ const lerXML = (event) => {
             // fallback: deixar nulo ou tratar conforme necessidade
             forms.id_transportadora = null;
           }
-          console.log('Transportadora cadastrada.', pessoasStore.pessoas);
         } catch (err) {
           console.error('Erro ao cadastrar transportadora:', err);
           forms.id_transportadora = null;
@@ -944,47 +976,6 @@ const lerXML = (event) => {
       }
     }
 
-    // destinatário
-    if (dest.value) {
-      const encontradoDest = pessoasStore.pessoas.find(pessoa =>
-          pessoa.nome_razao === dest.value?.xNome ||
-          pessoa.apelido_fantasia === (dest.value?.xFant || dest.value?.xNome)
-      );
-
-      if (encontradoDest) {
-        forms.id_usuario_aprovou_fiscal = encontradoDest.id;
-      }
-      else {
-        console.log('Nenhum destinatário encontrado. Cadastrando novo destinatário...');
-
-        payloadPessoa.value.tipo_pessoa = dest.value?.CNPJ ? 'J' : 'F';
-        payloadPessoa.value.nome_razao = dest.value?.xNome || 'Destinatário Importado';
-        payloadPessoa.value.apelido_fantasia = dest.value?.xFant || dest.value?.xNome || 'Destinatário Importado';
-        payloadPessoa.value.cpf_cnpj = dest.value?.CNPJ || dest.value?.CPF || null;
-        payloadPessoa.value.rg_inscricao = dest.value?.IE || null;
-        payloadPessoa.value.cliente = 'S';
-
-        // aguarda cadastro (tornar async para usar await)
-        try {
-          await pessoasStore.cadastrarPessoa({ data: [{ ...payloadPessoa.value }] });
-          // tentar recuperar o recém-criado no store
-          const novo = pessoasStore.pessoas.find(p =>
-              (payloadPessoa.value.cpf_cnpj && p.cpf_cnpj === payloadPessoa.value.cpf_cnpj) ||
-              p.nome_razao === payloadPessoa.value.nome_razao
-          );
-          if (novo) {
-            forms.id_usuario_aprovou_fiscal = novo.id;
-          } else {
-            // fallback: deixar nulo ou tratar conforme necessidade
-            forms.id_usuario_aprovou_fiscal = null;
-          }
-          console.log('Destinatário cadastrado.', pessoasStore.pessoas);
-        } catch (err) {
-          console.error('Erro ao cadastrar destinatário:', err);
-          forms.id_usuario_aprovou_fiscal = null;
-        }
-      }
-    }
     preencherForms(ide.value, total.value, emit.value, xml, dest.value, itens.value, transp.value, pag.value, infAdic.value);
   };
 
@@ -1001,8 +992,7 @@ function preencherForms(ide, total, emit, xml, dest, itens, transp, pag, infAdic
   forms.dtentrada = ide?.dhSaiEnt || null;
 
   forms.nfe_numero = ide?.nNF || null;
-  forms.id_uf = ufs.value.find(uf => uf.id == ide?.cUF);
-  console.log("UF encontrada:", forms.id_uf);
+  forms.id_uf = ufs.value.find(uf => uf.id == ide?.cUF)?.sigla;
   forms.id_serie = ide?.serie || null;
   forms.nfe_modelo = ide?.mod || null;
   forms.nfe_chavedeacesso = chave || null;
@@ -1034,34 +1024,117 @@ function preencherForms(ide, total, emit, xml, dest, itens, transp, pag, infAdic
 
 
   if (itens) {
-    produtos.value = itens.map(item => {
-      const icmsGroup = item.imposto?.ICMS
-          ? Object.values(item.imposto.ICMS)[0]
-          : null;
+    const itensPayload = (itens || []).map((item, idx) => {
+      const prod = item?.prod ?? {};
+      const imp = item?.imposto ?? {};
+
+      const icmsGroup = imp?.ICMS ? Object.values(imp.ICMS)[0] : null;
+      const pisGroup = imp?.PIS ? Object.values(imp.PIS)[0] : null;
+      const cofinsGroup = imp?.COFINS ? Object.values(imp.COFINS)[0] : null;
+
+      const ipiGroup = imp?.IPI?.IPITrib || imp?.IPI?.IPINT || null;
+
+      const ibscbs = imp?.IBSCBS?.gIBSCBS || null;
+      const gUF = ibscbs?.gIBSUF ?? null;
+      const gMun = ibscbs?.gIBSMun ?? null;
+      const gCBS = ibscbs?.gCBS ?? null;
 
       return {
-        descproduto: item.prod?.xProd || null,
-        und: item.prod?.uCom || null,
-        vlr_unitario: formatarReal(item.prod?.vUnCom) || null,
-        qtd: item.prod?.qCom || null,
-        vlr_total: formatarReal(item.prod?.vProd) || null,
+        id_seq: Number(item?.nItem ?? (idx + 1)),
+        id_produto: null,
+        id_cor: 0,
+        id_tamanho: 0,
 
-        // ICMS (pode ser ICMS00, ICMSN900 etc)
-        icms: icmsGroup?.pICMS ? formatarReal(icmsGroup.pICMS) : null,
-        bc_icms: icmsGroup?.vBC || null,
-        vlr_icms: icmsGroup?.vICMS || null,
+        descprodutovst: null,
+        descprodutoxml: prod?.xProd ?? null,
 
-        // IPI
-        ipi: item.imposto?.IPI?.IPITrib?.vIPI
-            ? formatarReal(item.imposto.IPI.IPITrib.vIPI)
-            : null,
+        quantidade: Number(String(prod?.qCom ?? 0).replace(",", ".")),
+        vlr_unitario: Number(prod?.vUnCom).toFixed(4) ?? 0.00,
+        desconto_total_item: normalizarMoeda(prod?.vDesc ?? 0.00), // se não tiver no XML, fica 0
+        vlr_total_item: Number(prod?.vProd).toFixed(2) ?? 0.00,
 
-        cor: item.prod?.xCor || null,
-        tamanho: item.prod?.xTam || null,
+        vlr_seguro_item: normalizarMoeda(prod?.vSeg ?? 0.00),
+        vlr_frete_item: normalizarMoeda(prod?.vFrete ?? 0.00),
 
-        bc_ii: item.imposto?.II?.vBC || null,
+        custo_medio: Number(prod?.vUnCom).toFixed(4) ?? 0.00,
+        id_movimentoalmox: forms.id_almoxarifado ?? null,
+
+        // ===== Fiscal (geral)
+        id_cfop_item: prod?.CFOP ?? null,
+
+        cst_item: icmsGroup?.CST ?? null,
+        csosn_item: icmsGroup?.CSOSN ?? null,
+
+        cest_item: prod?.CEST ?? null, // alguns XMLs trazem em prod.CEST; se vier em outro lugar, ajuste aqui
+
+        // ===== ICMS
+        aliquota_icms_item: normalizarMoeda(icmsGroup?.pICMS),
+        base_icms_item: normalizarMoeda(icmsGroup?.vBC),
+        vlr_icms_item: normalizarMoeda(icmsGroup?.vICMS),
+
+        aliquota_subst_item: normalizarMoeda(icmsGroup?.pICMSST),
+        base_icms_subst_item: normalizarMoeda(icmsGroup?.vBCST),
+        vlr_icms_subst_item: normalizarMoeda(icmsGroup?.vICMSST),
+
+        // ===== IPI
+        cst_ipi: ipiGroup?.CST ?? null,
+        aliquota_ipi_item: normalizarMoeda(ipiGroup?.pIPI),
+        cenqipi: imp?.IPI?.cEnq ?? null,
+        base_ipi_item: normalizarMoeda(ipiGroup?.vBC),
+        vlr_ipi_item: normalizarMoeda(ipiGroup?.vIPI),
+
+        // ===== PIS
+        cst_pis: pisGroup?.CST ?? null,
+        aliquota_pis_item: normalizarMoeda(pisGroup?.pPIS),
+        base_pis_item: normalizarMoeda(pisGroup?.vBC),
+
+        // ===== COFINS
+        cst_cofins: cofinsGroup?.CST ?? null,
+        aliquota_cofins_item: normalizarMoeda(cofinsGroup?.pCOFINS),
+        base_cofins_item: normalizarMoeda(cofinsGroup?.vBC),
+
+        // ===== Outros / contábil / bases
+        id_reduzido_ctb: null,
+        vlr_outras_item: normalizarMoeda(prod?.vOutro ?? 0.00),
+        reducao_base_calc: normalizarMoeda(icmsGroup?.pRedBC),
+        vlr_outras_item_foranf: normalizarMoeda(0.00),
+
+        aliq_mva: normalizarMoeda(icmsGroup?.pMVAST),
+        pmva_item: normalizarMoeda(icmsGroup?.pMVAST),
+
+        mod_bc: icmsGroup?.modBC ?? null,
+        mod_bcst: icmsGroup?.modBCST ?? null,
+
+        predbc: normalizarMoeda(icmsGroup?.pRedBC),
+        predbcst: normalizarMoeda(icmsGroup?.pRedBCST),
+
+        // ===== NCM / incidência
+        id_ncm_item: prod?.NCM ?? null,
+        incidenciafiscal_item: null,
+
+        // ===== II (Importação) — se não existir no XML, deixa 0
+        aliquota_ii_item: normalizarMoeda(icmsGroup?.pII ?? 0.00),
+        base_ii_item: normalizarMoeda(icmsGroup?.vBC ?? 0.00),
+        vlr_ii_item: normalizarMoeda(icmsGroup?.vII ?? 0.00),
+        vlr_siscomex_item: normalizarMoeda(icmsGroup?.vDespAdu ?? 0.00),
+        vlr_afrmm_item: normalizarMoeda(icmsGroup?.vAFRMM ?? 0.00),
+
+        // ===== IBS/CBS (reforma) — nomes CERTOS da sua lista
+        cclasstrib_item: imp?.IBSCBS?.cClassTrib ?? null,
+        cst_cbsibs_item: imp?.IBSCBS?.CST ?? null,
+
+        base_cbsibs_item: normalizarMoeda(ibscbs?.vBC),
+        perc_cbs_item: normalizarMoeda(gCBS?.pCBS),
+        vlr_cbs_item: normalizarMoeda(gCBS?.vCBS),
+
+        perc_ibsuf_item: normalizarMoeda(gUF?.pIBSUF),
+        vlr_ibsuf_item: normalizarMoeda(gUF?.vIBSUF),
+
+        perc_ibsmun_item: normalizarMoeda(gMun?.pIBSMun),
+        vlr_ibsmun_item: normalizarMoeda(gMun?.vIBSMun),
       };
     });
+    produtos.value = [...itensPayload];
   }
 
   // Observação
@@ -1081,38 +1154,75 @@ function formatarReal(valor) {
       });
 }
 
+function normalizarMoeda(valor, casas = 2) {
+  if (valor === null || valor === undefined || valor === "") {
+    return "0." + "0".repeat(casas);
+  }
+
+  // número gigante vindo do XML (ex: 262900000000)
+  if (typeof valor === "number") {
+    return (valor / Math.pow(10, casas)).toFixed(casas);
+  }
+
+  // string tipo "R$ 1.234,56"
+  if (typeof valor === "string") {
+    const num = Number(
+        valor
+            .replace("R$", "")
+            .replaceAll(".", "")
+            .replace(",", ".")
+            .trim()
+    );
+
+    return isNaN(num) ? "0." + "0".repeat(casas) : num.toFixed(casas);
+  }
+
+  return "0." + "0".repeat(casas);
+}
+
+
 /**
  * ADICIONANDO ITENS
  */
 
 const modalItemAberto = ref(false);
 
-const abrirModalAdd = (item) => {
-  itemSelecionado.value = item;
-  modalItemAberto.value = true;
+const getNextIdSimilar = () => {
+  const ids = produtosStore.similar.map(s => Number(s.id_similar) || 0);
+  const maxId = ids.length ? Math.max(...ids) : 0;
+  return maxId + 1;
 };
 
 const vincularProduto = async ({ item, produto }) => {
-
   await produtosStore.buscarProdutosSimilares(produto.id);
-  const similar = produtosStore.similar.find(s => s.descproduto === item.descproduto);
 
-  if (similar) {
+  const jaVinculado = produtosStore.similar.find(
+      s => s.descproduto === item.descproduto
+  );
+
+  if (jaVinculado) {
+    // se já existe, já preenche o cod_vst também
+    item.cod_vst = jaVinculado.id_similar;
     toast.info('Produto já está vinculado como similar.');
     return;
   }
 
-  const index = produtosStore.similar.length - 1;
-  const ids = produtosStore.similar.map(s => s.id_similar);
+  const novoIdSimilar = getNextIdSimilar();
 
   await produtosStore.cadastrarProdutoSimilar({
     data: [{
       id_produto: produto.id,
-      id_similar: ids[index]+1,
-      descproduto: item.descproduto,
+      id_similar: novoIdSimilar,
+      descproduto: item.descprodutoxml,
       ativo: 'S'
     }]
   }, produto.id);
+
+  // ✅ aqui você preenche o "Código VST" na linha do item
+  item.id_produto = novoIdSimilar;
+
+  // ✅ opcional: fecha o expand dessa linha após vincular
+  expanded.value = [];
 };
 
 
@@ -1130,3 +1240,45 @@ onMounted(() => {
   }
 })
 </script>
+
+<style scoped>
+.linha-ativa {
+  border-right: .5px solid var(--text-color-laranja);
+  border-left: .5px solid var(--text-color-laranja);
+  background: rgba(253, 124, 0, 0.2);
+}
+
+.linha-ativa-expand {
+  background: var(--bg-card);
+  background: rgba(253, 124, 0, 0.09);
+}
+
+.money {
+  text-align: right;
+  font-weight: 500;
+}
+
+.row-expand-enter-active,
+.row-expand-leave-active {
+  overflow: hidden;
+  transition: max-height 320ms cubic-bezier(.2,.8,.2,1),
+  opacity 220ms ease,
+  transform 220ms ease;
+}
+
+.row-expand-enter-from,
+.row-expand-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.row-expand-enter-to,
+.row-expand-leave-from {
+  max-height: 2000px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.row-expand__wrap { overflow: hidden; }
+</style>

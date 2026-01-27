@@ -17,7 +17,7 @@
     </template>
     <template #section>
       <!-- Card de Resumo do Caixa Aberto -->
-      <v-card v-if="caixaAberto" class="background-secondary mb-4" elevation="2">
+      <v-card v-if="caixaAberto" class="background-secondary mb-4" elevation="0">
         <v-card-text class="pa-4">
           <div class="d-flex align-center justify-space-between">
             <div class="d-flex align-center">
@@ -43,7 +43,7 @@
       </v-card>
 
       <!-- Conteúdo Principal -->
-      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
         <v-card-text class="pa-4">
           <BotaoExpandTransition
               :formulario-aberto="formularioAberto"
@@ -55,7 +55,7 @@
           <!-- Formulário de Abertura -->
           <v-expand-transition>
             <div v-if="formularioAberto">
-              <v-card class="background-card mb-7" elevation="2">
+              <v-card class="background-card mb-7" elevation="0">
                 <v-card-title class="text-h6 pa-4">
                   <v-icon icon="mdi-cash-plus" class="mr-2"></v-icon>
                   Abertura de Caixa
@@ -77,6 +77,7 @@
                             variant="outlined"
                             density="compact"
                             prepend-inner-icon="mdi-cash-register"
+                            class="required-left-border"
                             no-data-text="Nenhum caixa disponível"
                         >
                           <template v-slot:item="{ props, item }">
@@ -104,6 +105,7 @@
                             label="Data de Abertura *"
                             type="date"
                             :rules="[rules.required]"
+                            class="required-left-border"
                             variant="outlined"
                             density="compact"
                             prepend-inner-icon="mdi-calendar"
@@ -120,6 +122,7 @@
                             :rules="[rules.required]"
                             variant="outlined"
                             density="compact"
+                            class="required-left-border"
                             prepend-inner-icon="mdi-clock-outline"
                             :theme="themeStore.darkMode ? 'dark' : 'light'"
                         ></v-text-field>
@@ -135,6 +138,7 @@
                             density="compact"
                             prepend-inner-icon="mdi-currency-usd"
                             prefix="R$"
+                            class="required-left-border"
                             type="number"
                             step="0.01"
                             :theme="themeStore.darkMode ? 'dark' : 'light'"

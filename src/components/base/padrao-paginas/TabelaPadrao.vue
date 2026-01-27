@@ -3,16 +3,20 @@
     <!-- Campo de Pesquisa e Tabela -->
     <v-expand-transition>
       <div v-if="!formularioAberto">
-        <v-text-field
-          v-if="showSearch"
-          v-model="searchModel"
-          :label="searchLabel"
-          width="480"
-          append-inner-icon="mdi-magnify"
-          variant="outlined"
-          density="compact"
-          class="mb-2 ml-3 custom-text-field"
-        ></v-text-field>
+        <div :class="tituloPesquisa ? 'flex items-center justify-between my-4' : ''">
+          <p class="text-xl opacity-70">{{tituloPesquisa}}</p>
+          <v-text-field
+            v-if="showSearch"
+            v-model="searchModel"
+            :label="searchLabel"
+            hide-details
+            max-width="400px"
+            append-inner-icon="mdi-magnify"
+            variant="outlined"
+            density="compact"
+            class="custom-text-field mb-4"
+          ></v-text-field>
+        </div>
 
         <v-data-table
           :items-per-page="itemPorPag"
@@ -20,9 +24,13 @@
           :items="items"
           :loading="loading"
           :item-key="itemKey"
+          :item-value="itemKey"
           :search="searchModel"
-          class="elevation-1 background-secondary"
+          class="background-secondary minha-tabela"
           :hide-default-footer="esconderFooter"
+          :show-expand="expandable"
+          v-model:expanded="expandedModel"
+          :expand-on-click="expandOnClick"
         >
           <!-- Slots dinâmicos para formatação customizada -->
           <template
@@ -174,6 +182,10 @@ const props = defineProps({
     type: String,
     default: ''
   },
+  tituloPesquisa: {
+    type: String,
+    default: null
+  },
 
   // Configuração de ações
   showEditAction: {
@@ -254,10 +266,24 @@ const props = defineProps({
   esconderFooter: {
     type: Boolean,
     default: false
-  }
+  },
+
+  expanded: {
+    type: Array,
+    default: () => [],
+  },
+  expandOnClick: {
+    type: Boolean,
+    default: false,
+  },
+  expandable: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const esconderFooter = computed(() => props.esconderFooter)
+const expanded = ref([]);
 
 // Emits
 const emit = defineEmits([
@@ -265,7 +291,8 @@ const emit = defineEmits([
   'delete-item',
   'custom-action',
   'confirm-delete',
-  'update:search'
+  'update:search',
+  'update:expanded'
 ])
 
 // Reactive data
@@ -273,10 +300,10 @@ const deleteDialog = ref(false)
 const itemToDelete = ref(null)
 
 // Computed
-const searchModel = computed({
+const searchModel = computed(({
   get: () => props.search,
   set: (value) => emit('update:search', value)
-})
+}))
 
 // Methods
 const handleDeleteItem = (item) => {
@@ -300,10 +327,16 @@ const getItemDisplayValue = (item) => {
   return item[props.deleteItemDisplayField] || ''
 }
 
+const expandedModel = computed({
+  get: () => props.expanded,
+  set: (val) => emit('update:expanded', val),
+})
+
 // Expor métodos para o componente pai
 defineExpose({
   openDeleteDialog: () => { deleteDialog.value = true },
-  closeDeleteDialog
+  closeDeleteDialog,
+  expanded
 })
 </script>
 

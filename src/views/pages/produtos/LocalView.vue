@@ -30,6 +30,7 @@
                       v-model="forms.descricao"
                       label="Descrição"
                       hide-details="auto"
+                      class="required-left-border"
                       :rules="validacaoObrigatorio"
                   />
                 </v-col>
@@ -41,6 +42,7 @@
                       v-model="forms.rua"
                       label="Rua"
                       hide-details="auto"
+                      class="required-left-border"
                       :rules="validacaoRua"
                       maxlength="10"
                       counter="10"
@@ -54,6 +56,7 @@
                       v-model="descalmx"
                       label="Almoxarifado"
                       :rules="validacaoObrigatorio"
+                      class="required-left-border"
                   >
                     <template #append-inner>
                       <almoxarifado-menu @selecionar="selecionarAlmoxarifado" />
@@ -66,6 +69,7 @@
                       v-bind="textFieldProps"
                       v-model="forms.bloco"
                       label="Bloco"
+                      class="required-left-border"
                       :rules="validacaoObrigatorio"
                   />
                 </v-col>
@@ -85,6 +89,7 @@
                   <v-text-field
                       v-bind="textFieldProps"
                       v-model="forms.coluna"
+                      class="required-left-border"
                       label="Coluna"
                       :rules="validacaoObrigatorio"
                   />

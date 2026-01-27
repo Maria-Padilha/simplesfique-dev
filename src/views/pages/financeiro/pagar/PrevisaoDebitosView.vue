@@ -19,7 +19,7 @@
     <template #section>
       <div>
         <!-- Filtros -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4">
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4" elevation="0">
           <v-card-title class="text-h6 pa-4">
             <v-icon icon="mdi-filter" class="mr-2"></v-icon>
             Filtros de Período e Centro de Custo
@@ -100,13 +100,13 @@
         </v-card>
 
         <!-- Tabela de Resultados -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4">
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4" elevation="0">
           <v-card-text class="pa-4">
             <v-data-table
                 :headers="headers"
                 :items="centrosCustoAgrupados"
                 :loading="loading"
-                class="elevation-1 background-card"
+                class="background-card"
                 density="compact"
                 :items-per-page="10"
                 :items-per-page-options="[10, 25, 50, 100]"

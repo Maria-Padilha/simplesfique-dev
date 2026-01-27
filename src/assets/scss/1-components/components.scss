@@ -28,7 +28,7 @@
 
 .background-card {
     background: var(--bg-card);
-    color: var(--text-color);
+    color: var(--text-color) !important;
 }
 
 .background-laranja {

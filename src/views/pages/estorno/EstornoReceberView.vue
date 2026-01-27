@@ -19,10 +19,10 @@
     <template #section>
       <div>
         <!-- Content Card -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
           <v-card-text class="pa-4">
             <!-- Filtros -->
-            <v-card class="background-card mb-4" elevation="2">
+            <v-card class="background-card mb-4" elevation="0">
               <v-card-title class="text-h6 pa-4">
                 <v-icon icon="mdi-filter" class="mr-2"></v-icon>
                 Período da Baixa
@@ -67,7 +67,7 @@
             </v-card>
 
             <!-- Tabela de Resultados -->
-            <v-card class="background-card" elevation="2">
+            <v-card class="background-card border" elevation="0">
               <v-card-title class="text-h6 pa-4">
                 <v-icon icon="mdi-table" class="mr-2"></v-icon>
                 Lotes de Baixa
@@ -79,7 +79,7 @@
                     :loading="loading"
                     show-expand
                     item-value="uniqueId"
-                    class="elevation-1"
+                    class=""
                     :items-per-page="10"
                     :items-per-page-options="[10, 25, 50, 100]"
                     no-data-text="Nenhum registro encontrado no período"

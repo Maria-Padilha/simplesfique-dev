@@ -4,3 +4,57 @@
 @import "1-components/auth";
 
 @import "2-utilities/media_screen";
+
+/* ✅ Vuetify 3: o scroll fica no wrapper */
+.minha-tabela .v-table__wrapper{
+  overflow: auto;              /* já vem, mas deixo explícito */
+  scrollbar-width: thin;       /* Firefox */
+  scrollbar-color: #6b7280 transparent; /* Firefox */
+}
+
+/* ✅ Chrome / Edge / Safari */
+.minha-tabela .v-table__wrapper::-webkit-scrollbar{
+  width: 10px;   /* vertical */
+  height: 10px;  /* horizontal */
+}
+
+.minha-tabela .v-table__wrapper::-webkit-scrollbar-track{
+  background: transparent;     /* trilho */
+}
+
+.minha-tabela .v-table__wrapper::-webkit-scrollbar-thumb{
+  background: #6b7280;         /* “barra” */
+  border-radius: 999px;
+  border: 2px solid transparent; /* dá “respiro” */
+  background-clip: content-box;
+}
+
+.minha-tabela .v-table__wrapper::-webkit-scrollbar-thumb:hover{
+  background: #9ca3af;
+  background-clip: content-box;
+}
+
+// ======================= CAMPOS OBRIGATÓRIOS =======================
+
+/* Estilos para borda esquerda vermelha nos campos obrigatórios */
+/* Coloque no seu index.scss (ou um arquivo tipo vuetify-overrides.scss) */
+.required-left-border .v-field {
+  border-left: 4px solid #ef5350 !important;
+  border-radius: 8px !important;
+  padding-left: 12px !important;
+  transition: all 0.2s ease !important;
+  box-shadow: inset 4px 0 0 transparent !important;
+}
+
+.required-left-border .v-field:hover {
+  border-left-color: #e53935 !important;
+}
+
+.required-left-border .v-field.v-field--focused {
+  border-left-color: #d32f2f !important;
+  box-shadow: inset 4px 0 8px rgba(211, 47, 47, 0.08) !important;
+}
+.required-left-border .v-field.v-field--error {
+  border-left-color: #f44336 !important;
+  box-shadow: inset 4px 0 8px rgba(244, 67, 54, 0.16) !important;
+}

@@ -18,7 +18,7 @@
     <template #section>
       <div>
         <!-- Card com Total das Parcelas -->
-        <v-card class="background-secondary mb-4" elevation="2">
+        <v-card class="background-secondary mb-4" elevation="0">
           <v-card-text class="pa-4">
             <div class="d-flex align-center justify-space-between">
               <div class="d-flex align-center">
@@ -38,7 +38,7 @@
         </v-card>
 
         <!-- Lista de Contas a Pagar -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
           <v-card-text class="pa-4">
             <div class="d-flex justify-end align-center mb-3 gap-2">
               <v-btn
@@ -56,7 +56,7 @@
             <!-- Formulário Expansível -->
             <v-expand-transition>
               <div v-if="formularioAberto">
-                <v-card class="background-card mb-7" elevation="2">
+                <v-card class="background-card mb-7" elevation="0">
                   <v-card-title class="text-h6 pa-4">
                     <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
                     {{ editando ? 'Editar Conta a Pagar' : 'Nova Conta a Pagar' }}

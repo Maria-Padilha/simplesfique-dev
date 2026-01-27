@@ -833,7 +833,7 @@ const imprimirNota = () => {
     <template #titulo>Nota Fiscal de Serviço (NFSe)</template>
     <template #section>
       <!-- Área de Import -->
-      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4">
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4" elevation="0">
         <v-card-text class="pa-4">
           <v-row>
             <v-col cols="12">
