@@ -520,9 +520,28 @@ onMounted(async () => {
 
 .background-secondary {
   background-color: var(--background-secondary);
+  color: var(--text-color);
 }
 
 .background-card {
   background-color: var(--background-card);
+  color: var(--text-color);
+}
+
+/* Forçar elementos internos do Vuetify (v-data-table etc.) a herdar o tema */
+.background-secondary :deep(.v-data-table),
+.background-secondary :deep(.v-data-table__wrapper),
+.background-secondary :deep(.v-simple-table),
+.background-secondary :deep(.v-data-table__wrapper) > * {
+  background-color: transparent;
+  color: var(--text-color);
+}
+
+.background-card :deep(.v-data-table),
+.background-card :deep(.v-data-table__wrapper),
+.background-card :deep(.v-simple-table),
+.background-card :deep(.v-data-table__wrapper) > * {
+  background-color: transparent;
+  color: var(--text-color);
 }
 </style>

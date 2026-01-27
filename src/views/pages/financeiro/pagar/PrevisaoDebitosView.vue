@@ -336,6 +336,7 @@ const centrosCustoAgrupados = computed(() => {
       agrupado[item.centroCusto] = {
         centroCusto: item.centroCusto,
         despesas: [],
+        despesasRaw: [], // Para processar depois
         total: 0
       }
 
@@ -345,14 +346,44 @@ const centrosCustoAgrupados = computed(() => {
       })
     }
 
-    // Adiciona a despesa
-    agrupado[item.centroCusto].despesas.push(item)
+    // Armazena despesa RAW para processar depois
+    agrupado[item.centroCusto].despesasRaw.push(item)
     agrupado[item.centroCusto].total += item.total || 0
 
     // Soma os valores por dia
     diasComCobranca.value.forEach(dia => {
       agrupado[item.centroCusto][dia.key] += item[dia.key] || 0
     })
+  })
+
+  // Processar despesas agrupadas por descrição
+  Object.values(agrupado).forEach(centroCusto => {
+    const despesasAgrupadas = {}
+
+    centroCusto.despesasRaw.forEach(despesa => {
+      const descricao = despesa.descricao || 'Sem Descrição'
+
+      if (!despesasAgrupadas[descricao]) {
+        despesasAgrupadas[descricao] = {
+          descricao: descricao,
+          total: 0
+        }
+
+        // Inicializa todos os dias com 0
+        diasComCobranca.value.forEach(dia => {
+          despesasAgrupadas[descricao][dia.key] = 0
+        })
+      }
+
+      // Soma o valor no dia correto
+      despesasAgrupadas[descricao].total += despesa.total || 0
+      diasComCobranca.value.forEach(dia => {
+        despesasAgrupadas[descricao][dia.key] += despesa[dia.key] || 0
+      })
+    })
+
+    centroCusto.despesas = Object.values(despesasAgrupadas)
+    delete centroCusto.despesasRaw // Remove dados temporários
   })
 
   return Object.values(agrupado)

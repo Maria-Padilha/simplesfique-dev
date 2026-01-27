@@ -312,12 +312,12 @@
         <ExportacaoModal
             v-model="modalExportacaoAberto"
             :dados="autorizacoesFiltradas"
-            :filtros="{}"
+            :filtros="filtrosAvancados"
             nome-relatorio="Autorizações de Pagamento"
-            @exportar-pdf="() => {}"
-            @exportar-csv="() => {}"
-            @exportar-excel="() => {}"
-            @imprimir="() => {}"
+            @exportar-pdf="handleExportarPDF"
+            @exportar-csv="handleExportarCSV"
+            @exportar-excel="handleExportarExcel"
+            @imprimir="handleImprimir"
         />
 
         <!-- Modal de Preview do PDF -->
@@ -336,6 +336,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useEmpresaStore } from '@/stores/APIs/empresa'
+import { toast } from 'vue3-toastify'
+import { abrirImpressaoTitulos, gerarHTMLTitulos } from '@/components/impressos/titulos'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import BuscaAvancadaAutorizacao from '@/components/base/padrao-paginas/BuscaAvancadaAutorizacao.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
@@ -636,6 +638,185 @@ const mostrarSnackbar = (message, color = 'success') => {
   snackbar.message = message
   snackbar.color = color
   snackbar.show = true
+}
+
+// ========== EXPORTAÇÃO E IMPRESSÃO ==========
+
+// Função para exportar CSV
+const handleExportarCSV = ({ dados, nomeRelatorio }) => {
+  try {
+    // Cabeçalhos em português
+    const headers = [
+      'Documento',
+      'Série',
+      'Espécie',
+      'Parcela',
+      'Qtd Parcelas',
+      'Data Emissão',
+      'Vencimento',
+      'Fornecedor',
+      'Vlr Documento',
+      'Vlr Parcela',
+      'Origem',
+      'Tipo Doc',
+      'Local Cobrança',
+      'Usuário'
+    ]
+
+    // Mapear dados para linhas CSV
+    const linhas = dados.map(item => [
+      item.nrdocumento || '',
+      item.serie || '',
+      item.especie || '',
+      item.id_parcela || '',
+      item.qtdparcelas || '',
+      formatarData(item.dtemissao),
+      formatarData(item.dtvencimento),
+      item.fornecedor || '',
+      formatarMoeda(item.vlrdocumento),
+      formatarMoeda(item.vlrparcela),
+      item.origem || '',
+      item.abreviatura || '',
+      item.desclocalcobranca || '',
+      item.user_inc || ''
+    ])
+
+    // Criar CSV
+    const csvContent = [
+      headers.join(','),
+      ...linhas.map(linha => linha.map(campo => `"${campo}"`).join(','))
+    ].join('\n')
+
+    // Download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `${nomeRelatorio.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    toast.success('CSV exportado com sucesso!')
+  } catch (err) {
+    console.error('Erro ao exportar CSV:', err)
+    toast.error('Erro ao exportar CSV')
+  }
+}
+
+// Função para exportar Excel
+const handleExportarExcel = ({ dados, nomeRelatorio }) => {
+  try {
+    // Cabeçalhos em português
+    const headers = [
+      'Documento',
+      'Série',
+      'Espécie',
+      'Parcela',
+      'Qtd Parcelas',
+      'Data Emissão',
+      'Vencimento',
+      'Fornecedor',
+      'Vlr Documento',
+      'Vlr Parcela',
+      'Origem',
+      'Tipo Doc',
+      'Local Cobrança',
+      'Usuário'
+    ]
+
+    // Mapear dados para linhas Excel
+    const linhas = dados.map(item => [
+      item.nrdocumento || '',
+      item.serie || '',
+      item.especie || '',
+      item.id_parcela || '',
+      item.qtdparcelas || '',
+      formatarData(item.dtemissao),
+      formatarData(item.dtvencimento),
+      item.fornecedor || '',
+      formatarMoeda(item.vlrdocumento),
+      formatarMoeda(item.vlrparcela),
+      item.origem || '',
+      item.abreviatura || '',
+      item.desclocalcobranca || '',
+      item.user_inc || ''
+    ])
+
+    // Criar Excel (TSV)
+    const excelContent = [
+      headers.join('\t'),
+      ...linhas.map(linha => linha.join('\t'))
+    ].join('\n')
+
+    // Download
+    const blob = new Blob(['\ufeff' + excelContent], { type: 'application/vnd.ms-excel;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `${nomeRelatorio.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xls`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    toast.success('Excel exportado com sucesso!')
+  } catch (err) {
+    console.error('Erro ao exportar Excel:', err)
+    toast.error('Erro ao exportar Excel')
+  }
+}
+
+// Função para exportar PDF (abre preview primeiro)
+const handleExportarPDF = async ({ dados, filtros }) => {
+  try {
+    console.log('Gerando PDF:', { dados: dados.length, filtros })
+
+    if (!dados || dados.length === 0) {
+      toast.warning('Nenhum dado para exportar')
+      return
+    }
+
+    // Gerar HTML usando a função de titulos.js
+    const htmlCompleto = gerarHTMLTitulos('Autorizações de Pagamento', dados, filtros)
+
+    if (!htmlCompleto) {
+      toast.error('Erro ao gerar HTML do relatório')
+      return
+    }
+
+    // Extrair apenas o <style> e <body>
+    const styleMatch = htmlCompleto.match(/<style[^>]*>([\s\S]*?)<\/style>/i)
+    const bodyMatch = htmlCompleto.match(/<body[^>]*>([\s\S]*?)<\/body>/i)
+
+    const styles = styleMatch ? styleMatch[1] : ''
+    const bodyContent = bodyMatch ? bodyMatch[1] : htmlCompleto
+
+    previewHTMLContent.value = `<style>${styles}</style>${bodyContent}`
+    dadosPDFAtual.value = { dados, filtros, nomeRelatorio: 'Autorizações de Pagamento' }
+    modalPreviewPDF.value = true
+
+  } catch (err) {
+    console.error('Erro ao exportar PDF:', err)
+    toast.error('Erro ao gerar PDF')
+  }
+}
+
+// Função para imprimir
+const handleImprimir = ({ dados, filtros }) => {
+  try {
+    if (!dados || dados.length === 0) {
+      toast.warning('Nenhum dado para imprimir')
+      return
+    }
+
+    // Usar a função de impressão de titulos.js
+    abrirImpressaoTitulos('Autorizações de Pagamento', dados, filtros)
+  } catch (err) {
+    console.error('Erro ao imprimir:', err)
+    toast.error('Erro ao imprimir')
+  }
 }
 
 // Ciclo de vida
