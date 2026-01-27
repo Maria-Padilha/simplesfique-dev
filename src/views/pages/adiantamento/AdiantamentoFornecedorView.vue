@@ -4,7 +4,7 @@
      <template #section>
        <div>
          <!-- Content Card -->
-         <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+         <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
            <v-card-text class="pa-4">
              <BotaoExpandTransition
                  :formulario-aberto="formularioAberto"
@@ -16,7 +16,7 @@
              <!-- Expandable Form -->
              <v-expand-transition>
                <div v-if="formularioAberto">
-                 <v-card class="background-card mb-7" elevation="2">
+                 <v-card class="background-card mb-7" elevation="0">
                    <v-card-title class="text-h6 pa-4">
                      <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
                      {{ editando ? 'Editar Adiantamento' : (modoPagamento ? 'Pagar Adiantamento' : (utilizaAprovacaoAdiantamento === 'S' ? 'Nova Aprovação de Adiantamento' : 'Novo Adiantamento')) }}
@@ -45,6 +45,7 @@
                                item-title="nome_razao"
                                item-value="id"
                                label="Fornecedor *"
+                               class="required-left-border"
                                :rules="[rules.required]"
                                variant="outlined"
                                density="compact"
@@ -71,6 +72,7 @@
                                item-title="descconta"
                                item-value="id"
                                label="Conta Contábil de Adiantamento *"
+                               class="required-left-border"
                                :rules="[rules.required]"
                                variant="outlined"
                                density="compact"
@@ -110,6 +112,7 @@
                                :items="[{ title: 'Caixa', value: 'CAI' }, { title: 'Banco', value: 'BAN' }]"
                                label="Local de Lançamento *"
                                :rules="[rules.requiredConditional]"
+                               class="required-left-border"
                                variant="outlined"
                                density="compact"
                                prepend-inner-icon="mdi-map-marker"
@@ -126,6 +129,7 @@
                                item-value="id_caixa"
                                label="Caixa *"
                                :rules="[rules.requiredConditional]"
+                               class="required-left-border"
                                variant="outlined"
                                density="compact"
                                prepend-inner-icon="mdi-cash-register"
@@ -143,6 +147,7 @@
                                item-value="id"
                                label="Conta Corrente *"
                                :rules="[rules.requiredConditional]"
+                               class="required-left-border"
                                variant="outlined"
                                density="compact"
                                prepend-inner-icon="mdi-bank"
@@ -214,6 +219,7 @@
                                label="Data de Lançamento *"
                                type="date"
                                :rules="[rules.required]"
+                               class="required-left-border"
                                variant="outlined"
                                density="compact"
                                prepend-inner-icon="mdi-calendar"
@@ -230,6 +236,7 @@
                                min="0"
                                :rules="[rules.required]"
                                variant="outlined"
+                               class="required-left-border"
                                density="compact"
                                prepend-inner-icon="mdi-file-document"
                            />
@@ -244,6 +251,7 @@
                                step="0.01"
                                min="0"
                                :rules="[rules.required]"
+                               class="required-left-border"
                                variant="outlined"
                                density="compact"
                                prepend-inner-icon="mdi-cash-multiple"
@@ -296,6 +304,7 @@
                                v-model="formData.valor_documento"
                                label="Valor Documento *"
                                type="number"
+                               class="required-left-border"
                                step="0.01"
                                min="0"
                                :rules="[rules.valorPositivo]"
@@ -315,6 +324,7 @@
                                step="0.01"
                                min="0"
                                :rules="[rules.valorPositivo]"
+                               class="required-left-border"
                                variant="outlined"
                                density="compact"
                                prepend-inner-icon="mdi-cash-multiple"
@@ -357,7 +367,7 @@
              </v-expand-transition>
 
              <!-- Filtros de Busca -->
-             <v-card class="mb-4 background-card" elevation="1">
+             <v-card class="mb-1 background-card" elevation="0">
                <v-card-title class="text-h6 pa-4">
                  <v-icon icon="mdi-filter" class="mr-2"></v-icon>
                  Filtros de Período e Fornecedor
@@ -382,7 +392,7 @@
                    </v-col>
 
                    <!-- Atalho de Período -->
-                   <v-col cols="12" md="2">
+                   <v-col cols="12" md="3">
                      <v-select
                          v-model="periodoSelecionado"
                          :items="periodos"
@@ -395,7 +405,7 @@
                    </v-col>
 
                    <!-- Data Inicial -->
-                   <v-col cols="12" md="3">
+                   <v-col cols="12" md="2">
                      <v-text-field
                          v-model="filtros.dtini"
                          label="Data Inicial *"
@@ -407,7 +417,7 @@
                    </v-col>
 
                    <!-- Data Final -->
-                   <v-col cols="12" md="3">
+                   <v-col cols="12" md="2">
                      <v-text-field
                          v-model="filtros.dtfim"
                          label="Data Final *"
@@ -419,7 +429,7 @@
                    </v-col>
 
                    <!-- Botão Buscar -->
-                   <v-col cols="12" md="1" class="d-flex">
+                   <v-col cols="12" md="2" class="d-flex">
                      <v-btn
                          color="var(--text-color-laranja)"
                          :loading="loading"
@@ -438,10 +448,10 @@
              </v-card>
 
              <!-- Tabela de Lançamentos -->
-             <v-card class="background-card" elevation="1">
+             <v-card class="background-card border" elevation="0">
                <v-card-text class="pa-0">
                  <!-- Saldo Anterior -->
-                 <v-card class="ma-4 mb-0 background-card" elevation="2">
+                 <v-card class="ma-4 mb-2 background-card" elevation="0">
                    <v-card-text class="d-flex justify-space-between align-center pa-3">
                      <span class="text-subtitle-1 font-weight-bold">Saldo Anterior</span>
                      <span class="text-h6 font-weight-bold" :class="saldoAnterior >= 0 ? 'text-success' : 'text-error'">
@@ -574,7 +584,7 @@
              </v-card>
 
              <!-- Card de Totais -->
-             <v-card class="mt-4 background-card" elevation="1">
+             <v-card class="mt-1 background-card" elevation="0">
                <v-card-text class="pa-4">
                  <v-row>
                    <v-col cols="12" md="3">

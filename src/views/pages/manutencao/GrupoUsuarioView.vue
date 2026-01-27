@@ -1,356 +1,349 @@
 <template>
-  <div class="pa-4">
-    <!-- Header Card -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-account-group" class="mr-3"></v-icon>
-          Grupos de Usuários
-        </div>
-      </v-card-title>
-    </v-card>
-
-    <!-- Content Card -->
-    <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
-      <v-card-text class="pa-4">
-        <BotaoExpandTransition
-          :formulario-aberto="formularioAberto"
-          texto-abrir="Novo Grupo de Usuário"
-          texto-fechar="Cancelar"
-          @toggle="toggleFormulario"
-        />
-
-        <!-- Expandable Form -->
-        <v-expand-transition>
-          <div v-if="formularioAberto">
-            <v-card class="background-card mb-7" elevation="2">
-              <v-card-title class="text-h6 pa-4">
-                <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
-                {{ editando ? 'Editar Grupo de Usuário' : 'Novo Grupo de Usuário' }}
-              </v-card-title>
-              <v-card-text class="pa-4">
-                <v-form ref="formRef" v-model="formValido">
-                  <v-row>
-                    <!-- Nome do Grupo -->
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="formData.descgrupousuario"
-                        label="Descrição do Grupo *"
-                        :rules="[rules.required]"
-                        variant="outlined"
-                        density="compact"
-                        class="required-left-border"
-                        prepend-inner-icon="mdi-account-group"
-                        maxlength="100"
-                      ></v-text-field>
-                    </v-col>
-
-                    <!-- Descrição -->
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="formData.descricao"
-                        label="Observações"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-text-box"
-                        maxlength="255"
-                      ></v-text-field>
-                    </v-col>
-                  </v-row>
-                </v-form>
-              </v-card-text>
-              <v-card-actions class="pa-4">
-                <v-spacer></v-spacer>
-                <v-btn color="grey" variant="text" @click="cancelarFormulario">Cancelar</v-btn>
-                <v-btn
-                  color="var(--text-color-laranja)"
-                  :loading="loading"
-                  :disabled="!formValido"
-                  @click="salvarGrupoUsuario"
-                  variant="flat"
-                  class="text-white"
-                >
-                  {{ editando ? 'Atualizar' : 'Salvar' }}
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </div>
-        </v-expand-transition>
-
-        <!-- Data Table -->
-        <TabelaPadrao
-          :formulario-aberto="formularioAberto"
-          :headers="headers"
-          :items="itemsFiltrados"
-          :loading="loading"
-          :search="search"
-          @update:search="(value) => search = value"
-          search-label="Pesquisar Grupo de Usuário"
-          item-key="id"
-          no-data-icon="mdi-account-group-outline"
-          no-data-text="Nenhum grupo de usuário cadastrado"
-          delete-item-display-field="nome"
-          @edit-item="editarGrupoUsuario"
-          @confirm-delete="excluirGrupoUsuario"
-          show-custom-action
-          custom-action-icon="mdi-lock"
-          @custom-action="abrirModalPermissoes"
-        >
-          <template v-slot:[`item.data_criacao`]="{ item }">
-            {{ formatarData(item.data_criacao) }}
-          </template>
-        </TabelaPadrao>
-      </v-card-text>
-    </v-card>
-
-    <!-- Modal de Permissões -->
-    <v-dialog v-model="modalPermissoes" max-width="900px">
-      <v-card :color="themeStore.darkMode ? '#1E1E1E' : ''" class="background-secondary">
-        <v-card-title class="text-h6 pa-4 d-flex justify-space-between align-center">
-          <span>Permissões - {{ grupoSelecionado?.nome }}</span>
-          <v-btn icon="mdi-close" variant="text" @click="modalPermissoes = false"></v-btn>
-        </v-card-title>
-
-        <v-divider></v-divider>
-
+  <top-all-pages icon="mdi-account-group">
+    <template #titulo>Grupos de Usuários</template>
+    <template #section>
+      <!-- Content Card -->
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
         <v-card-text class="pa-4">
-          <!-- Acordeão de Módulos -->
-          <v-expansion-panels class="mb-4">
-            <v-expansion-panel
-              v-for="modulo in modulos"
-              :key="modulo.code"
-            >
-              <v-expansion-panel-title
-                class="background-card"
-                @click="carregarPermissoesDoModulo(modulo.code)"
-              >
-                <v-icon class="mr-2">{{ modulo.icon }}</v-icon>
-                <span class="font-weight-bold">{{ modulo.label }}</span>
-                <v-spacer></v-spacer>
-                <div v-if="permissoesPorModulo(modulo.code).length > 0" class="d-flex gap-2 align-center">
+          <BotaoExpandTransition
+              :formulario-aberto="formularioAberto"
+              texto-abrir="Novo Grupo de Usuário"
+              texto-fechar="Cancelar"
+              @toggle="toggleFormulario"
+          />
+
+          <!-- Expandable Form -->
+          <v-expand-transition>
+            <div v-if="formularioAberto">
+              <v-card class="background-card mb-7" elevation="0">
+                <v-card-title class="text-h6 pa-4">
+                  <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
+                  {{ editando ? 'Editar Grupo de Usuário' : 'Novo Grupo de Usuário' }}
+                </v-card-title>
+                <v-card-text class="pa-4">
+                  <v-form ref="formRef" v-model="formValido">
+                    <v-row>
+                      <!-- Nome do Grupo -->
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                            v-model="formData.descgrupousuario"
+                            label="Descrição do Grupo *"
+                            :rules="[rules.required]"
+                            variant="outlined"
+                            density="compact"
+                            class="required-left-border"
+                            prepend-inner-icon="mdi-account-group"
+                            maxlength="100"
+                        ></v-text-field>
+                      </v-col>
+
+                      <!-- Descrição -->
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                            v-model="formData.descricao"
+                            label="Observações"
+                            variant="outlined"
+                            density="compact"
+                            prepend-inner-icon="mdi-text-box"
+                            maxlength="255"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-form>
+                </v-card-text>
+                <v-card-actions class="pa-4">
+                  <v-spacer></v-spacer>
+                  <v-btn color="grey" variant="text" @click="cancelarFormulario">Cancelar</v-btn>
                   <v-btn
-                    icon="mdi-check-all"
-                    size="small"
-                    variant="tonal"
-                    color="var(--text-color-laranja)"
-                    @click.stop="marcarTodosDoModulo(modulo.code, true)"
-                    title="Marcar todos"
-                  ></v-btn>
-                  <v-btn
-                    icon="mdi-close-box-multiple"
-                    size="small"
-                    variant="tonal"
-                    color="grey"
-                    @click.stop="marcarTodosDoModulo(modulo.code, false)"
-                    title="Desmarcar todos"
-                  ></v-btn>
-                  <v-chip
-                    size="small"
-                    color="var(--text-color-laranja)"
-                    text-color="white"
-                    :label="true"
+                      color="var(--text-color-laranja)"
+                      :loading="loading"
+                      :disabled="!formValido"
+                      @click="salvarGrupoUsuario"
+                      variant="flat"
+                      class="text-white"
                   >
-                    {{ permissoesPorModulo(modulo.code).length }}
-                  </v-chip>
-                </div>
-              </v-expansion-panel-title>
+                    {{ editando ? 'Atualizar' : 'Salvar' }}
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </div>
+          </v-expand-transition>
 
-              <v-expansion-panel-text class="background-secondary">
-                <div v-if="carregandoPermissoesPorModulo[modulo.code]" class="text-center pa-4">
-                  <v-progress-circular indeterminate size="30"></v-progress-circular>
-                  <p class="mt-2 text-caption">Carregando permissões...</p>
-                </div>
-
-                <div v-else-if="permissoesPorModulo(modulo.code).length > 0" class="pa-2">
-                  <!-- Cabeçalho da tabela -->
-                  <div class="d-flex mb-3 font-weight-bold text-caption align-center">
-                    <div class="flex-grow-1">Programa</div>
-                    <div style="width: 60px" class="text-center">
-                      <div class="mb-1">Visualizar</div>
-                      <v-btn
-                        icon="mdi-check-all"
-                        size="x-small"
-                        variant="tonal"
-                        color="var(--text-color-laranja)"
-                        density="compact"
-                        @click="marcarTodosCampoDoModulo(modulo.code, 'visualizar', true)"
-                        title="Marcar todos"
-                      ></v-btn>
-                    </div>
-                    <div style="width: 60px" class="text-center">
-                      <div class="mb-1">Incluir</div>
-                      <v-btn
-                        icon="mdi-check-all"
-                        size="x-small"
-                        variant="tonal"
-                        color="var(--text-color-laranja)"
-                        density="compact"
-                        @click="marcarTodosCampoDoModulo(modulo.code, 'incluir', true)"
-                        title="Marcar todos"
-                      ></v-btn>
-                    </div>
-                    <div style="width: 60px" class="text-center">
-                      <div class="mb-1">Alterar</div>
-                      <v-btn
-                        icon="mdi-check-all"
-                        size="x-small"
-                        variant="tonal"
-                        color="var(--text-color-laranja)"
-                        density="compact"
-                        @click="marcarTodosCampoDoModulo(modulo.code, 'alterar', true)"
-                        title="Marcar todos"
-                      ></v-btn>
-                    </div>
-                    <div style="width: 60px" class="text-center">
-                      <div class="mb-1">Excluir</div>
-                      <v-btn
-                        icon="mdi-check-all"
-                        size="x-small"
-                        variant="tonal"
-                        color="var(--text-color-laranja)"
-                        density="compact"
-                        @click="marcarTodosCampoDoModulo(modulo.code, 'excluir', true)"
-                        title="Marcar todos"
-                      ></v-btn>
-                    </div>
-                    <div style="width: 60px" class="text-center">
-                      <div class="mb-1">Exportar</div>
-                      <v-btn
-                        icon="mdi-check-all"
-                        size="x-small"
-                        variant="tonal"
-                        color="var(--text-color-laranja)"
-                        density="compact"
-                        @click="marcarTodosCampoDoModulo(modulo.code, 'exportar', true)"
-                        title="Marcar todos"
-                      ></v-btn>
-                    </div>
-                    <div style="width: 60px" class="text-center">
-                      <div class="mb-1">PDF</div>
-                      <v-btn
-                        icon="mdi-check-all"
-                        size="x-small"
-                        variant="tonal"
-                        color="var(--text-color-laranja)"
-                        density="compact"
-                        @click="marcarTodosCampoDoModulo(modulo.code, 'pdf', true)"
-                        title="Marcar todos"
-                      ></v-btn>
-                    </div>
-                  </div>
-
-                  <v-divider class="mb-2"></v-divider>
-
-                  <!-- Itens de permissão -->
-                  <div
-                    v-for="permissao in permissoesPorModulo(modulo.code)"
-                    :key="permissao.id_programa"
-                    class="d-flex align-center py-2 px-2 background-card mb-2 rounded"
-                  >
-                    <div class="flex-grow-1 text-body2">
-                      <div class="font-weight-500 d-flex align-center gap-2">
-                        {{ permissao.descprograma }}
-                        <v-chip
-                          v-if="!permissao.descgrupousuario"
-                          size="x-small"
-                          color="var(--text-color-laranja)"
-                          text-color="white"
-                          label
-                        >
-                          novo
-                        </v-chip>
-                      </div>
-                      <div class="text-caption text-grey">{{ permissao.id_programa }}</div>
-                    </div>
-
-                    <!-- Switch Visualizar -->
-                    <div style="width: 60px" class="d-flex justify-center">
-                      <v-switch
-                        :model-value="permissao.visualizar === 'S'"
-                        color="var(--text-color-laranja)"
-                        density="compact"
-                        size="small"
-                        @update:model-value="(val) => atualizarPermissao(permissao, 'visualizar', val)"
-                      ></v-switch>
-                    </div>
-
-                    <!-- Switch Incluir -->
-                    <div style="width: 60px" class="d-flex justify-center">
-                      <v-switch
-                        :model-value="permissao.incluir === 'S'"
-                        color="var(--text-color-laranja)"
-                        density="compact"
-                        size="small"
-                        @update:model-value="(val) => atualizarPermissao(permissao, 'incluir', val)"
-                      ></v-switch>
-                    </div>
-
-                    <!-- Switch Alterar -->
-                    <div style="width: 60px" class="d-flex justify-center">
-                      <v-switch
-                        :model-value="permissao.alterar === 'S'"
-                        color="var(--text-color-laranja)"
-                        density="compact"
-                        size="small"
-                        @update:model-value="(val) => atualizarPermissao(permissao, 'alterar', val)"
-                      ></v-switch>
-                    </div>
-
-                    <!-- Switch Excluir -->
-                    <div style="width: 60px" class="d-flex justify-center">
-                      <v-switch
-                        :model-value="permissao.excluir === 'S'"
-                        color="var(--text-color-laranja)"
-                        density="compact"
-                        size="small"
-                        @update:model-value="(val) => atualizarPermissao(permissao, 'excluir', val)"
-                      ></v-switch>
-                    </div>
-
-                    <!-- Switch Exportar -->
-                    <div style="width: 60px" class="d-flex justify-center">
-                      <v-switch
-                        :model-value="permissao.exportar === 'S'"
-                        color="var(--text-color-laranja)"
-                        density="compact"
-                        size="small"
-                        @update:model-value="(val) => atualizarPermissao(permissao, 'exportar', val)"
-                      ></v-switch>
-                    </div>
-
-                    <!-- Switch PDF -->
-                    <div style="width: 60px" class="d-flex justify-center">
-                      <v-switch
-                        :model-value="permissao.pdf === 'S'"
-                        color="var(--text-color-laranja)"
-                        density="compact"
-                        size="small"
-                        @update:model-value="(val) => atualizarPermissao(permissao, 'pdf', val)"
-                      ></v-switch>
-                    </div>
-                  </div>
-                </div>
-
-                <div v-else class="text-center pa-4 text-grey">
-                  <v-icon size="40" class="mb-2">mdi-lock-outline</v-icon>
-                  <p class="text-caption">Nenhuma permissão encontrada</p>
-                </div>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
-          </v-expansion-panels>
+          <!-- Data Table -->
+          <TabelaPadrao
+              :formulario-aberto="formularioAberto"
+              :headers="headers"
+              :items="itemsFiltrados"
+              :loading="loading"
+              :search="search"
+              @update:search="(value) => search = value"
+              search-label="Pesquisar Grupo de Usuário"
+              item-key="id"
+              no-data-icon="mdi-account-group-outline"
+              no-data-text="Nenhum grupo de usuário cadastrado"
+              delete-item-display-field="nome"
+              @edit-item="editarGrupoUsuario"
+              @confirm-delete="excluirGrupoUsuario"
+              show-custom-action
+              custom-action-icon="mdi-lock"
+              @custom-action="abrirModalPermissoes"
+          >
+            <template v-slot:[`item.data_criacao`]="{ item }">
+              {{ formatarData(item.data_criacao) }}
+            </template>
+          </TabelaPadrao>
         </v-card-text>
-
-        <v-divider></v-divider>
-
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn color="grey" variant="text" @click="modalPermissoes = false">
-            Fechar
-          </v-btn>
-        </v-card-actions>
       </v-card>
-    </v-dialog>
-  </div>
+
+      <!-- Modal de Permissões -->
+      <v-dialog v-model="modalPermissoes" max-width="900px">
+        <v-card :color="themeStore.darkMode ? '#1E1E1E' : ''" class="background-secondary">
+          <v-card-title class="text-h6 pa-4 d-flex justify-space-between align-center">
+            <span>Permissões - {{ grupoSelecionado?.nome }}</span>
+            <v-btn icon="mdi-close" variant="text" @click="modalPermissoes = false"></v-btn>
+          </v-card-title>
+
+          <v-divider></v-divider>
+
+          <v-card-text class="pa-4">
+            <!-- Acordeão de Módulos -->
+            <v-expansion-panels class="mb-4">
+              <v-expansion-panel
+                  v-for="modulo in modulos"
+                  :key="modulo.code"
+              >
+                <v-expansion-panel-title
+                    class="background-card"
+                    @click="carregarPermissoesDoModulo(modulo.code)"
+                >
+                  <v-icon class="mr-2">{{ modulo.icon }}</v-icon>
+                  <span class="font-weight-bold">{{ modulo.label }}</span>
+                  <v-spacer></v-spacer>
+                  <div v-if="permissoesPorModulo(modulo.code).length > 0" class="d-flex gap-2 align-center">
+                    <v-btn
+                        icon="mdi-check-all"
+                        size="small"
+                        variant="tonal"
+                        color="var(--text-color-laranja)"
+                        @click.stop="marcarTodosDoModulo(modulo.code, true)"
+                        title="Marcar todos"
+                    ></v-btn>
+                    <v-btn
+                        icon="mdi-close-box-multiple"
+                        size="small"
+                        variant="tonal"
+                        color="grey"
+                        @click.stop="marcarTodosDoModulo(modulo.code, false)"
+                        title="Desmarcar todos"
+                    ></v-btn>
+                    <v-chip
+                        size="small"
+                        color="var(--text-color-laranja)"
+                        text-color="white"
+                        :label="true"
+                    >
+                      {{ permissoesPorModulo(modulo.code).length }}
+                    </v-chip>
+                  </div>
+                </v-expansion-panel-title>
+
+                <v-expansion-panel-text class="background-secondary">
+                  <div v-if="carregandoPermissoesPorModulo[modulo.code]" class="text-center pa-4">
+                    <v-progress-circular indeterminate size="30"></v-progress-circular>
+                    <p class="mt-2 text-caption">Carregando permissões...</p>
+                  </div>
+
+                  <div v-else-if="permissoesPorModulo(modulo.code).length > 0" class="pa-2">
+                    <!-- Cabeçalho da tabela -->
+                    <div class="d-flex mb-3 font-weight-bold text-caption align-center">
+                      <div class="flex-grow-1">Programa</div>
+                      <div style="width: 60px" class="text-center">
+                        <div class="mb-1">Visualizar</div>
+                        <v-btn
+                            icon="mdi-check-all"
+                            size="x-small"
+                            variant="tonal"
+                            color="var(--text-color-laranja)"
+                            density="compact"
+                            @click="marcarTodosCampoDoModulo(modulo.code, 'visualizar', true)"
+                            title="Marcar todos"
+                        ></v-btn>
+                      </div>
+                      <div style="width: 60px" class="text-center">
+                        <div class="mb-1">Incluir</div>
+                        <v-btn
+                            icon="mdi-check-all"
+                            size="x-small"
+                            variant="tonal"
+                            color="var(--text-color-laranja)"
+                            density="compact"
+                            @click="marcarTodosCampoDoModulo(modulo.code, 'incluir', true)"
+                            title="Marcar todos"
+                        ></v-btn>
+                      </div>
+                      <div style="width: 60px" class="text-center">
+                        <div class="mb-1">Alterar</div>
+                        <v-btn
+                            icon="mdi-check-all"
+                            size="x-small"
+                            variant="tonal"
+                            color="var(--text-color-laranja)"
+                            density="compact"
+                            @click="marcarTodosCampoDoModulo(modulo.code, 'alterar', true)"
+                            title="Marcar todos"
+                        ></v-btn>
+                      </div>
+                      <div style="width: 60px" class="text-center">
+                        <div class="mb-1">Excluir</div>
+                        <v-btn
+                            icon="mdi-check-all"
+                            size="x-small"
+                            variant="tonal"
+                            color="var(--text-color-laranja)"
+                            density="compact"
+                            @click="marcarTodosCampoDoModulo(modulo.code, 'excluir', true)"
+                            title="Marcar todos"
+                        ></v-btn>
+                      </div>
+                      <div style="width: 60px" class="text-center">
+                        <div class="mb-1">Exportar</div>
+                        <v-btn
+                            icon="mdi-check-all"
+                            size="x-small"
+                            variant="tonal"
+                            color="var(--text-color-laranja)"
+                            density="compact"
+                            @click="marcarTodosCampoDoModulo(modulo.code, 'exportar', true)"
+                            title="Marcar todos"
+                        ></v-btn>
+                      </div>
+                      <div style="width: 60px" class="text-center">
+                        <div class="mb-1">PDF</div>
+                        <v-btn
+                            icon="mdi-check-all"
+                            size="x-small"
+                            variant="tonal"
+                            color="var(--text-color-laranja)"
+                            density="compact"
+                            @click="marcarTodosCampoDoModulo(modulo.code, 'pdf', true)"
+                            title="Marcar todos"
+                        ></v-btn>
+                      </div>
+                    </div>
+
+                    <v-divider class="mb-2"></v-divider>
+
+                    <!-- Itens de permissão -->
+                    <div
+                        v-for="permissao in permissoesPorModulo(modulo.code)"
+                        :key="permissao.id_programa"
+                        class="d-flex align-center py-2 px-2 background-card mb-2 rounded"
+                    >
+                      <div class="flex-grow-1 text-body2">
+                        <div class="font-weight-500 d-flex align-center gap-2">
+                          {{ permissao.descprograma }}
+                          <v-chip
+                              v-if="!permissao.descgrupousuario"
+                              size="x-small"
+                              color="var(--text-color-laranja)"
+                              text-color="white"
+                              label
+                          >
+                            novo
+                          </v-chip>
+                        </div>
+                        <div class="text-caption text-grey">{{ permissao.id_programa }}</div>
+                      </div>
+
+                      <!-- Switch Visualizar -->
+                      <div style="width: 60px" class="d-flex justify-center">
+                        <v-switch
+                            :model-value="permissao.visualizar === 'S'"
+                            color="var(--text-color-laranja)"
+                            density="compact"
+                            size="small"
+                            @update:model-value="(val) => atualizarPermissao(permissao, 'visualizar', val)"
+                        ></v-switch>
+                      </div>
+
+                      <!-- Switch Incluir -->
+                      <div style="width: 60px" class="d-flex justify-center">
+                        <v-switch
+                            :model-value="permissao.incluir === 'S'"
+                            color="var(--text-color-laranja)"
+                            density="compact"
+                            size="small"
+                            @update:model-value="(val) => atualizarPermissao(permissao, 'incluir', val)"
+                        ></v-switch>
+                      </div>
+
+                      <!-- Switch Alterar -->
+                      <div style="width: 60px" class="d-flex justify-center">
+                        <v-switch
+                            :model-value="permissao.alterar === 'S'"
+                            color="var(--text-color-laranja)"
+                            density="compact"
+                            size="small"
+                            @update:model-value="(val) => atualizarPermissao(permissao, 'alterar', val)"
+                        ></v-switch>
+                      </div>
+
+                      <!-- Switch Excluir -->
+                      <div style="width: 60px" class="d-flex justify-center">
+                        <v-switch
+                            :model-value="permissao.excluir === 'S'"
+                            color="var(--text-color-laranja)"
+                            density="compact"
+                            size="small"
+                            @update:model-value="(val) => atualizarPermissao(permissao, 'excluir', val)"
+                        ></v-switch>
+                      </div>
+
+                      <!-- Switch Exportar -->
+                      <div style="width: 60px" class="d-flex justify-center">
+                        <v-switch
+                            :model-value="permissao.exportar === 'S'"
+                            color="var(--text-color-laranja)"
+                            density="compact"
+                            size="small"
+                            @update:model-value="(val) => atualizarPermissao(permissao, 'exportar', val)"
+                        ></v-switch>
+                      </div>
+
+                      <!-- Switch PDF -->
+                      <div style="width: 60px" class="d-flex justify-center">
+                        <v-switch
+                            :model-value="permissao.pdf === 'S'"
+                            color="var(--text-color-laranja)"
+                            density="compact"
+                            size="small"
+                            @update:model-value="(val) => atualizarPermissao(permissao, 'pdf', val)"
+                        ></v-switch>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-else class="text-center pa-4 text-grey">
+                    <v-icon size="40" class="mb-2">mdi-lock-outline</v-icon>
+                    <p class="text-caption">Nenhuma permissão encontrada</p>
+                  </div>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
+          </v-card-text>
+
+          <v-divider></v-divider>
+
+          <v-card-actions class="pa-4">
+            <v-spacer></v-spacer>
+            <v-btn color="grey" variant="text" @click="modalPermissoes = false">
+              Fechar
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
@@ -361,6 +354,7 @@ import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandT
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import { toast } from 'vue3-toastify'
 import api from '@/services/api'
+import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
 const store = useGrupoUsuarioStore()

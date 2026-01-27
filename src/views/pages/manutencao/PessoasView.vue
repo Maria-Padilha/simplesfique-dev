@@ -49,7 +49,7 @@
                               density="compact"
                               hide-details="auto"
                               :theme="themeStore.darkMode ? 'dark' : 'light'"
-                              class="custom-text-field"
+                              class="custom-text-field required-left-border"
                               prepend-inner-icon="mdi-account-circle"
                           />
                         </v-col>
@@ -64,7 +64,7 @@
                               variant="outlined"
                               density="compact"
                               :theme="themeStore.darkMode ? 'dark' : 'light'"
-                              class="custom-text-field"
+                              class="custom-text-field required-left-border"
                               prepend-inner-icon="mdi-account"
                               hide-details="auto"
                           />
@@ -81,7 +81,7 @@
                               density="compact"
                               hide-details="auto"
                               :theme="themeStore.darkMode ? 'dark' : 'light'"
-                              class="custom-text-field"
+                             class="custom-text-field required-left-border"
                               prepend-inner-icon="mdi-rename-box"
                           />
                         </v-col>

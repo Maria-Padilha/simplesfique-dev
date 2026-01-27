@@ -43,6 +43,7 @@
                           hide-details="auto"
                           :rules="validacao"
                           v-model="form.descgrupo"
+                          class="required-left-border"
                           :theme="themeStore.darkMode ? 'dark' : 'light'"
                           prepend-inner-icon="mdi-text"
                       />
@@ -58,6 +59,7 @@
                           :rules="validacaoFile"
                           v-model="form.foto"
                           chips
+                          class="required-left-border"
                           prepend-inner-icon="mdi-image-outline"
                           :theme="themeStore.darkMode ? 'dark' : 'light'"
                           prepend-icon="mdi-"

@@ -18,7 +18,7 @@
     </template>
     <template #section>
       <!-- Lista de Contas -->
-      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+      <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
         <v-card-text class="pa-4">
           <BotaoExpandTransition
               :formulario-aberto="formularioAberto"
@@ -30,7 +30,7 @@
           <!-- Formulário Expansível -->
           <v-expand-transition>
             <div v-if="formularioAberto">
-              <v-card class="background-card mb-7" elevation="2">
+              <v-card class="background-card mb-7" elevation="0">
                 <v-card-title class="text-h6 pa-4">
                   <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2"></v-icon>
                   {{ editando ? 'Editar Conta' : 'Nova Conta' }}
@@ -48,7 +48,7 @@
                             type="number"
                             variant="outlined"
                             density="compact"
-                            class="custom-text-field"
+                            class="custom-text-field required-left-border"
                             prepend-inner-icon="mdi-credit-card-outline"
                         ></v-text-field>
                       </v-col>
@@ -62,7 +62,7 @@
                             maxlength="1"
                             variant="outlined"
                             density="compact"
-                            class="custom-text-field"
+                            class="custom-text-field required-left-border"
                             prepend-inner-icon="mdi-numeric"
                         ></v-text-field>
                       </v-col>
@@ -76,7 +76,7 @@
                             maxlength="60"
                             variant="outlined"
                             density="compact"
-                            class="custom-text-field"
+                            class="custom-text-field required-left-border"
                             prepend-inner-icon="mdi-account"
                         ></v-text-field>
                       </v-col>
@@ -92,7 +92,7 @@
                             :rules="[rules.required]"
                             variant="outlined"
                             density="compact"
-                            class="custom-text-field"
+                            class="custom-text-field required-left-border"
                             prepend-inner-icon="mdi-bank"
                             :loading="financeiroStore.loading"
                             hide-no-data
@@ -113,7 +113,7 @@
                             :rules="[rules.required]"
                             variant="outlined"
                             density="compact"
-                            class="custom-text-field flex-grow-1"
+                            class="custom-text-field flex-grow-1 required-left-border"
                             prepend-inner-icon="mdi-bank-transfer"
                             :loading="financeiroStore.loading"
                             :disabled="!formData.id_banco"
@@ -139,7 +139,7 @@
                             :rules="[rules.required]"
                             variant="outlined"
                             density="compact"
-                            class="custom-text-field"
+                            class="custom-text-field required-left-border"
                             prepend-inner-icon="mdi-file-tree"
                             :loading="loadingPlanosConta"
                             hide-no-data
@@ -183,7 +183,7 @@
                             density="compact"
                             prefix="R$"
                             :theme="themeStore.darkMode ? 'dark' : 'light'"
-                            class="custom-text-field"
+                            class="custom-text-field required-left-border"
                             prepend-inner-icon="mdi-cash"
                         ></v-text-field>
                       </v-col>
@@ -198,7 +198,7 @@
                             variant="outlined"
                             density="compact"
                             :theme="themeStore.darkMode ? 'dark' : 'light'"
-                            class="custom-text-field"
+                            class="custom-text-field required-left-border"
                             prepend-inner-icon="mdi-calendar-plus"
                         ></v-text-field>
                       </v-col>
@@ -1135,4 +1135,5 @@ onMounted(async () => {
   }
 })
 </script>
+
 

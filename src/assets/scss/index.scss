@@ -33,3 +33,28 @@
   background: #9ca3af;
   background-clip: content-box;
 }
+
+// ======================= CAMPOS OBRIGATÓRIOS =======================
+
+/* Estilos para borda esquerda vermelha nos campos obrigatórios */
+/* Coloque no seu index.scss (ou um arquivo tipo vuetify-overrides.scss) */
+.required-left-border .v-field {
+  border-left: 4px solid #ef5350 !important;
+  border-radius: 8px !important;
+  padding-left: 12px !important;
+  transition: all 0.2s ease !important;
+  box-shadow: inset 4px 0 0 transparent !important;
+}
+
+.required-left-border .v-field:hover {
+  border-left-color: #e53935 !important;
+}
+
+.required-left-border .v-field.v-field--focused {
+  border-left-color: #d32f2f !important;
+  box-shadow: inset 4px 0 8px rgba(211, 47, 47, 0.08) !important;
+}
+.required-left-border .v-field.v-field--error {
+  border-left-color: #f44336 !important;
+  box-shadow: inset 4px 0 8px rgba(244, 67, 54, 0.16) !important;
+}

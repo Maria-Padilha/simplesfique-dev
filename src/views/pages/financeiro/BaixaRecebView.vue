@@ -19,7 +19,7 @@
     <template #section>
       <div>
         <!-- Card com Total das Parcelas e Ações de Baixa -->
-        <v-card class="background-secondary mb-4" elevation="2">
+        <v-card class="background-secondary mb-4" elevation="0">
           <v-card-text class="pa-4">
             <div class="d-flex justify-space-between align-items-center">
               <div>
@@ -80,7 +80,7 @@
         </v-card>
 
         <!-- Lista de Contas a Receber -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
           <v-card-text class="pa-4">
             <!-- Busca Avançada -->
             <BuscaAvancadaBaixa

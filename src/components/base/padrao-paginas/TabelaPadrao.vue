@@ -14,7 +14,7 @@
             append-inner-icon="mdi-magnify"
             variant="outlined"
             density="compact"
-            class="custom-text-field"
+            class="custom-text-field mb-4"
           ></v-text-field>
         </div>
 
@@ -26,7 +26,7 @@
           :item-key="itemKey"
           :item-value="itemKey"
           :search="searchModel"
-          class="elevation-1 background-secondary minha-tabela"
+          class="background-secondary minha-tabela"
           :hide-default-footer="esconderFooter"
           :show-expand="expandable"
           v-model:expanded="expandedModel"
