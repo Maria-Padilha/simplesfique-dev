@@ -13,7 +13,12 @@
         <v-card class="background-card pa-4" elevation="2" style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;">
           <div class="d-flex align-center justify-space-between">
             <div style="width: 100%">
-              <p class="text-caption mb-1" style="color: var(--text-color)">Contas a Pagar do dia</p>
+              <div class="d-flex align-center justify-space-between mb-1">
+                <p class="text-caption" style="color: var(--text-color)">Contas a Pagar do dia</p>
+                <v-btn icon size="x-small" variant="text" @click="router.push('/paginas/financeiro/pagar')">
+                  <v-icon size="small" color="var(--text-color-laranja)">mdi-arrow-right-circle</v-icon>
+                </v-btn>
+              </div>
               <h3 class="text-h5 font-weight-bold" style="color: var(--text-color-laranja)">
                 R$ {{ formatarMoeda(detalhesPagar.doDia) }}
               </h3>
@@ -45,7 +50,12 @@
         <v-card class="background-card pa-4" elevation="2" style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;">
           <div class="d-flex align-center justify-space-between">
             <div style="width: 100%">
-              <p class="text-caption mb-1" style="color: var(--text-color)">Contas a Receber do dia</p>
+              <div class="d-flex align-center justify-space-between mb-1">
+                <p class="text-caption" style="color: var(--text-color)">Contas a Receber do dia</p>
+                <v-btn icon size="x-small" variant="text" @click="router.push('/paginas/financeiro/receber')">
+                  <v-icon size="small" color="#4CAF50">mdi-arrow-right-circle</v-icon>
+                </v-btn>
+              </div>
               <h3 class="text-h5 font-weight-bold color-verde">
                 R$ {{ formatarMoeda(detalhesReceber.doDia) }}
               </h3>
@@ -77,7 +87,12 @@
         <v-card class="background-card pa-4" elevation="2" style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;">
           <div class="d-flex align-center justify-space-between">
             <div style="width: 100%">
-              <p class="text-caption mb-1" style="color: var(--text-color)">Saldo Total</p>
+              <div class="d-flex align-center justify-space-between mb-1">
+                <p class="text-caption" style="color: var(--text-color)">Saldo Total</p>
+                <v-btn icon size="x-small" variant="text" @click="router.push('/paginas/financeiro/contacorrente')">
+                  <v-icon size="small" color="#2196F3">mdi-arrow-right-circle</v-icon>
+                </v-btn>
+              </div>
               <h3 class="text-h5 font-weight-bold" :style="{ color: saldoTotal.saldototal >= 0 ? '#2196F3' : '#F44336' }">
                 R$ {{ formatarMoeda(saldoTotal.saldototal) }}
               </h3>
@@ -97,7 +112,12 @@
         <v-card class="background-card pa-4" elevation="2" style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;">
           <div class="d-flex align-center justify-space-between">
             <div style="width: 100%">
-              <p class="text-caption mb-1" style="color: var(--text-color)">Produtos em Estoque</p>
+              <div class="d-flex align-center justify-space-between mb-1">
+                <p class="text-caption" style="color: var(--text-color)">Produtos em Estoque</p>
+                <v-btn icon size="x-small" variant="text" @click="router.push('/paginas/estoque')">
+                  <v-icon size="small" color="#9C27B0">mdi-arrow-right-circle</v-icon>
+                </v-btn>
+              </div>
               <h3 class="text-h5 font-weight-bold color-roxo">
                 {{ resumo.produtosEstoque }}
               </h3>
@@ -355,10 +375,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useDashboardStore } from '@/stores/APIs/dashboard'
 import TopAllPages from '@/components/base/padrao-paginas/TopAllPages.vue'
 
+const router = useRouter()
 const themeStore = useThemeStore()
 const dashboardStore = useDashboardStore()
 

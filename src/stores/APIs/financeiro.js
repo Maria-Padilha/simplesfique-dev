@@ -1385,32 +1385,49 @@ export const useFinanceiroStore = defineStore('financeiro', {
     // ========== PLANO CONTA ==========
 
     // Buscar planos de conta (GET /planoconta)
-    async buscarPlanosConta() {
+    async buscarPlanosConta(filtros = {}) {
       this.loading = true
       this.error = null
       try {
-      const response = await api.get('/planoconta', {
-        headers: this.getAuthHeaders()
-      })
-      const resp = response.data
-      let dados = []
-      if (resp && resp.data && Array.isArray(resp.data)) {
-        dados = resp.data
-      } else if (Array.isArray(resp)) {
-        dados = resp
-      } else if (resp && typeof resp === 'object') {
-        dados = [resp]
-      } else {
-        dados = []
-      }
+        console.log('[Store] Buscando planos de conta com filtros:', filtros)
+        
+        const response = await api.get('/planoconta', {
+          params: filtros,
+          headers: this.getAuthHeaders()
+        })
+        console.log('[Store] Response completo:', response)
+        console.log('[Store] Response.data:', response.data)
+        
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+          console.log('[Store] Usando resp.data (caso 1):', dados.length, 'items')
+        } else if (Array.isArray(resp)) {
+          dados = resp
+          console.log('[Store] Usando resp direto (caso 2):', dados.length, 'items')
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+          console.log('[Store] Usando resp como objeto único (caso 3)')
+        } else {
+          dados = []
+          console.log('[Store] Nenhum caso atendido, array vazio')
+        }
 
-      this.planosConta = dados
-      return dados
+        console.log('[Store] Dados finais:', dados)
+        
+        // Só armazena em planosConta se não houver filtros específicos
+        if (!filtros.tipoconta && !filtros.idclassificador) {
+          this.planosConta = dados
+        }
+        
+        return dados
       } catch (error) {
-      this.error = error.response?.data?.message || 'Erro ao buscar planos de conta'
-      throw error
+        console.error('[Store] Erro ao buscar planos de conta:', error)
+        this.error = error.response?.data?.message || 'Erro ao buscar planos de conta'
+        throw error
       } finally {
-      this.loading = false
+        this.loading = false
       }
     },
 
@@ -2193,6 +2210,199 @@ export const useFinanceiroStore = defineStore('financeiro', {
         throw error;
       } finally {
         this.loading = false;
+      }
+    },
+
+    // ========== DRE (DEMONSTRATIVO DE RESULTADO) ==========
+
+    // Salvar modelo de DRE (POST /dre)
+    async salvarModeloDRE(payload) {
+      this.loading = true
+      this.error = null
+      try {
+        console.log('[Store] Salvando modelo DRE:', payload)
+        
+        const response = await api.post('/dre', payload, {
+          headers: this.getAuthHeaders()
+        })
+        
+        console.log('[Store] Resposta do servidor:', response.data)
+        return response.data
+      } catch (error) {
+        console.error('[Store] Erro ao salvar modelo DRE:', error)
+        this.error = error.response?.data?.error || 'Erro ao salvar modelo DRE'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Atualizar modelo de DRE (PUT /dre/:id)
+    async atualizarModeloDRE(id, payload) {
+      this.loading = true
+      this.error = null
+      try {
+        console.log('[Store] Atualizando modelo DRE:', id, payload)
+        
+        const response = await api.put(`/dre/${id}`, payload, {
+          headers: this.getAuthHeaders()
+        })
+        
+        console.log('[Store] Resposta do servidor:', response.data)
+        return response.data
+      } catch (error) {
+        console.error('[Store] Erro ao atualizar modelo DRE:', error)
+        this.error = error.response?.data?.error || 'Erro ao atualizar modelo DRE'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar modelos de DRE (GET /dre)
+    async buscarModelosDRE() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get('/dre', {
+          headers: this.getAuthHeaders()
+        })
+        
+        const resposta = response.data
+        let dados = []
+        
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data
+        } else if (Array.isArray(resposta)) {
+          dados = resposta
+        }
+        
+        // Formatar para o v-select (precisa de title e value)
+        return dados.map(modelo => ({
+          title: modelo.descdre || modelo.nome,
+          value: modelo.id,
+          ...modelo
+        }))
+      } catch (error) {
+        console.error('[Store] Erro ao buscar modelos DRE:', error)
+        this.error = error.response?.data?.error || 'Erro ao buscar modelos DRE'
+        return []
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar modelo de DRE por ID (GET /dre/:id)
+    async buscarModeloDRE(id) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get(`/dre/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+        
+        const modelo = response.data.data || response.data
+        console.log('[Store] Modelo DRE retornado da API:', JSON.stringify(modelo, null, 2))
+        
+        // Converter de volta para o formato da tela
+        if (modelo) {
+          // O ID pode vir de diferentes lugares na resposta
+          const idModelo = modelo.id || modelo.id_dre || id
+          console.log('[Store] ID do modelo identificado:', idModelo)
+          
+          // Criar mapa de ID para nome de grupo (para converter fórmulas)
+          const gruposMap = new Map()
+          ;(modelo.dredetalhe || []).forEach(detalhe => {
+            gruposMap.set(detalhe.id, detalhe.descdredetalhe)
+          })
+          
+          // O nome pode vir em diferentes locais dependendo da estrutura da resposta
+          const nomeDre = modelo.descdre || modelo.nome || 'Modelo DRE'
+          console.log('[Store] Nome do DRE identificado:', nomeDre)
+          
+          return {
+            id: idModelo,
+            nome: nomeDre,
+            grupos: (modelo.dredetalhe || []).map(detalhe => {
+              // Converter natureza para tipo: '+'=>RECEITA, '-'=>DESPESA, '='=>TOTALIZADOR
+              let tipo = 'RECEITA'
+              switch (detalhe.natureza) {
+                case '+':
+                  tipo = 'RECEITA'
+                  break
+                case '-':
+                  tipo = 'DESPESA'
+                  break
+                case '=':
+                  tipo = 'TOTALIZADOR'
+                  break
+              }
+              
+              // Converter fórmula de IDs para nomes (ex: "1 - 2" -> "RECEITA - DESPESA")
+              let formulaConvertida = detalhe.natureza_formula || ''
+              if (formulaConvertida) {
+                gruposMap.forEach((nome, idGrupo) => {
+                  const regex = new RegExp(`\\b${idGrupo}\\b`, 'g')
+                  formulaConvertida = formulaConvertida.replace(regex, nome)
+                })
+              }
+              
+              return {
+                id: Date.now() + Math.random(),
+                id_detalhe: detalhe.id, // Guardar ID do backend
+                nome: detalhe.descdredetalhe,
+                tipo: tipo,
+                formula: formulaConvertida,
+                descricao: '',
+                categorias: (modelo.dredetalheconta || [])
+                  .filter(conta => conta.id_dre_detalhe === detalhe.id)
+                  .map(conta => {
+                    // Usar dados que já vêm na resposta da API
+                    const classificador = conta.id_classificador || ''
+                    const nomeConta = conta.descconta || ''
+                    const contaDisplay = classificador && nomeConta ? `${classificador} - ${nomeConta}` : nomeConta
+                    
+                    return {
+                      id: Date.now() + Math.random(),
+                      id_conta: conta.id, // Guardar ID do backend
+                      id_planoconta: conta.id_reduzido_ctb,
+                      nome: nomeConta,
+                      classificador: classificador,
+                      conta: contaDisplay,
+                      descricao: ''
+                    }
+                  })
+              }
+            })
+          }
+        }
+        
+        return null
+      } catch (error) {
+        console.error('[Store] Erro ao buscar modelo DRE:', error)
+        this.error = error.response?.data?.error || 'Erro ao buscar modelo DRE'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Deletar modelo de DRE (DELETE /dre/:id)
+    async deletarModeloDRE(id) {
+      this.loading = true
+      this.error = null
+      try {
+        await api.delete(`/dre/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+        
+        return true
+      } catch (error) {
+        console.error('[Store] Erro ao deletar modelo DRE:', error)
+        this.error = error.response?.data?.error || 'Erro ao deletar modelo DRE'
+        throw error
+      } finally {
+        this.loading = false
       }
     },
     

@@ -60,6 +60,14 @@ export const useSidebarStore = defineStore('sidebar', () => {
                         { text: 'Estorno Baixa', icon: 'mdi-undo-variant', route: '/paginas/estorno/receber' },
                         { text: 'Adt Cliente', icon: 'mdi-account-multiple', route: '/paginas/adiantamento/cliente' }
                     ]
+                },
+                {
+                    text: 'DRE',
+                    icon: 'mdi-chart-pie',
+                    submenus: [
+                        { text: 'Modelos DRE', icon: 'mdi-file-chart', route: '/paginas/financeiro/dre' }, 
+                        { text: 'Relatório DRE', icon: 'mdi-chart-box', route: '/paginas/financeiro/relatorio/dre' }                       
+                    ]
                 }
             ]
         },
