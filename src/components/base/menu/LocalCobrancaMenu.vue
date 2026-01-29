@@ -53,7 +53,7 @@
 <script setup>
 import BuscaPadraoMenu from "@/components/base/menu/BuscaPadraoMenu.vue";
 import CadastrarModal from "@/components/base/modais/CadastrarModal.vue";
-import {ref, computed, defineEmits, onMounted} from "vue";
+import {ref, computed, defineEmits, watch, onMounted} from "vue";
 import { useFinanceiroStore } from "@/stores/APIs/financeiro";
 import { toast } from "vue3-toastify";
 
@@ -66,30 +66,23 @@ const cadastrarModal = ref(false);
 const desclocalcobranca = ref("");
 
 const financeiroStore = useFinanceiroStore();
+const locaisCobranca = computed(() => financeiroStore.locaisCobranca || []);
 
-// Todos os locais de cobrança carregados da API
-const todosLocaisCobranca = computed(() => financeiroStore.locaisCobranca || []);
-
-// Locais de cobrança filtrados localmente pelo termo de pesquisa
-const locaisCobranca = computed(() => {
-  if (!termoPesquisa.value || termoPesquisa.value.length < 2) {
-    return todosLocaisCobranca.value;
-  }
-  
-  const termo = termoPesquisa.value.toLowerCase();
-  return todosLocaisCobranca.value.filter(local => {
-    const descricaoLocal = (local.desclocalcobranca || local.descricao || '').toLowerCase();
-    return descricaoLocal.includes(termo);
-  });
-});
-
-// Carregar todos os dados quando o componente for montado
+// Carregar dados quando o componente for montado
 onMounted(async () => {
   await financeiroStore.buscarLocaisCobranca();
 });
 
-const pesquisar = () => {
-  // Não precisa fazer nada, o computed já filtra automaticamente
+watch( () => termoPesquisa.value, async (pesquisa) => {
+  if (!pesquisa || pesquisa.length < 2) {
+    return;
+  }
+  console.log("Pesquisando local cobrança: ", pesquisa);
+  await financeiroStore.buscarLocaisCobranca();
+})
+
+const pesquisar = async () => {
+  await financeiroStore.buscarLocaisCobranca();
 };
 
 const selecionarLocalCobranca = (localSelecionado) => {
