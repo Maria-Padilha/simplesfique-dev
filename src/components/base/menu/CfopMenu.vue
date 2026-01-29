@@ -83,9 +83,7 @@ const estoqueStore = useEstoqueStore();
 const cfops = computed(() => estoqueStore.cfops);
 
 watchEffect(() => {
-  if (cfops.value.length === 0) {
-    estoqueStore.buscarCfops("", 15);
-  }
+  estoqueStore.buscarCfops("", 15);
 })
 
 watch( () => termoPesquisa.value, async (pesquisa) => {

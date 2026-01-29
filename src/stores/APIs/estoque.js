@@ -585,7 +585,7 @@ export const useEstoqueStore = defineStore('estoque', {
          * @return {Promise<void>}
          */
 
-        async buscarCfops(find = "", limit = 100) {
+        async buscarCfops(find = "", limit = 10) {
             this.loading = true;
 
             try {
