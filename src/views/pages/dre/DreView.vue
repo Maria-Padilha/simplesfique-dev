@@ -25,7 +25,7 @@
     <template #section>
       <div>
         <!-- Card de Configuração do Modelo -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4">
+        <v-card class="background-secondary mb-4" elevation="0">
           <v-card-text class="pa-4">
             <v-row>
               <!-- Seletor de Modelo Existente -->
@@ -244,7 +244,7 @@
 
         <!-- Dialog Novo/Editar Grupo -->
         <v-dialog v-model="dialogNovoGrupo" max-width="600">
-          <v-card>
+          <v-card class="text-h6 pa-4 background-secondary">
             <v-card-title class="text-h6 pa-4 background-secondary">
               <v-icon icon="mdi-folder-plus" class="mr-2"></v-icon>
               {{ grupoEditando !== null ? 'Editar Grupo' : 'Novo Grupo' }}
@@ -363,7 +363,7 @@
 
         <!-- Dialog Nova/Editar Categoria -->
         <v-dialog v-model="dialogNovaCategoria" max-width="900" scrollable>
-          <v-card>
+          <v-card class="text-h6 pa-4 background-secondary">
             <v-card-title class="text-h6 pa-4 background-secondary">
               <v-icon icon="mdi-tag-plus" class="mr-2"></v-icon>
               Adicionar Categorias ao DRE
@@ -427,7 +427,7 @@
                           return-object
                           :loading="carregandoAnaliticas"
                           density="compact"
-                          class="elevation-0"
+                          class="background-secondary elevation-0"
                       >
                         <template #[`item.descplanoconta`]="{ item }">
                           {{ item.descplanoconta || item.descconta }}
@@ -1043,10 +1043,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.background-secondary {
-  background-color: var(--background-secondary);
-  color: var(--text-color);
-}
 
 .background-card {
   background-color: var(--background-card);

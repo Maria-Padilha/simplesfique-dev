@@ -847,6 +847,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { usePermissoes } from '@/utils/usePermissoes'
@@ -874,6 +875,7 @@ import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 // eslint-disable-next-line no-unused-vars
 const ID_PROGRAMA = 'FFIN210E'
 
+const route = useRoute()
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
 // eslint-disable-next-line no-unused-vars
@@ -1148,6 +1150,11 @@ onMounted(async () => {
   // Carregar apenas dados auxiliares no mount
   // As Contas a Receber só serão carregadas após aplicar filtros obrigatórios
   await carregarDadosAuxiliares()
+  
+  // Verificar se há query param 'novo' para abrir o formulário automaticamente
+  if (route.query.novo === 'true') {
+    formularioAberto.value = true
+  }
 })
 
 // Watchers - simplificados
