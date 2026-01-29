@@ -61,7 +61,7 @@
 <script setup>
 import BuscaPadraoMenu from "@/components/base/menu/BuscaPadraoMenu.vue";
 import CadastrarModal from "@/components/base/modais/CadastrarModal.vue";
-import {ref, computed, defineEmits, watch, onMounted} from "vue";
+import {ref, computed, defineEmits, onMounted} from "vue";
 import { useFinanceiroStore } from "@/stores/APIs/financeiro";
 import { toast } from "vue3-toastify";
 
@@ -75,26 +75,31 @@ const descricaoPlanoConta = ref("");
 const codigoPlanoConta = ref("");
 
 const financeiroStore = useFinanceiroStore();
-const planosConta = computed(() => financeiroStore.planosConta || []);
 
-// Carregar dados na montagem do componente
+// Todos os planos de conta carregados da API
+const todosPlanosConta = computed(() => financeiroStore.planosConta || []);
+
+// Planos de conta filtrados localmente pelo termo de pesquisa
+const planosConta = computed(() => {
+  if (!termoPesquisa.value || termoPesquisa.value.length < 2) {
+    return todosPlanosConta.value;
+  }
+  
+  const termo = termoPesquisa.value.toLowerCase();
+  return todosPlanosConta.value.filter(plano => {
+    const descricao = (plano.descconta || plano.descricao || '').toLowerCase();
+    const codigo = (plano.codigoplanoconta || '').toLowerCase();
+    return descricao.includes(termo) || codigo.includes(termo);
+  });
+});
+
+// Carregar todos os dados na montagem do componente
 onMounted(async () => {
   await financeiroStore.buscarPlanosConta();
 });
 
-watch( () => termoPesquisa.value, async (pesquisa) => {
-  if (!pesquisa || pesquisa.length < 2) {
-    return;
-  }
-  console.log("Pesquisando plano de conta: ", pesquisa);
-  await financeiroStore.buscarPlanosConta(pesquisa);
-})
-
-const pesquisar = async () => {
-  if (!termoPesquisa.value || termoPesquisa.value.length < 2) {
-    return;
-  }
-  await financeiroStore.buscarPlanosConta(termoPesquisa.value);
+const pesquisar = () => {
+  // Não precisa fazer nada, o computed já filtra automaticamente
 };
 
 const selecionarPlanoConta = (planoSelecionado) => {

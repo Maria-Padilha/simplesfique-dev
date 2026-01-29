@@ -1,6 +1,6 @@
 <template>
   <top-all-pages icon="mdi-file-chart">
-    <template #titulo>Relatório DRE (Demonstrativo de Resultado)</template>
+    <template #titulo>Relatório DRE</template>
     <template #acoes>
       <v-btn
           color="var(--text-color-laranja)"
@@ -17,7 +17,7 @@
     <template #section>
       <div>
         <!-- Card de Filtros -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4">
+        <v-card class="background-secondary mb-4" elevation="0">
           <v-card-title class="text-h6 pa-4">
             <v-icon icon="mdi-filter" class="mr-2"></v-icon>
             Parâmetros do Relatório
@@ -131,7 +131,7 @@
             <div v-if="relatorioGerado && !gerando">
               <!-- Cabeçalho do Período -->
               <v-card class="background-card mb-4" elevation="0">
-                <v-card-text class="pa-3">
+                <v-card-text class="background-cardpa-3">
                   <v-row dense>
                     <v-col cols="12" md="4">
                       <div class="d-flex align-center">
@@ -460,10 +460,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.background-secondary {
-  background-color: var(--background-secondary);
-  color: var(--text-color);
-}
 
 .background-card {
   background-color: var(--background-card);
