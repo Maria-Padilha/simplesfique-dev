@@ -98,6 +98,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     text: 'Grupos de Usuários',
                     icon: 'mdi-account-multiple',
                     route: '/paginas/manutencao/grupousuario'
+                },
+                {
+                    text: 'Fórmulas',
+                    icon: 'mdi-xml',
+                    route: '/paginas/manutencao/formulas'
                 }
             ]
         },
@@ -120,6 +125,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     text: 'CEST',
                     icon: 'mdi-file-table-box-outline',
                     route: '/paginas/estoque/cest'
+                },
+                {
+                    text: 'Aliquota UF',
+                    icon: 'mdi-chart-line',
+                    route: '/paginas/estoque/aliquotauf'
                 },
             ]
         },

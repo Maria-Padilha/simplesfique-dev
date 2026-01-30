@@ -29,6 +29,8 @@ export const useEstoqueStore = defineStore('estoque', {
         cests: [],
         cest: null,
 
+        aliquotas: [],
+
         nbs: [],
 
         almoxarifados: [],
@@ -688,6 +690,69 @@ export const useEstoqueStore = defineStore('estoque', {
                 await this.buscarCfops();
             } catch (error) {
                 console.error('Erro ao deletar CFOP:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * BUSCAR ALÍQUOTAS
+         */
+
+        async buscarTodasAliquotas(emp, uf) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/aliquotauf/${emp}/${uf}`, {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`
+                    }
+                });
+
+                this.aliquotas = response.data.data;
+                this.errorMessage = '';
+
+                console.log('Alíquotas encontradas:', this.aliquotas);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar alíquotas:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async cadastrarAliquota(aliquotaData, emp, uf) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`aliquotauf/${emp}`, 'post', aliquotaData);
+                await this.buscarTodasAliquotas(emp, uf);
+            } catch (error) {
+                console.error('Erro ao cadastrar alíquota:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async editarAliquota(aliquotaData, emp, cfop, uf) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`aliquotauf/${emp}/${uf}/${cfop}`, 'put', aliquotaData);
+                await this.buscarTodasAliquotas(emp, uf);
+            } catch (error) {
+                console.error('Erro ao editar alíquota:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async deletarAliquota(emp, cfop, uf) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`aliquotauf/${emp}/${uf}/${cfop}`, 'delete');
+                await this.buscarTodasAliquotas(emp, uf);
+            } catch (error) {
+                console.error('Erro ao deletar alíquota:', error);
             } finally {
                 this.loading = false;
             }

@@ -66,6 +66,11 @@ const routes = [
         name: 'manutencao_grupousuario',
         component: GrupoUsuarioView
     },
+    {
+        path: '/paginas/manutencao/formulas',
+        name: 'manutencao_formulas',
+        component: () => import('@/views/pages/manutencao/FormulasView.vue')
+    },
 
     //   paginas de autenticação
     {
@@ -201,6 +206,11 @@ const routes = [
         path: '/paginas/estoque/classe',
         name: 'classe',
         component: () => import('@/views/pages/estoque/ClassesView.vue')
+    },
+    {
+        path: '/paginas/estoque/aliquotauf',
+        name: 'aliquotauf',
+        component: () => import('@/views/pages/estoque/AliquotaUfView.vue')
     },
     {
         path: '/paginas/estoque/cest',
