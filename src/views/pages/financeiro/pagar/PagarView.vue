@@ -624,11 +624,11 @@
 
                         <!-- Rateio por Centro de Custo (select acima e tabela de centros selecionados) -->
                         <v-col cols="12" v-if="parcelas.length > 0">
-                          <v-card variant="outlined" class="mb-4" elevation="1">
+                          <v-card variant="outlined" class="background-secondary mb-4" elevation="1">
                             <v-card-title class="text-h6 pa-4 d-flex align-center">
                               <v-icon icon="mdi-swap-horizontal" class="mr-2" color="orange"></v-icon>
                               Rateio por Centro de Custo
-                              <v-spacer></v-spacer>
+                              <v-spacer></v-spacer> 
                               <v-btn
                                   size="small"
                                   color="orange"
@@ -654,7 +654,7 @@
                                 Nenhum centro de custo adicionado. Clique em "Adicionar Centro" para começar o rateio.
                               </div>
 
-                              <v-table v-else density="compact">
+                              <v-table class="background-secondary" v-else density="compact">
                                 <thead>
                                 <tr>
                                   <th style="width: 40%">Centro de Custo</th>
