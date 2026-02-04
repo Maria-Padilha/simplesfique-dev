@@ -68,25 +68,26 @@ export const useSidebarStore = defineStore('sidebar', () => {
                         { text: 'Modelos DRE', icon: 'mdi-file-chart', route: '/paginas/financeiro/dre' }, 
                         { text: 'Relatório DRE', icon: 'mdi-chart-box', route: '/paginas/financeiro/relatorio/dre' }                       
                     ]
+                },
+                {
+                    text: 'Plano de Contas',
+                    icon: 'mdi-file-tree',
+                    route: '/paginas/financeiro/planoconta'
                 }
             ]
         },
         
         {
-            id: 'contabil',
-            titulo: 'Contabil',
+            id: 'Fiscal',
+            titulo: 'Fiscal',
             icon: 'mdi-cash-register',
             submenus: [
                 {
                     text: 'Nota de Serviço',
                     icon: 'mdi-format-list-bulleted-type',
-                    route: '/paginas/contabil/notadeservico'
+                    route: '/paginas/fiscal/notadeservico'
                 },
-                {
-                    text: 'Plano de contas',
-                    icon: 'mdi-file-tree',
-                    route: '/paginas/contabil/planodecontas'
-                },
+                
             ]
 
 
@@ -134,13 +135,6 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     icon: 'mdi-file-table-box-outline',
                     route: '/paginas/estoque/cest'
                 },
-            ]
-        },
-        {
-            id: 'produtos',
-            titulo: 'Produtos',
-            icon: 'mdi-tag-multiple',
-            submenus: [
                 {
                     text: 'Produtos',
                     icon: 'mdi-tag-outline',
@@ -161,6 +155,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     icon: 'mdi-certificate',
                     route: '/paginas/certificados'
                 },
+                {
+                    text: 'Inventário',
+                    icon: 'mdi-clipboard-list',
+                    route: '/paginas/inventario'
+                }
             ]
         },
         {

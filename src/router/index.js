@@ -12,8 +12,9 @@ import ReceberView from "@/views/pages/financeiro/receber/ReceberView.vue";
 import ContaCorrenteView from "@/views/pages/financeiro/banco/ContaCorrenteView.vue";
 import CentroDeCustoView from "@/views/pages/financeiro/pagar/CentroDeCustoView.vue";
 import PrevisaoDebitosView from "@/views/pages/financeiro/pagar/PrevisaoDebitosView.vue";
+import InventarioView from "@/views/pages/inventario/InventarioView.vue";
 import PessoasView from '@/views/pages/manutencao/PessoasView.vue';
-import PlanoContaView from '@/views/pages/contabil/PlanoContaView.vue';
+import PlanoContaView from '@/views/pages/fiscal/PlanoContaView.vue';
 import DebitoRealView from '@/views/pages/financeiro/pagar/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/manutencao/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
@@ -203,6 +204,12 @@ const routes = [
         name: 'financeiro_banco_movimentacao',
         component: MovimentacaoView
     },
+    // Página do inventário
+    {
+        path: '/paginas/inventario',
+        name: 'inventario',
+        component: InventarioView
+    },
 
     // páginas do estoque (substituídas por placeholder até criar os arquivos reais)
     {
@@ -294,9 +301,9 @@ const routes = [
     },
     // páginas do pdv
     {
-        path: '/paginas/contabil/notadeservico',
+        path: '/paginas/fiscal/notadeservico',
         name: 'notadeservico',
-        component: () => import('@/views/pages/contabil/NotaDeServicoView.vue')
+        component: () => import('@/views/pages/fiscal/NotaDeServicoView.vue')
     },
 
     // Páginas de Relatórios
@@ -306,9 +313,9 @@ const routes = [
         component: FinanceiroRelatorioView
     },
     {
-        path: '/paginas/relatorios/contabil',
-        name: 'relatorio_contabil',
-        component: () => import('@/views/pages/contabil/NotaDeServicoView.vue')
+        path: '/paginas/relatorios/fiscal',
+        name: 'relatorio_fiscal',
+        component: () => import('@/views/pages/fiscal/NotaDeServicoView.vue')
     },
 
     //    Páginas do site

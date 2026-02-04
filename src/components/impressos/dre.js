@@ -296,6 +296,10 @@ export const TEMPLATE_DRE = `<!DOCTYPE html>
             <span>{{DATA_INICIAL}} a {{DATA_FINAL}}</span>
         </div>
         <div class="info-periodo-item">
+            <strong>REGIME:</strong>
+            <span>{{REGIME}}</span>
+        </div>
+        <div class="info-periodo-item">
             <strong>TIPO:</strong>
             <span>{{TIPO_PERIODO}}</span>
         </div>
@@ -446,6 +450,7 @@ function gerarLinhasDRE(dadosRelatorio) {
  * @param {string} params.dataInicial - Data inicial do período
  * @param {string} params.dataFinal - Data final do período
  * @param {string} params.tipoPeriodo - Tipo de período (Mensal, Anual, etc)
+ * @param {number} params.regime - Regime: 1=Competência, 2=Caixa
  * @param {Array} params.dadosRelatorio - Dados do relatório (grupos e categorias)
  * @returns {string} HTML do relatório
  */
@@ -458,6 +463,7 @@ export function gerarRelatorioDRE(params) {
     dataInicial = '',
     dataFinal = '',
     tipoPeriodo = 'Mensal',
+    regime = 1,
     dadosRelatorio = []
   } = params
   
@@ -469,6 +475,7 @@ export function gerarRelatorioDRE(params) {
     minute: '2-digit'
   })
   
+  const regimeTexto = regime === 1 ? 'Competência' : 'Caixa'
   const linhasDRE = gerarLinhasDRE(dadosRelatorio)
   
   let html = TEMPLATE_DRE
@@ -481,6 +488,7 @@ export function gerarRelatorioDRE(params) {
   html = html.replace(/{{DATA_INICIAL}}/g, formatarData(dataInicial))
   html = html.replace(/{{DATA_FINAL}}/g, formatarData(dataFinal))
   html = html.replace(/{{TIPO_PERIODO}}/g, tipoPeriodo)
+  html = html.replace(/{{REGIME}}/g, regimeTexto)
   html = html.replace(/{{DATA_GERACAO}}/g, dataGeracao)
   html = html.replace(/{{LINHAS_DRE}}/g, linhasDRE)
   

@@ -26,7 +26,7 @@
             <v-form ref="formRef" v-model="formularioValido">
               <v-row>
                 <!-- Seletor de Modelo DRE -->
-                <v-col cols="12" md="6">
+                <v-col cols="12" md="4">
                   <v-select
                       v-model="filtros.modeloId"
                       :items="modelosDisponiveis"
@@ -50,7 +50,7 @@
                 </v-col>
 
                 <!-- Tipo de Período -->
-                <v-col cols="12" md="6">
+                <v-col cols="12" md="4">
                   <v-select
                       v-model="filtros.tipoPeriodo"
                       :items="tiposPeriodo"
@@ -59,36 +59,93 @@
                       density="comfortable"
                       prepend-inner-icon="mdi-calendar-range"
                       :rules="[v => !!v || 'Selecione o tipo de período']"
+                      @update:model-value="atualizarCamposPorPeriodo"
                   ></v-select>
                 </v-col>
 
-                <!-- Data Inicial -->
-                <v-col cols="12" md="6">
-                  <v-text-field
-                      v-model="filtros.dataInicial"
-                      label="Data Inicial"
-                      type="date"
+                <!-- Regime -->
+                <v-col cols="12" md="4">
+                  <v-select
+                      v-model="filtros.regime"
+                      :items="regimesDisponiveis"
+                      label="Regime *"
                       variant="outlined"
                       density="comfortable"
-                      prepend-inner-icon="mdi-calendar-start"
-                      :rules="[v => !!v || 'Informe a data inicial']"
+                      prepend-inner-icon="mdi-calendar-check"
+                      :rules="[v => !!v || 'Selecione o regime']"
+                      hint="Define como os valores serão calculados"
+                      persistent-hint
+                  >
+                    <template #item="{ props, item }">
+                      <v-list-item v-bind="props">
+                        <template #prepend>
+                          <v-icon 
+                            :icon="item.raw.icon" 
+                            :color="item.raw.color"
+                            class="mr-2"
+                          ></v-icon>
+                        </template>
+                      </v-list-item>
+                    </template>
+                  </v-select>
+                </v-col>
+
+                <!-- Ano -->
+                <v-col cols="12" md="4">
+                  <v-text-field
+                      v-model.number="filtros.ano"
+                      label="Ano *"
+                      type="number"
+                      variant="outlined"
+                      density="comfortable"
+                      prepend-inner-icon="mdi-calendar"
+                      :rules="[
+                        v => !!v || 'Informe o ano',
+                        v => v >= 2000 && v <= 2100 || 'Ano inválido'
+                      ]"
                   ></v-text-field>
                 </v-col>
 
-                <!-- Data Final -->
-                <v-col cols="12" md="6">
-                  <v-text-field
-                      v-model="filtros.dataFinal"
-                      label="Data Final"
-                      type="date"
+                <!-- Mês (Apenas para Mensal) -->
+                <v-col v-if="filtros.tipoPeriodo === 'Mensal'" cols="12" md="4">
+                  <v-select
+                      v-model="filtros.mes"
+                      :items="mesesDisponiveis"
+                      label="Mês *"
                       variant="outlined"
                       density="comfortable"
-                      prepend-inner-icon="mdi-calendar-end"
-                      :rules="[
-                        v => !!v || 'Informe a data final',
-                        v => !filtros.dataInicial || v >= filtros.dataInicial || 'Data final deve ser maior ou igual à inicial'
-                      ]"
-                  ></v-text-field>
+                      prepend-inner-icon="mdi-calendar-month"
+                      :rules="[v => !!v || 'Selecione o mês']"
+                      @update:model-value="atualizarDatasMensal"
+                  ></v-select>
+                </v-col>
+
+                <!-- Trimestre (Apenas para Trimestral) -->
+                <v-col v-if="filtros.tipoPeriodo === 'Trimestral'" cols="12" md="4">
+                  <v-select
+                      v-model="filtros.trimestre"
+                      :items="trimestresDisponiveis"
+                      label="Trimestre *"
+                      variant="outlined"
+                      density="comfortable"
+                      prepend-inner-icon="mdi-calendar-clock"
+                      :rules="[v => !!v || 'Selecione o trimestre']"
+                      @update:model-value="atualizarDatasTrimestral"
+                  ></v-select>
+                </v-col>
+
+                <!-- Semestre (Apenas para Semestral) -->
+                <v-col v-if="filtros.tipoPeriodo === 'Semestral'" cols="12" md="4">
+                  <v-select
+                      v-model="filtros.semestre"
+                      :items="semestresDisponiveis"
+                      label="Semestre *"
+                      variant="outlined"
+                      density="comfortable"
+                      prepend-inner-icon="mdi-calendar-multiple"
+                      :rules="[v => !!v || 'Selecione o semestre']"
+                      @update:model-value="atualizarDatasSemestral"
+                  ></v-select>
                 </v-col>
               </v-row>
             </v-form>
@@ -131,22 +188,24 @@
             <div v-if="relatorioGerado && !gerando">
               <!-- Cabeçalho do Período -->
               <v-card class="background-card mb-4" elevation="0">
-                <v-card-text class="background-cardpa-3">
+                <v-card-text class="pa-3">
                   <v-row dense>
                     <v-col cols="12" md="4">
                       <div class="d-flex align-center">
-                        <v-icon icon="mdi-calendar-range" size="small" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-                        <span class="text-caption text-grey">Período:</span>
+                        <v-icon icon="mdi-chart-timeline" size="small" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                        <span class="text-caption text-grey">Regime:</span>
                         <span class="text-body-2 ml-2 font-weight-medium">
-                          {{ formatarData(filtros.dataInicial) }} a {{ formatarData(filtros.dataFinal) }}
+                          {{ filtros.regime === 1 ? 'Competência' : 'Caixa' }}
                         </span>
                       </div>
                     </v-col>
                     <v-col cols="12" md="4">
                       <div class="d-flex align-center">
-                        <v-icon icon="mdi-chart-timeline" size="small" class="mr-2" color="var(--text-color-laranja)"></v-icon>
-                        <span class="text-caption text-grey">Tipo:</span>
-                        <span class="text-body-2 ml-2 font-weight-medium">{{ filtros.tipoPeriodo }}</span>
+                        <v-icon icon="mdi-calendar" size="small" class="mr-2" color="var(--text-color-laranja)"></v-icon>
+                        <span class="text-caption text-grey">Período:</span>
+                        <span class="text-body-2 ml-2 font-weight-medium">
+                          {{ getPeriodoFormatado() }}
+                        </span>
                       </div>
                     </v-col>
                     <v-col cols="12" md="4">
@@ -184,8 +243,8 @@
                         ></v-icon>
                         {{ grupo.nome }}
                       </td>
-                      <td class="text-right font-weight-bold" :class="getValorClass(grupo.valor)">
-                        {{ formatarValor(grupo.valor) }}
+                      <td class="text-right font-weight-bold" :class="getValorClass(grupo.valor, grupo.natureza)">
+                        {{ formatarValor(aplicarSinalVisual(grupo.valor, grupo.natureza)) }}
                       </td>
                     </tr>
 
@@ -201,8 +260,8 @@
                           {{ categoria.classificador }}
                         </v-chip>
                       </td>
-                      <td class="text-right text-body-2" :class="getValorClass(categoria.valor)">
-                        {{ formatarValor(categoria.valor) }}
+                      <td class="text-right text-body-2" :class="getValorClass(categoria.valor, grupo.natureza)">
+                        {{ formatarValor(aplicarSinalVisual(categoria.valor, grupo.natureza)) }}
                       </td>
                     </tr>
                   </template>
@@ -249,12 +308,14 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
+import { useDreStore } from '@/stores/APIs/dre'
 import { toast } from 'vue3-toastify'
 import TopAllPages from '@/components/base/padrao-paginas/TopAllPages.vue'
 import { imprimirRelatorioDRE } from '@/components/impressos/dre.js'
 
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
+const dreStore = useDreStore()
 
 // Estado
 const carregandoModelos = ref(false)
@@ -269,6 +330,11 @@ const dataGeracao = ref('')
 const filtros = reactive({
   modeloId: null,
   tipoPeriodo: 'Mensal',
+  regime: 1, // 1=Competência (padrão), 2=Caixa
+  ano: new Date().getFullYear(),
+  mes: new Date().getMonth() + 1,
+  trimestre: null,
+  semestre: null,
   dataInicial: '',
   dataFinal: ''
 })
@@ -276,13 +342,58 @@ const filtros = reactive({
 // Modelos disponíveis
 const modelosDisponiveis = ref([])
 
+// Regimes disponíveis
+const regimesDisponiveis = [
+  { 
+    title: 'Competência', 
+    value: 1,
+    icon: 'mdi-calendar-check',
+    color: 'success'
+  },
+  { 
+    title: 'Caixa', 
+    value: 2,
+    icon: 'mdi-cash',
+    color: 'primary'
+  }
+]
+
+// Meses disponíveis
+const mesesDisponiveis = [
+  { title: 'Janeiro', value: 1 },
+  { title: 'Fevereiro', value: 2 },
+  { title: 'Março', value: 3 },
+  { title: 'Abril', value: 4 },
+  { title: 'Maio', value: 5 },
+  { title: 'Junho', value: 6 },
+  { title: 'Julho', value: 7 },
+  { title: 'Agosto', value: 8 },
+  { title: 'Setembro', value: 9 },
+  { title: 'Outubro', value: 10 },
+  { title: 'Novembro', value: 11 },
+  { title: 'Dezembro', value: 12 }
+]
+
+// Trimestres disponíveis
+const trimestresDisponiveis = [
+  { title: '1º Trimestre (Jan-Mar)', value: 1, mesInicial: 1, mesFinal: 3 },
+  { title: '2º Trimestre (Abr-Jun)', value: 2, mesInicial: 4, mesFinal: 6 },
+  { title: '3º Trimestre (Jul-Set)', value: 3, mesInicial: 7, mesFinal: 9 },
+  { title: '4º Trimestre (Out-Dez)', value: 4, mesInicial: 10, mesFinal: 12 }
+]
+
+// Semestres disponíveis
+const semestresDisponiveis = [
+  { title: '1º Semestre (Jan-Jun)', value: 1, mesInicial: 1, mesFinal: 6 },
+  { title: '2º Semestre (Jul-Dez)', value: 2, mesInicial: 7, mesFinal: 12 }
+]
+
 // Tipos de período
 const tiposPeriodo = [
   { title: 'Mensal', value: 'Mensal' },
   { title: 'Trimestral', value: 'Trimestral' },
   { title: 'Semestral', value: 'Semestral' },
-  { title: 'Anual', value: 'Anual' },
-  { title: 'Personalizado', value: 'Personalizado' }
+  { title: 'Anual', value: 'Anual' }
 ]
 
 // Nome do modelo selecionado
@@ -293,10 +404,19 @@ const modeloSelecionadoNome = computed(() => {
 })
 
 // Métodos de formatação
-const formatarData = (data) => {
-  if (!data) return ''
-  const [ano, mes, dia] = data.split('-')
-  return `${dia}/${mes}/${ano}`
+const getPeriodoFormatado = () => {
+  switch (filtros.tipoPeriodo) {
+    case 'Mensal':
+      return `${mesesDisponiveis.find(m => m.value === filtros.mes)?.title}/${filtros.ano}`
+    case 'Trimestral':
+      return `${trimestresDisponiveis.find(t => t.value === filtros.trimestre)?.title}/${filtros.ano}`
+    case 'Semestral':
+      return `${semestresDisponiveis.find(s => s.value === filtros.semestre)?.title}/${filtros.ano}`
+    case 'Anual':
+      return `${filtros.ano}`
+    default:
+      return ''
+  }
 }
 
 const formatarValor = (valor) => {
@@ -307,6 +427,16 @@ const formatarValor = (valor) => {
     style: 'currency',
     currency: 'BRL'
   }).format(num)
+}
+
+// Aplicar sinal visual baseado na natureza (apenas para exibição)
+const aplicarSinalVisual = (valor, natureza) => {
+  if (natureza === '-') {
+    // Despesas: mostrar como negativo
+    return -Math.abs(valor)
+  }
+  // Receitas e totalizadores: manter o valor original
+  return valor
 }
 
 // Métodos de estilo
@@ -323,7 +453,11 @@ const getLinhaClass = (tipo) => {
   }
 }
 
-const getValorClass = (valor) => {
+const getValorClass = (valor, natureza) => {
+  // Se for despesa, sempre vermelho
+  if (natureza === '-') return 'text-error'
+  
+  // Para receitas e totalizadores, usar o valor
   if (valor > 0) return 'text-success'
   if (valor < 0) return 'text-error'
   return ''
@@ -355,6 +489,80 @@ const getGrupoIconColor = (tipo) => {
   }
 }
 
+// Atualizar campos baseado no tipo de período
+const atualizarCamposPorPeriodo = () => {
+  const ano = filtros.ano || new Date().getFullYear()
+  
+  switch (filtros.tipoPeriodo) {
+    case 'Mensal':
+      if (!filtros.mes) filtros.mes = new Date().getMonth() + 1
+      atualizarDatasMensal()
+      break
+      
+    case 'Trimestral':
+      if (!filtros.trimestre) filtros.trimestre = Math.ceil((new Date().getMonth() + 1) / 3)
+      atualizarDatasTrimestral()
+      break
+      
+    case 'Semestral':
+      if (!filtros.semestre) filtros.semestre = new Date().getMonth() < 6 ? 1 : 2
+      atualizarDatasSemestral()
+      break
+      
+    case 'Anual':
+      // Ano inteiro: 01/01 a 31/12
+      filtros.dataInicial = `${ano}-01-01`
+      filtros.dataFinal = `${ano}-12-31`
+      filtros.mes = 1 // Janeiro representa o ano todo para a API
+      break
+  }
+}
+
+// Atualizar datas para período mensal
+const atualizarDatasMensal = () => {
+  if (!filtros.ano || !filtros.mes) return
+  
+  const primeiroDia = new Date(filtros.ano, filtros.mes - 1, 1)
+  const ultimoDia = new Date(filtros.ano, filtros.mes, 0)
+  
+  filtros.dataInicial = primeiroDia.toISOString().split('T')[0]
+  filtros.dataFinal = ultimoDia.toISOString().split('T')[0]
+}
+
+// Atualizar datas para período trimestral
+const atualizarDatasTrimestral = () => {
+  if (!filtros.ano || !filtros.trimestre) return
+  
+  const trimestre = trimestresDisponiveis.find(t => t.value === filtros.trimestre)
+  if (!trimestre) return
+  
+  const primeiroDia = new Date(filtros.ano, trimestre.mesInicial - 1, 1)
+  const ultimoDia = new Date(filtros.ano, trimestre.mesFinal, 0)
+  
+  filtros.dataInicial = primeiroDia.toISOString().split('T')[0]
+  filtros.dataFinal = ultimoDia.toISOString().split('T')[0]
+  
+  // Atualizar mês para o primeiro mês do trimestre (para a API)
+  filtros.mes = trimestre.mesInicial
+}
+
+// Atualizar datas para período semestral
+const atualizarDatasSemestral = () => {
+  if (!filtros.ano || !filtros.semestre) return
+  
+  const semestre = semestresDisponiveis.find(s => s.value === filtros.semestre)
+  if (!semestre) return
+  
+  const primeiroDia = new Date(filtros.ano, semestre.mesInicial - 1, 1)
+  const ultimoDia = new Date(filtros.ano, semestre.mesFinal, 0)
+  
+  filtros.dataInicial = primeiroDia.toISOString().split('T')[0]
+  filtros.dataFinal = ultimoDia.toISOString().split('T')[0]
+  
+  // Atualizar mês para o primeiro mês do semestre (para a API)
+  filtros.mes = semestre.mesInicial
+}
+
 // Carregar modelos disponíveis
 const carregarModelos = async () => {
   carregandoModelos.value = true
@@ -381,26 +589,28 @@ const gerarRelatorio = async () => {
   try {
     console.log('[DRE Relatório] Gerando relatório com filtros:', filtros)
     
-    // Buscar modelo completo
-    const modelo = await financeiroStore.buscarModeloDRE(filtros.modeloId)
-    
-    if (!modelo || !modelo.grupos) {
-      toast.error('Modelo DRE não encontrado ou inválido')
+    // Buscar dados da empresa
+    const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada') || '{}')
+    const idEmpresa = empresaSelecionada?.id || localStorage.getItem('empresa')
+
+    if (!idEmpresa) {
+      toast.error('Empresa não identificada')
       return
     }
 
-    // TODO: Aqui você vai fazer a requisição para buscar os dados contábeis
-    // Por enquanto, vou simular os dados
-    dadosRelatorio.value = modelo.grupos.map(grupo => ({
-      nome: grupo.nome,
-      tipo: grupo.tipo,
-      valor: Math.random() * 10000 - 5000, // Valor simulado
-      categorias: (grupo.categorias || []).map(cat => ({
-        nome: cat.nome,
-        classificador: cat.classificador,
-        valor: Math.random() * 5000 - 2500 // Valor simulado
-      }))
-    }))
+    // Buscar movimentações de DRE
+    const movimentacoes = await dreStore.buscarMovimentacoesDRE({
+      id: filtros.modeloId,
+      idEmpresa: parseInt(idEmpresa),
+      idAno: filtros.ano,
+      idMes: filtros.mes,
+      regime: filtros.regime
+    })
+
+    console.log('[DRE Relatório] Movimentações recebidas:', movimentacoes)
+    
+    // Processar dados do relatório
+    dadosRelatorio.value = processarDadosDRE(movimentacoes)
 
     dataGeracao.value = new Date().toLocaleString('pt-BR')
     relatorioGerado.value = true
@@ -411,6 +621,131 @@ const gerarRelatorio = async () => {
     toast.error('Erro ao gerar relatório')
   } finally {
     gerando.value = false
+  }
+}
+
+// Processar dados da API para o formato do relatório
+const processarDadosDRE = (movimentacoes) => {
+  if (!Array.isArray(movimentacoes) || movimentacoes.length === 0) {
+    return []
+  }
+
+  // Agrupar movimentações por ID e descdredetalhe
+  const gruposMap = {}
+  
+  movimentacoes.forEach(mov => {
+    const grupoId = mov.id
+    const nomeGrupo = mov.descdredetalhe
+    
+    if (!gruposMap[grupoId]) {
+      gruposMap[grupoId] = {
+        id: grupoId,
+        nome: nomeGrupo,
+        tipo: getTipoGrupo(mov.natureza),
+        natureza: mov.natureza,
+        natureza_formula: mov.natureza_formula,
+        categorias: [],
+        valor: 0
+      }
+    }
+
+    // Adicionar categoria apenas se houver classificador (não é totalizador)
+    if (mov.id_classificador && mov.descconta) {
+      const valor = calcularValorMovimentacao(mov)
+      
+      gruposMap[grupoId].categorias.push({
+        nome: mov.descconta,
+        classificador: mov.id_classificador,
+        valor: valor
+      })
+      
+      // Somar ao valor do grupo
+      gruposMap[grupoId].valor += valor
+    }
+  })
+
+  // Converter map para array ordenado por ID
+  const grupos = Object.values(gruposMap).sort((a, b) => a.id - b.id)
+  
+  // Calcular totalizadores (grupos com natureza "=")
+  grupos.forEach(grupo => {
+    if (grupo.natureza === '=' && grupo.natureza_formula) {
+      grupo.valor = calcularFormula(grupo.natureza_formula, gruposMap)
+    }
+  })
+
+  return grupos
+}
+
+// Determinar tipo do grupo baseado na natureza
+const getTipoGrupo = (natureza) => {
+  switch (natureza) {
+    case '+':
+      return 'RECEITA'
+    case '-':
+      return 'DESPESA'
+    case '=':
+      return 'TOTALIZADOR'
+    default:
+      return 'OUTROS'
+  }
+}
+
+// Calcular valor da movimentação
+const calcularValorMovimentacao = (mov) => {
+  // Se tem crédito, usar crédito (receitas)
+  if (mov.credito !== null && mov.credito !== undefined) {
+    return parseFloat(mov.credito) || 0
+  }
+  
+  // Se tem débito, usar débito positivo (despesas - sem inverter o sinal)
+  if (mov.debito !== null && mov.debito !== undefined) {
+    return parseFloat(mov.debito) || 0
+  }
+  
+  // Se tem saldo, usar saldo
+  if (mov.saldo !== null && mov.saldo !== undefined) {
+    return parseFloat(mov.saldo) || 0
+  }
+  
+  return 0
+}
+
+// Calcular fórmula de totalizadores (ex: "1 - 2" = grupo 1 menos grupo 2)
+const calcularFormula = (formula, gruposMap) => {
+  if (!formula) return 0
+  
+  try {
+    // Substituir IDs dos grupos pelos seus valores
+    let expressao = formula
+    
+    // Pegar todos os IDs únicos da fórmula
+    const idsNaFormula = formula.match(/\d+/g) || []
+    
+    idsNaFormula.forEach(id => {
+      const idNum = parseInt(id)
+      const grupo = gruposMap[idNum]
+      
+      if (grupo) {
+        // Substituir todas as ocorrências deste ID pelo valor do grupo
+        const regex = new RegExp(`\\b${id}\\b`, 'g')
+        expressao = expressao.replace(regex, `(${grupo.valor})`)
+      }
+    })
+    
+    console.log('[DRE] Fórmula original:', formula)
+    console.log('[DRE] Expressão calculada:', expressao)
+    
+    // Avaliar a expressão matemática
+    // eslint-disable-next-line no-eval
+    const resultado = eval(expressao) || 0
+    
+    console.log('[DRE] Resultado:', resultado)
+    
+    return resultado
+  } catch (error) {
+    console.error('Erro ao calcular fórmula:', formula, error)
+    return 0
   }
 }
 
@@ -433,6 +768,7 @@ const imprimirRelatorio = () => {
     dataInicial: filtros.dataInicial,
     dataFinal: filtros.dataFinal,
     tipoPeriodo: filtros.tipoPeriodo,
+    regime: filtros.regime,
     dadosRelatorio: dadosRelatorio.value
   })
 }
@@ -449,13 +785,8 @@ const exportarPDF = () => {
 onMounted(async () => {
   await carregarModelos()
   
-  // Definir datas padrão (mês atual)
-  const hoje = new Date()
-  const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
-  const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)
-  
-  filtros.dataInicial = primeiroDia.toISOString().split('T')[0]
-  filtros.dataFinal = ultimoDia.toISOString().split('T')[0]
+  // Inicializar datas baseado no tipo de período padrão (Mensal)
+  atualizarCamposPorPeriodo()
 })
 </script>
 
@@ -480,10 +811,19 @@ onMounted(async () => {
   font-weight: 700 !important;
 }
 
+/* Texto da tabela */
+.dre-table tbody tr td {
+  color: var(--text-color) !important;
+}
+
 /* Linhas de Grupo */
 .grupo-linha {
   font-size: 1rem;
   border-top: 2px solid rgba(var(--v-border-color), 0.3);
+}
+
+.grupo-linha td {
+  color: var(--text-color) !important;
 }
 
 .receita-light {
@@ -513,6 +853,10 @@ onMounted(async () => {
 /* Linhas de Categoria */
 .categoria-linha {
   opacity: 0.9;
+}
+
+.categoria-linha td {
+  color: var(--text-color) !important;
 }
 
 .categoria-linha:hover {
@@ -555,3 +899,4 @@ onMounted(async () => {
   }
 }
 </style>
+
