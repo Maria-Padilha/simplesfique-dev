@@ -514,14 +514,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.background-primary {
-  background-color: var(--background-primary);
-}
 
-.background-secondary {
-  background-color: var(--background-secondary);
-  color: var(--text-color);
-}
 
 .background-card {
   background-color: var(--background-card);

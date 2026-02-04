@@ -1199,19 +1199,23 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar contas a pagar para baixa (GET /contaspagarbxa/:idempresa)
+    // Buscar contas a pagar para baixa (GET /contaspagarbxa/:idempresa/dtini/:dtini/dtfim/:dtfim)
     async buscarContasPagarBaixa(idEmpresa, filtros = {}) {
       this.loading = true
       this.error = null
       try {
-        // Construir query params
+        // As datas agora vão no path da URL
+        const dtini = filtros.dtini || filtros.dt_inicio
+        const dtfim = filtros.dtfim || filtros.dt_fim
+        
+        if (!dtini || !dtfim) {
+          throw new Error('As datas de início (dtini) e fim (dtfim) são obrigatórias')
+        }
+        
+        // Construir query params (apenas tpperiodo e outros filtros opcionais)
         const params = new URLSearchParams()
         
         if (filtros.tpperiodo !== undefined) params.append('tpperiodo', filtros.tpperiodo)
-        if (filtros.dtini) params.append('dtini', filtros.dtini)
-        if (filtros.dtfim) params.append('dtfim', filtros.dtfim)
-        if (filtros.dt_inicio) params.append('dt_inicio', filtros.dt_inicio)
-        if (filtros.dt_fim) params.append('dt_fim', filtros.dt_fim)
         if (filtros.idfornecedor) params.append('idfornecedor', filtros.idfornecedor)
         if (filtros.cnpj_cpf) params.append('cnpj_cpf', filtros.cnpj_cpf)
         if (filtros.nrdocumento) params.append('nrdocumento', filtros.nrdocumento)
@@ -1221,7 +1225,9 @@ export const useFinanceiroStore = defineStore('financeiro', {
         if (filtros.liberadopagto) params.append('liberadopagto', filtros.liberadopagto)
         
         const queryString = params.toString()
-        const url = queryString ? `/contaspagarbxa/${idEmpresa}?${queryString}` : `/contaspagarbxa/${idEmpresa}`
+        const url = queryString 
+          ? `/contaspagarbxa/${idEmpresa}/dtini/${dtini}/dtfim/${dtfim}?${queryString}` 
+          : `/contaspagarbxa/${idEmpresa}/dtini/${dtini}/dtfim/${dtfim}`
         
         console.log('🔍 Buscando contas a pagar para baixa:', url)
         

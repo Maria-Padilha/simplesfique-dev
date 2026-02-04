@@ -219,6 +219,18 @@
               <template v-slot:[`item.vlrliberado`]="{ item }">
                 {{ formatarMoeda(item.vlrliberado || 0) }}
               </template>
+
+              <!-- Formatação do fornecedor com truncamento -->
+              <template v-slot:[`item.fornecedor`]="{ item }">
+                <v-tooltip location="top">
+                  <template v-slot:activator="{ props }">
+                    <span v-bind="props" class="fornecedor-truncado">
+                      {{ item.fornecedor || '--' }}
+                    </span>
+                  </template>
+                  <span>{{ item.fornecedor || 'Sem fornecedor' }}</span>
+                </v-tooltip>
+              </template>
             </TabelaPadrao>
           </v-card-text>
         </v-card>
@@ -447,7 +459,7 @@ const headers = computed(() => {
     { title: 'Vlr Saldo', key: 'saldo_devedor', sortable: true },
     { title: 'Vlr a Pagar', key: 'vlrapagar', sortable: true },
     { title: 'Vlr Liberado', key: 'vlrliberado', sortable: true },
-    { title: 'Fornecedor', key: 'fornecedor', sortable: true }
+    { title: 'Fornecedor', key: 'fornecedor', sortable: true, width: '200px' }
   ]
 })
 
@@ -785,5 +797,14 @@ onMounted(async () => {
 
 .text-red {
   color: #f44336 !important;
+}
+
+.fornecedor-truncado {
+  display: inline-block;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
 }
 </style>

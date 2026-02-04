@@ -546,7 +546,7 @@ const fluxoCaixaDados = computed(() => {
         categorias,
         entradas,
         saidas,
-        titulo: 'Fluxo de Caixa - Proximos Meses'
+        titulo: 'Fluxo de Caixa - Próximos Meses'
       }
     }
   } else {
@@ -580,7 +580,7 @@ const fluxoCaixaDados = computed(() => {
         categorias,
         entradas,
         saidas,
-        titulo: 'Fluxo de Caixa - Últimos Dias'
+        titulo: 'Fluxo de Caixa - Próximos Dias'
       }
     }
   }
