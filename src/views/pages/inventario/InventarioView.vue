@@ -3,20 +3,21 @@
     <template #titulo>Inventário de Produtos</template>
     <template #acoes>
       <v-btn
-          color="var(--text-color-laranja)"
-          variant="flat"
+          :color="loteAberto ? 'grey' : 'var(--text-color-laranja)'"
+          :variant="loteAberto ? 'outlined' : 'flat'"
+          :prepend-icon="loteAberto ? 'mdi-close' : 'mdi-plus'"
+          @click="toggleLote"
           class="text-white"
-          prepend-icon="mdi-content-save"
-          @click="salvarInventario"
-          :loading="salvando"
-          :disabled="itensInventario.length === 0"
       >
-        Salvar Inventário
+        {{ loteAberto ? 'Cancelar Criação' : 'Criar Novo Lote' }}
       </v-btn>
     </template>
     <template #section>
       <div>
-        <!-- Card de Configuração -->
+        <!-- Formulário de Criação de Lote (Expandível) -->
+        <v-expand-transition>
+          <div v-if="loteAberto">
+            <!-- Card de Configuração -->
         <v-card class="background-secondary mb-4" elevation="0">
           <v-card-title class="text-h6 pa-4">
             <v-icon icon="mdi-cog" class="mr-2"></v-icon>
@@ -31,10 +32,10 @@
                     :items="almoxarifados"
                     label="Almoxarifado *"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     prepend-inner-icon="mdi-warehouse"
                     :rules="[v => !!v || 'Selecione um almoxarifado']"
-                    item-title="nome"
+                    item-title="descalmoxarifado"
                     item-value="id"
                     :loading="carregandoAlmoxarifados"
                 >
@@ -55,7 +56,7 @@
                     :items="tiposInventario"
                     label="Tipo de Lançamento *"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     prepend-inner-icon="mdi-form-select"
                     :rules="[v => !!v || 'Selecione o tipo']"
                 >
@@ -79,23 +80,11 @@
                     label="Data do Inventário *"
                     type="date"
                     variant="outlined"
-                    density="comfortable"
+                    density="compact"
                     prepend-inner-icon="mdi-calendar"
+                    readonly
                     :rules="[v => !!v || 'Informe a data']"
                 ></v-text-field>
-              </v-col>
-
-              <!-- Observações -->
-              <v-col cols="12">
-                <v-textarea
-                    v-model="inventario.observacoes"
-                    label="Observações"
-                    variant="outlined"
-                    density="comfortable"
-                    prepend-inner-icon="mdi-text"
-                    rows="2"
-                    placeholder="Informações adicionais sobre o inventário..."
-                ></v-textarea>
               </v-col>
             </v-row>
           </v-card-text>
@@ -125,13 +114,13 @@
               </v-alert>
 
               <v-row>
-                <v-col cols="12" md="8">
+                <v-col cols="12">
                   <v-text-field
                       ref="codigoBarrasInput"
                       v-model="itemAtual.codigoBarras"
                       label="Código de Barras"
                       variant="outlined"
-                      density="comfortable"
+                      density="compact"
                       prepend-inner-icon="mdi-barcode"
                       placeholder="Bipe o código de barras ou digite..."
                       autofocus
@@ -149,19 +138,6 @@
                       ></v-btn>
                     </template>
                   </v-text-field>
-                </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-text-field
-                      v-model.number="itemAtual.quantidade"
-                      label="Quantidade"
-                      type="number"
-                      variant="outlined"
-                      density="comfortable"
-                      prepend-inner-icon="mdi-counter"
-                      :min="0"
-                      step="0.01"
-                  ></v-text-field>
                 </v-col>
               </v-row>
 
@@ -216,15 +192,15 @@
 
               <v-form ref="formManualRef" v-model="formManualValido">
                 <v-row>
-                  <v-col cols="12" md="6">
+                  <v-col cols="12" md="7" class="d-flex align-center">
                     <v-autocomplete
                         v-model="itemAtual.produtoId"
                         :items="produtos"
                         label="Produto *"
                         variant="outlined"
-                        density="comfortable"
+                        density="compact"
                         prepend-inner-icon="mdi-package-variant"
-                        item-title="nome"
+                        item-title="descproduto"
                         item-value="id"
                         :loading="carregandoProdutos"
                         :rules="[v => !!v || 'Selecione um produto']"
@@ -237,39 +213,43 @@
                             <v-icon icon="mdi-package-variant" color="var(--text-color-laranja)"></v-icon>
                           </template>
                           <template #subtitle>
-                            <span class="text-caption">Cód: {{ item.raw.codigo }} | Estoque: {{ item.raw.estoque || 0 }}</span>
+                            <span class="text-caption">Cód: {{ item.raw.codigo_sku || item.raw.codigo_gtin }} | Grupo: {{ item.raw.descgrupo }}</span>
                           </template>
                         </v-list-item>
                       </template>
                     </v-autocomplete>
                   </v-col>
 
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                        v-model.number="itemAtual.quantidade"
-                        label="Quantidade *"
-                        type="number"
-                        variant="outlined"
-                        density="comfortable"
-                        prepend-inner-icon="mdi-counter"
-                        :min="0"
-                        step="0.01"
-                        :rules="[v => v >= 0 || 'Quantidade inválida']"
-                    ></v-text-field>
-                  </v-col>
-
-                  <v-col cols="12" md="3">
-                    <v-text-field
+                  <v-col cols="12" md="3" class="d-flex align-center">
+                    <v-autocomplete
                         v-model="itemAtual.localizacao"
+                        :items="localizacoes"
                         label="Localização"
                         variant="outlined"
-                        density="comfortable"
+                        density="compact"
                         prepend-inner-icon="mdi-map-marker"
-                        placeholder="Ex: Prateleira A1"
-                    ></v-text-field>
+                        placeholder="Selecione a localização"
+                        item-title="descricao"
+                        item-value="id"
+                        :loading="carregandoLocalizacoes"
+                        clearable
+                    >
+                      <template #item="{ props, item }">
+                        <v-list-item v-bind="props">
+                          <template #prepend>
+                            <v-icon icon="mdi-map-marker" color="var(--text-color-laranja)"></v-icon>
+                          </template>
+                          <template #subtitle v-if="item.raw.rua || item.raw.bloco">
+                            <span class="text-caption">
+                              {{ [item.raw.rua, item.raw.bloco, item.raw.prateleira, item.raw.coluna].filter(Boolean).join(' - ') }}
+                            </span>
+                          </template>
+                        </v-list-item>
+                      </template>
+                    </v-autocomplete>
                   </v-col>
 
-                  <v-col cols="12">
+                  <v-col cols="12" md="2" class=" align-center">
                     <v-btn
                         color="var(--text-color-laranja)"
                         variant="flat"
@@ -279,7 +259,7 @@
                         :disabled="!formManualValido || !itemAtual.produtoId"
                         block
                     >
-                      Adicionar ao Inventário
+                      Adicionar
                     </v-btn>
                   </v-col>
                 </v-row>
@@ -407,8 +387,312 @@
             >
               Limpar Tudo
             </v-btn>
+            <v-btn
+                color="var(--text-color-laranja)"
+                variant="flat"
+                class="text-white"
+                prepend-icon="mdi-check-circle"
+                @click="finalizarLote"
+                >
+                Finalizar e Salvar Lote
+            </v-btn>
           </v-card-actions>
         </v-card>
+          </div>
+        </v-expand-transition>
+
+        <!-- Tabela de Lotes -->
+        <v-card v-if="!loteAberto" :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+          <v-card-title class="text-h6 pa-4 d-flex align-center">
+            <v-icon icon="mdi-clipboard-list" class="mr-2"></v-icon>
+            Lotes de Inventário
+            <v-chip 
+                color="var(--text-color-laranja)" 
+                size="small"
+                v-if="lotes.length > 0"
+                class="ml-2"
+            >
+              {{ lotes.length }} {{ lotes.length === 1 ? 'lote' : 'lotes' }}
+            </v-chip>
+          </v-card-title>
+
+          <v-card-text class="pa-4">
+            <div v-if="lotes.length === 0" class="text-center pa-12">
+              <v-icon size="80" color="grey-lighten-1">mdi-clipboard-text-off</v-icon>
+              <p class="text-h6 mt-4 mb-2">Nenhum lote criado</p>
+              <p class="text-body-2 text-grey">
+                Clique em "Criar Novo Lote de Inventário" para começar
+              </p>
+            </div>
+
+            <v-table v-if="lotes.length > 0 && !loteAberto" class="inventario-table" density="comfortable">
+              <thead>
+                <tr>
+                  <th class="text-left" style="width: 10%">#</th>
+                  <th class="text-left" style="width: 25%">Almoxarifado</th>
+                  <th class="text-center" style="width: 15%">Data</th>
+                  <th class="text-center" style="width: 15%">Tipo</th>
+                  <th class="text-center" style="width: 15%">Itens</th>
+                  <th class="text-left" style="width: 10%">Observações</th>
+                  <th class="text-center" style="width: 10%">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(lote, index) in lotes" :key="index">
+                  <td class="text-body-2 font-weight-bold">{{ index + 1 }}</td>
+                  <td class="text-body-2">{{ lote.almoxarifadoNome }}</td>
+                  <td class="text-center">
+                    <v-chip size="small" variant="outlined">
+                      {{ formatarData(lote.data) }}
+                    </v-chip>
+                  </td>
+                  <td class="text-center">
+                    <v-chip 
+                        size="small" 
+                        :color="lote.tipo === 'automatico' ? 'primary' : 'success'"
+                        variant="tonal"
+                    >
+                      <v-icon 
+                          :icon="lote.tipo === 'automatico' ? 'mdi-barcode-scan' : 'mdi-keyboard'" 
+                          size="x-small" 
+                          class="mr-1"
+                      ></v-icon>
+                      {{ lote.tipo === 'automatico' ? 'Automático' : 'Manual' }}
+                    </v-chip>
+                  </td>
+                  <td class="text-center">
+                    <v-chip size="small" color="var(--text-color-laranja)" variant="flat" class="text-white">
+                      {{ lote.itens.length }} {{ lote.itens.length === 1 ? 'item' : 'itens' }}
+                    </v-chip>
+                  </td>
+                  <td class="text-body-2">
+                    <span v-if="lote.observacoes" class="text-truncate" style="max-width: 150px; display: inline-block;">
+                      {{ lote.observacoes }}
+                    </span>
+                    <span v-else class="text-grey">-</span>
+                  </td>
+                  <td class="text-center">
+                    <v-btn
+                        icon="mdi-eye"
+                        size="small"
+                        variant="text"
+                        color="primary"
+                        @click="visualizarItensLote(lote)"
+                    ></v-btn>
+                    <v-btn
+                        icon="mdi-delete"
+                        size="small"
+                        variant="text"
+                        color="error"
+                        @click="excluirLote(index)"
+                    ></v-btn>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+          </v-card-text>
+        </v-card>
+
+        <!-- Modal de Visualização de Itens do Lote -->
+        <v-dialog v-model="modalItensAberto" max-width="1200">
+          <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+            <v-card-title class="text-h6 pa-4 d-flex align-center">
+              <v-icon icon="mdi-clipboard-text" class="mr-2"></v-icon>
+              Itens do Lote - {{ loteVisualizando?.almoxarifadoNome }}
+              <v-spacer></v-spacer>
+              <v-btn
+                  icon="mdi-close"
+                  variant="text"
+                  @click="modalItensAberto = false"
+              ></v-btn>
+            </v-card-title>
+
+            <v-card-text class="pa-4">
+              <v-row dense class="mb-4">
+                <v-col cols="4">
+                  <div class="text-caption text-grey">Data</div>
+                  <div class="text-body-1">{{ formatarData(loteVisualizando?.data) }}</div>
+                </v-col>
+                <v-col cols="4">
+                  <div class="text-caption text-grey">Tipo</div>
+                  <div class="text-body-1">
+                    <v-chip 
+                        size="small" 
+                        :color="loteVisualizando?.tipo === 'automatico' ? 'primary' : 'success'"
+                        variant="tonal"
+                    >
+                      {{ loteVisualizando?.tipo === 'automatico' ? 'Automático' : 'Manual' }}
+                    </v-chip>
+                  </div>
+                </v-col>
+                <v-col cols="4">
+                  <div class="text-caption text-grey">Total de Itens</div>
+                  <div class="text-body-1">{{ loteVisualizando?.itens.length || 0 }}</div>
+                </v-col>
+                <v-col cols="12" v-if="loteVisualizando?.observacoes">
+                  <div class="text-caption text-grey">Observações</div>
+                  <div class="text-body-1">{{ loteVisualizando.observacoes }}</div>
+                </v-col>
+              </v-row>
+
+              <v-table class="inventario-table" density="comfortable">
+                <thead>
+                  <tr>
+                    <th class="text-left">Código</th>
+                    <th class="text-left">Produto</th>
+                    <th class="text-center">Qtd. Sistema</th>
+                    <th class="text-center">Qtd. Contada</th>
+                    <th class="text-center">Diferença</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr 
+                      v-for="(item, index) in loteVisualizando?.itens" 
+                      :key="index"
+                      :class="getDiferencaClass(item.diferenca)"
+                  >
+                    <td class="text-body-2">{{ item.codigo }}</td>
+                    <td>
+                      <div class="text-body-2 font-weight-medium">{{ item.nome }}</div>
+                      <div class="text-caption text-grey" v-if="item.localizacao">
+                        <v-icon icon="mdi-map-marker" size="x-small"></v-icon>
+                        {{ item.localizacao }}
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <v-chip size="small" variant="outlined">
+                        {{ formatarNumero(item.estoqueSistema) }} {{ item.unidade }}
+                      </v-chip>
+                    </td>
+                    <td class="text-center">
+                      <v-chip size="small" color="primary" variant="tonal">
+                        {{ formatarNumero(item.quantidadeContada) }} {{ item.unidade }}
+                      </v-chip>
+                    </td>
+                    <td class="text-center">
+                      <v-chip 
+                          size="small" 
+                          :color="item.diferenca > 0 ? 'success' : item.diferenca < 0 ? 'error' : 'grey'"
+                          variant="flat"
+                          class="text-white font-weight-bold"
+                      >
+                        {{ item.diferenca > 0 ? '+' : '' }}{{ formatarNumero(item.diferenca) }}
+                      </v-chip>
+                    </td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </v-card-text>
+
+            <v-card-actions class="pa-4">
+              <v-btn
+                  color="var(--text-color-laranja)"
+                  variant="outlined"
+                  prepend-icon="mdi-link-variant"
+                  @click="gerarLinkContagem"
+              >
+                Gerar Link de Contagem
+              </v-btn>
+              <v-spacer></v-spacer>
+              <v-btn
+                  color="grey"
+                  variant="outlined"
+                  @click="modalItensAberto = false"
+              >
+                Fechar
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <!-- Modal de Link de Contagem -->
+        <v-dialog v-model="modalLinkAberto" max-width="600">
+          <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+            <v-card-title class="text-h6 pa-4 d-flex align-center">
+              <v-icon icon="mdi-link-variant" class="mr-2"></v-icon>
+              Link de Contagem de Inventário
+              <v-spacer></v-spacer>
+              <v-btn
+                  icon="mdi-close"
+                  variant="text"
+                  @click="modalLinkAberto = false"
+              ></v-btn>
+            </v-card-title>
+
+            <v-card-text class="pa-4">
+              <v-alert 
+                  type="info" 
+                  variant="tonal" 
+                  class="mb-4"
+                  icon="mdi-information"
+              >
+                <strong>Link para Contagem:</strong> Compartilhe este link com o funcionário responsável pela contagem. 
+                O link é seguro e permite acesso mobile com câmera para leitura de códigos de barras.
+              </v-alert>
+
+              <v-row dense class="mb-4">
+                <v-col cols="6">
+                  <div class="text-caption text-grey">Lote</div>
+                  <div class="text-body-1 font-weight-bold">{{ loteVisualizando?.almoxarifadoNome }}</div>
+                </v-col>
+                <v-col cols="6">
+                  <div class="text-caption text-grey">Total de Itens</div>
+                  <div class="text-body-1 font-weight-bold">{{ loteVisualizando?.itens.length || 0 }}</div>
+                </v-col>
+              </v-row>
+
+              <v-text-field
+                  v-model="linkContagem"
+                  label="Link de Acesso"
+                  variant="outlined"
+                  density="compact"
+                  readonly
+                  prepend-inner-icon="mdi-link"
+              >
+                <template #append-inner>
+                  <v-btn
+                      icon="mdi-content-copy"
+                      size="small"
+                      variant="text"
+                      @click="copiarLink"
+                      color="var(--text-color-laranja)"
+                  ></v-btn>
+                </template>
+              </v-text-field>
+
+              <div class="d-flex align-center justify-center mt-4">
+                <v-chip 
+                    color="success" 
+                    variant="tonal"
+                    prepend-icon="mdi-check-circle"
+                    class="mr-2"
+                >
+                  Link válido por 7 dias
+                </v-chip>
+              </div>
+            </v-card-text>
+
+            <v-card-actions class="pa-4">
+              <v-spacer></v-spacer>
+              <v-btn
+                  color="grey"
+                  variant="outlined"
+                  @click="modalLinkAberto = false"
+              >
+                Fechar
+              </v-btn>
+              <v-btn
+                  color="var(--text-color-laranja)"
+                  variant="flat"
+                  class="text-white"
+                  prepend-icon="mdi-content-copy"
+                  @click="copiarLink"
+              >
+                Copiar Link
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </div>
     </template>
   </top-all-pages>
@@ -417,19 +701,26 @@
 <script setup>
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
+import { useEstoqueStore } from '@/stores/APIs/estoque'
+import { useProdutosStore } from '@/stores/APIs/produtos'
 import { toast } from 'vue3-toastify'
 import TopAllPages from '@/components/base/padrao-paginas/TopAllPages.vue'
 
 const themeStore = useThemeStore()
 
 // Estados
-const salvando = ref(false)
+const loteAberto = ref(false)
 const carregandoAlmoxarifados = ref(false)
 const carregandoProdutos = ref(false)
+const carregandoLocalizacoes = ref(false)
 const buscandoProduto = ref(false)
 const formManualValido = ref(false)
 const formManualRef = ref(null)
 const codigoBarrasInput = ref(null)
+const modalItensAberto = ref(false)
+const loteVisualizando = ref(null)
+const modalLinkAberto = ref(false)
+const linkContagem = ref('')
 
 // Dados
 const inventario = reactive({
@@ -442,14 +733,15 @@ const inventario = reactive({
 const itemAtual = reactive({
   codigoBarras: '',
   produtoId: null,
-  quantidade: 1,
   localizacao: ''
 })
 
 const itensInventario = ref([])
 const produtoEncontrado = ref(null)
+const lotes = ref([])
 const almoxarifados = ref([])
 const produtos = ref([])
+const localizacoes = ref([])
 
 // Tipos de inventário
 const tiposInventario = [
@@ -475,10 +767,83 @@ const formatarNumero = (valor) => {
   })
 }
 
+const formatarData = (data) => {
+  if (!data) return '-'
+  const [ano, mes, dia] = data.split('-')
+  return `${dia}/${mes}/${ano}`
+}
+
+const toggleLote = () => {
+  loteAberto.value = !loteAberto.value
+  if (!loteAberto.value) {
+    limparFormulario()
+  }
+}
+
+const limparFormulario = () => {
+  inventario.almoxarifadoId = null
+  inventario.tipo = 'automatico'
+  inventario.data = new Date().toISOString().split('T')[0]
+  inventario.observacoes = ''
+  itensInventario.value = []
+  itemAtual.codigoBarras = ''
+  itemAtual.produtoId = null
+  itemAtual.localizacao = ''
+  produtoEncontrado.value = null
+}
+
+const finalizarLote = () => {
+  if (!inventario.almoxarifadoId) {
+    toast.warning('Selecione um almoxarifado')
+    return
+  }
+
+  if (itensInventario.value.length === 0) {
+    toast.warning('Adicione pelo menos um item ao lote')
+    return
+  }
+
+  // Buscar nome do almoxarifado
+  const almoxarifado = almoxarifados.value.find(a => a.id === inventario.almoxarifadoId)
+  
+  const novoLote = {
+    almoxarifadoId: inventario.almoxarifadoId,
+    almoxarifadoNome: almoxarifado?.descalmoxarifado || 'Não identificado',
+    tipo: inventario.tipo,
+    data: inventario.data,
+    observacoes: inventario.observacoes,
+    itens: [...itensInventario.value]
+  }
+
+  lotes.value.push(novoLote)
+  toast.success('Lote finalizado com sucesso!')
+  
+  limparFormulario()
+  loteAberto.value = false
+}
+
+const visualizarItensLote = (lote) => {
+  loteVisualizando.value = lote
+  modalItensAberto.value = true
+}
+
+const excluirLote = (index) => {
+  if (confirm('Tem certeza que deseja excluir este lote?')) {
+    lotes.value.splice(index, 1)
+    toast.info('Lote excluído')
+  }
+}
+
 const getDiferencaClass = (diferenca) => {
   if (diferenca > 0) return 'diferenca-positiva'
   if (diferenca < 0) return 'diferenca-negativa'
   return ''
+}
+
+const getDescricaoLocalizacao = (localizacaoId) => {
+  if (!localizacaoId) return ''
+  const loc = localizacoes.value.find(l => l.id === localizacaoId)
+  return loc ? loc.descricao : ''
 }
 
 const processarCodigoBarras = async () => {
@@ -489,24 +854,29 @@ const processarCodigoBarras = async () => {
 
   buscandoProduto.value = true
   try {
-    // Simular busca de produto por código de barras
-    // TODO: Integrar com API real
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // Buscar produto por código de barras (SKU ou GTIN)
+    const produto = produtos.value.find(
+      p => p.codigo_sku === itemAtual.codigoBarras || p.codigo_gtin === itemAtual.codigoBarras
+    )
     
-    // Mock de produto encontrado
-    produtoEncontrado.value = {
-      id: 1,
-      codigo: itemAtual.codigoBarras,
-      nome: 'Produto Exemplo',
-      estoque: 10,
-      unidade: 'UN',
-      codigoBarras: itemAtual.codigoBarras
+    if (produto) {
+      // Mapear campos da API para o formato esperado
+      produtoEncontrado.value = {
+        id: produto.id,
+        codigo: produto.codigo_sku || produto.codigo_gtin || produto.id,
+        nome: produto.descproduto,
+        estoque: produto.estoque || 0,
+        unidade: produto.unidade || 'UN'
+      }
+      toast.success('Produto encontrado!')
+    } else {
+      toast.error('Produto não encontrado')
+      produtoEncontrado.value = null
     }
-
-    toast.success('Produto encontrado!')
   } catch (error) {
-    toast.error('Produto não encontrado')
+    toast.error('Erro ao buscar produto')
     produtoEncontrado.value = null
+    console.error(error)
   } finally {
     buscandoProduto.value = false
   }
@@ -520,7 +890,14 @@ const selecionarProdutoManual = (produtoId) => {
 
   const produto = produtos.value.find(p => p.id === produtoId)
   if (produto) {
-    produtoEncontrado.value = produto
+    // Mapear campos da API para o formato esperado
+    produtoEncontrado.value = {
+      id: produto.id,
+      codigo: produto.codigo_sku || produto.codigo_gtin || produto.id,
+      nome: produto.descproduto,
+      estoque: produto.estoque || 0,
+      unidade: produto.unidade || 'UN'
+    }
   }
 }
 
@@ -530,40 +907,34 @@ const adicionarItem = () => {
     return
   }
 
-  if (itemAtual.quantidade <= 0) {
-    toast.warning('Informe uma quantidade válida')
-    return
-  }
-
   // Verificar se produto já existe no inventário
   const itemExistente = itensInventario.value.find(
     item => item.produtoId === produtoEncontrado.value.id
   )
 
   if (itemExistente) {
-    itemExistente.quantidadeContada += itemAtual.quantidade
-    itemExistente.diferenca = itemExistente.quantidadeContada - itemExistente.estoqueSistema
-    toast.info('Quantidade atualizada no inventário')
-  } else {
-    const novoItem = {
-      produtoId: produtoEncontrado.value.id,
-      codigo: produtoEncontrado.value.codigo,
-      nome: produtoEncontrado.value.nome,
-      estoqueSistema: produtoEncontrado.value.estoque || 0,
-      quantidadeContada: itemAtual.quantidade,
-      diferenca: itemAtual.quantidade - (produtoEncontrado.value.estoque || 0),
-      unidade: produtoEncontrado.value.unidade || 'UN',
-      localizacao: itemAtual.localizacao || ''
-    }
-
-    itensInventario.value.push(novoItem)
-    toast.success('Item adicionado ao inventário')
+    toast.warning('Produto já adicionado ao inventário')
+    return
   }
+
+  const novoItem = {
+    produtoId: produtoEncontrado.value.id,
+    codigo: produtoEncontrado.value.codigo,
+    nome: produtoEncontrado.value.nome,
+    estoqueSistema: produtoEncontrado.value.estoque || 0,
+    quantidadeContada: 0,
+    diferenca: 0 - (produtoEncontrado.value.estoque || 0),
+    unidade: produtoEncontrado.value.unidade || 'UN',
+    localizacaoId: itemAtual.localizacao || null,
+    localizacao: getDescricaoLocalizacao(itemAtual.localizacao)
+  }
+
+  itensInventario.value.push(novoItem)
+  toast.success('Item adicionado ao inventário')
 
   // Limpar formulário
   itemAtual.codigoBarras = ''
   itemAtual.produtoId = null
-  itemAtual.quantidade = 1
   itemAtual.localizacao = ''
   produtoEncontrado.value = null
 
@@ -587,35 +958,6 @@ const limparInventario = () => {
   }
 }
 
-const salvarInventario = async () => {
-  if (!inventario.almoxarifadoId) {
-    toast.warning('Selecione um almoxarifado')
-    return
-  }
-
-  if (itensInventario.value.length === 0) {
-    toast.warning('Adicione pelo menos um item ao inventário')
-    return
-  }
-
-  salvando.value = true
-  try {
-    // TODO: Integrar com API
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    toast.success('Inventário salvo com sucesso!')
-    
-    // Limpar após salvar
-    itensInventario.value = []
-    inventario.observacoes = ''
-  } catch (error) {
-    toast.error('Erro ao salvar inventário')
-    console.error(error)
-  } finally {
-    salvando.value = false
-  }
-}
-
 const imprimirInventario = () => {
   toast.info('Impressão em desenvolvimento')
 }
@@ -624,18 +966,61 @@ const exportarExcel = () => {
   toast.info('Exportação para Excel em desenvolvimento')
 }
 
+const gerarLinkContagem = () => {
+  if (!loteVisualizando.value) return
+  
+  // Gerar token único para o lote
+  const token = gerarToken()
+  const loteId = lotes.value.indexOf(loteVisualizando.value)
+  
+  // Salvar lotes no localStorage para a tela de contagem acessar
+  localStorage.setItem('lotesInventario', JSON.stringify(lotes.value))
+  
+  // Construir URL
+  const baseUrl = window.location.origin
+  linkContagem.value = `${baseUrl}/inventario/contagem/${loteId}?token=${token}`
+  
+  // Abrir modal com o link
+  modalLinkAberto.value = true
+}
+
+const gerarToken = () => {
+  // Gerar token aleatório
+  return Math.random().toString(36).substring(2) + Date.now().toString(36)
+}
+
+const copiarLink = async () => {
+  try {
+    await navigator.clipboard.writeText(linkContagem.value)
+    toast.success('Link copiado para a área de transferência!')
+  } catch (error) {
+    toast.error('Erro ao copiar link')
+    console.error(error)
+  }
+}
+
 // Carregar dados iniciais
 const carregarAlmoxarifados = async () => {
   carregandoAlmoxarifados.value = true
   try {
-    // TODO: Integrar com API
-    await new Promise(resolve => setTimeout(resolve, 500))
+    const estoqueStore = useEstoqueStore()
     
-    almoxarifados.value = [
-      { id: 1, nome: 'Almoxarifado Central' },
-      { id: 2, nome: 'Almoxarifado Filial' }
-    ]
+    // Buscar ID da empresa
+    const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada') || '{}')
+    const idEmpresa = empresaSelecionada?.id || localStorage.getItem('empresa')
+
+    if (!idEmpresa) {
+      toast.error('Empresa não identificada')
+      return
+    }
+
+    // Buscar almoxarifados da API
+    await estoqueStore.buscarAlmoxarifados(idEmpresa)
+    almoxarifados.value = estoqueStore.almoxarifados || []
+    
+    console.log('[Inventário] Almoxarifados carregados:', almoxarifados.value)
   } catch (error) {
+    console.error('[Inventário] Erro ao carregar almoxarifados:', error)
     toast.error('Erro ao carregar almoxarifados')
   } finally {
     carregandoAlmoxarifados.value = false
@@ -645,24 +1030,52 @@ const carregarAlmoxarifados = async () => {
 const carregarProdutos = async () => {
   carregandoProdutos.value = true
   try {
-    // TODO: Integrar com API
-    await new Promise(resolve => setTimeout(resolve, 500))
+    const produtosStore = useProdutosStore()
     
-    produtos.value = [
-      { id: 1, codigo: '001', nome: 'Produto A', estoque: 10, unidade: 'UN' },
-      { id: 2, codigo: '002', nome: 'Produto B', estoque: 5, unidade: 'UN' },
-      { id: 3, codigo: '003', nome: 'Produto C', estoque: 15, unidade: 'KG' }
-    ]
+    // Buscar produtos da API
+    await produtosStore.buscarProdutos()
+    produtos.value = produtosStore.produtos || []
+    
+    console.log('[Inventário] Produtos carregados:', produtos.value)
   } catch (error) {
+    console.error('[Inventário] Erro ao carregar produtos:', error)
     toast.error('Erro ao carregar produtos')
   } finally {
     carregandoProdutos.value = false
   }
 }
 
+const carregarLocalizacoes = async () => {
+  carregandoLocalizacoes.value = true
+  try {
+    const produtosStore = useProdutosStore()
+    
+    // Buscar ID da empresa
+    const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada') || '{}')
+    const idEmpresa = empresaSelecionada?.id || localStorage.getItem('empresa')
+
+    if (!idEmpresa) {
+      toast.error('Empresa não identificada')
+      return
+    }
+
+    // Buscar localizações da API
+    await produtosStore.buscarLocalizacoes(idEmpresa)
+    localizacoes.value = produtosStore.localizacoes || []
+    
+    console.log('[Inventário] Localizações carregadas:', localizacoes.value)
+  } catch (error) {
+    console.error('[Inventário] Erro ao carregar localizações:', error)
+    toast.error('Erro ao carregar localizações')
+  } finally {
+    carregandoLocalizacoes.value = false
+  }
+}
+
 onMounted(async () => {
   await carregarAlmoxarifados()
   await carregarProdutos()
+  await carregarLocalizacoes()
 })
 </script>
 

@@ -2,8 +2,6 @@ import {defineStore} from "pinia"
 import api from "@/services/api";
 import {useApiStore} from "@/stores/APIs/api";
 
-const apiStore = useApiStore();
-
 export const useEstoqueStore = defineStore('estoque', {
     state: () => ({
         loading: false,
@@ -80,6 +78,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarGrupo(grupoData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao('grupo', 'post', grupoData);
                 await this.buscarTodos();
             } catch (error) {
@@ -99,6 +98,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async editarGrupo(grupoData, id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`grupo/${id}`, 'put', grupoData);
                 await this.buscarTodos();
             } catch (error) {
@@ -117,6 +117,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async deletarGrupo(id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`grupo/${id}`, 'delete');
                 await this.buscarTodos();
             } catch (error) {
@@ -163,6 +164,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarSubgrupo(subgrupoData, idgrupo) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`subgrupo/${idgrupo}`, 'post', subgrupoData);
                 await this.buscarTodosSubgrupos(idgrupo);
             } catch (error) {
@@ -182,6 +184,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async editarSubgrupo(subgrupoData, idgrupo, id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`subgrupo/${idgrupo}/${id}`, 'put', subgrupoData);
                 await this.buscarTodosSubgrupos(idgrupo);
             } catch (error) {
@@ -200,6 +203,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async deletarSubgrupo(idgrupo, id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`subgrupo/${idgrupo}/${id}`, 'delete');
                 await this.buscarTodosSubgrupos(idgrupo);
             } catch (error) {
@@ -247,6 +251,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarClasse(classeData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`classe`, 'post', classeData);
                 await this.buscarTodasClasses();
             } catch (error) {
@@ -266,6 +271,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async editarClasse(id, classeData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`classe/${id}`, 'put', classeData);
                 await this.buscarTodasClasses();
             } catch (error) {
@@ -284,6 +290,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async deletarClasse(id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`classe/${id}`, 'delete');
                 await this.buscarTodasClasses();
             } catch (error) {
@@ -362,6 +369,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarCest(cestData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`cest`, 'post', cestData);
                 await this.buscarCests();
             } catch (error) {
@@ -383,6 +391,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async editarCest(id, idNcm, uf, cestData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`cest/${id}/${idNcm}/${uf}`, 'put', cestData);
                 await this.buscarCests();
             } catch (error) {
@@ -403,6 +412,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async deletarCest(id, idNcm, uf) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`cest/${id}/${idNcm}/${uf}`, 'delete');
                 await this.buscarCests();
             } catch (error) {
@@ -449,6 +459,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarNbs(nbsData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`nbs`, 'post', nbsData);
                 await this.buscarNbs();
             } catch (error) {
@@ -530,6 +541,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarAlmoxarifado(idemp, almoxarifadoData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao('almoxarifado', 'post', almoxarifadoData);
                 await this.buscarAlmoxarifados(idemp);
             } catch (error) {
@@ -550,6 +562,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async editarAlmoxarifado(idemp, id, almoxarifadoData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`almoxarifado/${idemp}/${id}`, 'put', almoxarifadoData);
                 await this.buscarAlmoxarifados(idemp);
             } catch (error) {
@@ -569,6 +582,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async deletarAlmoxarifado(idemp, id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`almoxarifado/${idemp}/${id}`, 'delete');
                 await this.buscarAlmoxarifados(idemp);
             } catch (error) {
@@ -647,6 +661,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarCfop(cfopData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao('cfop', 'post', cfopData);
                 await this.buscarCfops();
             } catch (error) {
@@ -666,6 +681,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async editarCfop(id, cfopData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`cfop/${id}`, 'put', cfopData);
                 await this.buscarCfops();
             } catch (error) {
@@ -684,6 +700,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async deletarCfop(id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`cfop/${id}`, 'delete');
                 await this.buscarCfops();
             } catch (error) {

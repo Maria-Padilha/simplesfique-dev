@@ -13,6 +13,7 @@ import ContaCorrenteView from "@/views/pages/financeiro/banco/ContaCorrenteView.
 import CentroDeCustoView from "@/views/pages/financeiro/pagar/CentroDeCustoView.vue";
 import PrevisaoDebitosView from "@/views/pages/financeiro/pagar/PrevisaoDebitosView.vue";
 import InventarioView from "@/views/pages/inventario/InventarioView.vue";
+import ContagemInventarioView from "@/views/pages/inventario/ContagemInventarioView.vue";
 import PessoasView from '@/views/pages/manutencao/PessoasView.vue';
 import PlanoContaView from '@/views/pages/fiscal/PlanoContaView.vue';
 import DebitoRealView from '@/views/pages/financeiro/pagar/DebitoRealView.vue';
@@ -209,6 +210,13 @@ const routes = [
         path: '/paginas/inventario',
         name: 'inventario',
         component: InventarioView
+    },
+    // Página de contagem de inventário (acesso público com token)
+    {
+        path: '/inventario/contagem/:loteId',
+        name: 'contagem_inventario',
+        component: ContagemInventarioView,
+        meta: { requiresToken: false, public: true }
     },
 
     // páginas do estoque (substituídas por placeholder até criar os arquivos reais)
