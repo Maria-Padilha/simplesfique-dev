@@ -131,6 +131,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     icon: 'mdi-chart-line',
                     route: '/paginas/estoque/aliquotauf'
                 },
+                {
+                    text: 'Fórmulas',
+                    icon: 'mdi-function-variant',
+                    route: '/paginas/estoque/formulas'
+                },
             ]
         },
         {

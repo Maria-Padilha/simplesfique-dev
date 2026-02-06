@@ -11,6 +11,7 @@
           v-model="ufSelecionada"
           class="w-[130px]"
           :items="ufs"
+          clearable
           item-title="label"
           item-value="value"
           :theme="themeStore.darkMode ? 'dark' : 'light'"
@@ -752,7 +753,7 @@ const forms = reactive({
   exibir_msg_ibpt: "N",
 });
 
-const ufSelecionada = ref(forms.id_uf ?? 'MT');
+const ufSelecionada = ref(forms.id_uf ?? '');
 
 // ✅ 3) CANCELAR (reseta com defaults corretos)
 const cancelarFormulario = () => {

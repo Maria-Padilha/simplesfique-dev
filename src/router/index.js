@@ -217,6 +217,12 @@ const routes = [
         name: 'cest',
         component: () => import('@/views/pages/estoque/CestView.vue')
     },
+    {
+        path: '/paginas/estoque/formulas',
+        name: 'formulas',
+        component: () => import('@/views/pages/estoque/FormulaView.vue')
+    },
+
     // Paginas de adiantamento de cliente
     {
         path: '/paginas/adiantamento/cliente',
