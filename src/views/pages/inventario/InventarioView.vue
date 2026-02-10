@@ -28,7 +28,7 @@
               <!-- Almoxarifado -->
               <v-col cols="12" md="4">
                 <v-autocomplete
-                    v-model="inventario.almoxarifadoId"
+                    v-model="inventario.id_almoxarifado"
                     :items="almoxarifados"
                     label="Almoxarifado *"
                     variant="outlined"
@@ -101,82 +101,134 @@
           </v-card-title>
 
           <v-card-text class="pa-4">
-            <!-- Modo Automático (Código de Barras) -->
-            <div v-if="inventario.tipo === 'automatico'">
+            <!-- Modo Automático (Importação de Arquivo) -->
+            <div v-if="inventario.tipo === 'A'">
               <v-alert 
                   type="info" 
                   variant="tonal" 
                   class="mb-4"
                   icon="mdi-information"
               >
-                <strong>Modo Automático:</strong> Use o leitor de código de barras para adicionar produtos automaticamente.
-                Bipe o código ou digite manualmente e pressione Enter.
+                <strong>Modo Automático:</strong> Importe um arquivo de texto (.txt) com os produtos e quantidades do inventário.
               </v-alert>
 
               <v-row>
-                <v-col cols="12">
-                  <v-text-field
-                      ref="codigoBarrasInput"
-                      v-model="itemAtual.codigoBarras"
-                      label="Código de Barras"
+                <!-- Upload de Arquivo -->
+                <v-col cols="12" md="6">
+                  <v-file-input
+                      v-model="inventario.arquivo"
+                      label="Arquivo de Inventário (.txt) *"
                       variant="outlined"
                       density="compact"
-                      prepend-inner-icon="mdi-barcode"
-                      placeholder="Bipe o código de barras ou digite..."
-                      autofocus
-                      clearable
-                      @keyup.enter="processarCodigoBarras"
-                      :loading="buscandoProduto"
+                      prepend-inner-icon="mdi-file-document"
+                      prepend-icon=""
+                      accept=".txt"
+                      :rules="[v => !!v || 'Selecione um arquivo']"
+                      @change="processarArquivo"
                   >
-                    <template #append-inner>
-                      <v-btn
-                          icon="mdi-magnify"
-                          size="small"
-                          variant="text"
-                          @click="processarCodigoBarras"
-                          :loading="buscandoProduto"
-                      ></v-btn>
+                    <template #selection="{ fileNames }">
+                      <v-chip size="small" color="var(--text-color-laranja)" variant="tonal">
+                        {{ fileNames[0] }}
+                      </v-chip>
                     </template>
-                  </v-text-field>
+                  </v-file-input>
+                </v-col>
+
+                <!-- Tipo de Documento -->
+                <v-col cols="12" md="6">
+                  <v-select
+                      v-model="inventario.layout_utilizado"
+                      :items="tiposDocumento"
+                      label="Tipo de Documento *"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-file-cog"
+                      :rules="[v => !!v || 'Selecione o tipo']"
+                  >
+                    <template #item="{ props, item }">
+                      <v-list-item v-bind="props">
+                        <template #prepend>
+                          <v-icon :icon="item.raw.icon" color="var(--text-color-laranja)"></v-icon>
+                        </template>
+                      </v-list-item>
+                    </template>
+                  </v-select>
+                </v-col>
+
+                <!-- Formato do Arquivo -->
+                <v-col cols="12" md="6">
+                  <v-checkbox
+                      v-model="usarSeparador"
+                      label="Usar separador"
+                      density="compact"
+                      color="var(--text-color-laranja)"
+                      hide-details
+                  ></v-checkbox>
+                </v-col>
+
+                <!-- Separador (se usar separador) -->
+                <v-col cols="12" md="6" v-if="usarSeparador">
+                  <v-select
+                      v-model="inventario.separador_char"
+                      :items="separadores"
+                      label="Separador *"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-slash-forward"
+                      :rules="[v => !!v || 'Selecione o separador']"
+                  >
+                    <template #selection="{ item }">
+                      <v-chip size="small" color="primary" variant="tonal">
+                        {{ item.title }}
+                      </v-chip>
+                    </template>
+                  </v-select>
+                </v-col>
+
+                <!-- Campos de tamanho fixo (se NÃO usar separador) -->
+                <v-col cols="12" v-if="!usarSeparador">
+                  <v-row>
+                    <v-col cols="6" md="3">
+                      <v-text-field
+                          v-model.number="inventario.layout_dig_prod"
+                          label="Dígitos do Produto *"
+                          variant="outlined"
+                          density="compact"
+                          type="number"
+                          prepend-inner-icon="mdi-numeric"
+                          :rules="[v => !!v || 'Informe a quantidade de dígitos']"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="6" md="3">
+                      <v-text-field
+                          v-model.number="inventario.layout_dig_qtd"
+                          label="Dígitos da Quantidade *"
+                          variant="outlined"
+                          density="compact"
+                          type="number"
+                          prepend-inner-icon="mdi-numeric"
+                          :rules="[v => !!v || 'Informe a quantidade de dígitos']"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-col>
+
+                <!-- Botão Processar -->
+                <v-col cols="12">
+                  <v-btn
+                      color="var(--text-color-laranja)"
+                      variant="flat"
+                      prepend-icon="mdi-file-import"
+                      class="text-white"
+                      :disabled="!inventario.arquivo || !inventario.layout_utilizado"
+                      :loading="processandoArquivo"
+                      @click="importarArquivo"
+                      block
+                  >
+                    Processar Arquivo e Importar Produtos
+                  </v-btn>
                 </v-col>
               </v-row>
-
-              <!-- Info do Produto Encontrado -->
-              <v-expand-transition>
-                <v-card 
-                    v-if="produtoEncontrado" 
-                    class="background-card mb-4" 
-                    elevation="1"
-                >
-                  <v-card-text class="pa-3">
-                    <v-row dense align="center">
-                      <v-col cols="auto">
-                        <v-avatar color="var(--text-color-laranja)" size="40">
-                          <v-icon icon="mdi-package-variant" color="white"></v-icon>
-                        </v-avatar>
-                      </v-col>
-                      <v-col>
-                        <div class="text-subtitle-1 font-weight-bold">{{ produtoEncontrado.nome }}</div>
-                        <div class="text-caption text-grey">
-                          Código: {{ produtoEncontrado.codigo }} | 
-                          Estoque Atual: {{ produtoEncontrado.estoque || 0 }} {{ produtoEncontrado.unidade }}
-                        </div>
-                      </v-col>
-                      <v-col cols="auto">
-                        <v-btn
-                            color="var(--text-color-laranja)"
-                            variant="flat"
-                            @click="adicionarItem"
-                            prepend-icon="mdi-plus"
-                            class="text-white"
-                        >
-                          Adicionar
-                        </v-btn>
-                      </v-col>
-                    </v-row>
-                  </v-card-text>
-                </v-card>
-              </v-expand-transition>
             </div>
 
             <!-- Modo Manual -->
@@ -306,7 +358,7 @@
               </thead>
               <tbody>
                 <tr 
-                    v-for="(item, index) in itensInventario" 
+                    v-for="(item, index) in (itensInventario || [])" 
                     :key="index"
                     :class="getDiferencaClass(item.diferenca)"
                 >
@@ -438,7 +490,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(lote, index) in lotes" :key="index">
+                <tr v-for="(lote, index) in (lotes || [])" :key="lote.id || index">
                   <td class="text-body-2 font-weight-bold">{{ index + 1 }}</td>
                   <td class="text-body-2">{{ lote.almoxarifadoNome }}</td>
                   <td class="text-center">
@@ -462,7 +514,7 @@
                   </td>
                   <td class="text-center">
                     <v-chip size="small" color="var(--text-color-laranja)" variant="flat" class="text-white">
-                      {{ lote.itens.length }} {{ lote.itens.length === 1 ? 'item' : 'itens' }}
+                      {{ (lote.itens || []).length }} {{ (lote.itens || []).length === 1 ? 'item' : 'itens' }}
                     </v-chip>
                   </td>
                   <td class="text-body-2">
@@ -547,7 +599,7 @@
                 </thead>
                 <tbody>
                   <tr 
-                      v-for="(item, index) in loteVisualizando?.itens" 
+                      v-for="(item, index) in (loteVisualizando?.itens || [])" 
                       :key="index"
                       :class="getDiferencaClass(item.diferenca)"
                   >
@@ -699,24 +751,28 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useEstoqueStore } from '@/stores/APIs/estoque'
 import { useProdutosStore } from '@/stores/APIs/produtos'
+import { useInventarioStore } from '@/stores/APIs/inventario'
 import { toast } from 'vue3-toastify'
 import TopAllPages from '@/components/base/padrao-paginas/TopAllPages.vue'
 
 const themeStore = useThemeStore()
+const inventarioStore = useInventarioStore()
+const estoqueStore = useEstoqueStore()
+const produtosStore = useProdutosStore()
 
 // Estados
 const loteAberto = ref(false)
 const carregandoAlmoxarifados = ref(false)
 const carregandoProdutos = ref(false)
 const carregandoLocalizacoes = ref(false)
-const buscandoProduto = ref(false)
+const processandoArquivo = ref(false)
+const usarSeparador = ref(true)
 const formManualValido = ref(false)
 const formManualRef = ref(null)
-const codigoBarrasInput = ref(null)
 const modalItensAberto = ref(false)
 const loteVisualizando = ref(null)
 const modalLinkAberto = ref(false)
@@ -724,10 +780,18 @@ const linkContagem = ref('')
 
 // Dados
 const inventario = reactive({
-  almoxarifadoId: null,
-  tipo: 'automatico',
+  id: null,
+  id_almoxarifado: null,
+  tipo: 'A', // A = Automático, M = Manual
   data: new Date().toISOString().split('T')[0],
-  observacoes: ''
+  nome_arquivo: '',
+  arquivo: null,
+  url: '',
+  separador: '',
+  separador_char: '',
+  layout_dig_prod: 0,
+  layout_dig_qtd: 0,
+  layout_utilizado: ''
 })
 
 const itemAtual = reactive({
@@ -746,17 +810,57 @@ const localizacoes = ref([])
 // Tipos de inventário
 const tiposInventario = [
   { 
-    title: 'Automático (Coletor de Dados)', 
-    value: 'automatico',
-    icon: 'mdi-barcode-scan',
+    title: 'Automático (Importação de Arquivo)', 
+    value: 'A',
+    icon: 'mdi-file-import',
     color: 'primary'
   },
   { 
     title: 'Manual (Seleção de Produtos)', 
-    value: 'manual',
+    value: 'M',
     icon: 'mdi-keyboard',
     color: 'success'
   }
+]
+
+// Tipos de documento para importação
+const tiposDocumento = [
+  { 
+    title: 'Código Interno + Quantidade', 
+    value: 'cod_interno_qtd',
+    icon: 'mdi-barcode'
+  },
+  { 
+    title: 'Código de Barras + Quantidade', 
+    value: 'cod_barras_qtd',
+    icon: 'mdi-barcode-scan'
+  },
+  { 
+    title: 'Código de Referência + Quantidade', 
+    value: 'cod_referencia_qtd',
+    icon: 'mdi-tag'
+  },
+  { 
+    title: 'Código de Fabricação + Quantidade', 
+    value: 'cod_fabricacao_qtd',
+    icon: 'mdi-factory'
+  },
+  { 
+    title: 'Código Interno + Quantidade + Localização', 
+    value: 'cod_interno_qtd_loc',
+    icon: 'mdi-map-marker'
+  }
+]
+
+// Separadores disponíveis
+const separadores = [
+  { title: 'Vírgula (,)', value: ',' },
+  { title: 'Ponto e vírgula (;)', value: ';' },
+  { title: 'Ponto (.)', value: '.' },
+  { title: 'Barra (/)', value: '/' },
+  { title: 'Traço (-)', value: '-' },
+  { title: 'Asterisco (*)', value: '*' },
+  { title: 'Cerquilha (#)', value: '#' }
 ]
 
 // Métodos
@@ -781,10 +885,18 @@ const toggleLote = () => {
 }
 
 const limparFormulario = () => {
-  inventario.almoxarifadoId = null
-  inventario.tipo = 'automatico'
+  inventario.id = null
+  inventario.id_almoxarifado = null
+  inventario.tipo = 'A'
   inventario.data = new Date().toISOString().split('T')[0]
-  inventario.observacoes = ''
+  inventario.nome_arquivo = ''
+  inventario.arquivo = null
+  inventario.url = ''
+  inventario.separador = ''
+  inventario.separador_char = ''
+  inventario.layout_dig_prod = 0
+  inventario.layout_dig_qtd = 0
+  inventario.layout_utilizado = ''
   itensInventario.value = []
   itemAtual.codigoBarras = ''
   itemAtual.produtoId = null
@@ -792,8 +904,8 @@ const limparFormulario = () => {
   produtoEncontrado.value = null
 }
 
-const finalizarLote = () => {
-  if (!inventario.almoxarifadoId) {
+const finalizarLote = async () => {
+  if (!inventario.id_almoxarifado) {
     toast.warning('Selecione um almoxarifado')
     return
   }
@@ -803,23 +915,69 @@ const finalizarLote = () => {
     return
   }
 
-  // Buscar nome do almoxarifado
-  const almoxarifado = almoxarifados.value.find(a => a.id === inventario.almoxarifadoId)
-  
-  const novoLote = {
-    almoxarifadoId: inventario.almoxarifadoId,
-    almoxarifadoNome: almoxarifado?.descalmoxarifado || 'Não identificado',
-    tipo: inventario.tipo,
-    data: inventario.data,
-    observacoes: inventario.observacoes,
-    itens: [...itensInventario.value]
-  }
+  try {
+    // Buscar ID da empresa
+    const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada')
+    if (!empresaSelecionadaStr) {
+      toast.error('Empresa não selecionada')
+      return
+    }
+    
+    const empresaSelecionada = JSON.parse(empresaSelecionadaStr)
+    const idEmpresa = empresaSelecionada.id
 
-  lotes.value.push(novoLote)
-  toast.success('Lote finalizado com sucesso!')
-  
-  limparFormulario()
-  loteAberto.value = false
+    if (!idEmpresa) {
+      toast.error('Empresa não identificada')
+      return
+    }
+
+    // Preparar dados do inventário (id_usuario vem do token)
+    const dados = {
+      data: [{
+        id_empresa: parseInt(idEmpresa),
+        id_almoxarifado: inventario.id_almoxarifado,
+        tipo: inventario.tipo,
+        nome_arquivo: inventario.nome_arquivo || '',
+        arquivo: inventario.arquivo || '',
+        url: inventario.url || '',
+        separador: inventario.separador || '',
+        separador_char: inventario.separador_char || '',
+        layout_dig_prod: inventario.layout_dig_prod || 0,
+        layout_dig_qtd: inventario.layout_dig_qtd || 0,
+        layout_utilizado: inventario.layout_utilizado || ''
+      }],
+      item: itensInventario.value.map(item => ({
+        id_produto: item.produtoId,
+        qtd_sistema: item.estoqueSistema || 0,
+        qtd_contada: item.quantidadeContada || 0,
+        diferenca: item.diferenca || 0,
+        id_localizacao: item.localizacaoId || null
+      }))
+    }
+
+    console.log('[Inventário] Dados enviados:', dados)
+
+    // Cadastrar inventário via API
+    const response = await inventarioStore.cadastrarInventario(dados)
+
+    if (response?.data) {
+      // Buscar nome do almoxarifado para exibição local
+      const almoxarifado = almoxarifados.value.find(a => a.id === inventario.id_almoxarifado)
+      
+      const novoLote = {
+        ...response.data,
+        almoxarifadoNome: almoxarifado?.descalmoxarifado || 'Não identificado',
+        itens: [...itensInventario.value]
+      }
+
+      lotes.value.push(novoLote)
+    }
+    
+    limparFormulario()
+    loteAberto.value = false
+  } catch (error) {
+    console.error('[Inventário] Erro ao finalizar lote:', error)
+  }
 }
 
 const visualizarItensLote = (lote) => {
@@ -827,10 +985,37 @@ const visualizarItensLote = (lote) => {
   modalItensAberto.value = true
 }
 
-const excluirLote = (index) => {
-  if (confirm('Tem certeza que deseja excluir este lote?')) {
+const excluirLote = async (index) => {
+  const lote = lotes.value[index]
+  
+  if (!confirm('Tem certeza que deseja cancelar este inventário?')) {
+    return
+  }
+
+  try {
+    // Se o lote tem ID, cancelar via API
+    if (lote.id) {
+      const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada')
+      if (!empresaSelecionadaStr) {
+        toast.error('Empresa não selecionada')
+        return
+      }
+      
+      const empresaSelecionada = JSON.parse(empresaSelecionadaStr)
+      const idEmpresa = empresaSelecionada.id
+
+      if (!idEmpresa) {
+        toast.error('Empresa não identificada')
+        return
+      }
+
+      await inventarioStore.cancelarInventario(parseInt(idEmpresa), lote.id)
+    }
+    
+    // Remover do array local
     lotes.value.splice(index, 1)
-    toast.info('Lote excluído')
+  } catch (error) {
+    console.error('[Inventário] Erro ao excluir lote:', error)
   }
 }
 
@@ -846,39 +1031,143 @@ const getDescricaoLocalizacao = (localizacaoId) => {
   return loc ? loc.descricao : ''
 }
 
-const processarCodigoBarras = async () => {
-  if (!itemAtual.codigoBarras) {
-    toast.warning('Informe o código de barras')
+const processarArquivo = (event) => {
+  const file = event.target.files?.[0]
+  if (file) {
+    inventario.nome_arquivo = file.name
+  }
+}
+
+const importarArquivo = async () => {
+  if (!inventario.arquivo) {
+    toast.warning('Selecione um arquivo')
     return
   }
 
-  buscandoProduto.value = true
+  if (!inventario.layout_utilizado) {
+    toast.warning('Selecione o tipo de documento')
+    return
+  }
+
+  if (usarSeparador.value && !inventario.separador_char) {
+    toast.warning('Selecione o separador')
+    return
+  }
+
+  if (!usarSeparador.value && (!inventario.layout_dig_prod || !inventario.layout_dig_qtd)) {
+    toast.warning('Informe os tamanhos dos campos')
+    return
+  }
+
+  processandoArquivo.value = true
   try {
-    // Buscar produto por código de barras (SKU ou GTIN)
-    const produto = produtos.value.find(
-      p => p.codigo_sku === itemAtual.codigoBarras || p.codigo_gtin === itemAtual.codigoBarras
-    )
-    
-    if (produto) {
-      // Mapear campos da API para o formato esperado
-      produtoEncontrado.value = {
-        id: produto.id,
-        codigo: produto.codigo_sku || produto.codigo_gtin || produto.id,
-        nome: produto.descproduto,
-        estoque: produto.estoque || 0,
-        unidade: produto.unidade || 'UN'
+    const fileContent = await inventario.arquivo.text()
+    const linhas = fileContent.split('\n').filter(linha => linha.trim())
+
+    console.log('[Inventário] Total de linhas:', linhas.length)
+    console.log('[Inventário] Primeiras 3 linhas:', linhas.slice(0, 3))
+
+    let itensProcessados = 0
+    let erros = 0
+
+    for (const linha of linhas) {
+      try {
+        let codigo, quantidade, localizacaoId = null
+        
+        if (usarSeparador.value) {
+          // Processar com separador
+          const partes = linha.split(inventario.separador_char).map(p => p.trim())
+          console.log('[Inventário] Linha processada:', linha)
+          console.log('[Inventário] Partes:', partes)
+          
+          if (inventario.layout_utilizado === 'cod_interno_qtd_loc') {
+            [codigo, quantidade, localizacaoId] = partes
+          } else {
+            [codigo, quantidade] = partes
+          }
+        } else {
+          // Processar tamanho fixo
+          const digitosProduto = inventario.layout_dig_prod
+          const digitosQtd = inventario.layout_dig_qtd
+          
+          codigo = linha.substring(0, digitosProduto).trim()
+          quantidade = linha.substring(digitosProduto, digitosProduto + digitosQtd).trim()
+          console.log('[Inventário] Tamanho fixo - Código:', codigo, 'Quantidade:', quantidade)
+        }
+
+        console.log('[Inventário] Buscando produto - Código:', codigo, 'Quantidade:', quantidade, 'Tipo:', inventario.layout_utilizado)
+
+        // Buscar produto baseado no tipo de documento
+        let produto = null
+        switch (inventario.layout_utilizado) {
+          case 'cod_interno_qtd':
+          case 'cod_interno_qtd_loc':
+            produto = produtos.value.find(p => p.id === parseInt(codigo))
+            console.log('[Inventário] Buscando por ID:', parseInt(codigo), 'Encontrado:', !!produto)
+            break
+          case 'cod_barras_qtd':
+            produto = produtos.value.find(p => p.codigo_gtin === codigo || p.codigo_sku === codigo)
+            console.log('[Inventário] Buscando por código de barras:', codigo, 'Encontrado:', !!produto)
+            break
+          case 'cod_referencia_qtd':
+            produto = produtos.value.find(p => p.codigo_sku === codigo)
+            console.log('[Inventário] Buscando por SKU:', codigo, 'Encontrado:', !!produto)
+            break
+          case 'cod_fabricacao_qtd':
+            produto = produtos.value.find(p => p.codigo_fabricante === codigo)
+            console.log('[Inventário] Buscando por código fabricante:', codigo, 'Encontrado:', !!produto)
+            break
+        }
+
+        if (produto) {
+          // Verificar se já existe
+          const jaExiste = itensInventario.value.find(item => item.produtoId === produto.id)
+          if (!jaExiste) {
+            const qtdContada = parseFloat(quantidade) || 0
+            const qtdSistema = produto.estoque || 0
+
+            itensInventario.value.push({
+              produtoId: produto.id,
+              codigo: produto.codigo_sku || produto.codigo_gtin || produto.id,
+              nome: produto.descproduto,
+              estoqueSistema: qtdSistema,
+              quantidadeContada: qtdContada,
+              diferenca: qtdContada - qtdSistema,
+              unidade: produto.unidade || 'UN',
+              localizacaoId: localizacaoId ? parseInt(localizacaoId) : null,
+              localizacao: localizacaoId ? getDescricaoLocalizacao(parseInt(localizacaoId)) : ''
+            })
+            itensProcessados++
+            console.log('[Inventário] Produto adicionado:', produto.descproduto)
+          } else {
+            console.log('[Inventário] Produto já existe:', produto.descproduto)
+          }
+        } else {
+          console.warn('[Inventário] Produto não encontrado para código:', codigo)
+          erros++
+        }
+      } catch (error) {
+        console.error('[Inventário] Erro ao processar linha:', linha, error)
+        erros++
       }
-      toast.success('Produto encontrado!')
-    } else {
-      toast.error('Produto não encontrado')
-      produtoEncontrado.value = null
+    }
+
+    console.log('[Inventário] Processamento concluído - Sucesso:', itensProcessados, 'Erros:', erros)
+
+    if (itensProcessados > 0) {
+      toast.success(`${itensProcessados} produtos importados com sucesso!`)
+    }
+    if (erros > 0) {
+      toast.warning(`${erros} linhas não puderam ser processadas`)
+    }
+    if (itensProcessados === 0 && erros === 0) {
+      toast.info('Nenhum produto novo foi encontrado')
     }
   } catch (error) {
-    toast.error('Erro ao buscar produto')
-    produtoEncontrado.value = null
-    console.error(error)
+    toast.error('Erro ao processar arquivo')
+    console.error('[Inventário] Erro:', error)
   } finally {
-    buscandoProduto.value = false
+    processandoArquivo.value = false
   }
 }
 
@@ -933,17 +1222,9 @@ const adicionarItem = () => {
   toast.success('Item adicionado ao inventário')
 
   // Limpar formulário
-  itemAtual.codigoBarras = ''
   itemAtual.produtoId = null
   itemAtual.localizacao = ''
   produtoEncontrado.value = null
-
-  // Focar no campo correto
-  nextTick(() => {
-    if (inventario.tipo === 'automatico' && codigoBarrasInput.value) {
-      codigoBarrasInput.value.focus()
-    }
-  })
 }
 
 const removerItem = (index) => {
@@ -1003,11 +1284,15 @@ const copiarLink = async () => {
 const carregarAlmoxarifados = async () => {
   carregandoAlmoxarifados.value = true
   try {
-    const estoqueStore = useEstoqueStore()
-    
     // Buscar ID da empresa
-    const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada') || '{}')
-    const idEmpresa = empresaSelecionada?.id || localStorage.getItem('empresa')
+    const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada')
+    if (!empresaSelecionadaStr) {
+      toast.error('Empresa não selecionada')
+      return
+    }
+    
+    const empresaSelecionada = JSON.parse(empresaSelecionadaStr)
+    const idEmpresa = empresaSelecionada.id
 
     if (!idEmpresa) {
       toast.error('Empresa não identificada')
@@ -1030,8 +1315,6 @@ const carregarAlmoxarifados = async () => {
 const carregarProdutos = async () => {
   carregandoProdutos.value = true
   try {
-    const produtosStore = useProdutosStore()
-    
     // Buscar produtos da API
     await produtosStore.buscarProdutos()
     produtos.value = produtosStore.produtos || []
@@ -1048,11 +1331,15 @@ const carregarProdutos = async () => {
 const carregarLocalizacoes = async () => {
   carregandoLocalizacoes.value = true
   try {
-    const produtosStore = useProdutosStore()
-    
     // Buscar ID da empresa
-    const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada') || '{}')
-    const idEmpresa = empresaSelecionada?.id || localStorage.getItem('empresa')
+    const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada')
+    if (!empresaSelecionadaStr) {
+      toast.error('Empresa não selecionada')
+      return
+    }
+    
+    const empresaSelecionada = JSON.parse(empresaSelecionadaStr)
+    const idEmpresa = empresaSelecionada.id
 
     if (!idEmpresa) {
       toast.error('Empresa não identificada')
@@ -1072,10 +1359,40 @@ const carregarLocalizacoes = async () => {
   }
 }
 
+const carregarInventarios = async () => {
+  try {
+    const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada')
+    if (!empresaSelecionadaStr) {
+      toast.error('Empresa não selecionada')
+      return
+    }
+    
+    const empresaSelecionada = JSON.parse(empresaSelecionadaStr)
+    const idEmpresa = empresaSelecionada.id
+
+    if (!idEmpresa) {
+      toast.error('Empresa não identificada')
+      return
+    }
+
+    await inventarioStore.listarInventarios(parseInt(idEmpresa))
+    // Garantir que cada lote tenha o array de itens
+    lotes.value = (inventarioStore.inventarios || []).map(lote => ({
+      ...lote,
+      itens: lote.itens || []
+    }))
+    
+    console.log('[Inventário] Inventários carregados:', lotes.value)
+  } catch (error) {
+    console.error('[Inventário] Erro ao carregar inventários:', error)
+  }
+}
+
 onMounted(async () => {
   await carregarAlmoxarifados()
   await carregarProdutos()
   await carregarLocalizacoes()
+  await carregarInventarios()
 })
 </script>
 
