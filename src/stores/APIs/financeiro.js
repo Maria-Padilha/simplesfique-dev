@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import api from '@/services/api'
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
 export const useFinanceiroStore = defineStore('financeiro', {
   state: () => ({
@@ -47,7 +49,49 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
     // ========== CONTAS CORRENTES ==========
     
-    // Buscar todas as contas correntes
+    // Buscar todas as contas correntes (admin/geral)
+    async buscarTodasContas() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get('/ccorrente', {
+          headers: this.getAuthHeaders()
+        });
+        
+        // Garantir que response.data seja um array válido
+        const resposta = response.data;
+        
+        // Verificar se a resposta tem a estrutura {data: [...], records: X}
+        let dados;
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data;
+        } 
+        // Se é array diretamente
+        else if (Array.isArray(resposta)) {
+          dados = resposta;
+        }
+        // Se é objeto válido (não null, não undefined, não string vazia), transformar em array
+        else if (resposta && resposta !== '' && typeof resposta === 'object' && !resposta.data) {
+          dados = [resposta];
+        }
+        // Qualquer outro caso (null, undefined, string vazia, etc), usar array vazio
+        else {
+          dados = [];
+        }
+        
+        this.contas = dados;
+        
+        return this.contas;
+      } catch (error) {
+        this.error = error.message;
+        this.contas = []; // Garantir que contas seja um array vazio em caso de erro
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    // Buscar todas as contas correntes do usuário
     async buscarContas() {
       this.loading = true;
       this.error = null;
@@ -743,6 +787,119 @@ export const useFinanceiroStore = defineStore('financeiro', {
         throw error;
       } finally {
         this.loading = false;
+      }
+    },
+
+    // ========== CHAVES DE API DE CONTA CORRENTE ==========
+
+    /**
+     * Busca chaves de API de uma conta corrente
+     * @param {number} idConta - ID da conta corrente
+     */
+    async buscarChavesAPI(idConta) {
+      this.loading = true
+      try {
+        const response = await api.get(`/ccorrenteapi/${idConta}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        // Normalizar resposta
+        const resp = response.data
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          return resp.data[0] || resp.data
+        }
+        if (Array.isArray(resp)) {
+          return resp[0] || resp
+        }
+        return resp
+      } catch (error) {
+        console.error('[Store Financeiro] Erro ao buscar chaves de API:', error)
+        // Se retornar 404, significa que não há chaves cadastradas ainda
+        if (error.response?.status === 404) {
+          return null
+        }
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Salva/atualiza chaves de API de uma conta corrente
+     * @param {number} idConta - ID da conta corrente
+     * @param {object} dados - Dados das chaves de API
+     */
+    async salvarChavesAPI(idConta, dados) {
+      this.loading = true
+      this.error = null
+      try {
+        // Verificar se já existe cadastro (GET primeiro)
+        let existe = false
+        try {
+          const chavesExistentes = await this.buscarChavesAPI(idConta)
+          existe = !!chavesExistentes
+        } catch (error) {
+          existe = false
+        }
+      
+        // Preparar payload
+        const payload = {
+          id_ccorrente: idConta,
+          clid_api_pix: dados.data[0].clid_api_pix || '',
+          clsecret_api_pix: dados.data[0].clsecret_api_pix || '',
+          clid_api_cob: dados.data[0].clid_api_cob || '',
+          clsecret_api_cob: dados.data[0].clsecret_api_cob || '',
+          tpambiente: dados.data[0].tpambiente || 'P'
+        }
+      
+        let response
+      
+        if (existe) {
+          // Atualizar (PUT)
+          response = await api.put(`/ccorrenteapi/${idConta}`, { data: [payload] }, {
+            headers: this.getAuthHeaders()
+          })
+          toast.success('Chaves de API atualizadas com sucesso!')
+        } else {
+          // Criar (POST)
+          response = await api.post('/ccorrenteapi', { data: [payload] }, {
+            headers: this.getAuthHeaders()
+          })
+          toast.success('Chaves de API cadastradas com sucesso!')
+        }
+      
+        return response.data
+      } catch (error) {
+        console.error('[Store Financeiro] Erro ao salvar chaves de API:', error)
+        this.error = error.response?.data?.message || 'Erro ao salvar chaves de API'
+        toast.error(this.error)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Deletar chaves de API de uma conta corrente
+     * @param {number} idConta - ID da conta corrente
+     */
+    async deletarChavesAPI(idConta) {
+      this.loading = true
+      this.error = null
+      try {
+        await api.delete(`/ccorrenteapi/${idConta}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        toast.success('Chaves de API removidas com sucesso!')
+        return true
+      } catch (error) {
+        console.error('[Store Financeiro] Erro ao deletar chaves de API:', error)
+        this.error = error.response?.data?.message || 'Erro ao deletar chaves de API'
+        toast.error(this.error)
+        throw error
+      } finally {
+        this.loading = false
       }
     },
 
@@ -2216,6 +2373,163 @@ export const useFinanceiroStore = defineStore('financeiro', {
         throw error;
       } finally {
         this.loading = false;
+      }
+    },
+
+    // ========== CARTEIRA DE COBRANÇA ==========
+
+    // Buscar tipos de carteira de cobrança por banco (GET /tpcarteiracob/:idbanco)
+    async buscarTiposCarteiraPorBanco(idBanco) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get(`/tpcarteiracob/${idBanco}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        const resposta = response.data
+        let dados = []
+
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data
+        } else if (Array.isArray(resposta)) {
+          dados = resposta
+        } else if (resposta && typeof resposta === 'object') {
+          dados = [resposta]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar tipos de carteira'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar todas as carteiras (GET /carteira/:idempresa)
+    async buscarCarteiras(idEmpresa) {
+      this.loading = true
+      this.error = null
+      try {
+        let empresaId = idEmpresa || localStorage.getItem('empresa') || localStorage.getItem('id_empresa')
+        
+        // Se não encontrou, tenta buscar de empresaSelecionada
+        if (!empresaId) {
+          const empresaSelecionada = localStorage.getItem('empresaSelecionada')
+          if (empresaSelecionada) {
+            try {
+              const empresa = JSON.parse(empresaSelecionada)
+              empresaId = empresa.id
+            } catch (e) {
+              console.error('[Store] Erro ao parsear empresaSelecionada:', e)
+            }
+          }
+        }
+        
+        if (!empresaId) {
+          console.warn('[Store] ID da empresa não encontrado para buscar carteiras')
+          return []
+        }
+        
+        const response = await api.get(`/carteiracob/${empresaId}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        const resposta = response.data
+        let dados = []
+
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data
+        } else if (Array.isArray(resposta)) {
+          dados = resposta
+        } else if (resposta && typeof resposta === 'object') {
+          dados = [resposta]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar carteiras'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar carteira por ID (GET /carteira/:id)
+    async buscarCarteiraPorId(id) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get(`/carteira/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar carteira'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Criar nova carteira (POST /carteira)
+    async criarCarteira(carteiraData) {
+      this.loading = true
+      this.error = null
+      try {
+        const dadosSemId = { ...carteiraData }
+        delete dadosSemId.id
+
+        const response = await api.post('/carteira', { data: [dadosSemId] }, {
+          headers: this.getAuthHeaders()
+        })
+
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao criar carteira'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Atualizar carteira existente (PUT /carteira/:id)
+    async atualizarCarteira(id, carteiraData) {
+      this.loading = true
+      this.error = null
+      try {
+        const dadosParaUpdate = { ...carteiraData }
+        delete dadosParaUpdate.id
+
+        const response = await api.put(`/carteira/${id}`, { data: [dadosParaUpdate] }, {
+          headers: this.getAuthHeaders()
+        })
+
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao atualizar carteira'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Deletar carteira (DELETE /carteira/:id)
+    async deletarCarteira(id) {
+      this.loading = true
+      this.error = null
+      try {
+        await api.delete(`/carteira/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        return true
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao deletar carteira'
+        throw error
+      } finally {
+        this.loading = false
       }
     },
 

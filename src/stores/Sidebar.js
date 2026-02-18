@@ -25,7 +25,8 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     submenus: [
                         { text: 'Conta Corrente', icon: 'mdi-bank', route: '/paginas/financeiro/contacorrente' },
                         { text: 'Lançamentos', icon: 'mdi-bank-transfer', route: '/paginas/banco/movimentacao' },
-                        { text: 'Transf. Financeira', icon: 'mdi-swap-horizontal', route: '/paginas/financeiro/transferencia' }
+                        { text: 'Transf. Financeira', icon: 'mdi-swap-horizontal', route: '/paginas/financeiro/transferencia' },
+                        { text: 'Carteira de Cobrança', icon: 'mdi-wallet-giftcard', route: '/paginas/financeiro/carteiracobranca' }
                     ]
                 },
                 {

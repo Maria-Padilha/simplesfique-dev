@@ -243,6 +243,47 @@
                             v-mask-phone.br
                         ></v-text-field>
                       </v-col>
+
+                      <!-- Tipo de Chave PIX -->
+                      <v-col cols="12" md="4">
+                        <v-select
+                            v-model="formData.tipochavepix"
+                            :items="tiposChavePix"
+                            label="Tipo de Chave PIX"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-qrcode"
+                        >
+                          <template #item="{ props, item }">
+                            <v-list-item v-bind="props">
+                              <template #prepend>
+                                <v-icon 
+                                    :icon="item.value === 0 ? 'mdi-close' : 'mdi-qrcode'" 
+                                    :color="item.value === 0 ? 'grey' : 'var(--text-color-laranja)'"
+                                ></v-icon>
+                              </template>
+                            </v-list-item>
+                          </template>
+                        </v-select>
+                      </v-col>
+
+                      <!-- Chave PIX -->
+                      <v-col cols="12" md="8">
+                        <v-text-field
+                            v-model="formData.chavepix"
+                            label="Chave PIX"
+                            :rules="[rules.chavePix]"
+                            :disabled="formData.tipochavepix === 0"
+                            :hint="formData.tipochavepix === 0 ? 'Selecione um tipo de chave PIX primeiro' : getHintChavePix()"
+                            persistent-hint
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            :class="formData.tipochavepix > 0 ? 'required-left-border' : ''"
+                            prepend-inner-icon="mdi-key"
+                        ></v-text-field>
+                      </v-col>
                     </v-row>
                   </v-form>
                 </v-card-text>
@@ -272,44 +313,88 @@
           </v-expand-transition>
 
           <!-- Tabela de Contas -->
-          <TabelaPadrao
-              :formulario-aberto="formularioAberto"
-              :headers="headers"
-              :items="financeiroStore.contas"
-              :loading="financeiroStore.loading"
-              :search="financeiroStore.search"
-              @update:search="(value) => financeiroStore.search = value"
-              search-label="Pesquisar Conta"
-              item-key="id"
-              no-data-icon="mdi-bank-off"
-              no-data-text="Nenhuma conta cadastrada"
-              :show-custom-action="true"
-              custom-action-icon="mdi-account-multiple"
-              custom-action-title="Gerenciar Usuários"
-              :custom-action-loading="loadingUsuarios"
-              delete-dialog-message="Esta ação não pode ser desfeita."
-              delete-item-display-field="titular"
-              @edit-item="editarConta"
-              @custom-action="abrirModalUsuarios"
-              @confirm-delete="excluirConta"
-          >
-            <!-- Slots para formatação customizada -->
-            <template v-slot:[`item.descbanco`]="{ item }">
-              {{ item.descbanco || getBancoNome(item.id_banco) }}
-            </template>
-
-            <template v-slot:[`item.limite`]="{ item }">
-              {{ formatarMoeda(item.limite) }}
-            </template>
-
-            <template v-slot:[`item.dtvenctolimite`]="{ item }">
-              {{ item.dtvenctolimite ? formatarData(item.dtvenctolimite) : '-' }}
-            </template>
-
-            <template v-slot:[`item.dhinc`]="{ item }">
-              {{ item.dhinc ? formatarDataHora(item.dhinc) : '-' }}
-            </template>
-          </TabelaPadrao>
+          <!-- Substitua a TabelaPadrao atual por esta versão com slot customizado -->
+        <TabelaPadrao
+            :formulario-aberto="formularioAberto"
+            :headers="headers"
+            :items="financeiroStore.contas"
+            :loading="financeiroStore.loading"
+            :search="financeiroStore.search"
+            @update:search="(value) => financeiroStore.search = value"
+            search-label="Pesquisar Conta"
+            item-key="id"
+            no-data-icon="mdi-bank-off"
+            no-data-text="Nenhuma conta cadastrada"
+            delete-dialog-message="Esta ação não pode ser desfeita."
+            delete-item-display-field="titular"
+            @confirm-delete="excluirConta"
+        >
+          <!-- Slot customizado para ações -->
+          <template v-slot:[`item.actions`]="{ item }">
+            <div class="d-flex gap-1">
+              <!-- Editar -->
+              <v-btn
+                icon="mdi-pencil"
+                size="small"
+                color="primary"
+                variant="text"
+                title="Editar"
+                @click="editarConta(item)"
+              ></v-btn>
+            
+              <!-- Gerenciar Usuários -->
+              <v-btn
+                icon="mdi-account-multiple"
+                size="small"
+                color="secondary"
+                variant="text"
+                title="Gerenciar Usuários"
+                :loading="loadingUsuarios"
+                :disabled="loadingUsuarios"
+                @click="abrirModalUsuarios(item)"
+              ></v-btn>
+            
+              <!-- NOVO: Gerenciar Chaves de API -->
+              <v-btn
+                icon="mdi-key-variant"
+                size="small"
+                color="warning"
+                variant="text"
+                title="Chaves de API do Banco"
+                :loading="loadingChavesAPI"
+                :disabled="loadingChavesAPI"
+                @click="abrirModalChavesAPI(item)"
+              ></v-btn>
+            
+              <!-- Excluir -->
+              <v-btn
+                icon="mdi-delete"
+                size="small"
+                color="error"
+                variant="text"
+                title="Excluir"
+                @click="excluirConta(item)"
+              ></v-btn>
+            </div>
+          </template>
+        
+          <!-- Manter os outros slots de formatação -->
+          <template v-slot:[`item.descbanco`]="{ item }">
+            {{ item.descbanco || getBancoNome(item.id_banco) }}
+          </template>
+        
+          <template v-slot:[`item.limite`]="{ item }">
+            {{ formatarMoeda(item.limite) }}
+          </template>
+        
+          <template v-slot:[`item.dtvenctolimite`]="{ item }">
+            {{ item.dtvenctolimite ? formatarData(item.dtvenctolimite) : '-' }}
+          </template>
+        
+          <template v-slot:[`item.dhinc`]="{ item }">
+            {{ item.dhinc ? formatarDataHora(item.dhinc) : '-' }}
+          </template>
+        </TabelaPadrao>
         </v-card-text>
       </v-card>
 
@@ -461,7 +546,6 @@
                 </template>
                 Nenhum usuário vinculado a esta conta encontrado.
               </v-alert>
-
               <v-data-table
                   v-else
                   :headers="headersUsuarios"
@@ -544,6 +628,203 @@
             >
               <v-icon icon="mdi-content-save" class="mr-2"></v-icon>
               Salvar Permissões
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+            <!-- Modal de Chaves de API -->
+      <v-dialog v-model="openChavesAPIModal" persistent max-width="800px">
+        <v-card class="background-secondary">
+          <v-card-title class="text-h6 pa-4 d-flex justify-space-between align-center">
+            <div class="d-flex align-center">
+              <v-icon icon="mdi-key-variant" class="mr-3"></v-icon>
+              Chaves de API - Conta {{ contaParaChavesAPI?.numero_ccorrente }}
+            </div>
+            <v-btn
+              icon="mdi-close"
+              variant="text"
+              size="small"
+              @click="openChavesAPIModal = false"
+            ></v-btn>
+          </v-card-title>
+        
+          <v-divider></v-divider>
+        
+          <v-card-text class="pa-4">
+            <v-form ref="formChavesAPIRef">
+              <v-row dense>
+                <!-- Ambiente -->
+                <v-col cols="12">
+                  <v-select
+                    v-model="chavesAPIForm.tpambiente"
+                    :items="[
+                      { title: 'Produção', value: 'P' },
+                      { title: 'Sandbox (Testes)', value: 'T' }
+                    ]"
+                    label="Ambiente *"
+                    variant="outlined"
+                    density="compact"
+                    class="custom-text-field required-left-border"
+                    prepend-inner-icon="mdi-server"
+                  ></v-select>
+                </v-col>
+
+                <!-- Alerta de mudança de ambiente -->
+                <v-col cols="12" v-if="chavesAPIForm.tpambiente !== previousTpambiente">
+                  <v-alert
+                    type="warning"
+                    variant="tonal"
+                    density="compact"
+                    prominent
+                  >
+                    <template #prepend>
+                      <v-icon icon="mdi-alert"></v-icon>
+                    </template>
+                    <div class="text-subtitle-2 font-weight-bold mb-1">Ambiente alterado!</div>
+                    <div class="text-body-2">
+                      As chaves de API são diferentes para cada ambiente (Produção e Sandbox).
+                      Certifique-se de inserir as credenciais corretas para {{ chavesAPIForm.tpambiente === 'P' ? 'Produção' : 'Sandbox (Testes)' }}.
+                    </div>
+                  </v-alert>
+                </v-col>
+
+                <!-- Divider PIX -->
+                <v-col cols="12" class="mt-2">
+                  <v-divider></v-divider>
+                  <div class="text-subtitle-1 font-weight-bold mt-3 mb-2">
+                    <v-icon icon="mdi-qrcode" size="small" class="mr-2"></v-icon>
+                    Credenciais API PIX
+                  </div>
+                </v-col>
+              
+                <!-- Client ID PIX -->
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="chavesAPIForm.clid_api_pix"
+                    label="Client ID (PIX)"
+                    variant="outlined"
+                    density="compact"
+                    class="custom-text-field"
+                    prepend-inner-icon="mdi-identifier"
+                    hint="ID do cliente para API PIX"
+                    persistent-hint
+                  ></v-text-field>
+                </v-col>
+              
+                <!-- Client Secret PIX -->
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="chavesAPIForm.clsecret_api_pix"
+                    label="Client Secret (PIX)"
+                    type="password"
+                    variant="outlined"
+                    density="compact"
+                    class="custom-text-field"
+                    prepend-inner-icon="mdi-lock"
+                    hint="Senha secreta para API PIX"
+                    persistent-hint
+                  ></v-text-field>
+                </v-col>
+
+                <!-- Divider Cobrança -->
+                <v-col cols="12" class="mt-4">
+                  <v-divider></v-divider>
+                  <div class="text-subtitle-1 font-weight-bold mt-3 mb-2">
+                    <v-icon icon="mdi-cash-multiple" size="small" class="mr-2"></v-icon>
+                    Credenciais API Cobrança
+                  </div>
+                </v-col>
+              
+                <!-- Client ID Cobrança -->
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="chavesAPIForm.clid_api_cob"
+                    label="Client ID (Cobrança)"
+                    variant="outlined"
+                    density="compact"
+                    class="custom-text-field"
+                    prepend-inner-icon="mdi-identifier"
+                    hint="ID do cliente para API Cobrança"
+                    persistent-hint
+                  ></v-text-field>
+                </v-col>
+              
+                <!-- Client Secret Cobrança -->
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="chavesAPIForm.clsecret_api_cob"
+                    label="Client Secret (Cobrança)"
+                    type="password"
+                    variant="outlined"
+                    density="compact"
+                    class="custom-text-field"
+                    prepend-inner-icon="mdi-lock"
+                    hint="Senha secreta para API Cobrança"
+                    persistent-hint
+                  ></v-text-field>
+                </v-col>
+
+                <!-- Divider Webhook -->
+                <v-col cols="12" class="mt-4">
+                  <v-divider></v-divider>
+                  <div class="text-subtitle-1 font-weight-bold mt-3 mb-2">
+                    <v-icon icon="mdi-webhook" size="small" class="mr-2"></v-icon>
+                    Configurações Gerais
+                  </div>
+                </v-col>
+              
+                <!-- Webhook URL -->
+                <v-col cols="12">
+                  <v-text-field
+                    v-model="chavesAPIForm.webhook_url"
+                    label="Webhook URL"
+                    variant="outlined"
+                    density="compact"
+                    class="custom-text-field"
+                    prepend-inner-icon="mdi-webhook"
+                    hint="URL para receber notificações do banco (PIX e Cobrança)"
+                    persistent-hint
+                  ></v-text-field>
+                </v-col>
+              
+                <!-- Informações adicionais -->
+                <v-col cols="12" class="mt-2">
+                  <v-alert
+                    type="info"
+                    variant="tonal"
+                    density="compact"
+                  >
+                    <template #prepend>
+                      <v-icon icon="mdi-information"></v-icon>
+                    </template>
+                    As chaves são armazenadas de forma criptografada. Consulte a documentação do seu banco para obter as credenciais corretas.
+                  </v-alert>
+                </v-col>
+              </v-row>
+            </v-form>
+          </v-card-text>
+        
+          <v-divider></v-divider>
+        
+          <v-card-actions class="pa-4">
+            <v-spacer></v-spacer>
+            <v-btn
+              color="grey"
+              variant="text"
+              @click="openChavesAPIModal = false"
+            >
+              Cancelar
+            </v-btn>
+            <v-btn
+              color="var(--text-color-laranja)"
+              :loading="financeiroStore.loading"
+              @click="salvarChavesAPI"
+              variant="flat"
+              class="text-white"
+            >
+              <v-icon icon="mdi-content-save" class="mr-2"></v-icon>
+              Salvar Chaves
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -685,14 +966,130 @@ const formData = reactive({
   dtabertura: '',
   dtvenctolimite: '', // Nome correto do campo vencimento do limite
   gerente: '',
-  telefone: ''
+  telefone: '',
+  tipochavepix: 0, // 0=Nenhuma, 1=Aleatoria, 2=Celular, 3=CNPJ, 4=CPF, 5=Email
+  chavepix: ''
 })
+
+// Opções de tipo de chave PIX
+const tiposChavePix = [
+  { title: 'Nenhuma', value: 0 },
+  { title: 'Aleatória', value: 1 },
+  { title: 'Celular', value: 2 },
+  { title: 'CNPJ', value: 3 },
+  { title: 'CPF', value: 4 },
+  { title: 'Email', value: 5 }
+]
 
 // Regras de validação
 const rules = {
   required: (value) => !!value || 'Campo obrigatório',
   number: (value) => /^\d+$/.test(value) || 'Deve ser um número válido',
   decimal: (value) => /^\d+(\.\d{1,2})?$/.test(value) || 'Deve ser um valor decimal válido',
+  chavePix: (value) => {
+    // Se o tipo de chave PIX não for "Nenhuma" (0), a chave é obrigatória
+    if (formData.tipochavepix > 0) {
+      return !!value || 'Chave PIX obrigatória quando tipo está selecionado'
+    }
+    return true
+  }
+}
+
+// Função para cadastrar chaves de API do banco
+const openChavesAPIModal = ref(false)
+const contaParaChavesAPI = ref(null)
+const loadingChavesAPI = ref(false)
+
+const chavesAPIForm = reactive({
+  clid_api_pix: '',
+  clsecret_api_pix: '',
+  clid_api_cob: '',
+  clsecret_api_cob: '',
+  tpambiente: 'P',
+  webhook_url: ''
+})
+
+const previousTpambiente = ref('P')
+
+// Função para abrir modal
+const abrirModalChavesAPI = async (conta) => {
+  try {
+    loadingChavesAPI.value = true
+    contaParaChavesAPI.value = conta
+    const contaId = conta?.id ?? conta?.ID
+
+    // Buscar chaves existentes via GET /ccorrenteapi/:idccorrente
+    const chaves = await financeiroStore.buscarChavesAPI(contaId)
+    
+    console.log('Resposta do GET chaves:', chaves)
+    
+    if (chaves) {
+      Object.assign(chavesAPIForm, {
+        clid_api_pix: chaves.clid_api_pix || '',
+        clsecret_api_pix: chaves.clsecret_api_pix || '',
+        clid_api_cob: chaves.clid_api_cob || '',
+        clsecret_api_cob: chaves.clsecret_api_cob || '',
+        tpambiente: chaves.tpambiente || 'P',
+        webhook_url: chaves.webhook_url || ''
+      })
+      previousTpambiente.value = chaves.tpambiente || 'P'
+    } else {
+      // Resetar form se não houver chaves
+      Object.assign(chavesAPIForm, {
+        clid_api_pix: '',
+        clsecret_api_pix: '',
+        clid_api_cob: '',
+        clsecret_api_cob: '',
+        tpambiente: 'P',
+        webhook_url: ''
+      })
+      previousTpambiente.value = 'P'
+    }
+
+    loadingChavesAPI.value = false
+    openChavesAPIModal.value = true
+    
+  } catch (error) {
+    loadingChavesAPI.value = false
+    mostrarSnackbar('Erro ao carregar chaves de API: ' + error.message, 'error')
+  }
+}
+
+// Função para salvar chaves
+const salvarChavesAPI = async () => {
+  try {
+    const contaId = contaParaChavesAPI.value?.id ?? contaParaChavesAPI.value?.ID
+    
+    if (!contaId) {
+      mostrarSnackbar('ID da conta não encontrado', 'error')
+      return
+    }
+    
+    console.log('chavesAPIForm:', chavesAPIForm)
+    console.log('tpambiente:', chavesAPIForm.tpambiente)
+    
+    const payload = {
+      data: [{
+        id_ccorrente: contaId,
+        clid_api_pix: chavesAPIForm.clid_api_pix,
+        clsecret_api_pix: chavesAPIForm.clsecret_api_pix,
+        clid_api_cob: chavesAPIForm.clid_api_cob,
+        clsecret_api_cob: chavesAPIForm.clsecret_api_cob,
+        tpambiente: chavesAPIForm.tpambiente
+      }]
+    }
+    
+    console.log('PAYLOAD FINAL:', JSON.stringify(payload, null, 2))
+
+    await financeiroStore.salvarChavesAPI(contaId, payload)
+    
+    mostrarSnackbar('Chaves de API salvas com sucesso!', 'success')
+    openChavesAPIModal.value = false
+    contaParaChavesAPI.value = null
+    
+  } catch (error) {
+    mostrarSnackbar('Erro ao salvar chaves de API: ' + error.message, 'error')
+  }
 }
 
 // Métodos
@@ -912,6 +1309,17 @@ const selecionarAgencia = (agencia) => {
   descagencia.value = agencia.DISPLAY_NAME || agencia.DESCRICAO || ''
 }
 
+const getHintChavePix = () => {
+  const hints = {
+    1: 'Chave aleatória gerada pelo banco (36 caracteres)',
+    2: 'Formato: (11) 91234-5678',
+    3: 'Formato: 12.345.678/0001-90',
+    4: 'Formato: 123.456.789-00',
+    5: 'Formato: exemplo@email.com'
+  }
+  return hints[formData.tipochavepix] || ''
+}
+
 const abrirFormulario = () => {
   editando.value = false
   resetarForm()
@@ -927,8 +1335,22 @@ const editarConta = async (conta) => {
   }
 
   editando.value = true
-  // Copiar os campos do registro para o formData
-  Object.assign(formData, conta)
+  
+  try {
+    // Buscar dados completos da conta via API
+    const contaId = conta?.id ?? conta?.ID
+    const contaCompleta = await financeiroStore.buscarContaPorId(contaId)
+    
+    // Se retornou dados, usar eles; senão, usar os dados da tabela
+    const dadosConta = contaCompleta?.data?.[0] ?? contaCompleta?.[0] ?? contaCompleta ?? conta
+    
+    // Copiar os campos do registro para o formData
+    Object.assign(formData, dadosConta)
+  } catch (error) {
+    console.warn('[ContaCorrente] Erro ao buscar conta específica, usando dados da tabela:', error)
+    // Em caso de erro, usar os dados que já temos da tabela
+    Object.assign(formData, conta)
+  }
 
   // Formatar data para input datetime-local
   if (formData.dtabertura) {
@@ -1023,7 +1445,9 @@ const resetarForm = () => {
     dtabertura: '',
     dtvenctolimite: '', // Nome correto
     gerente: '',
-    telefone: ''
+    telefone: '',
+    tipochavepix: 0,
+    chavepix: ''
   })
   bancoSelecionado.value = null
   

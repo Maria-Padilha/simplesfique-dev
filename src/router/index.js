@@ -20,6 +20,7 @@ import DebitoRealView from '@/views/pages/financeiro/pagar/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/manutencao/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
 import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
+import CarteiraCobrancaView from '@/views/pages/financeiro/banco/CarteiraCobrancaView.vue';
 import PdvView from '@/views/pages/pdv/PdvView.vue';
 import PagamentoView from '@/views/pages/pdv/PagamentoView.vue';
 import MovimentacaoView from '@/views/pages/financeiro/banco/MovimentacaoView.vue';
@@ -204,6 +205,11 @@ const routes = [
         path: '/paginas/banco/movimentacao',
         name: 'financeiro_banco_movimentacao',
         component: MovimentacaoView
+    },
+    {
+        path: '/paginas/financeiro/carteiracobranca',
+        name: 'financeiro_carteiracobranca',
+        component: CarteiraCobrancaView
     },
     // Página do inventário
     {

@@ -1,6 +1,6 @@
 <template>
   <top-all-pages icon="mdi-currency-usd">
-    <template #titulo>Lançamentos na Conta Corrente do Cliente</template>
+    <template #titulo>Adiantamento de Cliente</template>
     <template #section>
       <div>
         <!-- Conteúdo Principal -->

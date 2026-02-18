@@ -124,6 +124,9 @@
                       prepend-icon=""
                       accept=".txt"
                       :rules="[v => !!v || 'Selecione um arquivo']"
+                      :disabled="!inventario.id_almoxarifado"
+                      :hint="!inventario.id_almoxarifado ? 'Selecione um almoxarifado primeiro' : ''"
+                      persistent-hint
                       @change="processarArquivo"
                   >
                     <template #selection="{ fileNames }">
@@ -256,6 +259,9 @@
                         item-value="id"
                         :loading="carregandoProdutos"
                         :rules="[v => !!v || 'Selecione um produto']"
+                        :disabled="!inventario.id_almoxarifado"
+                        :hint="!inventario.id_almoxarifado ? 'Selecione um almoxarifado primeiro' : ''"
+                        persistent-hint
                         clearable
                         @update:model-value="selecionarProdutoManual"
                     >
@@ -1039,6 +1045,11 @@ const processarArquivo = (event) => {
 }
 
 const importarArquivo = async () => {
+  if (!inventario.id_almoxarifado) {
+    toast.warning('Selecione um almoxarifado primeiro')
+    return
+  }
+
   if (!inventario.arquivo) {
     toast.warning('Selecione um arquivo')
     return
@@ -1124,7 +1135,25 @@ const importarArquivo = async () => {
           const jaExiste = itensInventario.value.find(item => item.produtoId === produto.id)
           if (!jaExiste) {
             const qtdContada = parseFloat(quantidade) || 0
-            const qtdSistema = produto.estoque || 0
+            
+            // Buscar saldo do produto no almoxarifado via API
+            const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada')
+            const empresaSelecionada = JSON.parse(empresaSelecionadaStr)
+            const idEmpresa = empresaSelecionada.id
+            
+            let qtdSistema = 0
+            try {
+              const saldoData = await inventarioStore.consultarSaldoProdutoAlmoxarifado(
+                idEmpresa,
+                inventario.id_almoxarifado,
+                produto.id
+              )
+              qtdSistema = saldoData?.saldo || saldoData?.quantidade || 0
+              console.log('[Inventário] Saldo do produto no almoxarifado:', qtdSistema)
+            } catch (error) {
+              console.warn('[Inventário] Erro ao buscar saldo, usando 0:', error)
+              qtdSistema = 0
+            }
 
             itensInventario.value.push({
               produtoId: produto.id,
@@ -1171,7 +1200,14 @@ const importarArquivo = async () => {
   }
 }
 
-const selecionarProdutoManual = (produtoId) => {
+const selecionarProdutoManual = async (produtoId) => {
+  if (!inventario.id_almoxarifado) {
+    toast.warning('Selecione um almoxarifado primeiro')
+    itemAtual.produtoId = null
+    produtoEncontrado.value = null
+    return
+  }
+
   if (!produtoId) {
     produtoEncontrado.value = null
     return
@@ -1179,13 +1215,33 @@ const selecionarProdutoManual = (produtoId) => {
 
   const produto = produtos.value.find(p => p.id === produtoId)
   if (produto) {
-    // Mapear campos da API para o formato esperado
-    produtoEncontrado.value = {
-      id: produto.id,
-      codigo: produto.codigo_sku || produto.codigo_gtin || produto.id,
-      nome: produto.descproduto,
-      estoque: produto.estoque || 0,
-      unidade: produto.unidade || 'UN'
+    try {
+      // Buscar saldo do produto no almoxarifado via API
+      const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada')
+      const empresaSelecionada = JSON.parse(empresaSelecionadaStr)
+      const idEmpresa = empresaSelecionada.id
+      
+      const saldoData = await inventarioStore.consultarSaldoProdutoAlmoxarifado(
+        idEmpresa,
+        inventario.id_almoxarifado,
+        produto.id
+      )
+      
+      const saldoAlmoxarifado = saldoData?.saldo || saldoData?.quantidade || 0
+      console.log('[Inventário] Saldo do produto no almoxarifado:', saldoAlmoxarifado)
+      
+      // Mapear campos da API para o formato esperado
+      produtoEncontrado.value = {
+        id: produto.id,
+        codigo: produto.codigo_sku || produto.codigo_gtin || produto.id,
+        nome: produto.descproduto,
+        estoque: saldoAlmoxarifado,
+        unidade: produto.unidade || 'UN'
+      }
+    } catch (error) {
+      console.error('[Inventário] Erro ao buscar saldo do produto:', error)
+      toast.error('Erro ao consultar saldo do produto no almoxarifado')
+      produtoEncontrado.value = null
     }
   }
 }

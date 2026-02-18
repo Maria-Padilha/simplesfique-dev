@@ -221,6 +221,35 @@ export const useInventarioStore = defineStore('inventario', {
     },
 
     /**
+     * Consulta o saldo de um produto em um almoxarifado
+     * @param {number} idEmpresa - ID da empresa
+     * @param {number} idAlmoxarifado - ID do almoxarifado
+     * @param {number} idProduto - ID do produto
+     * @returns {Promise} Saldo do produto no almoxarifado
+     */
+    async consultarSaldoProdutoAlmoxarifado(idEmpresa, idAlmoxarifado, idProduto) {
+      if (!idEmpresa || !idAlmoxarifado || !idProduto) {
+        toast.error('Parâmetros inválidos')
+        return
+      }
+
+      this.loading = true
+      try {
+        const response = await api.get(`/proalmox/${idEmpresa}/${idAlmoxarifado}/${idProduto}`, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        })
+
+        return response.data.data || response.data || null
+      } catch (error) {
+        console.error('[Inventário] Erro ao consultar saldo do produto:', error)
+        toast.error('Erro ao consultar saldo do produto')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
      * Limpa o estado do store
      */
     limparEstado() {

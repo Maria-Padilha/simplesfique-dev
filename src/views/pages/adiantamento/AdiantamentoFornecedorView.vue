@@ -1,6 +1,6 @@
 <template>
    <top-all-pages icon="mdi-account-cash">
-    <template #titulo>Adiantamento de Fornecedores</template>
+    <template #titulo>Adiantamento à Fornecedores</template>
      <template #section>
        <div>
          <!-- Content Card -->
