@@ -690,6 +690,7 @@ export const useProdutosStore = defineStore('produtos', {
             }
         },
 
+
         /**
          * BUSCAR LOCALIZAÇÕES
          * @return {Promise<void>}

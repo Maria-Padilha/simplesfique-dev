@@ -27,7 +27,11 @@ export const useEstoqueStore = defineStore('estoque', {
         cests: [],
         cest: null,
 
+        aliquotas: [],
+
         nbs: [],
+
+        formulas: [],
 
         almoxarifados: [],
         almoxarifado: null,
@@ -599,7 +603,7 @@ export const useEstoqueStore = defineStore('estoque', {
          * @return {Promise<void>}
          */
 
-        async buscarCfops(find = "", limit = 100) {
+        async buscarCfops(find = "", limit = 10) {
             this.loading = true;
 
             try {
@@ -705,6 +709,132 @@ export const useEstoqueStore = defineStore('estoque', {
                 await this.buscarCfops();
             } catch (error) {
                 console.error('Erro ao deletar CFOP:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * BUSCAR ALÍQUOTAS
+         */
+
+        async buscarTodasAliquotas(emp, uf) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/aliquotauf/${emp}?find=${uf}`, {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`
+                    }
+                });
+
+                this.aliquotas = response.data.data;
+                this.errorMessage = '';
+
+                console.log('Alíquotas encontradas:', this.aliquotas);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar alíquotas:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async cadastrarAliquota(aliquotaData, emp, uf) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`aliquotauf/${emp}`, 'post', aliquotaData);
+                await this.buscarTodasAliquotas(emp, uf);
+            } catch (error) {
+                console.error('Erro ao cadastrar alíquota:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async editarAliquota(aliquotaData, emp, cfop, uf) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`aliquotauf/${emp}/${uf}/${cfop}`, 'put', aliquotaData);
+                await this.buscarTodasAliquotas(emp, uf);
+            } catch (error) {
+                console.error('Erro ao editar alíquota:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async deletarAliquota(emp, cfop, uf) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`aliquotauf/${emp}/${uf}/${cfop}`, 'delete');
+                await this.buscarTodasAliquotas(emp, uf);
+            } catch (error) {
+                console.error('Erro ao deletar alíquota:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * FORMULAS
+         */
+
+        async buscarTodasFormulas(emp) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/formula/${emp}`, {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`
+                    }
+                });
+
+                this.formulas = response.data.data;
+                this.errorMessage = '';
+
+                console.log('Fórmulas encontradas:', this.formulas);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar fórmulas:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async cadastrarFormula(formulaData, emp) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`formula`, 'post', formulaData);
+                await this.buscarTodasFormulas(emp);
+            } catch (error) {
+                console.error('Erro ao cadastrar fórmula:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async editarFormula(formulaData, emp, id) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`formula/${emp}/${id}`, 'put', formulaData);
+                await this.buscarTodasFormulas(emp);
+            } catch (error) {
+                console.error('Erro ao editar fórmula:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async deletarFormula(emp, id) {
+            this.loading = true;
+            try {
+                await apiStore.executarAcao(`formula/${emp}/${id}`, 'delete');
+                await this.buscarTodasFormulas(emp);
+            } catch (error) {
+                console.error('Erro ao deletar fórmula:', error);
             } finally {
                 this.loading = false;
             }
