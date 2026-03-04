@@ -82,6 +82,11 @@ const routes = [
         name: 'manutencao_grupousuario',
         component: GrupoUsuarioView
     },
+    {
+        path: '/paginas/manutencao/formulas',
+        name: 'manutencao_formulas',
+        component: () => import('@/views/pages/manutencao/FormulasView.vue')
+    },
 
     //   paginas de autenticação
     {
@@ -237,10 +242,21 @@ const routes = [
         component: () => import('@/views/pages/estoque/ClassesView.vue')
     },
     {
+        path: '/paginas/estoque/aliquotauf',
+        name: 'aliquotauf',
+        component: () => import('@/views/pages/estoque/AliquotaUfView.vue')
+    },
+    {
         path: '/paginas/estoque/cest',
         name: 'cest',
         component: () => import('@/views/pages/estoque/CestView.vue')
     },
+    {
+        path: '/paginas/estoque/formulas',
+        name: 'formulas',
+        component: () => import('@/views/pages/estoque/FormulaView.vue')
+    },
+
     // Paginas de adiantamento de cliente
     {
         path: '/paginas/adiantamento/cliente',

@@ -512,7 +512,7 @@
           </template>
 
           <template #expanded-row="{ columns, item }">
-            <tr :class="{ 'linha-ativa-expand': openId === item.id_seq }" class="background-primary opacity-70 z-0">
+            <tr :class="{ 'linha-ativa-expand': openId === item.id_seq }" class="background-primary z-0">
               <td :colspan="columns.length" class="pa-0">
                 <transition name="row-expand">
                   <div
@@ -720,10 +720,12 @@ const selecionarCfop = (cfop) => {
 const formsNf = ref(null);
 
 const salvarFormulario = async () => {
-  if (formsNf.value && !(await formsNf.value.validate())) {
-    toast.error("Por favor, preencha os campos obrigatórios.");
-    return;
-  }
+  // if (formsNf.value && !(await formsNf.value.validate())) {
+  //   toast.error("Por favor, preencha os campos obrigatórios.");
+  //   return;
+  // }
+
+  console.log(produtos.value);
 
   forms.importacaoxml = forms.importacaoxml ? 'S' : 'N';
   forms.nf_origem = forms.nf_origem ? 'S' : 'N';
@@ -1040,6 +1042,8 @@ function preencherForms(ide, total, emit, xml, dest, itens, transp, pag, infAdic
       const gCBS = ibscbs?.gCBS ?? null;
 
       return {
+        cProd: prod?.cProd || null,
+        cEAN: prod?.cEAN || null,
         id_seq: Number(item?.nItem ?? (idx + 1)),
         id_produto: null,
         id_cor: 0,
@@ -1049,14 +1053,14 @@ function preencherForms(ide, total, emit, xml, dest, itens, transp, pag, infAdic
         descprodutoxml: prod?.xProd ?? null,
 
         quantidade: Number(String(prod?.qCom ?? 0).replace(",", ".")),
-        vlr_unitario: Number(prod?.vUnCom).toFixed(4) ?? 0.00,
+        vlr_unitario: Number(prod?.vUnCom).toFixed(2) ?? 0.00,
         desconto_total_item: normalizarMoeda(prod?.vDesc ?? 0.00), // se não tiver no XML, fica 0
         vlr_total_item: Number(prod?.vProd).toFixed(2) ?? 0.00,
 
         vlr_seguro_item: normalizarMoeda(prod?.vSeg ?? 0.00),
         vlr_frete_item: normalizarMoeda(prod?.vFrete ?? 0.00),
 
-        custo_medio: Number(prod?.vUnCom).toFixed(4) ?? 0.00,
+        custo_medio: Number(prod?.vUnCom).toFixed(2) ?? 0.00,
         id_movimentoalmox: forms.id_almoxarifado ?? null,
 
         // ===== Fiscal (geral)
@@ -1094,7 +1098,6 @@ function preencherForms(ide, total, emit, xml, dest, itens, transp, pag, infAdic
         base_cofins_item: normalizarMoeda(cofinsGroup?.vBC),
 
         // ===== Outros / contábil / bases
-        id_reduzido_ctb: null,
         vlr_outras_item: normalizarMoeda(prod?.vOutro ?? 0.00),
         reducao_base_calc: normalizarMoeda(icmsGroup?.pRedBC),
         vlr_outras_item_foranf: normalizarMoeda(0.00),
@@ -1120,8 +1123,8 @@ function preencherForms(ide, total, emit, xml, dest, itens, transp, pag, infAdic
         vlr_afrmm_item: normalizarMoeda(icmsGroup?.vAFRMM ?? 0.00),
 
         // ===== IBS/CBS (reforma) — nomes CERTOS da sua lista
-        cclasstrib_item: imp?.IBSCBS?.cClassTrib ?? null,
-        cst_cbsibs_item: imp?.IBSCBS?.CST ?? null,
+        cclasstrib_item: imp?.IBSCBS?.cClassTrib ?? normalizarMoeda(0o00001),
+        cst_cbsibs_item: imp?.IBSCBS?.CST ?? normalizarMoeda(0o00),
 
         base_cbsibs_item: normalizarMoeda(ibscbs?.vBC),
         perc_cbs_item: normalizarMoeda(gCBS?.pCBS),
@@ -1187,41 +1190,8 @@ function normalizarMoeda(valor, casas = 2) {
 
 const modalItemAberto = ref(false);
 
-const getNextIdSimilar = () => {
-  const ids = produtosStore.similar.map(s => Number(s.id_similar) || 0);
-  const maxId = ids.length ? Math.max(...ids) : 0;
-  return maxId + 1;
-};
-
 const vincularProduto = async ({ item, produto }) => {
-  await produtosStore.buscarProdutosSimilares(produto.id);
-
-  const jaVinculado = produtosStore.similar.find(
-      s => s.descproduto === item.descproduto
-  );
-
-  if (jaVinculado) {
-    // se já existe, já preenche o cod_vst também
-    item.cod_vst = jaVinculado.id_similar;
-    toast.info('Produto já está vinculado como similar.');
-    return;
-  }
-
-  const novoIdSimilar = getNextIdSimilar();
-
-  await produtosStore.cadastrarProdutoSimilar({
-    data: [{
-      id_produto: produto.id,
-      id_similar: novoIdSimilar,
-      descproduto: item.descprodutoxml,
-      ativo: 'S'
-    }]
-  }, produto.id);
-
-  // ✅ aqui você preenche o "Código VST" na linha do item
-  item.id_produto = novoIdSimilar;
-
-  // ✅ opcional: fecha o expand dessa linha após vincular
+  item.id_produto = produto.id;
   expanded.value = [];
 };
 
