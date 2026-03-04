@@ -327,7 +327,7 @@
         </v-card>
 
         <!-- Card da Tabela de Itens -->
-        <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
+        <v-card v-if="itensInventario.length > 0" :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary">
           <v-card-title class="text-h6 pa-4 d-flex justify-space-between align-center">
             <div>
               <v-icon icon="mdi-format-list-bulleted" class="mr-2"></v-icon>
@@ -343,15 +343,7 @@
           </v-card-title>
 
           <v-card-text class="pa-4">
-            <div v-if="itensInventario.length === 0" class="text-center pa-12">
-              <v-icon size="80" color="grey-lighten-1">mdi-package-variant-closed-remove</v-icon>
-              <p class="text-h6 mt-4 mb-2">Nenhum item adicionado</p>
-              <p class="text-body-2 text-grey">
-                Adicione produtos ao inventário usando o leitor de código de barras ou o formulário manual
-              </p>
-            </div>
-
-            <v-table v-else class="inventario-table" density="comfortable">
+            <v-table class="inventario-table" density="comfortable">
               <thead>
                 <tr>
                   <th class="text-left" style="width: 10%">Código</th>
@@ -363,7 +355,17 @@
                 </tr>
               </thead>
               <tbody>
+                <tr v-if="itensInventario.length === 0">
+                  <td colspan="6" class="text-center pa-12">
+                    <v-icon size="80" color="grey-lighten-1">mdi-package-variant-closed-remove</v-icon>
+                    <p class="text-h6 mt-4 mb-2">Nenhum item adicionado ao inventário</p>
+                    <p class="text-body-2 text-grey">
+                      {{ inventario.tipo === 'A' ? 'Importe um arquivo para adicionar produtos automaticamente' : 'Selecione produtos manualmente usando o formulário acima' }}
+                    </p>
+                  </td>
+                </tr>
                 <tr 
+                    v-else
                     v-for="(item, index) in (itensInventario || [])" 
                     :key="index"
                     :class="getDiferencaClass(item.diferenca)"
@@ -477,9 +479,9 @@
           <v-card-text class="pa-4">
             <div v-if="lotes.length === 0" class="text-center pa-12">
               <v-icon size="80" color="grey-lighten-1">mdi-clipboard-text-off</v-icon>
-              <p class="text-h6 mt-4 mb-2">Nenhum lote criado</p>
+              <p class="text-h6 mt-4 mb-2">Nenhum lote de inventário criado</p>
               <p class="text-body-2 text-grey">
-                Clique em "Criar Novo Lote de Inventário" para começar
+                Clique no botão "Criar Novo Lote" acima para iniciar um inventário de produtos.
               </p>
             </div>
 
@@ -585,7 +587,11 @@
                 </v-col>
                 <v-col cols="4">
                   <div class="text-caption text-grey">Total de Itens</div>
-                  <div class="text-body-1">{{ loteVisualizando?.itens.length || 0 }}</div>
+                  <div class="text-body-1">
+                    <v-chip color="var(--text-color-laranja)" size="small" variant="flat" class="text-white">
+                      {{ loteVisualizando?.itens?.length || 0 }} {{ (loteVisualizando?.itens?.length || 0) === 1 ? 'item' : 'itens' }}
+                    </v-chip>
+                  </div>
                 </v-col>
                 <v-col cols="12" v-if="loteVisualizando?.observacoes">
                   <div class="text-caption text-grey">Observações</div>
@@ -604,7 +610,17 @@
                   </tr>
                 </thead>
                 <tbody>
+                  <tr v-if="!loteVisualizando?.itens || loteVisualizando.itens.length === 0">
+                    <td colspan="5" class="text-center pa-12">
+                      <v-icon size="80" color="grey-lighten-1">mdi-package-variant-closed-remove</v-icon>
+                      <p class="text-h6 mt-4 mb-2">Nenhum item neste lote</p>
+                      <p class="text-body-2 text-grey">
+                        Este lote de inventário não possui itens cadastrados.
+                      </p>
+                    </td>
+                  </tr>
                   <tr 
+                      v-else
                       v-for="(item, index) in (loteVisualizando?.itens || [])" 
                       :key="index"
                       :class="getDiferencaClass(item.diferenca)"
