@@ -744,6 +744,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarAliquota(aliquotaData, emp, uf) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`aliquotauf/${emp}`, 'post', aliquotaData);
                 await this.buscarTodasAliquotas(emp, uf);
             } catch (error) {
@@ -756,6 +757,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async editarAliquota(aliquotaData, emp, cfop, uf) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`aliquotauf/${emp}/${uf}/${cfop}`, 'put', aliquotaData);
                 await this.buscarTodasAliquotas(emp, uf);
             } catch (error) {
@@ -768,6 +770,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async deletarAliquota(emp, cfop, uf) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`aliquotauf/${emp}/${uf}/${cfop}`, 'delete');
                 await this.buscarTodasAliquotas(emp, uf);
             } catch (error) {
@@ -807,6 +810,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarFormula(formulaData, emp) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`formula`, 'post', formulaData);
                 await this.buscarTodasFormulas(emp);
             } catch (error) {
@@ -819,6 +823,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async editarFormula(formulaData, emp, id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`formula/${emp}/${id}`, 'put', formulaData);
                 await this.buscarTodasFormulas(emp);
             } catch (error) {
@@ -831,6 +836,7 @@ export const useEstoqueStore = defineStore('estoque', {
         async deletarFormula(emp, id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`formula/${emp}/${id}`, 'delete');
                 await this.buscarTodasFormulas(emp);
             } catch (error) {

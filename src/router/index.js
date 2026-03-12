@@ -224,7 +224,7 @@ const routes = [
     },
     // Página de contagem de inventário (acesso público com token)
     {
-        path: '/inventario/contagem/:loteId',
+        path: '/inventario/contagem/:emp/:id',
         name: 'contagem_inventario',
         component: ContagemInventarioView,
         meta: { requiresToken: false, public: true }

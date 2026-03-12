@@ -18,7 +18,7 @@
         <v-container class="pa-3">
           <!-- Validação de Token -->
           <v-alert 
-              v-if="!tokenValido" 
+              v-if="!tokenValido && !carregando" 
               type="error" 
               variant="tonal"
               icon="mdi-alert-circle"
@@ -26,6 +26,12 @@
           >
             <strong>Acesso Negado:</strong> Token inválido ou expirado.
           </v-alert>
+
+          <!-- Loading -->
+          <div v-if="carregando" class="text-center pa-12">
+            <v-progress-circular indeterminate color="var(--text-color-laranja)" size="60"></v-progress-circular>
+            <p class="text-body-1 mt-4 text-grey">Carregando inventário...</p>
+          </div>
 
           <!-- Informações do Lote -->
           <v-card v-if="tokenValido" class="mb-3" elevation="2">
@@ -236,12 +242,15 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { toast } from 'vue3-toastify'
+import { useInventarioStore } from '@/stores/APIs/inventario'
 
 const route = useRoute()
+const inventarioStore = useInventarioStore()
 
 // Estados
 const tokenValido = ref(false)
 const lote = ref(null)
+const carregando = ref(false)
 const cameraAberta = ref(false)
 const videoElement = ref(null)
 const stream = ref(null)
@@ -258,7 +267,7 @@ const filtrosDisponiveis = [
 // Computeds
 const itensContados = computed(() => {
   if (!lote.value?.itens) return 0
-  return lote.value.itens.filter(item => item.quantidadeContada !== null).length
+  return lote.value.itens.filter(item => item.quantidadeContada !== null && item.quantidadeContada !== '').length
 })
 
 const progressoContagem = computed(() => {
@@ -268,15 +277,9 @@ const progressoContagem = computed(() => {
 
 const itensFiltrados = computed(() => {
   if (!lote.value?.itens) return []
-  
   const itens = lote.value.itens
-  
-  if (filtroStatus.value === 'contados') {
-    return itens.filter(item => item.quantidadeContada !== null)
-  } else if (filtroStatus.value === 'pendentes') {
-    return itens.filter(item => item.quantidadeContada === null)
-  }
-  
+  if (filtroStatus.value === 'contados') return itens.filter(item => item.quantidadeContada !== null && item.quantidadeContada !== '')
+  if (filtroStatus.value === 'pendentes') return itens.filter(item => item.quantidadeContada === null || item.quantidadeContada === '')
   return itens
 })
 
@@ -290,65 +293,98 @@ const formatarNumero = (valor) => {
 
 const formatarData = (data) => {
   if (!data) return '-'
-  const [ano, mes, dia] = data.split('-')
+  const parte = data.split('T')[0]
+  const [ano, mes, dia] = parte.split('-')
   return `${dia}/${mes}/${ano}`
 }
 
-const validarToken = () => {
+const validarToken = async () => {
   const token = route.query.token
-  const loteId = route.params.loteId
-  
-  // TODO: Validar token com backend
-  // Por enquanto, simular validação
-  if (token && loteId !== undefined) {
-    tokenValido.value = true
-    carregarLote(loteId)
-  } else {
+  const emp = route.params.emp
+  const id = route.params.id
+
+  if (!token || !emp || !id) {
     tokenValido.value = false
     toast.error('Token inválido ou ausente')
+    return
   }
+
+  // Token presente: considerar válido e carregar lote da API
+  tokenValido.value = true
+  await carregarLote(emp, id)
 }
 
-const carregarLote = (loteId) => {
-  // TODO: Carregar lote do backend usando o ID
-  // Por enquanto, buscar do localStorage se existir
-  const lotesArmazenados = JSON.parse(localStorage.getItem('lotesInventario') || '[]')
-  
-  if (lotesArmazenados[loteId]) {
-    lote.value = { ...lotesArmazenados[loteId] }
-    
-    // Inicializar quantidadeContada como null para todos os itens
-    lote.value.itens = lote.value.itens.map(item => ({
-      ...item,
-      quantidadeContada: item.quantidadeContada ?? null
-    }))
-  } else {
-    toast.error('Lote não encontrado')
+const carregarLote = async (emp, id) => {
+  carregando.value = true
+  try {
+    // Busca o cabeçalho do inventário para obter o almoxarifado
+    const response = await inventarioStore.obterInventario(parseInt(emp), parseInt(id))
+    const dados = response?.data || response
+
+    if (!dados) {
+      toast.error('Lote não encontrado')
+      tokenValido.value = false
+      return
+    }
+
+    const idAlmoxarifado = dados.id_almoxarifado
+
+    // Busca a grade de produtos do almoxarifado via /inventario/grid/:emp/:almox
+    let gridProdutos = []
+    if (idAlmoxarifado) {
+      try {
+        await inventarioStore.buscarGridInventario(parseInt(emp), idAlmoxarifado)
+        gridProdutos = inventarioStore.gridProdutos || []
+      } catch (gridError) {
+        console.warn('[Contagem] Erro ao carregar grid, usando itens do lote:', gridError)
+        // Fallback: usar itens já cadastrados no lote
+        gridProdutos = (dados.itens || dados.item || []).map(item => ({
+          id: item.id_produto,
+          descproduto: item.descproduto || `Produto #${item.id_produto}`,
+          codigo_sku: item.codigo_sku || item.codigo_gtin,
+          saldo: item.qtd_sistema || 0,
+          unidade: item.unidade || 'UN'
+        }))
+      }
+    }
+
+    lote.value = {
+      id: dados.id,
+      idEmpresa: parseInt(emp),
+      almoxarifadoNome: dados.descalmoxarifado || 'Almoxarifado',
+      data: dados.dtgeracao || dados.data,
+      tipo: dados.tipo,
+      itens: gridProdutos.map(produto => ({
+        id: produto.id_produto,
+        produtoId: produto.id_produto,
+        codigo: produto.codigo_gtin || produto.id_produto,
+        nome: produto.descproduto || `Produto #${produto.id_produto}`,
+        estoqueSistema: 0,
+        quantidadeContada: null,
+        diferenca: 0,
+        unidade: produto.abreviatura || 'UN',
+        id_localizacao: produto.id_localizacao || null
+      }))
+    }
+  } catch (error) {
+    console.error('[Contagem] Erro ao carregar lote:', error)
+    toast.error('Erro ao carregar dados do inventário')
     tokenValido.value = false
+  } finally {
+    carregando.value = false
   }
 }
 
 const abrirCamera = async () => {
   try {
     cameraAberta.value = true
-    
-    // Aguardar o próximo tick para o elemento video estar no DOM
     await new Promise(resolve => setTimeout(resolve, 100))
-    
     stream.value = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: 'environment', // Câmera traseira em mobile
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      }
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
     })
-    
     if (videoElement.value) {
       videoElement.value.srcObject = stream.value
     }
-    
-    // TODO: Implementar detecção de código de barras usando biblioteca como zxing ou quagga
-    
   } catch (error) {
     console.error('Erro ao acessar câmera:', error)
     toast.error('Erro ao acessar câmera. Verifique as permissões.')
@@ -369,25 +405,18 @@ const buscarProdutoPorCodigo = () => {
     toast.warning('Digite um código')
     return
   }
-  
-  const item = lote.value?.itens?.find(
-    i => i.codigo === codigoManual.value
-  )
-  
+
+  const item = lote.value?.itens?.find(i => String(i.codigo) === String(codigoManual.value))
+
   if (item) {
-    // Focar no campo de quantidade do item encontrado
     toast.success(`Produto encontrado: ${item.nome}`)
-    
-    // Scroll para o item
     const itemIndex = lote.value.itens.indexOf(item)
     const elemento = document.querySelectorAll('.v-list-item')[itemIndex]
     if (elemento) {
       elemento.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      // Highlight temporário
       elemento.classList.add('item-destacado')
       setTimeout(() => elemento.classList.remove('item-destacado'), 2000)
     }
-    
     codigoManual.value = ''
   } else {
     toast.error('Produto não encontrado no lote')
@@ -407,30 +436,24 @@ const salvarContagem = async () => {
     toast.warning('Nenhum item foi contado ainda')
     return
   }
-  
+
   salvando.value = true
-  
+
   try {
-    // TODO: Enviar contagem para o backend
-    // Por enquanto, salvar no localStorage
-    const loteId = route.params.loteId
-    const lotesArmazenados = JSON.parse(localStorage.getItem('lotesInventario') || '[]')
-    
-    if (lotesArmazenados[loteId]) {
-      lotesArmazenados[loteId] = lote.value
-      localStorage.setItem('lotesInventario', JSON.stringify(lotesArmazenados))
-    }
-    
-    toast.success('Contagem salva com sucesso!')
-    
-    // Aguardar 1 segundo e redirecionar ou fechar
-    setTimeout(() => {
-      // router.push('/') // Ou página de sucesso
-    }, 1500)
-    
+    const idEmpresa = lote.value.idEmpresa
+    const idInventario = lote.value.id
+
+    // Montar payload apenas com itens que foram contados
+    const itensPayload = lote.value.itens
+      .filter(item => item.quantidadeContada !== null && item.quantidadeContada !== '')
+      .map(item => ({
+        id_produto: item.produtoId,
+        qtd_contada: parseFloat(item.quantidadeContada) || 0
+      }))
+
+    await inventarioStore.inserirItemInventario(idEmpresa, idInventario, itensPayload)
   } catch (error) {
-    console.error('Erro ao salvar contagem:', error)
-    toast.error('Erro ao salvar contagem')
+    console.error('[Contagem] Erro ao salvar contagem:', error)
   } finally {
     salvando.value = false
   }

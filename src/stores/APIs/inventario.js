@@ -6,6 +6,7 @@ export const useInventarioStore = defineStore('inventario', {
   state: () => ({
     inventarios: [],
     inventarioAtual: null,
+    gridProdutos: [],
     loading: false,
     token: localStorage.getItem('token')
   }),
@@ -66,6 +67,29 @@ export const useInventarioStore = defineStore('inventario', {
       }
     },
 
+    async obterItensInventarioNovo(idEmpresa, id, id_almoxarifado) {
+      if (idEmpresa == null || id == null || id_almoxarifado == null) {
+        toast.error('Parâmetros inválidos')
+        return
+      }
+
+      this.loading = true
+      try {
+        const response = await api.get(`/inventarioitem/${idEmpresa}/${id}/${id_almoxarifado}`, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        })
+
+        this.inventarioAtual = response.data.data || response.data || null
+        return response.data
+      } catch (error) {
+        console.error('[Inventário] Erro ao obter inventário:', error)
+        toast.error('Erro ao carregar inventário')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     /**
      * Cadastra um novo inventário
      * @param {object} dados - Dados do inventário no formato { data: [{ campos }] }
@@ -86,7 +110,7 @@ export const useInventarioStore = defineStore('inventario', {
 
       this.loading = true
       try {
-        const response = await api.post('/inventario', dados, {
+        const response = await api.post(`/inventario`, dados, {
           headers: { Authorization: `Bearer ${this.token}` }
         })
 
@@ -243,6 +267,117 @@ export const useInventarioStore = defineStore('inventario', {
       } catch (error) {
         console.error('[Inventário] Erro ao consultar saldo do produto:', error)
         toast.error('Erro ao consultar saldo do produto')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Insere itens de contagem em um inventário (usado pela tela de contagem via link)
+     * @param {number} idEmpresa - ID da empresa
+     * @param {number} id - ID do inventário
+     * @param {Array} itens - Lista de itens no formato [{ id_produto, qtd_contada, diferenca, id_localizacao }]
+     */
+    async inserirItemInventario(idEmpresa, id, itens) {
+      if (!idEmpresa || !id) {
+        toast.error('Parâmetros inválidos')
+        return
+      }
+
+      if (!Array.isArray(itens) || itens.length === 0) {
+        toast.error('Nenhum item para salvar')
+        return
+      }
+
+      this.loading = true
+      try {
+        const payload = { item: itens }
+
+        const response = await api.post(`/inventarioitem/${idEmpresa}/${id}`, payload, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        })
+
+        toast.success('Contagem salva com sucesso!')
+        return response.data
+      } catch (error) {
+        console.error('[Inventário] Erro ao inserir itens de inventário:', error)
+        toast.error('Erro ao salvar contagem')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async atualizarItemInventario(idEmpresa, id, itens, id_almoxarifado = {}) {
+      if (!idEmpresa || !id || !id_almoxarifado) {
+        toast.error('Parâmetros inválidos')
+        return
+      }
+
+      if (!Array.isArray(itens) || itens.length === 0) {
+        toast.error('Nenhum item para salvar')
+        return
+      }
+
+      this.loading = true
+      try {
+        const payload = {
+          data: itens,
+        }
+
+        const response = await api.put(`/inventarioitem/${idEmpresa}/${id}/${id_almoxarifado}`, payload, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        })
+
+        toast.success('Contagem atualizada com sucesso!')
+        return response.data
+      } catch (error) {
+        console.error('[Inventário] Erro ao atualizar itens de inventário:', error)
+        toast.error('Erro ao atualizar contagem')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Busca a grade de produtos de um almoxarifado para o inventário
+     * @param {number} idEmpresa - ID da empresa
+     * @param {number} idAlmoxarifado - ID do almoxarifado
+     * @param {object} [filtros] - Filtros opcionais
+     * @param {number} [filtros.idpro] - ID do produto
+     * @param {number} [filtros.idgrp] - ID do grupo
+     * @param {number} [filtros.idsbg] - ID do subgrupo
+     * @param {number} [filtros.idmar] - ID da marca
+     * @param {number} [filtros.idloc] - ID da localização
+     */
+    async buscarGridInventario(idEmpresa, idAlmoxarifado, filtros = {}) {
+      if (!idEmpresa || !idAlmoxarifado) {
+        toast.error('Parâmetros inválidos')
+        return
+      }
+
+      // Montar query params ignorando valores nulos/undefined
+      const params = {}
+      if (filtros.idpro) params.idpro = filtros.idpro
+      if (filtros.idgrp) params.idgrp = filtros.idgrp
+      if (filtros.idsbg) params.idsbg = filtros.idsbg
+      if (filtros.idmar) params.idmar = filtros.idmar
+      if (filtros.idloc) params.idloc = filtros.idloc
+
+      this.loading = true
+      try {
+        const response = await api.get(`/inventarioitem/${idEmpresa}/${idAlmoxarifado}`, {
+          headers: { Authorization: `Bearer ${this.token}` },
+          params
+        })
+
+        this.gridProdutos = response.data.data || response.data || []
+        return response.data
+      } catch (error) {
+        console.error('[Inventário] Erro ao buscar grid de produtos:', error)
+        toast.error('Erro ao carregar produtos do almoxarifado')
         throw error
       } finally {
         this.loading = false
