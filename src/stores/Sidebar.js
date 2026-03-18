@@ -77,6 +77,28 @@ export const useSidebarStore = defineStore('sidebar', () => {
                 }
             ]
         },
+        {
+            id: 'Vendas',
+            titulo: 'Vendas',
+            icon: 'mdi-cart',
+            submenus: [
+                {
+                    text: 'Orçamento',
+                    icon: 'mdi-file-document-outline',
+                    route: '/paginas/vendas/orcamento'
+                },
+                {
+                    text: 'Pedidos',
+                    icon: 'mdi-cart-outline',
+                    route: '/paginas/vendas/pedidos'
+                },
+                {
+                    text: 'Motivo Perda de orçamento',
+                    icon: 'mdi-close-circle-outline',
+                    route: '/paginas/vendas/motivo-perda-orcamento'
+                }
+            ]
+                },
         
         {
             id: 'Fiscal',
@@ -103,6 +125,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     text: 'Pessoas',
                     icon: 'mdi-account-group',
                     route: '/paginas/manutencao/pessoas'
+                },
+                {
+                    text: 'Empresas',
+                    icon: 'mdi-domain',
+                    route: '/paginas/manutencao/empresas'
                 },
                 {
                     text: 'Usuários',

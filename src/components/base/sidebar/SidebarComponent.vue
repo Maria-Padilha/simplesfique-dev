@@ -259,7 +259,7 @@ import {useEmpresaStore} from "@/stores/APIs/empresa";
 import {useConfigParfinStore} from "@/stores/APIs/config";
 import {useAcessoStore} from "@/stores/APIs/acesso";
 import {useAcessosRapidosStore} from "@/stores/acessos-rapidos";
-import {ref, onMounted, onBeforeUnmount, mergeProps, computed, watchEffect} from 'vue'
+import {ref, onMounted, onBeforeUnmount, mergeProps, computed, watch} from 'vue'
 import ErrorAlertModal from "@/components/base/modais/ErrorAlertModal.vue";
 import ConfigAcessosRapidosModal from "@/components/base/modais/ConfigAcessosRapidosModal.vue";
 
@@ -271,7 +271,7 @@ const themeStore = useThemeStore();
 
 // Store de empresas
 const empresaStore = useEmpresaStore();
-const empresas = computed(() => empresaStore.empresas?.data || []);
+const empresas = computed(() => empresaStore.empresas || []);
 
 // Store de acessos
 const acessoStore = useAcessoStore();
@@ -393,6 +393,9 @@ onMounted(async () => {
   empresaStore.carregarEmpresaSelecionada();
   console.log('[SidebarComponent] Empresa carregada:', empresaStore.empresaSelecionada?.razao_social);
 
+  // Carregar lista de empresas
+  await empresaStore.buscarTodasEmpresas();
+
   // Event listener para resize
   window.addEventListener('resize', onResize);
   onResize();
@@ -403,34 +406,15 @@ onMounted(async () => {
   }, 2000);
 });
 
-watchEffect(async () => {
-  console.log('[SidebarComponent] watchEffect disparado - Carregando lista de empresas...');
-
-  // Sempre carregar todas as empresas
-  if (empresas.value.length === 0) {
-    console.log('[SidebarComponent] Buscando empresas da API...');
-    await empresaStore.buscarTodasEmpresas();
-  }
-
-  // Verificar se tem empresa selecionada e buscar acessos
-  const empresaSelecionada = empresaStore.empresaSelecionada;
-  console.log('[SidebarComponent] Empresa selecionada agora:', empresaSelecionada?.razao_social);
-
-  if (empresaSelecionada && empresaSelecionada.id) {
-    console.log('[SidebarComponent] Buscando acessos para empresa:', empresaSelecionada.id);
-    await acessoStore.buscarAcessos(empresaSelecionada.id);
-    console.log('[SidebarComponent] Acessos carregados com sucesso');
-  } else {
-    console.log('[SidebarComponent] Nenhuma empresa selecionada ainda');
-
-    // Se não tem empresa selecionada, selecionar a primeira
-    if (empresas.value.length > 0 && !empresaSelecionada) {
-      const primeiraEmpresa = empresas.value[0];
-      console.log('[SidebarComponent] Selecionando primeira empresa automaticamente:', primeiraEmpresa.razao_social);
-      await selecionarEmpresa(primeiraEmpresa);
+watch(
+  () => empresaStore.empresaSelecionada,
+  async (empresaSelecionada) => {
+    if (empresaSelecionada && empresaSelecionada.id) {
+      await acessoStore.buscarAcessos(empresaSelecionada.id);
     }
-  }
-});
+  },
+  { immediate: false }
+);
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onResize);

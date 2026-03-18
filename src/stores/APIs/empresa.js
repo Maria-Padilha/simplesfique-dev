@@ -1,8 +1,6 @@
 import {defineStore} from "pinia"
-// import api from "@/services/api";
-// import {toast} from "vue3-toastify";
-import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
+import {toast} from "vue3-toastify";
 
 export const useEmpresaStore = defineStore('empresa', {
     state: () => ({
@@ -18,62 +16,114 @@ export const useEmpresaStore = defineStore('empresa', {
     }),
 
     actions: {
-        async cadastrarEmpresa(empresaData, token) {
-            this.loading = true;
-            const apiStore = useApiStore();
-            try {
-                await apiStore.executarAcao('empresa', 'post', empresaData, null, token);
-            } catch (error) {
-                console.error('Erro ao cadastrar empresa:', error);
-            }
-            finally {
-                this.loading = false;
-            }
-        },
-
         async buscarTodasEmpresas() {
             this.loading = true;
 
             try {
                 const response = await api.get(`/empresa`, {
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`
-                    }
+                    headers: { Authorization: `Bearer ${this.token}` }
                 });
 
-                this.empresas = response.data;
+                this.empresas = response.data?.data || response.data || [];
                 this.errorMessage = '';
-                console.log('Empresas encontradas: ', this.empresas);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error.response?.data?.message || 'Erro ao buscar empresas';
                 console.error('Erro ao buscar empresas:', error);
+                toast.error(this.errorMessage);
             } finally {
                 this.loading = false;
             }
         },
 
-        async buscarEmpresaId(id) {
+        async cadastrarEmpresa(data) {
+            this.loading = true;
+
+            try {
+                const response = await api.post('/empresa', { data: [data] }, {
+                    headers: { Authorization: `Bearer ${this.token}` }
+                });
+
+                this.successMessage = 'Empresa cadastrada com sucesso!';
+                this.errorMessage = '';
+                toast.success(this.successMessage);
+
+                return response.data;
+            } catch (error) {
+                this.errorMessage = error.response?.data?.message || 'Erro ao cadastrar empresa';
+                console.error('Erro ao cadastrar empresa:', error);
+                toast.error(this.errorMessage);
+                return null;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async alterarEmpresa(id, data) {
+            this.loading = true;
+
+            try {
+                const response = await api.put(`/empresa/${id}`, { data: [data] }, {
+                    headers: { Authorization: `Bearer ${this.token}` }
+                });
+
+                this.successMessage = 'Empresa atualizada com sucesso!';
+                this.errorMessage = '';
+                toast.success(this.successMessage);
+
+                return response.data;
+            } catch (error) {
+                this.errorMessage = error.response?.data?.message || 'Erro ao alterar empresa';
+                console.error('Erro ao alterar empresa:', error);
+                toast.error(this.errorMessage);
+                return null;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async deletarEmpresa(id) {
+            this.loading = true;
+
+            try {
+                await api.delete(`/empresa/${id}`, {
+                    headers: { Authorization: `Bearer ${this.token}` }
+                });
+
+                this.successMessage = 'Empresa excluída com sucesso!';
+                this.errorMessage = '';
+                toast.success(this.successMessage);
+
+            } catch (error) {
+                this.errorMessage = error.response?.data?.message || 'Erro ao excluir empresa';
+                console.error('Erro ao excluir empresa:', error);
+                toast.error(this.errorMessage);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async buscarEmpresaPorId(id) {
             this.loading = true;
 
             try {
                 const response = await api.get(`/empresa/${id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`
-                    }
+                    headers: { Authorization: `Bearer ${this.token}` }
                 });
 
-                this.empresa = response.data;
+                this.empresa = response.data?.data || response.data;
                 this.errorMessage = '';
-                console.log('Empresa encontrada: ', this.empresa);
 
+                return this.empresa;
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar empresa pelo ID:', error);
+                this.errorMessage = error.response?.data?.message || 'Erro ao buscar empresa';
+                console.error('Erro ao buscar empresa:', error);
             } finally {
                 this.loading = false;
             }
         },
+
+
 
         selecionarEmpresa(empresa) {
             if (!empresa || !empresa.id) {

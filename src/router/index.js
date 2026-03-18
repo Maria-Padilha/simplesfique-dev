@@ -15,6 +15,7 @@ import PrevisaoDebitosView from "@/views/pages/financeiro/pagar/PrevisaoDebitosV
 import InventarioView from "@/views/pages/inventario/InventarioView.vue";
 import ContagemInventarioView from "@/views/pages/inventario/ContagemInventarioView.vue";
 import PessoasView from '@/views/pages/manutencao/PessoasView.vue';
+import EmpresaView from '@/views/pages/manutencao/EmpresaView.vue';
 import PlanoContaView from '@/views/pages/fiscal/PlanoContaView.vue';
 import DebitoRealView from '@/views/pages/financeiro/pagar/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/manutencao/UsuariosView.vue';
@@ -39,6 +40,7 @@ import RelatorioDreView from '@/views/pages/dre/RelatorioDreView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
+import MotivoPerdaOrcamentoView from '@/views/pages/vendas/MotivoPerdaOrcamentoView.vue';
 
 const routes = [
 
@@ -71,6 +73,11 @@ const routes = [
         path: '/paginas/manutencao/pessoas',
         name: 'manutencao_pessoas',
         component: PessoasView
+    },
+    {
+        path: '/paginas/manutencao/empresas',
+        name: 'manutencao_empresas',
+        component: EmpresaView
     },
     {
         path: '/paginas/manutencao/usuarios',
@@ -116,6 +123,12 @@ const routes = [
         path: '/paginas/home',
         name: 'home',
         component: HomeView
+    },
+    //    Página do módulo vendas
+    {
+        path : '/paginas/vendas/motivo-perda-orcamento',
+        name : 'motivo_perda_orcamento',
+        component : MotivoPerdaOrcamentoView
     },
 
     //    Páginas do módulo financeiro
