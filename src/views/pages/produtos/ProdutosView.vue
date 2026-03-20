@@ -629,7 +629,7 @@ const subgrupos = computed(() => estoqueStore.subgrupos);
 
 // ABRIR E FECHAR FORMULÁRIO
 const exibirProdutos = ref(false);
-const formularioAberto = ref(true);
+const formularioAberto = ref(false);
 
 function toggleFormulario() {
   formularioAberto.value = !formularioAberto.value;
@@ -670,7 +670,7 @@ const forms = reactive({
   "id_classe": null,
   "id_garantia": null,
   "utiliza_balanca": "",
-  "utiliza_grade": true,
+  "utiliza_grade": false,
   "utiliza_nrserie": "",
   "utiliza_lote": "",
   "id_ncm": "",
