@@ -744,7 +744,8 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarAliquota(aliquotaData, emp, uf) {
             this.loading = true;
             try {
-                await apiStore.executarAcao(`aliquotauf/${emp}`, 'post', aliquotaData);
+                const apiStoreInstance = useApiStore();
+                await apiStoreInstance.executarAcao(`aliquotauf/${emp}`, 'post', aliquotaData);
                 await this.buscarTodasAliquotas(emp, uf);
             } catch (error) {
                 console.error('Erro ao cadastrar alíquota:', error);
@@ -756,7 +757,8 @@ export const useEstoqueStore = defineStore('estoque', {
         async editarAliquota(aliquotaData, emp, cfop, uf) {
             this.loading = true;
             try {
-                await apiStore.executarAcao(`aliquotauf/${emp}/${uf}/${cfop}`, 'put', aliquotaData);
+                const apiStoreInstance = useApiStore();
+                await apiStoreInstance.executarAcao(`aliquotauf/${emp}/${uf}/${cfop}`, 'put', aliquotaData);
                 await this.buscarTodasAliquotas(emp, uf);
             } catch (error) {
                 console.error('Erro ao editar alíquota:', error);
@@ -768,7 +770,8 @@ export const useEstoqueStore = defineStore('estoque', {
         async deletarAliquota(emp, cfop, uf) {
             this.loading = true;
             try {
-                await apiStore.executarAcao(`aliquotauf/${emp}/${uf}/${cfop}`, 'delete');
+                const apiStoreInstance = useApiStore();
+                await apiStoreInstance.executarAcao(`aliquotauf/${emp}/${uf}/${cfop}`, 'delete');
                 await this.buscarTodasAliquotas(emp, uf);
             } catch (error) {
                 console.error('Erro ao deletar alíquota:', error);
@@ -807,7 +810,8 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarFormula(formulaData, emp) {
             this.loading = true;
             try {
-                await apiStore.executarAcao(`formula`, 'post', formulaData);
+                const apiStoreInstance = useApiStore();
+                await apiStoreInstance.executarAcao(`formula`, 'post', formulaData);
                 await this.buscarTodasFormulas(emp);
             } catch (error) {
                 console.error('Erro ao cadastrar fórmula:', error);
@@ -819,7 +823,8 @@ export const useEstoqueStore = defineStore('estoque', {
         async editarFormula(formulaData, emp, id) {
             this.loading = true;
             try {
-                await apiStore.executarAcao(`formula/${emp}/${id}`, 'put', formulaData);
+                const apiStoreInstance = useApiStore();
+                await apiStoreInstance.executarAcao(`formula/${emp}/${id}`, 'put', formulaData);
                 await this.buscarTodasFormulas(emp);
             } catch (error) {
                 console.error('Erro ao editar fórmula:', error);
@@ -831,7 +836,8 @@ export const useEstoqueStore = defineStore('estoque', {
         async deletarFormula(emp, id) {
             this.loading = true;
             try {
-                await apiStore.executarAcao(`formula/${emp}/${id}`, 'delete');
+                const apiStoreInstance = useApiStore();
+                await apiStoreInstance.executarAcao(`formula/${emp}/${id}`, 'delete');
                 await this.buscarTodasFormulas(emp);
             } catch (error) {
                 console.error('Erro ao deletar fórmula:', error);

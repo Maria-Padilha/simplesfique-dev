@@ -164,6 +164,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     route: '/paginas/produtos'
                 },
                 {
+                    text: 'Importar Produtos',
+                    icon: 'mdi-cloud-upload-outline',
+                    route: '/paginas/produtos/importar'
+                },
+                {
                     text: 'Local Produtos',
                     icon: 'mdi-map-marker',
                     route: '/paginas/produtos/local'
@@ -194,6 +199,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     text: 'Operação',
                     icon: 'mdi-shape-plus',
                     route: '/paginas/pdv/operacao'
+                },
+                {
+                    text: 'Totem',
+                    icon: 'mdi-monitor-multiple',
+                    route: '/paginas/pdv/totem'
                 },
             ]
         },

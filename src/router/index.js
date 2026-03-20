@@ -20,6 +20,7 @@ import DebitoRealView from '@/views/pages/financeiro/pagar/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/manutencao/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
 import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
+import TotemView from '@/views/pages/pdv/TotemView.vue';
 import CarteiraCobrancaView from '@/views/pages/financeiro/banco/CarteiraCobrancaView.vue';
 import PdvView from '@/views/pages/pdv/PdvView.vue';
 import PagamentoView from '@/views/pages/pdv/PagamentoView.vue';
@@ -278,6 +279,11 @@ const routes = [
         component: () => import('@/views/pages/produtos/ProdutosView.vue')
     },
     {
+        path: '/paginas/produtos/importar',
+        name: 'produtos-importar',
+        component: () => import('@/views/pages/produtos/ImportarProdutoView.vue')
+    },
+    {
         path: '/paginas/produtos/:id',
         name: 'produtos-detalhes',
         component: () => import('@/views/pages/produtos/ProdutosDetalhesView.vue')
@@ -328,6 +334,11 @@ const routes = [
         path: '/paginas/pdv/caixa',
         name: 'pdv_caixa',
         component: PdvCaixaView
+    },
+    {
+        path: '/paginas/pdv/totem',
+        name: 'pdv_totem',
+        component: TotemView
     },
     // páginas do pdv
     {
