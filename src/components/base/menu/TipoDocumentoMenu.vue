@@ -60,7 +60,7 @@
 <script setup>
 import BuscaPadraoMenu from "@/components/base/menu/BuscaPadraoMenu.vue";
 import CadastrarModal from "@/components/base/modais/CadastrarModal.vue";
-import {ref, computed, defineEmits, watch, onMounted} from "vue";
+import {ref, computed, defineEmits, onMounted} from "vue";
 import { useFinanceiroStore } from "@/stores/APIs/financeiro";
 import { toast } from "vue3-toastify";
 
@@ -74,23 +74,30 @@ const descricao = ref("");
 const abreviatura = ref("");
 
 const financeiroStore = useFinanceiroStore();
-const tiposDocumento = computed(() => financeiroStore.tiposDocumento || []);
 
-// Carregar dados quando o componente for montado
+// Todos os tipos de documento carregados da API
+const todosTiposDocumento = computed(() => financeiroStore.tiposDocumento || []);
+
+// Tipos de documento filtrados localmente pelo termo de pesquisa
+const tiposDocumento = computed(() => {
+  if (!termoPesquisa.value || termoPesquisa.value.length < 2) {
+    return todosTiposDocumento.value;
+  }
+  
+  const termo = termoPesquisa.value.toLowerCase();
+  return todosTiposDocumento.value.filter(tipo => {
+    const descricaoTipo = (tipo.desctipodocumento || tipo.descricao || '').toLowerCase();
+    return descricaoTipo.includes(termo);
+  });
+});
+
+// Carregar todos os dados quando o componente for montado
 onMounted(async () => {
   await financeiroStore.buscarTiposDocumento();
 });
 
-watch( () => termoPesquisa.value, async (pesquisa) => {
-  if (!pesquisa || pesquisa.length < 2) {
-    return;
-  }
-  console.log("Pesquisando tipo documento: ", pesquisa);
-  await financeiroStore.buscarTiposDocumento();
-})
-
-const pesquisar = async () => {
-  await financeiroStore.buscarTiposDocumento();
+const pesquisar = () => {
+  // Não precisa fazer nada, o computed já filtra automaticamente
 };
 
 const selecionarTipoDocumento = (tipoSelecionado) => {

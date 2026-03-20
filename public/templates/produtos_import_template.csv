@@ -1,0 +1,5 @@
+descricao,codigo_gtin,codigo_sku,preco_custo,preco_venda,tipo,aplicacao
+Produto A,1234567890123,SKU001,50.00,100.00,P,V
+Produto B,1234567890124,SKU002,30.00,60.00,P,V
+Serviço de Manutenção,9999999999999,SRV001,200.00,400.00,S,V
+Matéria-Prima X,1111111111111,MAT001,15.00,15.00,P,M

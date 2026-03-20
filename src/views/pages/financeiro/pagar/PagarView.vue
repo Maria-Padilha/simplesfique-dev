@@ -194,20 +194,22 @@
 
                         <!-- Plano de Conta -->
                         <v-col cols="12" md="4">
-                          <v-text-field
+                          <v-autocomplete
+                              v-model="formData.id_planoconta"
+                              :items="planosContaDisponiveis"
+                              item-title="label"
+                              item-value="id"
                               label="Plano de Conta *"
-                              v-model="planoContaSelecionado"
                               variant="outlined"
                               density="compact"
-                              hide-details="auto"
                               :rules="[rules.required]"
                               class="required-left-border"
                               prepend-inner-icon="mdi-chart-tree"
+                              clearable
+                              v-model:search-input="planoContaSearch"
+                              no-data-text="Nenhum plano de conta encontrado"
                           >
-                            <template #append-inner>
-                              <PlanoContaMenu @selecionar="selecionarPlanoConta"/>
-                            </template>
-                          </v-text-field>
+                          </v-autocomplete>
                         </v-col>
 
                         <!-- Histórico Contábil -->
@@ -624,11 +626,11 @@
 
                         <!-- Rateio por Centro de Custo (select acima e tabela de centros selecionados) -->
                         <v-col cols="12" v-if="parcelas.length > 0">
-                          <v-card variant="outlined" class="mb-4" elevation="1">
+                          <v-card variant="outlined" class="background-secondary mb-4" elevation="1">
                             <v-card-title class="text-h6 pa-4 d-flex align-center">
                               <v-icon icon="mdi-swap-horizontal" class="mr-2" color="orange"></v-icon>
                               Rateio por Centro de Custo
-                              <v-spacer></v-spacer>
+                              <v-spacer></v-spacer> 
                               <v-btn
                                   size="small"
                                   color="orange"
@@ -654,7 +656,7 @@
                                 Nenhum centro de custo adicionado. Clique em "Adicionar Centro" para começar o rateio.
                               </div>
 
-                              <v-table v-else density="compact">
+                              <v-table class="background-secondary" v-else density="compact">
                                 <thead>
                                 <tr>
                                   <th style="width: 40%">Centro de Custo</th>
@@ -919,6 +921,18 @@
               {{ formatarDataHora(item.dhinc) }}
             </span>
                 <span v-else class="text-grey">-</span>
+              </template>
+
+              <!-- Formatação do fornecedor com truncamento -->
+              <template v-slot:[`item.fornecedor`]="{ item }">
+                <v-tooltip location="top">
+                  <template v-slot:activator="{ props }">
+                    <span v-bind="props" class="fornecedor-truncado">
+                      {{ item.fornecedor || '--' }}
+                    </span>
+                  </template>
+                  <span>{{ item.fornecedor || 'Sem fornecedor' }}</span>
+                </v-tooltip>
               </template>
 
               <!-- Ações personalizadas -->
@@ -1416,6 +1430,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { useCCustoStore } from '@/stores/APIs/ccusto'
@@ -1430,7 +1445,6 @@ import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import BuscaAvancada from '@/components/base/padrao-paginas/BuscaAvancada.vue'
 import TipoDocumentoMenu from '@/components/base/menu/TipoDocumentoMenu.vue'
 import LocalCobrancaMenu from '@/components/base/menu/LocalCobrancaMenu.vue'
-import PlanoContaMenu from '@/components/base/menu/PlanoContaMenu.vue'
 import MediaSave from '@/components/base/media/MediaSave.vue'
 import MediaShow from '@/components/base/media/MediaShow.vue'
 import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
@@ -1443,6 +1457,7 @@ import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 // eslint-disable-next-line no-unused-vars
 const ID_PROGRAMA = 'FFIN205E'
 
+const route = useRoute()
 const themeStore = useThemeStore()
 const financeiroStore = useFinanceiroStore()
 const ccustoStore = useCCustoStore()
@@ -1548,7 +1563,7 @@ const headers = computed(() => {
     { title: 'Qtd Total', key: 'qtdparcelas', sortable: true },
     { title: 'Data Emissão', key: 'dtemissao', sortable: true },
     { title: 'Vencimento', key: 'dtvencimento', sortable: true },
-    { title: 'Fornecedor', key: 'fornecedor', sortable: true },
+    { title: 'Fornecedor', key: 'fornecedor', sortable: true, width: '200px' },
     { title: 'Vlr Documento', key: 'vlrdocumento', sortable: true },
     { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
     { title: 'Vlr Quitado', key: 'vlrquitado', sortable: true },
@@ -1601,7 +1616,7 @@ const formData = reactive({
   observacao: '',
   vlroriginal: null,
   qtdparcelas: 1,
-  dtemissao: '',
+  dtemissao: new Date().toISOString().split('T')[0], // Data atual
   // Campos simplificados
   juros: 0,
   multa: 0,
@@ -1625,8 +1640,8 @@ const pessoas = ref([])
 
 // Campos de texto para os menus
 const tipoDocumentoSelecionado = ref('')
-const planoContaSelecionado = ref('')
 const fornecedorSelecionado = ref('')
+const planoContaSearch = ref('')
 
 // Histórico Contábil (campo de busca + modal de cadastro)
 const menuHistContabil = ref(false)
@@ -1645,6 +1660,15 @@ const fornecedorResultados = ref([])
 const fornecedorSearch = ref('')
 const fornecedorLoading = ref(false)
 let fornecedorSearchTimer = null
+
+// Planos de conta formatados
+const planosContaDisponiveis = computed(() => {
+  const planos = financeiroStore.planosConta || []
+  return planos.map(plano => ({
+    ...plano,
+    label: `${plano.id_classificador || ''} - ${plano.descconta || plano.descricao || ''}`
+  }))
+})
 
 // store label/name of selected fornecedor to ensure we can include it in payload
 const fornecedorLabel = ref('')
@@ -1816,6 +1840,11 @@ onMounted(async () => {
   // Carregar apenas dados auxiliares no mount
   // As contas a pagar só serão carregadas após aplicar filtros obrigatórios
   await carregarDadosAuxiliares()
+  
+  // Verificar se há query param 'novo' para abrir o formulário automaticamente
+  if (route.query.novo === 'true') {
+    formularioAberto.value = true
+  }
 })
 
 // Watchers - simplificados
@@ -1970,6 +1999,14 @@ const carregarDadosAuxiliares = async () => {
 
     // Carregar planos de conta
     await financeiroStore.buscarPlanosConta()
+
+    // Carregar históricos contábeis
+    try {
+      const historicosRes = await financeiroStore.buscarHistoricosContabil()
+      historicoContabilResultados.value = historicosRes || []
+    } catch (err) {
+      console.warn('Não foi possível carregar históricos contábeis:', err)
+    }
 
     // Carregar centros de custo
     try {
@@ -2185,16 +2222,7 @@ const editarContaPagar = async (item) => {
         }
 
         // Plano de conta (já foi carregado do array contabil acima)
-        const planoId = formData.id_planoconta
-        const planos = financeiroStore.planosConta || []
-        if (planoId) {
-          const plano = (planos || []).find(p => String(p.id) === String(planoId))
-          if (plano) {
-            planoContaSelecionado.value = plano.descconta || plano.descricao || plano.abreviatura || ''
-          } else if (dados.abreviatura_planoconta || dados.descplanoconta) {
-            planoContaSelecionado.value = dados.abreviatura_planoconta || dados.descplanoconta
-          }
-        }
+        // Já será selecionado automaticamente pelo v-autocomplete
 
         // Fornecedor: buscar por ID quando disponível
         if (formData.id_fornecedor) {
@@ -2381,7 +2409,7 @@ const resetarForm = () => {
     observacao: '',
     vlroriginal: null,
     qtdparcelas: 1,
-    dtemissao: '',
+    dtemissao: new Date().toISOString().split('T')[0], // Data atual
     juros: 0,
     multa: 0,
     desconto: 0,
@@ -2393,7 +2421,6 @@ const resetarForm = () => {
 
   // Limpar campos de texto dos menus
   tipoDocumentoSelecionado.value = ''
-  planoContaSelecionado.value = ''
   fornecedorSelecionado.value = ''
 
   // Limpar parcelas
@@ -3267,11 +3294,6 @@ const selecionarTipoDocumento = (tipoDoc) => {
   tipoDocumentoSelecionado.value = tipoDoc.abreviatura || tipoDoc.desctipodocumento || tipoDoc.descricao
 }
 
-const selecionarPlanoConta = (planoConta) => {
-  formData.id_planoconta = planoConta.id
-  planoContaSelecionado.value = planoConta.descconta || planoConta.descricao
-}
-
 const selecionarFornecedor = (fornecedor) => {
   formData.id_fornecedor = fornecedor.id
   fornecedorSelecionado.value = fornecedor.apelido_fantasia || fornecedor.nome_razao || fornecedor.nome || fornecedor.apelido || ''
@@ -3830,6 +3852,15 @@ const handleImprimir = ({ dados, filtros, nomeRelatorio }) => {
 .required-left-border :deep(.v-field.v-field--focused) {
   border-left-color: #d32f2f !important;
   box-shadow: inset 4px 0 8px rgba(211, 47, 47, 0.08) !important;
+}
+
+.fornecedor-truncado {
+  display: inline-block;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
 }
 </style>
 

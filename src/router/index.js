@@ -7,30 +7,36 @@ import HomeSiteView from "@/views/site/HomeSiteView.vue";
 import FuncionalidadesSiteView from "@/views/site/FuncionalidadesSiteView.vue";
 import IntegracoesView from "@/views/site/IntegracoesSiteView.vue";
 import PlanosSiteView from "@/views/site/PlanosSiteView.vue";
-import PagarView from "@/views/pages/financeiro/PagarView.vue";
-import ReceberView from "@/views/pages/financeiro/ReceberView.vue";
-import ContaCorrenteView from "@/views/pages/banco/ContaCorrenteView.vue";
-import CentroDeCustoView from "@/views/pages/financeiro/CentroDeCustoView.vue";
-import PrevisaoDebitosView from "@/views/pages/financeiro/PrevisaoDebitosView.vue";
+import PagarView from "@/views/pages/financeiro/pagar/PagarView.vue";
+import ReceberView from "@/views/pages/financeiro/receber/ReceberView.vue";
+import ContaCorrenteView from "@/views/pages/financeiro/banco/ContaCorrenteView.vue";
+import CentroDeCustoView from "@/views/pages/financeiro/pagar/CentroDeCustoView.vue";
+import PrevisaoDebitosView from "@/views/pages/financeiro/pagar/PrevisaoDebitosView.vue";
+import InventarioView from "@/views/pages/inventario/InventarioView.vue";
+import ContagemInventarioView from "@/views/pages/inventario/ContagemInventarioView.vue";
 import PessoasView from '@/views/pages/manutencao/PessoasView.vue';
-import PlanoContaView from '@/views/pages/financeiro/PlanoContaView.vue';
-import DebitoRealView from '@/views/pages/financeiro/DebitoRealView.vue';
+import PlanoContaView from '@/views/pages/fiscal/PlanoContaView.vue';
+import DebitoRealView from '@/views/pages/financeiro/pagar/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/manutencao/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
 import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
+import TotemView from '@/views/pages/pdv/TotemView.vue';
+import CarteiraCobrancaView from '@/views/pages/financeiro/banco/CarteiraCobrancaView.vue';
 import PdvView from '@/views/pages/pdv/PdvView.vue';
 import PagamentoView from '@/views/pages/pdv/PagamentoView.vue';
-import MovimentacaoView from '@/views/pages/banco/MovimentacaoView.vue';
+import MovimentacaoView from '@/views/pages/financeiro/banco/MovimentacaoView.vue';
 import AdiantamentoClienteView from '@/views/pages/adiantamento/AdiantamentoClienteView.vue';
 import AdiantamentoFornecedorView from '@/views/pages/adiantamento/AdiantamentoFornecedorView.vue';
-import AutorizacaoPagtoView from '@/views/pages/financeiro/AutorizacaoPagtoView.vue';
-import BaixaPagtoView from '@/views/pages/financeiro/BaixaPagtoView.vue';
-import BaixaRecebView from '@/views/pages/financeiro/BaixaRecebView.vue';
+import AutorizacaoPagtoView from '@/views/pages/financeiro/pagar/AutorizacaoPagtoView.vue';
+import BaixaPagtoView from '@/views/pages/financeiro/pagar/BaixaPagtoView.vue';
+import BaixaRecebView from '@/views/pages/financeiro/receber/BaixaRecebView.vue';
 import FinanceiroRelatorioView from '@/views/pages/relatorios/FinanceiroRelatorioView.vue';
-import TransferenciasView from '@/views/pages/financeiro/TransferenciasView.vue';
+import TransferenciasView from '@/views/pages/financeiro/banco/TransferenciasView.vue';
 import EstornoPagarView from '@/views/pages/estorno/EstornoPagarView.vue';
 import EstornoReceberView from '@/views/pages/estorno/EstornoReceberView.vue';
 import GrupoUsuarioView from '@/views/pages/manutencao/GrupoUsuarioView.vue';
+import DreView from '@/views/pages/dre/DreView.vue';
+import RelatorioDreView from '@/views/pages/dre/RelatorioDreView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
@@ -44,6 +50,17 @@ const routes = [
         component: NotFoundView
     },
 
+    // pagina do dre
+    {
+        path: '/paginas/financeiro/dre',
+        name: 'dre',
+        component: DreView
+    },
+    {
+        path: '/paginas/financeiro/relatorio/dre',
+        name: 'relatorio_dre',
+        component: RelatorioDreView
+    },
 
     //   pagina de manutenção
     {
@@ -141,17 +158,17 @@ const routes = [
     {
         path: '/paginas/financeiro/caixa',
         name: 'financeiro_caixa',
-        component: () => import('@/views/pages/financeiro/CaixaView.vue')
+        component: () => import('@/views/pages/financeiro/caixa/CaixaView.vue')
     },
     {
         path: '/paginas/financeiro/caixa/abertura',
         name: 'financeiro_caixa_abertura',
-        component: () => import('@/views/pages/caixa/AberCaixaView.vue')
+        component: () => import('@/views/pages/financeiro/caixa/AberCaixaView.vue')
     },
     {
         path: '/paginas/financeiro/caixa/lancamento',
         name: 'financeiro_caixa_lancamento',
-        component: () => import('@/views/pages/caixa/LancCaixaView.vue')
+        component: () => import('@/views/pages/financeiro/caixa/LancCaixaView.vue')
     },
     {
         path: '/paginas/financeiro/planoconta',
@@ -194,6 +211,24 @@ const routes = [
         path: '/paginas/banco/movimentacao',
         name: 'financeiro_banco_movimentacao',
         component: MovimentacaoView
+    },
+    {
+        path: '/paginas/financeiro/carteiracobranca',
+        name: 'financeiro_carteiracobranca',
+        component: CarteiraCobrancaView
+    },
+    // Página do inventário
+    {
+        path: '/paginas/inventario',
+        name: 'inventario',
+        component: InventarioView
+    },
+    // Página de contagem de inventário (acesso público com token)
+    {
+        path: '/inventario/contagem/:loteId',
+        name: 'contagem_inventario',
+        component: ContagemInventarioView,
+        meta: { requiresToken: false, public: true }
     },
 
     // páginas do estoque (substituídas por placeholder até criar os arquivos reais)
@@ -242,6 +277,11 @@ const routes = [
         path: '/paginas/produtos',
         name: 'produtos',
         component: () => import('@/views/pages/produtos/ProdutosView.vue')
+    },
+    {
+        path: '/paginas/produtos/importar',
+        name: 'produtos-importar',
+        component: () => import('@/views/pages/produtos/ImportarProdutoView.vue')
     },
     {
         path: '/paginas/produtos/:id',
@@ -310,11 +350,16 @@ const routes = [
         name: 'pdv_caixa',
         component: PdvCaixaView
     },
+    {
+        path: '/paginas/pdv/totem',
+        name: 'pdv_totem',
+        component: TotemView
+    },
     // páginas do pdv
     {
-        path: '/paginas/contabil/notadeservico',
+        path: '/paginas/fiscal/notadeservico',
         name: 'notadeservico',
-        component: () => import('@/views/pages/contabil/NotaDeServicoView.vue')
+        component: () => import('@/views/pages/fiscal/NotaDeServicoView.vue')
     },
 
     // Páginas de Relatórios
@@ -324,9 +369,9 @@ const routes = [
         component: FinanceiroRelatorioView
     },
     {
-        path: '/paginas/relatorios/contabil',
-        name: 'relatorio_contabil',
-        component: () => import('@/views/pages/contabil/NotaDeServicoView.vue')
+        path: '/paginas/relatorios/fiscal',
+        name: 'relatorio_fiscal',
+        component: () => import('@/views/pages/fiscal/NotaDeServicoView.vue')
     },
 
     //    Páginas do site

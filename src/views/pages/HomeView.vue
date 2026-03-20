@@ -10,7 +10,15 @@
     <!-- Cards Resumo -->
     <v-row class="mb-4">
       <v-col cols="12" sm="6" md="3">
-        <v-card class="background-card pa-4" elevation="2" style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;">
+        <v-tooltip text="Lançar uma nova conta a pagar" location="top">
+          <template v-slot:activator="{ props }">
+            <v-card 
+              v-bind="props"
+              class="background-card pa-4 card-clicavel" 
+              elevation="2" 
+              style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;"
+              @click="router.push({ path: '/paginas/financeiro/pagar', query: { novo: 'true' } })"
+            >
           <div class="d-flex align-center justify-space-between">
             <div style="width: 100%">
               <p class="text-caption mb-1" style="color: var(--text-color)">Contas a Pagar do dia</p>
@@ -38,14 +46,24 @@
               <v-icon icon="mdi-cash-minus" color="var(--text-color-laranja)"></v-icon>
             </v-avatar>
           </div>
-        </v-card>
+            </v-card>
+          </template>
+        </v-tooltip>
       </v-col>
 
       <v-col cols="12" sm="6" md="3">
-        <v-card class="background-card pa-4" elevation="2" style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;">
-          <div class="d-flex align-center justify-space-between">
-            <div style="width: 100%">
-              <p class="text-caption mb-1" style="color: var(--text-color)">Contas a Receber do dia</p>
+        <v-tooltip text="Lançar uma nova conta a receber" location="top">
+          <template v-slot:activator="{ props }">
+            <v-card 
+              v-bind="props"
+              class="background-card pa-4 card-clicavel" 
+              elevation="2" 
+              style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;"
+              @click="router.push({ path: '/paginas/financeiro/receber', query: { novo: 'true' } })"
+            >
+              <div class="d-flex align-center justify-space-between">
+                <div style="width: 100%">
+                  <p class="text-caption mb-1" style="color: var(--text-color)">Contas a Receber do dia</p>
               <h3 class="text-h5 font-weight-bold color-verde">
                 R$ {{ formatarMoeda(detalhesReceber.doDia) }}
               </h3>
@@ -66,15 +84,25 @@
                 </div>
               </div>
             </div>
-            <v-avatar color="rgba(76, 175, 80, 0.15)" size="48">
-              <v-icon icon="mdi-cash-plus" color="#4CAF50"></v-icon>
-            </v-avatar>
-          </div>
-        </v-card>
+                <v-avatar color="rgba(76, 175, 80, 0.15)" size="48">
+                  <v-icon icon="mdi-cash-plus" color="#4CAF50"></v-icon>
+                </v-avatar>
+              </div>
+            </v-card>
+          </template>
+        </v-tooltip>
       </v-col>
 
       <v-col cols="12" sm="6" md="3">
-        <v-card class="background-card pa-4" elevation="2" style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;">
+        <v-tooltip text="Gerenciar contas bancárias" location="top">
+          <template v-slot:activator="{ props }">
+            <v-card 
+              v-bind="props"
+              class="background-card pa-4 card-clicavel" 
+              elevation="2" 
+              style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;"
+              @click="router.push('/paginas/financeiro/contacorrente')"
+            >
           <div class="d-flex align-center justify-space-between">
             <div style="width: 100%">
               <p class="text-caption mb-1" style="color: var(--text-color)">Saldo Total</p>
@@ -86,15 +114,25 @@
                 {{ saldoTotal.saldosbancario?.length || 0 }} banco(s)
               </p>
             </div>
-            <v-avatar :color="saldoTotal.saldototal >= 0 ? 'rgba(33, 150, 243, 0.15)' : 'rgba(244, 67, 54, 0.15)'" size="48">
-              <v-icon :icon="saldoTotal.saldototal >= 0 ? 'mdi-cash-register' : 'mdi-alert-circle'" :color="saldoTotal.saldototal >= 0 ? '#2196F3' : '#F44336'"></v-icon>
-            </v-avatar>
-          </div>
-        </v-card>
+                <v-avatar :color="saldoTotal.saldototal >= 0 ? 'rgba(33, 150, 243, 0.15)' : 'rgba(244, 67, 54, 0.15)'" size="48">
+                  <v-icon :icon="saldoTotal.saldototal >= 0 ? 'mdi-cash-register' : 'mdi-alert-circle'" :color="saldoTotal.saldototal >= 0 ? '#2196F3' : '#F44336'"></v-icon>
+                </v-avatar>
+              </div>
+            </v-card>
+          </template>
+        </v-tooltip>
       </v-col>
 
       <v-col cols="12" sm="6" md="3">
-        <v-card class="background-card pa-4" elevation="2" style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;">
+        <v-tooltip text="Gerenciar estoque de produtos" location="top">
+          <template v-slot:activator="{ props }">
+            <v-card 
+              v-bind="props"
+              class="background-card pa-4 card-clicavel" 
+              elevation="2" 
+              style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;"
+              @click="router.push('/paginas/estoque')"
+            >
           <div class="d-flex align-center justify-space-between">
             <div style="width: 100%">
               <p class="text-caption mb-1" style="color: var(--text-color)">Produtos em Estoque</p>
@@ -106,11 +144,13 @@
                 {{ resumo.produtosBaixoEstoque }} em baixo estoque
               </p>
             </div>
-            <v-avatar color="rgba(156, 39, 176, 0.15)" size="48">
-              <v-icon icon="mdi-package-variant" color="#9C27B0"></v-icon>
-            </v-avatar>
-          </div>
-        </v-card>
+                <v-avatar color="rgba(156, 39, 176, 0.15)" size="48">
+                  <v-icon icon="mdi-package-variant" color="#9C27B0"></v-icon>
+                </v-avatar>
+              </div>
+            </v-card>
+          </template>
+        </v-tooltip>
       </v-col>
     </v-row>
 
@@ -355,10 +395,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useDashboardStore } from '@/stores/APIs/dashboard'
 import TopAllPages from '@/components/base/padrao-paginas/TopAllPages.vue'
 
+const router = useRouter()
 const themeStore = useThemeStore()
 const dashboardStore = useDashboardStore()
 
@@ -381,12 +423,10 @@ const dataAtual = computed(() => {
 
 // Carregar dados do dashboard ao montar o componente
 onMounted(async () => {
-  console.log('🏠 HomeView montada - Iniciando carregamento do dashboard')
 
   try {
     // Obter ID da empresa do localStorage (setado no login)
     const empresaData = localStorage.getItem('empresaSelecionada')
-    console.log('📦 Dados de empresa no localStorage:', empresaData)
 
     if (!empresaData) {
       console.warn('⚠️ Nenhuma empresa encontrada no localStorage')
@@ -396,19 +436,9 @@ onMounted(async () => {
     const empresa = JSON.parse(empresaData)
     const idempresa = empresa.id
 
-    console.log('🔍 ID da empresa extraído:', idempresa)
-    console.log('⏳ Carregando dados do dashboard...')
-
     // Carregar todos os dados do dashboard
     await dashboardStore.carregarDadosDashboard(idempresa)
 
-    console.log('✅ Dashboard carregado com sucesso!', {
-      pagarReceber: dashboardStore.pagarReceber,
-      saldosBancarios: dashboardStore.saldosBancarios,
-      fluxoCaixaMensal: dashboardStore.fluxoCaixaMensal,
-      fluxoCaixaDiario: dashboardStore.fluxoCaixaDiario,
-      pagRecDocLoc: dashboardStore.pagRecDocLoc
-    })
   } catch (error) {
     console.error('❌ Erro ao carregar dashboard:', error)
   }
@@ -516,7 +546,7 @@ const fluxoCaixaDados = computed(() => {
         categorias,
         entradas,
         saidas,
-        titulo: 'Fluxo de Caixa - Proximos Meses'
+        titulo: 'Fluxo de Caixa - Próximos Meses'
       }
     }
   } else {
@@ -550,7 +580,7 @@ const fluxoCaixaDados = computed(() => {
         categorias,
         entradas,
         saidas,
-        titulo: 'Fluxo de Caixa - Últimos Dias'
+        titulo: 'Fluxo de Caixa - Próximos Dias'
       }
     }
   }
@@ -904,13 +934,22 @@ const getAvatarColor = (index) => {
   color: #F44336 !important;
 }
 
-
 .color-verde {
   color: #4CAF50 !important;
 }
 
-
 .color-roxo {
   color: #9C27B0 !important;
+}
+
+/* Cards clicáveis */
+.card-clicavel {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.card-clicavel:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
 }
 </style>

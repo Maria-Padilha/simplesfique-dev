@@ -2,8 +2,6 @@ import {defineStore} from "pinia"
 import api from "@/services/api";
 import {useApiStore} from "@/stores/APIs/api";
 
-const apiStore = useApiStore();
-
 export const useProdutosStore = defineStore('produtos', {
     state: () => ({
         loading: false,
@@ -145,6 +143,7 @@ export const useProdutosStore = defineStore('produtos', {
         async cadastrarProduto(produtoData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao('produto', 'post', produtoData);
                 await this.buscarProdutos();
             } catch (error) {
@@ -164,6 +163,7 @@ export const useProdutosStore = defineStore('produtos', {
         async atualizarProduto(id, produtoData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`produto/${id}`, 'put', produtoData);
                 await this.buscarProdutoPorId(id);
                 await this.buscarProdutos();
@@ -183,6 +183,7 @@ export const useProdutosStore = defineStore('produtos', {
         async deletarProduto(id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`produto/${id}`, 'delete');
                 await this.buscarProdutoPorId(id);
                 await this.buscarProdutos();
@@ -230,6 +231,7 @@ export const useProdutosStore = defineStore('produtos', {
         async cadastrarMarca(marcaData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao('marca', 'post', marcaData);
                 await this.buscarMarcas();
             } catch (error) {
@@ -276,6 +278,7 @@ export const useProdutosStore = defineStore('produtos', {
         async cadastrarMedida(payload) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao('medida', 'post', payload);
                 await this.buscarMedidas();
             } catch (error) {
@@ -322,6 +325,7 @@ export const useProdutosStore = defineStore('produtos', {
         async cadastrarGarantia(payload) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao('garantia', 'post', payload);
                 await this.buscarGarantias();
             } catch (error) {
@@ -369,6 +373,7 @@ export const useProdutosStore = defineStore('produtos', {
         async cadastrarEmbalagem(embalagemData, produtoId) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao('proemb', 'post', embalagemData);
                 await this.buscarEmbalagens(produtoId);
             } catch (error) {
@@ -389,6 +394,7 @@ export const useProdutosStore = defineStore('produtos', {
         async atualizarEmbalagem(produtoId, id, embalagemData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`proemb/${produtoId}/${id}`, 'put', embalagemData);
                 await this.buscarEmbalagens(produtoId);
             } catch (error) {
@@ -408,6 +414,7 @@ export const useProdutosStore = defineStore('produtos', {
         async deletarEmbalagem(produtoId, id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`proemb/${produtoId}/${id}`, 'delete');
                 await this.buscarEmbalagens(produtoId);
             } catch (error) {
@@ -455,6 +462,7 @@ export const useProdutosStore = defineStore('produtos', {
         async cadastrarFornecedor(fornecedorData, idProduto) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao('profor', 'post', fornecedorData);
                 await this.buscarFornecedores(idProduto);
             } catch (error) {
@@ -474,6 +482,7 @@ export const useProdutosStore = defineStore('produtos', {
         async deletarFornecedor(idProduto, id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`profor/${idProduto}/${id}`, 'delete');
                 await this.buscarFornecedores(idProduto);
             } catch (error) {
@@ -494,6 +503,7 @@ export const useProdutosStore = defineStore('produtos', {
         async atualizarFornecedor(idProduto, id, fornecedorData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`profor/${idProduto}/${id}`, 'put', fornecedorData);
                 await this.buscarFornecedores(idProduto);
             } catch (error) {
@@ -541,6 +551,7 @@ export const useProdutosStore = defineStore('produtos', {
         async cadastrarProdutoSimilar(similarData, idProduto) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao('prosim', 'post', similarData);
                 await this.buscarProdutosSimilares(idProduto);
             } catch (error) {
@@ -560,6 +571,7 @@ export const useProdutosStore = defineStore('produtos', {
         async deletarProdutoSimilar(idProduto, id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`prosim/${idProduto}/${id}`, 'delete');
                 await this.buscarProdutosSimilares(idProduto);
             } catch (error) {
@@ -580,6 +592,7 @@ export const useProdutosStore = defineStore('produtos', {
         async atualizarProdutoSimilar(idProduto, id, similarData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`prosim/${idProduto}/${id}`, 'put', similarData);
                 await this.buscarProdutosSimilares(idProduto);
             } catch (error) {
@@ -655,6 +668,7 @@ export const useProdutosStore = defineStore('produtos', {
         async cadastrarEntradaDfe(entradadfeData, idEmpresa) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao('entrada', 'post', entradadfeData);
                 await this.buscarEntradasDfe(idEmpresa);
             } catch (error) {
@@ -673,6 +687,7 @@ export const useProdutosStore = defineStore('produtos', {
         async deletarEntradaDfe(idEmpresa, id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`entrada/${idEmpresa}/${id}`, 'delete');
                 await this.buscarEntradasDfe(idEmpresa);
             } catch (error) {
@@ -693,6 +708,7 @@ export const useProdutosStore = defineStore('produtos', {
         async atualizarEntradaDfe(idEmpresa, id, entradadfeData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`entrada/${idEmpresa}/${id}`, 'put', entradadfeData);
                 await this.buscarEntradaDfePorId(idEmpresa, id);
                 await this.buscarEntradasDfe(idEmpresa);
@@ -798,6 +814,7 @@ export const useProdutosStore = defineStore('produtos', {
         async cadastrarLocalizacao(localizacaoData, idEmpresa) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao('localizacao', 'post', localizacaoData);
                 await this.buscarLocalizacoes(idEmpresa);
             } catch (error) {
@@ -817,6 +834,7 @@ export const useProdutosStore = defineStore('produtos', {
         async deletarLocalizacao(idEmpresa, id) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`localizacao/${idEmpresa}/${id}`, 'delete');
                 await this.buscarLocalizacoes(idEmpresa);
             } catch (error) {
@@ -837,6 +855,7 @@ export const useProdutosStore = defineStore('produtos', {
         async atualizarLocalizacao(idEmpresa, id, localizacaoData) {
             this.loading = true;
             try {
+                const apiStore = useApiStore();
                 await apiStore.executarAcao(`localizacao/${idEmpresa}/${id}`, 'put', localizacaoData);
                 await this.buscarLocalizacoes(idEmpresa);
             } catch (error) {

@@ -67,7 +67,7 @@
         </div>
       </section>
 
-      {{empresa}}
+      
     </template>
   </top-all-pages>
 </template>
@@ -83,7 +83,7 @@ const themeStore = useThemeStore();
 const empresaStore = useEmpresaStore();
 
 const empresas = computed(() => empresaStore.empresas);
-const empresa = computed(() => empresaStore.empresa);
+
 
 watchEffect(() => {
   if (empresas.value.length === 0) empresaStore.buscarTodasEmpresas();

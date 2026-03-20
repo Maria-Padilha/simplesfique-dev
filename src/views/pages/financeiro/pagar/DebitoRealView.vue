@@ -366,8 +366,8 @@ const datasUnicas = computed(() => {
 
   const datas = new Set()
   debitosRealizados.value.forEach(item => {
-    if (item.dtvencimento) {
-      datas.add(item.dtvencimento)
+    if (item.dtlancamento) {
+      datas.add(item.dtlancamento)
     }
   })
 
@@ -390,7 +390,7 @@ const debitosPorCentroCusto = computed(() => {
   debitosRealizados.value.forEach(item => {
     const centroCusto = item.desccentrocusto || 'Sem Centro de Custo'
     const key = `${item.id_ccusto || 0}_${centroCusto}`
-    const data = item.dtvencimento
+    const data = item.dtlancamento
     const dataKey = `data_${data}`
 
     if (!agrupado[key]) {
@@ -414,7 +414,7 @@ const debitosPorCentroCusto = computed(() => {
 
     // Armazena despesa para o detalhamento
     agrupado[key].despesas.push({
-      dtvencimento: item.dtvencimento,
+      dtlancamento: item.dtlancamento,
       descconta: item.descconta,
       valor: valor
     })
@@ -605,7 +605,7 @@ const agruparDespesasPorConta = (despesas) => {
 
   despesas.forEach(despesa => {
     const conta = despesa.descconta || 'Sem Conta'
-    const data = despesa.dtvencimento
+    const data = despesa.dtlancamento
     const dataKey = `data_${data}`
 
     if (!agrupado[conta]) {
@@ -629,7 +629,7 @@ const agruparDespesasPorConta = (despesas) => {
 // Calcula total de despesas por data
 const calcularTotalPorData = (despesas, data) => {
   return despesas
-      .filter(d => d.dtvencimento === data)
+      .filter(d => d.dtlancamento === data)
       .reduce((sum, d) => sum + d.valor, 0)
 }
 

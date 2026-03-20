@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import api from '@/services/api'
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
 export const useFinanceiroStore = defineStore('financeiro', {
   state: () => ({
@@ -47,7 +49,49 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
     // ========== CONTAS CORRENTES ==========
     
-    // Buscar todas as contas correntes
+    // Buscar todas as contas correntes (admin/geral)
+    async buscarTodasContas() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get('/ccorrente', {
+          headers: this.getAuthHeaders()
+        });
+        
+        // Garantir que response.data seja um array válido
+        const resposta = response.data;
+        
+        // Verificar se a resposta tem a estrutura {data: [...], records: X}
+        let dados;
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data;
+        } 
+        // Se é array diretamente
+        else if (Array.isArray(resposta)) {
+          dados = resposta;
+        }
+        // Se é objeto válido (não null, não undefined, não string vazia), transformar em array
+        else if (resposta && resposta !== '' && typeof resposta === 'object' && !resposta.data) {
+          dados = [resposta];
+        }
+        // Qualquer outro caso (null, undefined, string vazia, etc), usar array vazio
+        else {
+          dados = [];
+        }
+        
+        this.contas = dados;
+        
+        return this.contas;
+      } catch (error) {
+        this.error = error.message;
+        this.contas = []; // Garantir que contas seja um array vazio em caso de erro
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    // Buscar todas as contas correntes do usuário
     async buscarContas() {
       this.loading = true;
       this.error = null;
@@ -746,6 +790,119 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
+    // ========== CHAVES DE API DE CONTA CORRENTE ==========
+
+    /**
+     * Busca chaves de API de uma conta corrente
+     * @param {number} idConta - ID da conta corrente
+     */
+    async buscarChavesAPI(idConta) {
+      this.loading = true
+      try {
+        const response = await api.get(`/ccorrenteapi/${idConta}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        // Normalizar resposta
+        const resp = response.data
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          return resp.data[0] || resp.data
+        }
+        if (Array.isArray(resp)) {
+          return resp[0] || resp
+        }
+        return resp
+      } catch (error) {
+        console.error('[Store Financeiro] Erro ao buscar chaves de API:', error)
+        // Se retornar 404, significa que não há chaves cadastradas ainda
+        if (error.response?.status === 404) {
+          return null
+        }
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Salva/atualiza chaves de API de uma conta corrente
+     * @param {number} idConta - ID da conta corrente
+     * @param {object} dados - Dados das chaves de API
+     */
+    async salvarChavesAPI(idConta, dados) {
+      this.loading = true
+      this.error = null
+      try {
+        // Verificar se já existe cadastro (GET primeiro)
+        let existe = false
+        try {
+          const chavesExistentes = await this.buscarChavesAPI(idConta)
+          existe = !!chavesExistentes
+        } catch (error) {
+          existe = false
+        }
+      
+        // Preparar payload
+        const payload = {
+          id_ccorrente: idConta,
+          clid_api_pix: dados.data[0].clid_api_pix || '',
+          clsecret_api_pix: dados.data[0].clsecret_api_pix || '',
+          clid_api_cob: dados.data[0].clid_api_cob || '',
+          clsecret_api_cob: dados.data[0].clsecret_api_cob || '',
+          tpambiente: dados.data[0].tpambiente || 'P'
+        }
+      
+        let response
+      
+        if (existe) {
+          // Atualizar (PUT)
+          response = await api.put(`/ccorrenteapi/${idConta}`, { data: [payload] }, {
+            headers: this.getAuthHeaders()
+          })
+          toast.success('Chaves de API atualizadas com sucesso!')
+        } else {
+          // Criar (POST)
+          response = await api.post('/ccorrenteapi', { data: [payload] }, {
+            headers: this.getAuthHeaders()
+          })
+          toast.success('Chaves de API cadastradas com sucesso!')
+        }
+      
+        return response.data
+      } catch (error) {
+        console.error('[Store Financeiro] Erro ao salvar chaves de API:', error)
+        this.error = error.response?.data?.message || 'Erro ao salvar chaves de API'
+        toast.error(this.error)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Deletar chaves de API de uma conta corrente
+     * @param {number} idConta - ID da conta corrente
+     */
+    async deletarChavesAPI(idConta) {
+      this.loading = true
+      this.error = null
+      try {
+        await api.delete(`/ccorrenteapi/${idConta}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        toast.success('Chaves de API removidas com sucesso!')
+        return true
+      } catch (error) {
+        console.error('[Store Financeiro] Erro ao deletar chaves de API:', error)
+        this.error = error.response?.data?.message || 'Erro ao deletar chaves de API'
+        toast.error(this.error)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     // ========== CAIXAS ==========
 
     // Buscar caixas por empresa (GET /caixa/:idempresa)
@@ -1199,19 +1356,23 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar contas a pagar para baixa (GET /contaspagarbxa/:idempresa)
+    // Buscar contas a pagar para baixa (GET /contaspagarbxa/:idempresa/dtini/:dtini/dtfim/:dtfim)
     async buscarContasPagarBaixa(idEmpresa, filtros = {}) {
       this.loading = true
       this.error = null
       try {
-        // Construir query params
+        // As datas agora vão no path da URL
+        const dtini = filtros.dtini || filtros.dt_inicio
+        const dtfim = filtros.dtfim || filtros.dt_fim
+        
+        if (!dtini || !dtfim) {
+          throw new Error('As datas de início (dtini) e fim (dtfim) são obrigatórias')
+        }
+        
+        // Construir query params (apenas tpperiodo e outros filtros opcionais)
         const params = new URLSearchParams()
         
         if (filtros.tpperiodo !== undefined) params.append('tpperiodo', filtros.tpperiodo)
-        if (filtros.dtini) params.append('dtini', filtros.dtini)
-        if (filtros.dtfim) params.append('dtfim', filtros.dtfim)
-        if (filtros.dt_inicio) params.append('dt_inicio', filtros.dt_inicio)
-        if (filtros.dt_fim) params.append('dt_fim', filtros.dt_fim)
         if (filtros.idfornecedor) params.append('idfornecedor', filtros.idfornecedor)
         if (filtros.cnpj_cpf) params.append('cnpj_cpf', filtros.cnpj_cpf)
         if (filtros.nrdocumento) params.append('nrdocumento', filtros.nrdocumento)
@@ -1221,7 +1382,9 @@ export const useFinanceiroStore = defineStore('financeiro', {
         if (filtros.liberadopagto) params.append('liberadopagto', filtros.liberadopagto)
         
         const queryString = params.toString()
-        const url = queryString ? `/contaspagarbxa/${idEmpresa}?${queryString}` : `/contaspagarbxa/${idEmpresa}`
+        const url = queryString 
+          ? `/contaspagarbxa/${idEmpresa}/dtini/${dtini}/dtfim/${dtfim}?${queryString}` 
+          : `/contaspagarbxa/${idEmpresa}/dtini/${dtini}/dtfim/${dtfim}`
         
         console.log('🔍 Buscando contas a pagar para baixa:', url)
         
@@ -1385,32 +1548,49 @@ export const useFinanceiroStore = defineStore('financeiro', {
     // ========== PLANO CONTA ==========
 
     // Buscar planos de conta (GET /planoconta)
-    async buscarPlanosConta() {
+    async buscarPlanosConta(filtros = {}) {
       this.loading = true
       this.error = null
       try {
-      const response = await api.get('/planoconta', {
-        headers: this.getAuthHeaders()
-      })
-      const resp = response.data
-      let dados = []
-      if (resp && resp.data && Array.isArray(resp.data)) {
-        dados = resp.data
-      } else if (Array.isArray(resp)) {
-        dados = resp
-      } else if (resp && typeof resp === 'object') {
-        dados = [resp]
-      } else {
-        dados = []
-      }
+        console.log('[Store] Buscando planos de conta com filtros:', filtros)
+        
+        const response = await api.get('/planoconta', {
+          params: filtros,
+          headers: this.getAuthHeaders()
+        })
+        console.log('[Store] Response completo:', response)
+        console.log('[Store] Response.data:', response.data)
+        
+        const resp = response.data
+        let dados = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          dados = resp.data
+          console.log('[Store] Usando resp.data (caso 1):', dados.length, 'items')
+        } else if (Array.isArray(resp)) {
+          dados = resp
+          console.log('[Store] Usando resp direto (caso 2):', dados.length, 'items')
+        } else if (resp && typeof resp === 'object') {
+          dados = [resp]
+          console.log('[Store] Usando resp como objeto único (caso 3)')
+        } else {
+          dados = []
+          console.log('[Store] Nenhum caso atendido, array vazio')
+        }
 
-      this.planosConta = dados
-      return dados
+        console.log('[Store] Dados finais:', dados)
+        
+        // Só armazena em planosConta se não houver filtros específicos
+        if (!filtros.tipoconta && !filtros.idclassificador) {
+          this.planosConta = dados
+        }
+        
+        return dados
       } catch (error) {
-      this.error = error.response?.data?.message || 'Erro ao buscar planos de conta'
-      throw error
+        console.error('[Store] Erro ao buscar planos de conta:', error)
+        this.error = error.response?.data?.message || 'Erro ao buscar planos de conta'
+        throw error
       } finally {
-      this.loading = false
+        this.loading = false
       }
     },
 
@@ -2193,6 +2373,356 @@ export const useFinanceiroStore = defineStore('financeiro', {
         throw error;
       } finally {
         this.loading = false;
+      }
+    },
+
+    // ========== CARTEIRA DE COBRANÇA ==========
+
+    // Buscar tipos de carteira de cobrança por banco (GET /tpcarteiracob/:idbanco)
+    async buscarTiposCarteiraPorBanco(idBanco) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get(`/tpcarteiracob/${idBanco}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        const resposta = response.data
+        let dados = []
+
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data
+        } else if (Array.isArray(resposta)) {
+          dados = resposta
+        } else if (resposta && typeof resposta === 'object') {
+          dados = [resposta]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar tipos de carteira'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar todas as carteiras (GET /carteira/:idempresa)
+    async buscarCarteiras(idEmpresa) {
+      this.loading = true
+      this.error = null
+      try {
+        let empresaId = idEmpresa || localStorage.getItem('empresa') || localStorage.getItem('id_empresa')
+        
+        // Se não encontrou, tenta buscar de empresaSelecionada
+        if (!empresaId) {
+          const empresaSelecionada = localStorage.getItem('empresaSelecionada')
+          if (empresaSelecionada) {
+            try {
+              const empresa = JSON.parse(empresaSelecionada)
+              empresaId = empresa.id
+            } catch (e) {
+              console.error('[Store] Erro ao parsear empresaSelecionada:', e)
+            }
+          }
+        }
+        
+        if (!empresaId) {
+          console.warn('[Store] ID da empresa não encontrado para buscar carteiras')
+          return []
+        }
+        
+        const response = await api.get(`/carteiracob/${empresaId}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        const resposta = response.data
+        let dados = []
+
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data
+        } else if (Array.isArray(resposta)) {
+          dados = resposta
+        } else if (resposta && typeof resposta === 'object') {
+          dados = [resposta]
+        }
+
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar carteiras'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar carteira por ID (GET /carteira/:id)
+    async buscarCarteiraPorId(id) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get(`/carteira/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar carteira'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Criar nova carteira (POST /carteira)
+    async criarCarteira(carteiraData) {
+      this.loading = true
+      this.error = null
+      try {
+        const dadosSemId = { ...carteiraData }
+        delete dadosSemId.id
+
+        const response = await api.post('/carteira', { data: [dadosSemId] }, {
+          headers: this.getAuthHeaders()
+        })
+
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao criar carteira'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Atualizar carteira existente (PUT /carteira/:id)
+    async atualizarCarteira(id, carteiraData) {
+      this.loading = true
+      this.error = null
+      try {
+        const dadosParaUpdate = { ...carteiraData }
+        delete dadosParaUpdate.id
+
+        const response = await api.put(`/carteira/${id}`, { data: [dadosParaUpdate] }, {
+          headers: this.getAuthHeaders()
+        })
+
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao atualizar carteira'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Deletar carteira (DELETE /carteira/:id)
+    async deletarCarteira(id) {
+      this.loading = true
+      this.error = null
+      try {
+        await api.delete(`/carteira/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+
+        return true
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao deletar carteira'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // ========== DRE (DEMONSTRATIVO DE RESULTADO) ==========
+
+    // Salvar modelo de DRE (POST /dre)
+    async salvarModeloDRE(payload) {
+      this.loading = true
+      this.error = null
+      try {
+        console.log('[Store] Salvando modelo DRE:', payload)
+        
+        const response = await api.post('/dre', payload, {
+          headers: this.getAuthHeaders()
+        })
+        
+        console.log('[Store] Resposta do servidor:', response.data)
+        return response.data
+      } catch (error) {
+        console.error('[Store] Erro ao salvar modelo DRE:', error)
+        this.error = error.response?.data?.error || 'Erro ao salvar modelo DRE'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Atualizar modelo de DRE (PUT /dre/:id)
+    async atualizarModeloDRE(id, payload) {
+      this.loading = true
+      this.error = null
+      try {
+        console.log('[Store] Atualizando modelo DRE:', id, payload)
+        
+        const response = await api.put(`/dre/${id}`, payload, {
+          headers: this.getAuthHeaders()
+        })
+        
+        console.log('[Store] Resposta do servidor:', response.data)
+        return response.data
+      } catch (error) {
+        console.error('[Store] Erro ao atualizar modelo DRE:', error)
+        this.error = error.response?.data?.error || 'Erro ao atualizar modelo DRE'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar modelos de DRE (GET /dre)
+    async buscarModelosDRE() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get('/dre', {
+          headers: this.getAuthHeaders()
+        })
+        
+        const resposta = response.data
+        let dados = []
+        
+        if (resposta && resposta.data && Array.isArray(resposta.data)) {
+          dados = resposta.data
+        } else if (Array.isArray(resposta)) {
+          dados = resposta
+        }
+        
+        // Formatar para o v-select (precisa de title e value)
+        return dados.map(modelo => ({
+          title: modelo.descdre || modelo.nome,
+          value: modelo.id,
+          ...modelo
+        }))
+      } catch (error) {
+        console.error('[Store] Erro ao buscar modelos DRE:', error)
+        this.error = error.response?.data?.error || 'Erro ao buscar modelos DRE'
+        return []
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Buscar modelo de DRE por ID (GET /dre/:id)
+    async buscarModeloDRE(id) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get(`/dre/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+        
+        const modelo = response.data.data || response.data
+        console.log('[Store] Modelo DRE retornado da API:', JSON.stringify(modelo, null, 2))
+        
+        // Converter de volta para o formato da tela
+        if (modelo) {
+          // O ID pode vir de diferentes lugares na resposta
+          const idModelo = modelo.id || modelo.id_dre || id
+          console.log('[Store] ID do modelo identificado:', idModelo)
+          
+          // Criar mapa de ID para nome de grupo (para converter fórmulas)
+          const gruposMap = new Map()
+          ;(modelo.dredetalhe || []).forEach(detalhe => {
+            gruposMap.set(detalhe.id, detalhe.descdredetalhe)
+          })
+          
+          // O nome pode vir em diferentes locais dependendo da estrutura da resposta
+          const nomeDre = modelo.descdre || modelo.nome || 'Modelo DRE'
+          console.log('[Store] Nome do DRE identificado:', nomeDre)
+          
+          return {
+            id: idModelo,
+            nome: nomeDre,
+            grupos: (modelo.dredetalhe || []).map(detalhe => {
+              // Converter natureza para tipo: '+'=>RECEITA, '-'=>DESPESA, '='=>TOTALIZADOR
+              let tipo = 'RECEITA'
+              switch (detalhe.natureza) {
+                case '+':
+                  tipo = 'RECEITA'
+                  break
+                case '-':
+                  tipo = 'DESPESA'
+                  break
+                case '=':
+                  tipo = 'TOTALIZADOR'
+                  break
+              }
+              
+              // Converter fórmula de IDs para nomes (ex: "1 - 2" -> "RECEITA - DESPESA")
+              let formulaConvertida = detalhe.natureza_formula || ''
+              if (formulaConvertida) {
+                gruposMap.forEach((nome, idGrupo) => {
+                  const regex = new RegExp(`\\b${idGrupo}\\b`, 'g')
+                  formulaConvertida = formulaConvertida.replace(regex, nome)
+                })
+              }
+              
+              return {
+                id: Date.now() + Math.random(),
+                id_detalhe: detalhe.id, // Guardar ID do backend
+                nome: detalhe.descdredetalhe,
+                tipo: tipo,
+                formula: formulaConvertida,
+                descricao: '',
+                categorias: (modelo.dredetalheconta || [])
+                  .filter(conta => conta.id_dre_detalhe === detalhe.id)
+                  .map(conta => {
+                    // Usar dados que já vêm na resposta da API
+                    const classificador = conta.id_classificador || ''
+                    const nomeConta = conta.descconta || ''
+                    const contaDisplay = classificador && nomeConta ? `${classificador} - ${nomeConta}` : nomeConta
+                    
+                    return {
+                      id: Date.now() + Math.random(),
+                      id_conta: conta.id, // Guardar ID do backend
+                      id_planoconta: conta.id_reduzido_ctb,
+                      nome: nomeConta,
+                      classificador: classificador,
+                      conta: contaDisplay,
+                      descricao: ''
+                    }
+                  })
+              }
+            })
+          }
+        }
+        
+        return null
+      } catch (error) {
+        console.error('[Store] Erro ao buscar modelo DRE:', error)
+        this.error = error.response?.data?.error || 'Erro ao buscar modelo DRE'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Deletar modelo de DRE (DELETE /dre/:id)
+    async deletarModeloDRE(id) {
+      this.loading = true
+      this.error = null
+      try {
+        await api.delete(`/dre/${id}`, {
+          headers: this.getAuthHeaders()
+        })
+        
+        return true
+      } catch (error) {
+        console.error('[Store] Erro ao deletar modelo DRE:', error)
+        this.error = error.response?.data?.error || 'Erro ao deletar modelo DRE'
+        throw error
+      } finally {
+        this.loading = false
       }
     },
     

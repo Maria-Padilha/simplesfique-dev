@@ -35,7 +35,7 @@
                           class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
                           @click="selecionar(item)"
                         >
-                          <p class="text-body-1">{{ item.banco }} - {{ item.agencia }} - {{ item.conta }}</p>
+                          <p class="text-body-1">{{ item.titular || item.TITULAR || 'Sem titular' }} - Conta: {{ item.numero_ccorrente || item.NUMERO_CCORRENTE || 'N/A' }}</p>
                         </div>
                       </template>
                     </v-virtual-scroll>
@@ -79,7 +79,7 @@
                           class="hover:bg-surface-variant rounded-md px-3 py-2 cursor-pointer"
                           @click="selecionar(item)"
                         >
-                          <p class="text-body-1">{{ item.banco }} - {{ item.agencia }} - {{ item.conta }}</p>
+                          <p class="text-body-1">{{ item.titular || item.TITULAR || 'Sem titular' }} - Conta: {{ item.numero_ccorrente || item.NUMERO_CCORRENTE || 'N/A' }}</p>
                         </div>
                       </template>
                     </v-virtual-scroll>
@@ -388,7 +388,7 @@ const formData = reactive({
   id_conta_origem: null,
   id_conta_destino: null,
   data_movimento: new Date().toISOString().split('T')[0],
-  data_compensacao: null,
+  data_compensacao: new Date().toISOString().split('T')[0],
   valor: null,
   tipo_documento: null,
   numero_documento: null,
@@ -445,21 +445,21 @@ const pesquisarHistoricosContabil = async () => {
 
 const selecionarBancoOrigem = (banco) => {
   if (banco) {
-    formData.id_conta_origem = banco.id
-    formData.id_reduzido_ctb_banco_origem = banco.id_reduzido_ctb_banco || null
-    formData.id_hist_contabil_banco = banco.id_hist_contabil
-    bancoOrigemSelecionado.value = `${banco.titular} - Conta: ${banco.numero_ccorrente}`
+    formData.id_conta_origem = banco.id || banco.ID || banco.id_ccorrente
+    formData.id_reduzido_ctb_banco_origem = banco.id_reduzido_ctb_banco || banco.ID_REDUZIDO_CTB_BANCO || null
+    formData.id_hist_contabil_banco = banco.id_hist_contabil || banco.ID_HIST_CONTABIL
+    bancoOrigemSelecionado.value = `${banco.titular || banco.TITULAR || 'Sem titular'} - Conta: ${banco.numero_ccorrente || banco.NUMERO_CCORRENTE || 'N/A'}`
   }
 }
 
 const selecionarBancoDestino = (banco) => {
   if (banco) {
-    formData.id_conta_destino = banco.id
-    formData.id_reduzido_ctb_banco_destino = banco.id_reduzido_ctb_banco || null
+    formData.id_conta_destino = banco.id || banco.ID || banco.id_ccorrente
+    formData.id_reduzido_ctb_banco_destino = banco.id_reduzido_ctb_banco || banco.ID_REDUZIDO_CTB_BANCO || null
     if (!formData.id_hist_contabil_banco) {
-      formData.id_hist_contabil_banco = banco.id_hist_contabil
+      formData.id_hist_contabil_banco = banco.id_hist_contabil || banco.ID_HIST_CONTABIL
     }
-    bancoDestinoSelecionado.value = `${banco.titular} - Conta: ${banco.numero_ccorrente}`
+    bancoDestinoSelecionado.value = `${banco.titular || banco.TITULAR || 'Sem titular'} - Conta: ${banco.numero_ccorrente || banco.NUMERO_CCORRENTE || 'N/A'}`
   }
 }
 
@@ -544,7 +544,7 @@ const limparFormulario = () => {
     id_conta_origem: null,
     id_conta_destino: null,
     data_movimento: new Date().toISOString().split('T')[0],
-    data_compensacao: null,
+    data_compensacao: new Date().toISOString().split('T')[0],
     valor: null,
     tipo_documento: null,
     numero_documento: null,

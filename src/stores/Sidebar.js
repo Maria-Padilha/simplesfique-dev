@@ -25,7 +25,8 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     submenus: [
                         { text: 'Conta Corrente', icon: 'mdi-bank', route: '/paginas/financeiro/contacorrente' },
                         { text: 'Lançamentos', icon: 'mdi-bank-transfer', route: '/paginas/banco/movimentacao' },
-                        { text: 'Transf. Financeira', icon: 'mdi-swap-horizontal', route: '/paginas/financeiro/transferencia' }
+                        { text: 'Transf. Financeira', icon: 'mdi-swap-horizontal', route: '/paginas/financeiro/transferencia' },
+                        { text: 'Carteira de Cobrança', icon: 'mdi-wallet-giftcard', route: '/paginas/financeiro/carteiracobranca' }
                     ]
                 },
                 {
@@ -60,20 +61,34 @@ export const useSidebarStore = defineStore('sidebar', () => {
                         { text: 'Estorno Baixa', icon: 'mdi-undo-variant', route: '/paginas/estorno/receber' },
                         { text: 'Adt Cliente', icon: 'mdi-account-multiple', route: '/paginas/adiantamento/cliente' }
                     ]
+                },
+                {
+                    text: 'DRE',
+                    icon: 'mdi-chart-pie',
+                    submenus: [
+                        { text: 'Modelos DRE', icon: 'mdi-file-chart', route: '/paginas/financeiro/dre' },
+                        { text: 'Relatório DRE', icon: 'mdi-chart-box', route: '/paginas/financeiro/relatorio/dre' }
+                    ]
+                },
+                {
+                    text: 'Plano de Contas',
+                    icon: 'mdi-file-tree',
+                    route: '/paginas/financeiro/planoconta'
                 }
             ]
         },
         
         {
-            id: 'contabil',
-            titulo: 'Contabil',
+            id: 'Fiscal',
+            titulo: 'Fiscal',
             icon: 'mdi-cash-register',
             submenus: [
                 {
                     text: 'Nota de Serviço',
                     icon: 'mdi-format-list-bulleted-type',
-                    route: '/paginas/contabil/notadeservico'
+                    route: '/paginas/fiscal/notadeservico'
                 },
+
             ]
 
 
@@ -172,7 +187,44 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     icon: 'mdi-function-variant',
                     route: '/paginas/estoque/formulas'
                 },
-            ],
+            ]
+        },
+        {
+            id: 'produtos',
+            titulo: 'Produtos',
+            icon: 'mdi-tag-multiple',
+            submenus: [
+                {
+                    text: 'Produtos',
+                    icon: 'mdi-tag-outline',
+                    route: '/paginas/produtos'
+                },
+                {
+                    text: 'Importar Produtos',
+                    icon: 'mdi-cloud-upload-outline',
+                    route: '/paginas/produtos/importar'
+                },
+                {
+                    text: 'Local Produtos',
+                    icon: 'mdi-map-marker',
+                    route: '/paginas/produtos/local'
+                },
+                {
+                    text: 'Entrada Nota Fiscal',
+                    icon: 'mdi-file-document-outline',
+                    route: '/paginas/entradadfe'
+                },
+                {
+                    text: 'Certificados',
+                    icon: 'mdi-certificate',
+                    route: '/paginas/certificados'
+                },
+                {
+                    text: 'Inventário',
+                    icon: 'mdi-clipboard-list',
+                    route: '/paginas/inventario'
+                }
+            ]
         },
         {
             id: 'PDV',
@@ -183,6 +235,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     text: 'Operação',
                     icon: 'mdi-shape-plus',
                     route: '/paginas/pdv/operacao'
+                },
+                {
+                    text: 'Totem',
+                    icon: 'mdi-monitor-multiple',
+                    route: '/paginas/pdv/totem'
                 },
             ]
         },

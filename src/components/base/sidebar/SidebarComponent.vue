@@ -6,6 +6,44 @@
 
     <v-spacer></v-spacer>
 
+    <!-- MENU DE ACESSO RÁPIDO -->
+    <div class="d-flex align-center gap-2 mx-4">
+      <v-tooltip
+        v-for="acesso in acessosRapidosStore.acessosRapidos.slice(0, 8)"
+        :key="acesso.id"
+        location="bottom"
+      >
+        <template v-slot:activator="{ props }">
+          <v-btn
+            v-bind="props"
+            :icon="acesso.icon"
+            :to="acesso.route"
+            variant="text"
+            size="small"
+            class="acesso-rapido-btn"
+          />
+        </template>
+        <span>{{ acesso.titulo }}</span>
+      </v-tooltip>
+
+      <!-- Botão de Configurar Acessos Rápidos -->
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{ props }">
+          <v-btn
+            v-bind="props"
+            icon="mdi-cog"
+            variant="text"
+            size="small"
+            class="config-acesso-btn"
+            @click="modalAcessosRapidos = true"
+          />
+        </template>
+        <span>Configurar Acessos Rápidos</span>
+      </v-tooltip>
+    </div>
+
+    <v-divider vertical class="mx-2"></v-divider>
+
     <!-- SELECT DE EMPRESAS -->
     <div>
       <v-select
@@ -209,6 +247,9 @@
   <ErrorAlertModal :error="false" v-model:modal="errorModal">
     <template #erro>O recurso de busca está em desenvolvimento e será disponibilizado em breve.</template>
   </ErrorAlertModal>
+
+  <!-- MODAL DE CONFIGURAÇÃO DE ACESSOS RÁPIDOS -->
+  <ConfigAcessosRapidosModal v-model="modalAcessosRapidos" />
 </template>
 
 <script setup>
@@ -217,8 +258,10 @@ import {useSidebarStore} from "@/stores/Sidebar";
 import {useEmpresaStore} from "@/stores/APIs/empresa";
 import {useConfigParfinStore} from "@/stores/APIs/config";
 import {useAcessoStore} from "@/stores/APIs/acesso";
+import {useAcessosRapidosStore} from "@/stores/acessos-rapidos";
 import {ref, onMounted, onBeforeUnmount, mergeProps, computed, watchEffect} from 'vue'
 import ErrorAlertModal from "@/components/base/modais/ErrorAlertModal.vue";
+import ConfigAcessosRapidosModal from "@/components/base/modais/ConfigAcessosRapidosModal.vue";
 
 // Inicializar o store da sidebar
 const sidebarStore = useSidebarStore();
@@ -236,8 +279,14 @@ const acessoStore = useAcessoStore();
 // Store de configurações
 const configStore = useConfigParfinStore();
 
+// Store de acessos rápidos
+const acessosRapidosStore = useAcessosRapidosStore();
+
 // modal de erro
 const errorModal = ref(false);
+
+// modal de acessos rápidos
+const modalAcessosRapidos = ref(false);
 
 // links do menu perfil
 const items = ref([
@@ -437,5 +486,30 @@ onBeforeUnmount(() => {
 .grupo-primario {
   font-weight: 700 !important;
   font-size: 14px !important;
+}
+
+/* Acessos Rápidos */
+.acesso-rapido-btn {
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.acesso-rapido-btn:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.config-acesso-btn {
+  opacity: 0.5;
+  transition: all 0.2s ease;
+}
+
+.config-acesso-btn:hover {
+  opacity: 1;
+  color: var(--text-color-laranja) !important;
+}
+
+.gap-2 {
+  gap: 8px;
 }
 </style>
