@@ -21,10 +21,10 @@ export const useProdutosStore = defineStore('produtos', {
         garantias: [],
         recordsGarantias: 0,
         tiposGarantias: [
-            { title: 'Horas', value: 1 },
-            { title: 'Mes', value: 2 },
-            { title: 'Ano', value: 3 },
-            { title: 'KM', value: 4 },
+            {title: 'Horas', value: 1},
+            {title: 'Mes', value: 2},
+            {title: 'Ano', value: 3},
+            {title: 'KM', value: 4},
         ],
         tiposGarantiasObj: {
             1: 'Horas',
@@ -49,23 +49,23 @@ export const useProdutosStore = defineStore('produtos', {
 
         cores: [],
         tamanhos: [
-            { title: 'PP', value: 'PP' },
-            { title: 'P', value: 'P' },
-            { title: 'M', value: 'M' },
-            { title: 'G', value: 'G' },
-            { title: 'GG', value: 'GG' },
-            { title: 'XG', value: 'XG' },
-            { title: 'XGG', value: 'XGG' },
-            { title: 'Único', value: 'Único' },
-            { title: '36', value: '36' },
-            { title: '38', value: '38' },
-            { title: '40', value: '40' },
-            { title: '42', value: '42' },
-            { title: '44', value: '44' },
-            { title: '46', value: '46' },
-            { title: '48', value: '48' },
-            { title: '50', value: '50' },
-            { title: '52', value: '52' },
+            {title: 'PP', value: 'PP'},
+            {title: 'P', value: 'P'},
+            {title: 'M', value: 'M'},
+            {title: 'G', value: 'G'},
+            {title: 'GG', value: 'GG'},
+            {title: 'XG', value: 'XG'},
+            {title: 'XGG', value: 'XGG'},
+            {title: 'Único', value: 'Único'},
+            {title: '36', value: '36'},
+            {title: '38', value: '38'},
+            {title: '40', value: '40'},
+            {title: '42', value: '42'},
+            {title: '44', value: '44'},
+            {title: '46', value: '46'},
+            {title: '48', value: '48'},
+            {title: '50', value: '50'},
+            {title: '52', value: '52'},
         ],
 
         grades: [],
@@ -653,8 +653,7 @@ export const useProdutosStore = defineStore('produtos', {
             } catch (error) {
                 this.errorMessage = error.response;
                 console.error('Erro ao buscar entrada dfe por ID:', error);
-            }
-            finally {
+            } finally {
                 this.loading = false;
             }
         },
@@ -738,8 +737,7 @@ export const useProdutosStore = defineStore('produtos', {
             } catch (error) {
                 this.errorMessage = error.response;
                 console.error('Erro ao buscar devoluções de entrada:', error);
-            }
-            finally {
+            } finally {
                 this.loading = false;
             }
         },
@@ -750,6 +748,7 @@ export const useProdutosStore = defineStore('produtos', {
 
         async cadastrarDevEntrada(data, idEmpresa) {
             this.loading = true;
+            const apiStore = useApiStore();
             try {
                 await apiStore.executarAcao('devcompra', 'post', data);
                 await this.buscarEntradasDfe(idEmpresa);
@@ -766,6 +765,7 @@ export const useProdutosStore = defineStore('produtos', {
 
         async editarDevEntrada(idEmpresa, id, data) {
             this.loading = true;
+            const apiStore = useApiStore();
             try {
                 await apiStore.executarAcao(`devcompra/${idEmpresa}/${id}`, 'put', data);
                 await this.buscarDevolucoesEntrada(idEmpresa);
@@ -901,6 +901,7 @@ export const useProdutosStore = defineStore('produtos', {
 
         async cadastrarCor(corData) {
             this.loading = true;
+            const apiStore = useApiStore();
             try {
                 await apiStore.executarAcao('cor', 'post', corData);
                 await this.buscarCores();
@@ -920,6 +921,7 @@ export const useProdutosStore = defineStore('produtos', {
 
         async atualizarCor(id, corData) {
             this.loading = true;
+            const apiStore = useApiStore();
             try {
                 await apiStore.executarAcao(`cor/${id}`, 'put', corData);
                 await this.buscarCores();
@@ -936,6 +938,7 @@ export const useProdutosStore = defineStore('produtos', {
 
         async cadastrarGradeProduto(gradeData, idEmp) {
             this.loading = true;
+            const apiStore = useApiStore();
             try {
                 await apiStore.executarAcao('grade', 'post', gradeData);
                 await this.buscarGradeProduto(idEmp);
@@ -946,8 +949,9 @@ export const useProdutosStore = defineStore('produtos', {
             }
         },
 
-         async deletarGradeProduto(idEmp, idProduto, idCor, idTam) {
+        async deletarGradeProduto(idEmp, idProduto, idCor, idTam) {
             this.loading = true;
+            const apiStore = useApiStore();
             try {
                 await apiStore.executarAcao(`grade/${idEmp}/${idProduto}/${idCor}/${idTam}`, 'delete');
                 await this.buscarGradeProduto(idEmp);
@@ -958,8 +962,9 @@ export const useProdutosStore = defineStore('produtos', {
             }
         },
 
-         async atualizarGradeProduto(idEmp, idProduto, idCor, idTam, gradeData) {
+        async atualizarGradeProduto(idEmp, idProduto, idCor, idTam, gradeData) {
             this.loading = true;
+            const apiStore = useApiStore();
             try {
                 await apiStore.executarAcao(`grade/${idEmp}/${idProduto}/${idCor}/${idTam}`, 'put', gradeData);
                 await this.buscarGradeProduto(idEmp);
@@ -968,7 +973,7 @@ export const useProdutosStore = defineStore('produtos', {
             } finally {
                 this.loading = false;
             }
-         },
+        },
 
         async buscarGradeProduto(idEmp) {
             this.loading = true;
@@ -992,7 +997,7 @@ export const useProdutosStore = defineStore('produtos', {
             } finally {
                 this.loading = false;
             }
-         },
+        },
 
         async buscarGradeProdutoPorId(idEmp, idProduto) {
             this.loading = true;
@@ -1046,6 +1051,7 @@ export const useProdutosStore = defineStore('produtos', {
 
         async cadastrarTributo(tributoData, idEmpresa, id) {
             this.loading = true;
+            const apiStore = useApiStore();
             try {
                 await apiStore.executarAcao('protrib', 'post', tributoData);
                 await this.buscarTributoPorId(idEmpresa, id);
@@ -1058,6 +1064,7 @@ export const useProdutosStore = defineStore('produtos', {
 
         async atualizarTributo(idEmpresa, id, tributoData) {
             this.loading = true;
+            const apiStore = useApiStore();
             try {
                 await apiStore.executarAcao(`protrib/${idEmpresa}/${id}`, 'put', tributoData);
                 await this.buscarTributoPorId(idEmpresa, id);
@@ -1070,6 +1077,7 @@ export const useProdutosStore = defineStore('produtos', {
 
         async deletarTributo(idEmpresa, id) {
             this.loading = true;
+            const apiStore = useApiStore();
             try {
                 await apiStore.executarAcao(`protrib/${idEmpresa}/${id}`, 'delete');
                 await this.buscarTributoPorId(idEmpresa, id);
@@ -1078,9 +1086,9 @@ export const useProdutosStore = defineStore('produtos', {
             } finally {
                 this.loading = false;
             }
-         },
+        },
 
-         async buscarTributoPorId(idEmpresa, id) {
+        async buscarTributoPorId(idEmpresa, id) {
             this.loading = true;
 
             try {
@@ -1102,6 +1110,6 @@ export const useProdutosStore = defineStore('produtos', {
             } finally {
                 this.loading = false;
             }
-         }
+        }
     }
 })
