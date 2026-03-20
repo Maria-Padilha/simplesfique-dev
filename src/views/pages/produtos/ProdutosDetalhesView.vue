@@ -5,6 +5,7 @@
       <v-sheet class="bg-transparent">
         <v-tabs v-model="tab" color="var(--text-color-laranja)">
           <v-tab value="one">Produtos</v-tab>
+          <v-tab value="tributo">Tributo</v-tab>
           <v-tab value="emb">Embalagem</v-tab>
           <v-tab value="for">Fornecedor</v-tab>
           <v-tab value="sim">Produtos Similares</v-tab>
@@ -149,7 +150,7 @@
                       placeholder="Selecione o Grupo"
                   >
                     <template #append-inner>
-                      <grupos-menu @selecionar="selecionarGrupo" />
+                      <grupos-menu @selecionar="selecionarGrupo"/>
                     </template>
                   </v-text-field>
                 </v-col>
@@ -183,7 +184,7 @@
                       placeholder="Selecione a classe"
                   >
                     <template #append-inner>
-                      <classes-menu @selecionar="selecionarClasse" />
+                      <classes-menu @selecionar="selecionarClasse"/>
                     </template>
                   </v-text-field>
                 </v-col>
@@ -200,7 +201,7 @@
                       placeholder="Selecione o NCM"
                   >
                     <template #append-inner>
-                      <ncm-menu @selecionar="selecionarNcm" />
+                      <ncm-menu @selecionar="selecionarNcm"/>
                     </template>
                   </v-text-field>
                 </v-col>
@@ -218,7 +219,7 @@
                       placeholder="Selecione a marca"
                   >
                     <template #append-inner>
-                      <marcas-menu @selecionar="selecionarMarca" />
+                      <marcas-menu @selecionar="selecionarMarca"/>
                     </template>
                   </v-text-field>
                 </v-col>
@@ -235,7 +236,7 @@
                       placeholder="Selecione a garantia"
                   >
                     <template #append-inner>
-                      <garantia-menu @selecionar="selecionarGarantia" />
+                      <garantia-menu @selecionar="selecionarGarantia"/>
                     </template>
                   </v-text-field>
                 </v-col>
@@ -252,7 +253,7 @@
                       placeholder="Selecione a medida"
                   >
                     <template #append-inner>
-                      <medidas-menu @selecionar="selecionarMedida" />
+                      <medidas-menu @selecionar="selecionarMedida"/>
                     </template>
                   </v-text-field>
                 </v-col>
@@ -312,6 +313,128 @@
                 </v-col>
               </v-row>
             </v-form>
+          </v-tabs-window-item>
+
+          <v-tabs-window-item value="tributo">
+            <v-card elevation="0" class="background-secondary mt-10">
+              <v-card-text class="pa-4">
+                <botao-expand-transition
+                    v-if="!exibirTributos"
+                    :formulario-aberto="formularioAbertoTributo"
+                    @toggle="toggleFormularioTributo"
+                >
+                  <template #default>{{ formularioAbertoTributo ? 'Cancelar' : 'Novo Tributo' }}</template>
+                </botao-expand-transition>
+              </v-card-text>
+
+              <forms-expand-transition
+                  :salvar-formulario="salvarFormularioTributo"
+                  :cancelar-formulario="cancelarFormularioTributo"
+                  :formulario-aberto="formularioAbertoTributo"
+                  :editando="editandoTributo"
+                  :loading="produtosStore.loading"
+              >
+                <template #form>
+                  <v-form ref="formRefTributo">
+                    <v-row>
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            density="compact"
+                            variant="outlined"
+                            label="Classificação Fiscal"
+                            hide-details="auto"
+                            v-model="formsTributo.classificacao_fiscal"
+                            :theme="themeStore.darkMode ? 'dark' : 'light'"
+                        />
+                      </v-col>
+
+                      <v-col cols="12" md="4">
+                        <v-select
+                            density="compact"
+                            variant="outlined"
+                            label="Incidencia Fiscal"
+                            item-title="label"
+                            item-value="value"
+                            :items="camposIncidenciaFiscal"
+                            hide-details="auto"
+                            v-model="formsTributo.incidenciafiscal"
+                            :theme="themeStore.darkMode ? 'dark' : 'light'"
+                        />
+                      </v-col>
+
+                      <v-col cols="12" md="4">
+                        <v-autocomplete
+                            :readonly="formsTributo.incidenciafisca !== '02'"
+                            density="compact"
+                            variant="outlined"
+                            label="CEST"
+                            type="number"
+                            min="0"
+                            hide-details="auto"
+                            :items="cests"
+                            item-title="descricao"
+                            item-value="id"
+                            v-model="formsTributo.id_cest"
+                            :theme="themeStore.darkMode ? 'dark' : 'light'"
+                        />
+                      </v-col>
+
+                      <v-col cols="12" md="3">
+                        <v-text-field
+                            density="compact"
+                            variant="outlined"
+                            label="Margem Lucro Bruto"
+                            v-mask-number suffix="%"
+                            hide-details="auto"
+                            v-model="formsTributo.margem_lucro_bruto"
+                            :theme="themeStore.darkMode ? 'dark' : 'light'"
+                        />
+                      </v-col>
+
+                      <v-col cols="12" md="3">
+                        <v-text-field
+                            density="compact"
+                            variant="outlined"
+                            label="Margem Lucro CNAE"
+                            v-mask-number suffix="%"
+                            hide-details="auto"
+                            v-model="formsTributo.margem_lucro_cnae"
+                            :theme="themeStore.darkMode ? 'dark' : 'light'"
+                        />
+                      </v-col>
+                    </v-row>
+                  </v-form>
+                </template>
+              </forms-expand-transition>
+
+              <tabela-padrao
+                  :formulario-aberto="formularioAbertoTributo"
+                  :headers="headersTributo"
+                  :items="tributos"
+                  :loading="produtosStore.loading"
+                  :search="search"
+                  @update:search="(value) => search = value"
+                  search-label="Pesquisar Items"
+                  item-key="id"
+                  no-data-icon="mdi-database-off"
+                  no-data-text="Nenhum item encontrado"
+
+              >
+                <template v-slot:[`item.acoes`]='{ item }'>
+                  <v-btn
+                      icon="mdi-pencil" size="small"
+                      color="primary" variant="text"
+                      @click="editarTributo(item)"
+                  />
+
+                  <v-btn
+                      icon="mdi-delete" size="small"
+                      color="error" variant="text"
+                      @click="deletarTributo(item)"
+                  />
+                </template>
+              </tabela-padrao>
+            </v-card>
           </v-tabs-window-item>
 
           <v-tabs-window-item value="emb">
@@ -515,11 +638,11 @@
 
               >
                 <template v-slot:[`item.dtultima_compra`]="{ item }">
-                  {{formatarData(item.dtultima_compra)}}
+                  {{ formatarData(item.dtultima_compra) }}
                 </template>
 
                 <template v-slot:[`item.custo_ultima_compra`]="{ item }">
-                  {{formatarParaReal(item.custo_ultima_compra)}}
+                  {{ formatarParaReal(item.custo_ultima_compra) }}
                 </template>
 
                 <template v-slot:[`item.id_pessoa`]="{ item }">
@@ -637,7 +760,7 @@
           :loading="produtosStore.loading"
           v-model:modal-excluir="openModalDelete"
       >
-        <template #item>{{forms.descproduto}}</template>
+        <template #item>{{ forms.descproduto }}</template>
       </excluir-modal>
 
       <!-- DELETAR EMBALAGEM -->
@@ -647,7 +770,7 @@
           :loading="produtosStore.loading"
           v-model:modal-excluir="openModalDeleteEmb"
       >
-        <template #item>{{itemSelecionado?.descembalagem}}</template>
+        <template #item>{{ itemSelecionado?.descembalagem }}</template>
       </excluir-modal>
 
       <!-- DELETAR SIMILAR -->
@@ -657,7 +780,7 @@
           :loading="produtosStore.loading"
           v-model:modal-excluir="openModalDeleteSimilar"
       >
-        <template #item>{{itemSelecionadoSimilar?.descproduto}}</template>
+        <template #item>{{ itemSelecionadoSimilar?.descproduto }}</template>
       </excluir-modal>
     </template>
   </top-all-pages>
@@ -689,14 +812,15 @@ const themeStore = useThemeStore();
 const pessoasStore = usePessoasStore();
 
 const id = route.params.id;
+const idEmpresa = JSON.parse(localStorage.getItem('empresaSelecionada'));
 
 // STATE
 const openModalDelete = ref(false);
-const tab = ref('one');
+const tab = ref('tributo');
 const validacao = [(v) => !!v || 'Campo obrigatório'];
+const forms = computed(() => produtosStore.produto || {});
 
 // const loading = computed(() => produtosStore.loading);
-const forms = computed(() => produtosStore.produto || {});
 const descgrupo = computed(() => {
   const grupo = estoqueStore.grupos.find(g => g.id === forms.value?.id_grupo);
   return grupo ? grupo.descgrupo : '';
@@ -727,27 +851,37 @@ const descmedida = computed(() => {
 
 const utiliza_balanca = computed({
   get: () => forms.value.utiliza_balanca === 'S',
-  set: (val) => { forms.value.utiliza_balanca = val ? 'S' : 'N'; }
+  set: (val) => {
+    forms.value.utiliza_balanca = val ? 'S' : 'N';
+  }
 });
 
 const utiliza_grade = computed({
   get: () => forms.value.utiliza_grade === 'S',
-  set: (val) => { forms.value.utiliza_grade = val ? 'S' : 'N'; }
+  set: (val) => {
+    forms.value.utiliza_grade = val ? 'S' : 'N';
+  }
 });
 
 const utiliza_nrserie = computed({
   get: () => forms.value.utiliza_nrserie === 'S',
-  set: (val) => { forms.value.utiliza_nrserie = val ? 'S' : 'N'; }
+  set: (val) => {
+    forms.value.utiliza_nrserie = val ? 'S' : 'N';
+  }
 });
 
 const utiliza_lote = computed({
   get: () => forms.value.utiliza_lote === 'S',
-  set: (val) => { forms.value.utiliza_lote = val ? 'S' : 'N'; }
+  set: (val) => {
+    forms.value.utiliza_lote = val ? 'S' : 'N';
+  }
 });
 
 const em_promocao = computed({
   get: () => forms.value.em_promocao === 'S',
-  set: (val) => { forms.value.em_promocao = val ? 'S' : 'N'; }
+  set: (val) => {
+    forms.value.em_promocao = val ? 'S' : 'N';
+  }
 });
 
 /**
@@ -864,11 +998,11 @@ const cancelarFormulario = () => {
 // dados da tabela de embalagens
 const search = ref('');
 const headers = [
-  { title: 'ID', key: 'id' },
-  { title: 'Descrição da Embalagem', key: 'descembalagem' },
-  { title: 'Quantidade', key: 'qtd_embalagem' },
-  { title: 'Ativo', key: 'ativo' },
-  { title: 'Ações', key: 'acoes', sortable: false },
+  {title: 'ID', key: 'id'},
+  {title: 'Descrição da Embalagem', key: 'descembalagem'},
+  {title: 'Quantidade', key: 'qtd_embalagem'},
+  {title: 'Ativo', key: 'ativo'},
+  {title: 'Ações', key: 'acoes', sortable: false},
 ];
 
 /**
@@ -968,13 +1102,13 @@ const buscarPessoa = (id) => {
 };
 
 const headersFor = [
-  { title: 'ID', key: 'id' },
-  { title: 'Nome do Fornecedor', key: 'id_pessoa' },
-  { title: 'Nota', key: 'id_nota' },
-  { title: 'Data última compra', key: 'dtultima_compra' },
-  { title: 'Qtd. última compra', key: 'qtde_ultima_compra' },
-  { title: 'Custo última compra', key: 'custo_ultima_compra' },
-  { title: 'Ações', key: 'acoes', sortable: false },
+  {title: 'ID', key: 'id'},
+  {title: 'Nome do Fornecedor', key: 'id_pessoa'},
+  {title: 'Nota', key: 'id_nota'},
+  {title: 'Data última compra', key: 'dtultima_compra'},
+  {title: 'Qtd. última compra', key: 'qtde_ultima_compra'},
+  {title: 'Custo última compra', key: 'custo_ultima_compra'},
+  {title: 'Ações', key: 'acoes', sortable: false},
 ];
 
 /**
@@ -1052,10 +1186,10 @@ const cancelarFormularioSimilar = () => {
 const similares = computed(() => produtosStore.similar || []);
 
 const headersSimilar = [
-  { title: 'ID', key: 'id_similar' },
-  { title: 'Descrição do Produto Similar', key: 'descproduto' },
-  { title: 'Ativo', key: 'ativo' },
-  { title: 'Ações', key: 'acoes', sortable: false },
+  {title: 'ID', key: 'id_similar'},
+  {title: 'Descrição do Produto Similar', key: 'descproduto'},
+  {title: 'Ativo', key: 'ativo'},
+  {title: 'Ações', key: 'acoes', sortable: false},
 ];
 
 /**
@@ -1111,6 +1245,86 @@ const salvarFormularioSimilar = async () => {
   cancelarFormularioSimilar();
 };
 
+/** ================ TRIBUTOS ================ **/
+
+const exibirTributos = ref(false);
+const formularioAbertoTributo = ref(false);
+const editandoTributo = ref(false);
+const formRefTributo = ref(null);
+
+const cests = computed(() => estoqueStore.cests);
+
+const formsTributo = reactive({
+  id_produto: Number(id),
+  classificacao_fiscal: '',
+  id_cest: null,
+  margem_lucro_bruto: null,
+  margem_lucro_cnae: null,
+  incidenciafiscal: null,
+});
+
+const camposIncidenciaFiscal = [
+  {label: 'Nenhuma', value: '00'},
+  {label: 'Monofásica', value: '01'},
+  {label: 'Subst. Tributária', value: '02'},
+  {label: 'Aliquota 0', value: '03'},
+  {label: 'Suspensão', value: '04'},
+];
+
+const toggleFormularioTributo = () => {
+  formularioAbertoTributo.value = !formularioAbertoTributo.value;
+  if (editandoTributo.value) cancelarFormularioTributo();
+};
+
+const headersTributo = [
+  {title: 'ID', key: 'id'},
+  {title: 'Descrição do Tributo', key: 'desctributo'},
+  {title: 'Valor (%)', key: 'valor_tributo'},
+  {title: 'Ações', key: 'acoes', sortable: false},
+];
+
+const tributos = computed(() => produtosStore.tributos || []);
+
+const cancelarFormularioTributo = () => {
+  formularioAbertoTributo.value = false;
+  formRefTributo.value.reset();
+  editandoTributo.value = false;
+};
+
+const salvarFormularioTributo = async () => {
+  if (formRefTributo.value && !(await formRefTributo.value.validate())) {
+    return;
+  }
+
+  if (editandoTributo.value) {
+    await produtosStore.atualizarTributo(idEmpresa?.id, id, {
+      data: [
+        formsTributo
+      ]
+    });
+  } else {
+    await produtosStore.cadastrarTributo({
+      data: [
+        formsTributo
+      ]
+    }, idEmpresa?.id, id);
+  }
+
+  cancelarFormularioTributo();
+};
+
+const editarTributo = (item) => {
+  itemSelecionado.value = item;
+  Object.assign(formsTributo, item)
+  editandoTributo.value = true;
+  formularioAbertoTributo.value = true;
+};
+
+const deletarTributo = (item) => {
+  console.log("Deletando tributo: ", item);
+};
+
+
 /**
  * FUNÇÕES AUXILIARES
  */
@@ -1152,6 +1366,12 @@ watchEffect(async () => {
 
     if (similares.value.length === 0)
       await produtosStore.buscarProdutosSimilares(id);
+  }
+  if (cests.value.length === 0) {
+    await estoqueStore.buscarCests();
+  }
+  if (tributos.value.length === 0) {
+    await produtosStore.buscarTributoPorId(idEmpresa?.id, id);
   }
 });
 </script>

@@ -21,10 +21,10 @@ export const useProdutosStore = defineStore('produtos', {
         garantias: [],
         recordsGarantias: 0,
         tiposGarantias: [
-            { title: 'Horas', value: 1 },
-            { title: 'Mes', value: 2 },
-            { title: 'Ano', value: 3 },
-            { title: 'KM', value: 4 },
+            {title: 'Horas', value: 1},
+            {title: 'Mes', value: 2},
+            {title: 'Ano', value: 3},
+            {title: 'KM', value: 4},
         ],
         tiposGarantiasObj: {
             1: 'Horas',
@@ -43,7 +43,36 @@ export const useProdutosStore = defineStore('produtos', {
         entradadfe: [],
         entradadfeItem: null,
 
+        deventrada: [],
+
         localizacoes: [],
+
+        cores: [],
+        tamanhos: [
+            {title: 'PP', value: 'PP'},
+            {title: 'P', value: 'P'},
+            {title: 'M', value: 'M'},
+            {title: 'G', value: 'G'},
+            {title: 'GG', value: 'GG'},
+            {title: 'XG', value: 'XG'},
+            {title: 'XGG', value: 'XGG'},
+            {title: 'Único', value: 'Único'},
+            {title: '36', value: '36'},
+            {title: '38', value: '38'},
+            {title: '40', value: '40'},
+            {title: '42', value: '42'},
+            {title: '44', value: '44'},
+            {title: '46', value: '46'},
+            {title: '48', value: '48'},
+            {title: '50', value: '50'},
+            {title: '52', value: '52'},
+        ],
+
+        grades: [],
+        grade: null,
+
+        tributos: [],
+        tributo: null,
     }),
 
     actions: {
@@ -624,8 +653,7 @@ export const useProdutosStore = defineStore('produtos', {
             } catch (error) {
                 this.errorMessage = error.response;
                 console.error('Erro ao buscar entrada dfe por ID:', error);
-            }
-            finally {
+            } finally {
                 this.loading = false;
             }
         },
@@ -685,6 +713,64 @@ export const useProdutosStore = defineStore('produtos', {
                 await this.buscarEntradasDfe(idEmpresa);
             } catch (error) {
                 console.error('Erro ao atualizar entrada dfe:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * BUSCAR DEVOLUÇÕES DE ENTRADA
+         */
+
+        async buscarDevolucoesEntrada(idEmpresa) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/devcompra/${idEmpresa}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+                this.deventrada = response.data.data;
+                this.errorMessage = '';
+                console.log('devoluções de entrada encontradas:', this.deventrada);
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar devoluções de entrada:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * CADASTRAR DEVOLUÇÃO DE ENTRADA
+         */
+
+        async cadastrarDevEntrada(data, idEmpresa) {
+            this.loading = true;
+            const apiStore = useApiStore();
+            try {
+                await apiStore.executarAcao('devcompra', 'post', data);
+                await this.buscarEntradasDfe(idEmpresa);
+            } catch (error) {
+                console.error('Erro ao cadastrar dev entrada dfe:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * EDITAR DEVOLUÇÃO DE ENTRADA
+         */
+
+        async editarDevEntrada(idEmpresa, id, data) {
+            this.loading = true;
+            const apiStore = useApiStore();
+            try {
+                await apiStore.executarAcao(`devcompra/${idEmpresa}/${id}`, 'put', data);
+                await this.buscarDevolucoesEntrada(idEmpresa);
+            } catch (error) {
+                console.error('Erro ao editar dev entrada dfe:', error);
             } finally {
                 this.loading = false;
             }
@@ -774,6 +860,253 @@ export const useProdutosStore = defineStore('produtos', {
                 await this.buscarLocalizacoes(idEmpresa);
             } catch (error) {
                 console.error('Erro ao atualizar localização:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * BUSCAR CORES
+         * @return {Promise<void>}
+         */
+
+        async buscarCores() {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/cor`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                this.cores = response.data.data;
+                this.errorMessage = '';
+
+                console.log('cores encontradas:', this.cores);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar cores:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * CADASTRAR COR
+         * @param {object} corData - Dados da cor a ser cadastrada.
+         * @return {Promise<void>}
+         */
+
+        async cadastrarCor(corData) {
+            this.loading = true;
+            const apiStore = useApiStore();
+            try {
+                await apiStore.executarAcao('cor', 'post', corData);
+                await this.buscarCores();
+            } catch (error) {
+                console.error('Erro ao cadastrar cor:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * ATUALIZAR COR
+         * @param {number} id - ID da cor a ser atualizada.
+         * @param {object} corData - Dados da cor a serem atualizados.
+         * @return {Promise<void>}
+         */
+
+        async atualizarCor(id, corData) {
+            this.loading = true;
+            const apiStore = useApiStore();
+            try {
+                await apiStore.executarAcao(`cor/${id}`, 'put', corData);
+                await this.buscarCores();
+            } catch (error) {
+                console.error('Erro ao atualizar cor:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /**
+         * GRADE DE PRODUTOS
+         */
+
+        async cadastrarGradeProduto(gradeData, idEmp) {
+            this.loading = true;
+            const apiStore = useApiStore();
+            try {
+                await apiStore.executarAcao('grade', 'post', gradeData);
+                await this.buscarGradeProduto(idEmp);
+            } catch (error) {
+                console.error('Erro ao cadastrar grade de produto:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async deletarGradeProduto(idEmp, idProduto, idCor, idTam) {
+            this.loading = true;
+            const apiStore = useApiStore();
+            try {
+                await apiStore.executarAcao(`grade/${idEmp}/${idProduto}/${idCor}/${idTam}`, 'delete');
+                await this.buscarGradeProduto(idEmp);
+            } catch (error) {
+                console.error('Erro ao deletar grade de produto:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async atualizarGradeProduto(idEmp, idProduto, idCor, idTam, gradeData) {
+            this.loading = true;
+            const apiStore = useApiStore();
+            try {
+                await apiStore.executarAcao(`grade/${idEmp}/${idProduto}/${idCor}/${idTam}`, 'put', gradeData);
+                await this.buscarGradeProduto(idEmp);
+            } catch (error) {
+                console.error('Erro ao atualizar grade de produto:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async buscarGradeProduto(idEmp) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/grade/${idEmp}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                this.grades = response.data.data;
+                this.errorMessage = '';
+
+                console.log('grade de produto encontrada:', this.grades);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar grade de produto:', error);
+                return [];
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async buscarGradeProdutoPorId(idEmp, idProduto) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/grade/${idEmp}/${idProduto}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                const gradeItem = response.data;
+                this.errorMessage = '';
+
+                console.log('item da grade de produto encontrado:', gradeItem);
+                return gradeItem;
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar item da grade de produto por ID:', error);
+                return null;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        /** ================= TRIBUTOS DE PRODUTOS ================= */
+
+        async buscarTributos(idEmpresa) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/protrib/${idEmpresa}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                this.tributos = response.data.data;
+                this.errorMessage = '';
+
+                console.log('tributos encontrados:', this.tributos);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar tributos:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async cadastrarTributo(tributoData, idEmpresa, id) {
+            this.loading = true;
+            const apiStore = useApiStore();
+            try {
+                await apiStore.executarAcao('protrib', 'post', tributoData);
+                await this.buscarTributoPorId(idEmpresa, id);
+            } catch (error) {
+                console.error('Erro ao cadastrar tributo:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async atualizarTributo(idEmpresa, id, tributoData) {
+            this.loading = true;
+            const apiStore = useApiStore();
+            try {
+                await apiStore.executarAcao(`protrib/${idEmpresa}/${id}`, 'put', tributoData);
+                await this.buscarTributoPorId(idEmpresa, id);
+            } catch (error) {
+                console.error('Erro ao atualizar tributo:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async deletarTributo(idEmpresa, id) {
+            this.loading = true;
+            const apiStore = useApiStore();
+            try {
+                await apiStore.executarAcao(`protrib/${idEmpresa}/${id}`, 'delete');
+                await this.buscarTributoPorId(idEmpresa, id);
+            } catch (error) {
+                console.error('Erro ao deletar tributo:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async buscarTributoPorId(idEmpresa, id) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/protrib/${idEmpresa}/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                this.tributos = response.data;
+                this.errorMessage = '';
+
+                console.log('item do tributo encontrado:', this.tributos);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar item do tributo por ID:', error);
+                return null;
             } finally {
                 this.loading = false;
             }

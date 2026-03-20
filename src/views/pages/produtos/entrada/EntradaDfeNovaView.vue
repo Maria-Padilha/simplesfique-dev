@@ -13,435 +13,19 @@
           </v-btn>
         </div>
 
-        <v-expansion-panels :theme="themeStore.darkMode ? 'dark' : 'light'" color="var(--bg-card)">
-          <v-expansion-panel elevation="1" class="mb-5" title="Entrada de Nota" color="var(--bg-card)">
-            <template #text>
-              <v-row dense>
-                <v-col cols="12" md="12">
-                  <v-file-input
-                      density="compact"
-                      variant="outlined"
-                      label="Arquivo XML"
-                      hide-details="auto"
-                      v-model="forms.arquivoxml"
-                      @change="lerXML" accept=".xml"
-                  />
-                </v-col>
-
-                <!-- id_fornecedor -->
-                <v-col cols="12" md="2">
-                  <v-autocomplete
-                      density="compact" variant="outlined" label="Fornecedor" hide-details="auto"
-                      v-model="forms.id_fornecedor" :rules="validacao"
-                      :items="pessoas" item-title="nome_razao" item-value="id"
-                      class="required-left-border"
-                  />
-                </v-col>
-
-                <!-- id_nota -->
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Nota" hide-details="auto"
-                      v-model="forms.id_nota" :rules="validacao" @input="Number(forms.id_nota)"
-                      class="required-left-border"
-                  />
-                </v-col>
-
-                <!-- id_serie -->
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Série" hide-details="auto"
-                      v-model="forms.id_serie" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <!-- id_almoxarifado -->
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Almoxarifado" hide-details="auto"
-                                v-model="almoxarifadoNome" readonly :rules="validacao" class="required-left-border">
-                    <template #append-inner>
-                      <almoxarifado-menu @selecionar="selecionarAlmoxarifado"/>
-                    </template>
-                  </v-text-field>
-                </v-col>
-
-                <!-- id_cfop -->
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="C.F.O.P" hide-details="auto"
-                                v-model="cfopNome" readonly :rules="validacao" class="required-left-border">
-                    <template #append-inner>
-                      <cfop-menu @selecionar="selecionarCfop"/>
-                    </template>
-                  </v-text-field>
-                </v-col>
-
-                <!-- id_uf -->
-                <v-col cols="12" md="2">
-                  <v-autocomplete
-                      density="compact" variant="outlined" label="UF" hide-details="auto" :rules="validacao" class="required-left-border"
-                      v-model="forms.id_uf" :items="ufs" item-title="sigla" item-value="sigla"
-                  />
-                </v-col>
-
-                <!-- valores iniciais -->
-                <v-col cols="12" md="3">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Espécie" hide-details="auto"
-                      v-model="forms.especie"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="3">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Valor Total Produtos" hide-details="auto"
-                      v-model="forms.vlr_total_produto" type="number" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="3">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Valor NF" hide-details="auto" type="number"
-                      v-model="forms.vlr_nf" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="3">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Situação" hide-details="auto"
-                      v-model="forms.situacao"
-                  />
-                </v-col>
-
-                <!-- Volume -->
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Qtd Volume" hide-details="auto" type="number"
-                      v-model="forms.qtd_volume"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Espécie Volume" hide-details="auto"
-                      v-model="forms.especie_volume"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Peso Bruto" hide-details="auto" type="number"
-                      v-model="forms.peso_bruto"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Peso Líquido" hide-details="auto" type="number"
-                      v-model="forms.peso_liquido"
-                  />
-                </v-col>
-
-                <!-- Veículo -->
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Placa" hide-details="auto"
-                      v-model="forms.placa_veiculo"
-                  />
-                </v-col>
-
-                <!-- Origem / NF-e -->
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Número NFe" hide-details="auto"
-                                v-model="forms.nfe_numero" type="number"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Série NFe" hide-details="auto"
-                                v-model="forms.nfe_numero_serie" type="number"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Acesso NFe" hide-details="auto"
-                                v-model="forms.nfe_acesso" type="number"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Chave Origem" hide-details="auto"
-                                v-model="forms.nfe_chavedeacesso_origem"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Modelo NFe" hide-details="auto"
-                                v-model="forms.nfe_modelo"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Nº Lote" hide-details="auto"
-                                v-model="forms.nfe_nrlote"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Nº Recibo" hide-details="auto"
-                                v-model="forms.nfe_nrrecibo"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Status" hide-details="auto"
-                                v-model="forms.nfe_status"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Chave Acesso" hide-details="auto"
-                                v-model="forms.nfe_chavedeacesso"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="TP Emissão DANFE" hide-details="auto"
-                                v-model="forms.nfe_tp_emissao_danfe"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Protocolo Envio" hide-details="auto"
-                                v-model="forms.nfe_nrprotocolo_envio"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Prot. Inutilização" hide-details="auto"
-                                v-model="forms.nfe_nrprotocolo_inutil"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Prot. Cancelamento" hide-details="auto"
-                                v-model="forms.nfe_nrprotocolo_cancelamento"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Mensagem NFe/NFCe" hide-details="auto"
-                                v-model="forms.msg_nfe_nfce"/>
-                </v-col>
-
-                <!-- extras -->
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Tipo" hide-details="auto"
-                                v-model="forms.tipo" :rules="validacao" class="required-left-border" maxlength="1"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Regra CFOP" hide-details="auto"
-                                v-model="forms.regra_cfop"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="NF Estrangeira" hide-details="auto"
-                                v-model="forms.nf_estrangeira"/>
-                </v-col>
-
-                <!-- Importação -->
-                <v-col cols="12" md="3">
-                  <v-text-field density="compact" variant="outlined" label="% ICMS Importação" hide-details="auto"
-                                type="number"
-                                v-model="forms.perc_icmsimp"/>
-                </v-col>
-
-                <v-col cols="12" md="3">
-                  <v-text-field density="compact" variant="outlined" label="Siscomex" hide-details="auto" type="number"
-                                v-model="forms.vlr_siscomex"/>
-                </v-col>
-
-                <v-col cols="12" md="3">
-                  <v-text-field density="compact" variant="outlined" label="AFRMM" hide-details="auto" type="number"
-                                v-model="forms.vlr_afrmm"/>
-                </v-col>
-
-                <!-- Booleans -->
-                <v-col cols="12" md="3">
-                  <v-switch
-                      v-model="forms.importacaoxml"
-                      :label="`Importação XML? ${forms.importacaoxml ? 'Sim' : 'Não'}`"
-                      hide-details="auto" color="var(--text-color-laranja)"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="3">
-                  <v-switch
-                      v-model="forms.nf_origem"
-                      :label="`NF Origem? ${forms.nf_origem ? 'Sim' : 'Não'}`"
-                      hide-details="auto" color="var(--text-color-laranja)"
-                  />
-                </v-col>
-              </v-row>
-            </template>
-          </v-expansion-panel>
-
-          <v-expansion-panel elevation="1" class="mb-5" title="Cálculos da Nota" color="var(--bg-card)">
-            <template #text>
-              <v-row class="mt-5" dense>
-                <!-- ICMS -->
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Base ICMS" hide-details="auto" type="number"
-                      v-model="forms.base_icms" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Alíquota ICMS" hide-details="auto" type="number"
-                      v-model="forms.aliquota_icms" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Valor ICMS" hide-details="auto" type="number"
-                      v-model="forms.vlr_icms" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Isento ICMS" hide-details="auto" type="number"
-                      v-model="forms.isento_icms" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Outras Despesas" hide-details="auto" type="number"
-                      v-model="forms.outras_despesas" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Desp. Fora NF" hide-details="auto" type="number"
-                      v-model="forms.outras_despesas_foranf"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Base ICMS ST" hide-details="auto" type="number"
-                      v-model="forms.base_icms_subst" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Valor ICMS ST" hide-details="auto" type="number"
-                      v-model="forms.vlr_icms_subst" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <!-- IPI -->
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Base IPI" hide-details="auto" type="number"
-                                v-model="forms.base_ipi" :rules="validacao" class="required-left-border"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Valor IPI" hide-details="auto" type="number"
-                                v-model="forms.vlr_ipi" :rules="validacao" class="required-left-border"/>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field density="compact" variant="outlined" label="Isento IPI" hide-details="auto"
-                                type="number"
-                                v-model="forms.isento_ipi" :rules="validacao" class="required-left-border"/>
-                </v-col>
-
-                <!-- Impostos diversos -->
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Base II" hide-details="auto" type="number"
-                      v-model="forms.base_ii" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Valor II" hide-details="auto" type="number"
-                      v-model="forms.vlr_ii" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Base ISS" hide-details="auto" type="number"
-                      v-model="forms.base_iss" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Valor ISS" hide-details="auto" type="number"
-                      v-model="forms.vlr_iss" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <!-- PIS/COFINS -->
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="PIS Produto" hide-details="auto" type="number"
-                      v-model="forms.vlr_pis_produto"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Cofins Produto" hide-details="auto" type="number"
-                      v-model="forms.vlr_cofins_produto"
-                  />
-                </v-col>
-
-                <!-- Plano Pagamento -->
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Plano Pagamento" hide-details="auto"
-                      v-model="forms.id_planopagto"
-                  />
-                </v-col>
-
-                <!-- Seguro / desconto / frete -->
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Valor Seguro" hide-details="auto" type="number"
-                      v-model="forms.vlr_seguro" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Valor Desconto" hide-details="auto" type="number"
-                      v-model="forms.vlr_desconto" :rules="validacao" class="required-left-border"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Tipo Frete" hide-details="auto"
-                      v-model="forms.tipo_frete"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="4">
-                  <v-autocomplete
-                      density="compact" variant="outlined" label="Transportadora" hide-details="auto"
-                      v-model="forms.id_transportadora" clearable
-                      :items="pessoas" item-title="nome_razao" item-value="id"
-                  />
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      density="compact" variant="outlined" label="Valor Frete" hide-details="auto" type="number"
-                      v-model="forms.vlr_frete"
-                  />
-                </v-col>
-              </v-row>
-            </template>
-          </v-expansion-panel>
-        </v-expansion-panels>
+        <forms-entrada
+            :forms="forms"
+            :validacao="validacao"
+            :pessoas="pessoas"
+            :ufs="ufsFiltradas"
+            :cfops="cfopsFiltrados"
+            :almoxarifado-nome="almoxarifadoNome"
+            :cfop-nome="cfopNome"
+            :editando="editando"
+            :selecionar-almoxarifado="selecionarAlmoxarifado"
+            @ler-xml="lerXML"
+            :themeStore="themeStore"
+        />
 
         <tabela-padrao
             titulo-pesquisa="Produtos da Nota"
@@ -541,26 +125,28 @@
 <script setup>
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import {usePessoasStore} from "@/stores/APIs/pessoas";
-import CfopMenu from "@/components/base/menu/CfopMenu.vue";
-import AlmoxarifadoMenu from "@/components/base/menu/AlmoxarifadoMenu.vue";
 import {useProdutosStore} from "@/stores/APIs/produtos";
-import {computed, onMounted, reactive, ref, } from "vue";
+import {useEstoqueStore} from "@/stores/APIs/estoque";
+import {computed, onMounted, reactive, ref, watch,} from "vue";
 import TabelaPadrao from "@/components/base/padrao-paginas/TabelaPadrao.vue";
+import FormsEntrada from "@/components/base/produtos/entrada/FormsEntrada.vue";
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {toast} from "vue3-toastify";
-import {useLocalizacaoStore} from "@/stores/APIs/localizacao";
+import {useFuncoesStore} from "@/stores/funcoes/funcoes";
 import VincularProdutos from "@/components/base/modais/VincularProdutos.vue";
 
 const themeStore = useThemeStore();
+const funcoesStore = useFuncoesStore();
 const pessoasStore = usePessoasStore();
 const produtosStore = useProdutosStore();
-const localizacaoStore = useLocalizacaoStore();
+const estoqueStore = useEstoqueStore();
 const idEmpresa = JSON.parse(localStorage.getItem('empresaSelecionada'));
 const cnpjEmpresa = idEmpresa?.cnpj || null;
 
 const pessoas = computed(() => pessoasStore.pessoas);
-const ufs = computed(() => localizacaoStore.ufs);
 const todosProdutos = computed(() => produtosStore.produtos);
+
+const aliquotas = computed(() => estoqueStore.aliquotas ?? []);
 
 const almoxarifadoNome = ref("");
 const cfopNome = ref("");
@@ -569,8 +155,8 @@ const produtos = ref([]);
 const search = ref("");
 const pesquisarProdutos = ref("");
 
-const expanded = ref([])        // isso é o que o v-data-table usa pra renderizar a linha
-const openId = ref(null)        // isso é o que controla "aberto/fechado" pra animação
+const expanded = ref([])
+const openId = ref(null)
 const ANIM_MS = 320
 
 const toggle = async (item) => {
@@ -689,10 +275,19 @@ const forms = reactive({
   "arquivoxml": null,
   "tipo": null,
   "regra_cfop": null,
-  "nf_estrangeira": "A", // id_uf === EX ? nf_estrangeira = S : nf_estrangeira = N
+  "nf_estrangeira": "A",
   "perc_icmsimp": null,
   "vlr_siscomex": null,
   "vlr_afrmm": null,
+
+  // outros campos
+  "reducao_base_calc": null,
+  "base_cbsibs": null,
+  "vlr_cbs": null,
+  "vlr_ibsuf": null,
+  "vlr_ibsmun": null,
+  "vlr_outras_item": null,
+  "vlr_outras_item_foranf": null,
 });
 
 const cancelarFormulario = () => {
@@ -712,25 +307,63 @@ const selecionarAlmoxarifado = (almoxarifado) => {
   almoxarifadoNome.value = almoxarifado.descalmoxarifado || almoxarifado.nome || '';
 };
 
-const selecionarCfop = (cfop) => {
-  forms.id_cfop = cfop.id_cfop;
-  cfopNome.value = cfop.id_cfop + ' - ' + (cfop.descricao || '');
-};
+const cfopsFiltrados = computed(() => {
+  // se UF selecionada -> só CFOPs daquela UF
+  const base = forms.id_uf
+      ? aliquotas.value.filter(a => a.id_uf === forms.id_uf)
+      : aliquotas.value;
+
+  // retornar CFOPs únicos
+  return [...new Set(base.map(a => a.id_cfop))]
+      .filter(Boolean)
+      .map(v => ({ title: v, value: v }));
+});
+
+const ufsFiltradas = computed(() => {
+  // se CFOP selecionado -> só UFs daquele CFOP
+  const base = forms.id_cfop
+      ? aliquotas.value.filter(a => a.id_cfop === forms.id_cfop)
+      : aliquotas.value;
+
+  // retornar UFs únicas
+  return [...new Set(base.map(a => a.id_uf))]
+      .filter(Boolean)
+      .map(v => ({ title: v, value: v }));
+});
+
+watch(
+    () => forms.id_uf,
+    (uf) => {
+      if (!uf || !forms.id_cfop) return;
+
+      const existe = aliquotas.value.some(a => a.id_uf === uf && a.id_cfop === forms.id_cfop);
+      if (!existe) forms.id_cfop = null;
+    }
+);
+
+watch(
+    () => forms.id_cfop,
+    (cfop) => {
+      if (!cfop || !forms.id_uf) return;
+
+      const existe = aliquotas.value.some(a => a.id_cfop === cfop && a.id_uf === forms.id_uf);
+      if (!existe) forms.id_uf = null;
+    }
+);
 
 const formsNf = ref(null);
 
 const salvarFormulario = async () => {
-  // if (formsNf.value && !(await formsNf.value.validate())) {
-  //   toast.error("Por favor, preencha os campos obrigatórios.");
-  //   return;
-  // }
+  if (formsNf.value && !(await formsNf.value.validate())) {
+    toast.error("Por favor, preencha os campos obrigatórios.");
+    return;
+  }
 
   console.log(produtos.value);
 
   forms.importacaoxml = forms.importacaoxml ? 'S' : 'N';
   forms.nf_origem = forms.nf_origem ? 'S' : 'N';
   forms.arquivoxml = forms.arquivoxml ? forms.arquivoxml.name : null;
-  forms.id_uf = forms.id_uf ? forms.id_uf.sigla : null;
 
   await produtosStore.cadastrarEntradaDfe(
       {
@@ -740,11 +373,7 @@ const salvarFormulario = async () => {
       idEmpresa?.id ?? 1
   )
 
-  // cancelarFormulario();
-
-  // setTimeout(() => {
-  //   router.push('/paginas/entradadfe')
-  // }, 1500);
+  cancelarFormulario();
 
 };
 
@@ -759,7 +388,10 @@ const camposFloat = [
   "base_ii", "vlr_ii",
   "base_iss", "vlr_iss",
   "vlr_pis_produto", "vlr_cofins_produto",
-  "perc_icmsimp", "vlr_siscomex", "vlr_afrmm"
+  "perc_icmsimp", "vlr_siscomex", "vlr_afrmm",
+  "reducao_base_calc", "base_cbsibs", "vlr_cbs",
+  "vlr_ibsuf", "vlr_ibsmun", "vlr_outras_item",
+  "vlr_outras_item_foranf"
 ];
 
 const camposInteiros = [
@@ -767,8 +399,12 @@ const camposInteiros = [
   "id_almoxarifado",
   "id_transportadora", "qtd_volume",
   "id_planopagto",
-  "nfe_numero", "nfe_numero_serie", "nfe_acesso"
+  "nfe_numero", "nfe_numero_serie", "nfe_acesso",
 ];
+
+/**
+ * NORMALIZAR FORMULÁRIO ANTES DE ENVIAR
+ */
 
 const normalizarForm = (data) => {
   const result = {};
@@ -807,7 +443,6 @@ const normalizarForm = (data) => {
  * TRABALHANDO COM XML
  */
 
-// --- Função universal para converter XML → JSON
 function xmlToJson(element) {
   let obj = {};
 
@@ -822,8 +457,13 @@ function xmlToJson(element) {
   return obj;
 }
 
-const lerXML = (event) => {
-  const file = event.target.files[0];
+/**
+ * LER AQUIVO XML
+ */
+
+const lerXML = (file) => {
+  console.log('Lendo XML...', file);
+
   if (!file) return;
 
   const reader = new FileReader();
@@ -978,174 +618,23 @@ const lerXML = (event) => {
       }
     }
 
-    preencherForms(ide.value, total.value, emit.value, xml, dest.value, itens.value, transp.value, pag.value, infAdic.value);
+    funcoesStore.preencherForms(
+        ide.value, total.value,
+        emit.value, xml,
+        dest.value, itens.value,
+        transp.value, pag.value,
+        infAdic.value, forms,
+        produtos
+    );
   };
 
   reader.readAsText(file);
 }
 
-function preencherForms(ide, total, emit, xml, dest, itens, transp, pag, infAdic) {
-  // 🔹 Pegar a chave de acesso da NFe
-  const infNFe = xml.getElementsByTagName("infNFe")[0];
-  const chave = infNFe ? infNFe.getAttribute("Id")?.replace("NFe", "") : null;
 
-  // 🔹 Preencher campos
-  forms.dtemissao = ide?.dhEmi || null;
-  forms.dtentrada = ide?.dhSaiEnt || null;
-
-  forms.nfe_numero = ide?.nNF || null;
-  forms.id_uf = ufs.value.find(uf => uf.id == ide?.cUF)?.sigla;
-  forms.id_serie = ide?.serie || null;
-  forms.nfe_modelo = ide?.mod || null;
-  forms.nfe_chavedeacesso = chave || null;
-
-  // Totais
-  if (total?.ICMSTot) {
-    forms.vlr_total_produto = total.ICMSTot.vProd || null;
-    forms.vlr_nf = total.ICMSTot.vNF || null;
-
-    forms.base_icms = total.ICMSTot.vBC || null;
-    forms.aliquota_icms = total.ICMSTot?.pICMS || null;
-    forms.vlr_icms = total.ICMSTot.vICMS || null;
-
-    forms.base_ipi = total.ICMSTot.vBCIPI || null;
-    forms.vlr_ipi = total.ICMSTot.vIPI || null;
-
-    forms.vlr_desconto = total.ICMSTot.vDesc || null;
-    forms.vlr_frete = total.ICMSTot.vFrete || null;
-    forms.outras_despesas = total.ICMSTot.vOutro || null;
-    forms.vlr_ii = total.ICMSTot.vII || null;
-    forms.outras_despesas_foranf = total.ICMSTot.vOutro || null;
-    forms.vlr_pis_produto = total.ICMSTot.vPIS || null;
-    forms.vlr_seguro = total.ICMSTot.vSeg || null;
-  }
-
-  if (transp) {
-    forms.tipo_frete = transp?.modFrete || null;
-  }
-
-
-  if (itens) {
-    const itensPayload = (itens || []).map((item, idx) => {
-      const prod = item?.prod ?? {};
-      const imp = item?.imposto ?? {};
-
-      const icmsGroup = imp?.ICMS ? Object.values(imp.ICMS)[0] : null;
-      const pisGroup = imp?.PIS ? Object.values(imp.PIS)[0] : null;
-      const cofinsGroup = imp?.COFINS ? Object.values(imp.COFINS)[0] : null;
-
-      const ipiGroup = imp?.IPI?.IPITrib || imp?.IPI?.IPINT || null;
-
-      const ibscbs = imp?.IBSCBS?.gIBSCBS || null;
-      const gUF = ibscbs?.gIBSUF ?? null;
-      const gMun = ibscbs?.gIBSMun ?? null;
-      const gCBS = ibscbs?.gCBS ?? null;
-
-      return {
-        cProd: prod?.cProd || null,
-        cEAN: prod?.cEAN || null,
-        id_seq: Number(item?.nItem ?? (idx + 1)),
-        id_produto: null,
-        id_cor: 0,
-        id_tamanho: 0,
-
-        descprodutovst: null,
-        descprodutoxml: prod?.xProd ?? null,
-
-        quantidade: Number(String(prod?.qCom ?? 0).replace(",", ".")),
-        vlr_unitario: Number(prod?.vUnCom).toFixed(2) ?? 0.00,
-        desconto_total_item: normalizarMoeda(prod?.vDesc ?? 0.00), // se não tiver no XML, fica 0
-        vlr_total_item: Number(prod?.vProd).toFixed(2) ?? 0.00,
-
-        vlr_seguro_item: normalizarMoeda(prod?.vSeg ?? 0.00),
-        vlr_frete_item: normalizarMoeda(prod?.vFrete ?? 0.00),
-
-        custo_medio: Number(prod?.vUnCom).toFixed(2) ?? 0.00,
-        id_movimentoalmox: forms.id_almoxarifado ?? null,
-
-        // ===== Fiscal (geral)
-        id_cfop_item: prod?.CFOP ?? null,
-
-        cst_item: icmsGroup?.CST ?? null,
-        csosn_item: icmsGroup?.CSOSN ?? null,
-
-        cest_item: prod?.CEST ?? null, // alguns XMLs trazem em prod.CEST; se vier em outro lugar, ajuste aqui
-
-        // ===== ICMS
-        aliquota_icms_item: normalizarMoeda(icmsGroup?.pICMS),
-        base_icms_item: normalizarMoeda(icmsGroup?.vBC),
-        vlr_icms_item: normalizarMoeda(icmsGroup?.vICMS),
-
-        aliquota_subst_item: normalizarMoeda(icmsGroup?.pICMSST),
-        base_icms_subst_item: normalizarMoeda(icmsGroup?.vBCST),
-        vlr_icms_subst_item: normalizarMoeda(icmsGroup?.vICMSST),
-
-        // ===== IPI
-        cst_ipi: ipiGroup?.CST ?? null,
-        aliquota_ipi_item: normalizarMoeda(ipiGroup?.pIPI),
-        cenqipi: imp?.IPI?.cEnq ?? null,
-        base_ipi_item: normalizarMoeda(ipiGroup?.vBC),
-        vlr_ipi_item: normalizarMoeda(ipiGroup?.vIPI),
-
-        // ===== PIS
-        cst_pis: pisGroup?.CST ?? null,
-        aliquota_pis_item: normalizarMoeda(pisGroup?.pPIS),
-        base_pis_item: normalizarMoeda(pisGroup?.vBC),
-
-        // ===== COFINS
-        cst_cofins: cofinsGroup?.CST ?? null,
-        aliquota_cofins_item: normalizarMoeda(cofinsGroup?.pCOFINS),
-        base_cofins_item: normalizarMoeda(cofinsGroup?.vBC),
-
-        // ===== Outros / contábil / bases
-        vlr_outras_item: normalizarMoeda(prod?.vOutro ?? 0.00),
-        reducao_base_calc: normalizarMoeda(icmsGroup?.pRedBC),
-        vlr_outras_item_foranf: normalizarMoeda(0.00),
-
-        aliq_mva: normalizarMoeda(icmsGroup?.pMVAST),
-        pmva_item: normalizarMoeda(icmsGroup?.pMVAST),
-
-        mod_bc: icmsGroup?.modBC ?? null,
-        mod_bcst: icmsGroup?.modBCST ?? null,
-
-        predbc: normalizarMoeda(icmsGroup?.pRedBC),
-        predbcst: normalizarMoeda(icmsGroup?.pRedBCST),
-
-        // ===== NCM / incidência
-        id_ncm_item: prod?.NCM ?? null,
-        incidenciafiscal_item: null,
-
-        // ===== II (Importação) — se não existir no XML, deixa 0
-        aliquota_ii_item: normalizarMoeda(icmsGroup?.pII ?? 0.00),
-        base_ii_item: normalizarMoeda(icmsGroup?.vBC ?? 0.00),
-        vlr_ii_item: normalizarMoeda(icmsGroup?.vII ?? 0.00),
-        vlr_siscomex_item: normalizarMoeda(icmsGroup?.vDespAdu ?? 0.00),
-        vlr_afrmm_item: normalizarMoeda(icmsGroup?.vAFRMM ?? 0.00),
-
-        // ===== IBS/CBS (reforma) — nomes CERTOS da sua lista
-        cclasstrib_item: imp?.IBSCBS?.cClassTrib ?? normalizarMoeda(0o00001),
-        cst_cbsibs_item: imp?.IBSCBS?.CST ?? normalizarMoeda(0o00),
-
-        base_cbsibs_item: normalizarMoeda(ibscbs?.vBC),
-        perc_cbs_item: normalizarMoeda(gCBS?.pCBS),
-        vlr_cbs_item: normalizarMoeda(gCBS?.vCBS),
-
-        perc_ibsuf_item: normalizarMoeda(gUF?.pIBSUF),
-        vlr_ibsuf_item: normalizarMoeda(gUF?.vIBSUF),
-
-        perc_ibsmun_item: normalizarMoeda(gMun?.pIBSMun),
-        vlr_ibsmun_item: normalizarMoeda(gMun?.vIBSMun),
-      };
-    });
-    produtos.value = [...itensPayload];
-  }
-
-  // Observação
-  forms.observacao = infAdic?.infCpl || null;
-
-  // Marcar origem
-  forms.importacaoxml = true;
-}
+/**
+ * FORMATAÇÕES
+ */
 
 function formatarReal(valor) {
   if (valor === null || valor === undefined || valor === "") return "R$ 0,00";
@@ -1155,32 +644,6 @@ function formatarReal(valor) {
         style: "currency",
         currency: "BRL"
       });
-}
-
-function normalizarMoeda(valor, casas = 2) {
-  if (valor === null || valor === undefined || valor === "") {
-    return "0." + "0".repeat(casas);
-  }
-
-  // número gigante vindo do XML (ex: 262900000000)
-  if (typeof valor === "number") {
-    return (valor / Math.pow(10, casas)).toFixed(casas);
-  }
-
-  // string tipo "R$ 1.234,56"
-  if (typeof valor === "string") {
-    const num = Number(
-        valor
-            .replace("R$", "")
-            .replaceAll(".", "")
-            .replace(",", ".")
-            .trim()
-    );
-
-    return isNaN(num) ? "0." + "0".repeat(casas) : num.toFixed(casas);
-  }
-
-  return "0." + "0".repeat(casas);
 }
 
 
@@ -1201,8 +664,8 @@ onMounted(() => {
     pessoasStore.buscarTodasPessoas();
   }
 
-  if (localizacaoStore.ufs.length === 0) {
-    localizacaoStore.buscarTodasUfs();
+  if (estoqueStore.aliquotas.length === 0) {
+    estoqueStore.buscarTodasAliquotas(idEmpresa?.id, "");
   }
 
   if (produtosStore.produtos.length === 0) {
@@ -1227,28 +690,4 @@ onMounted(() => {
   text-align: right;
   font-weight: 500;
 }
-
-.row-expand-enter-active,
-.row-expand-leave-active {
-  overflow: hidden;
-  transition: max-height 320ms cubic-bezier(.2,.8,.2,1),
-  opacity 220ms ease,
-  transform 220ms ease;
-}
-
-.row-expand-enter-from,
-.row-expand-leave-to {
-  max-height: 0;
-  opacity: 0;
-  transform: translateY(-6px);
-}
-
-.row-expand-enter-to,
-.row-expand-leave-from {
-  max-height: 2000px;
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.row-expand__wrap { overflow: hidden; }
 </style>

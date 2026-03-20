@@ -1,7 +1,6 @@
 <template>
   <busca-padrao-menu
       v-model="menu"
-      :pesquisar="pesquisar"
       :modelInput="termoPesquisa"
       :modal-cadastrar="abrirModalCadastrar"
       :resultados="classes"
