@@ -20,6 +20,7 @@ import PlanoContaView from '@/views/pages/fiscal/PlanoContaView.vue';
 import DebitoRealView from '@/views/pages/financeiro/pagar/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/manutencao/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
+import GrupoTributacaoView from '@/views/pages/estoque/GrupoTributacaoView.vue';
 import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
 import CarteiraCobrancaView from '@/views/pages/financeiro/banco/CarteiraCobrancaView.vue';
 import PdvView from '@/views/pages/pdv/PdvView.vue';
@@ -36,6 +37,7 @@ import EstornoPagarView from '@/views/pages/estorno/EstornoPagarView.vue';
 import EstornoReceberView from '@/views/pages/estorno/EstornoReceberView.vue';
 import GrupoUsuarioView from '@/views/pages/manutencao/GrupoUsuarioView.vue';
 import DreView from '@/views/pages/dre/DreView.vue';
+import MensagensView from '@/views/pages/manutencao/MensagensView.vue';
 import RelatorioDreView from '@/views/pages/dre/RelatorioDreView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
@@ -80,6 +82,11 @@ const routes = [
         component: EmpresaView
     },
     {
+        path: '/paginas/manutencao/mensagens-tributos',
+        name: 'manutencao_mensagens_tributos',
+        component: MensagensView
+    },
+    {
         path: '/paginas/manutencao/usuarios',
         name: 'manutencao_usuarios',
         component: UsuariosView
@@ -93,6 +100,16 @@ const routes = [
         path: '/paginas/manutencao/formulas',
         name: 'manutencao_formulas',
         component: () => import('@/views/pages/manutencao/FormulasView.vue')
+    },
+    {
+        path: '/paginas/manutencao/mensagens-tributos',
+        name: 'manutencao_mensagens',
+        component: () => import('@/views/pages/manutencao/MensagensView.vue')
+    },
+    {
+        path: '/paginas/estoque/grupo-tributacao',
+        name: 'estoque_grupo_tributacao',
+        component: () => import('@/views/pages/estoque/GrupoTributacaoView.vue')
     },
 
     //   paginas de autenticação
@@ -248,6 +265,11 @@ const routes = [
         path: '/paginas/estoque/grupo',
         name: 'grupo',
         component: () => import('@/views/pages/estoque/GruposView.vue')
+    },
+    {
+        path: '/paginas/estoque/grupo-tributacao',
+        name: 'grupo_tributacao',
+        component: GrupoTributacaoView
     },
     {
         path: '/paginas/estoque/classe',

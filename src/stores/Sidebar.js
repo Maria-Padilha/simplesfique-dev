@@ -145,7 +145,12 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     text: 'Fórmulas',
                     icon: 'mdi-xml',
                     route: '/paginas/manutencao/formulas'
-                }
+                },
+                {
+                    text: 'Mensagens de Tributos',
+                    icon: 'mdi-message-text',
+                    route: '/paginas/manutencao/mensagens-tributos'
+                },
             ]
         },
         {
@@ -177,6 +182,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     text: 'Fórmulas',
                     icon: 'mdi-function-variant',
                     route: '/paginas/estoque/formulas'
+                },
+                {
+                    text: 'Grupo Tributação',
+                    icon: 'mdi-receipt-text-check-outline',
+                    route: '/paginas/estoque/grupo-tributacao'
                 },
             ]
         },

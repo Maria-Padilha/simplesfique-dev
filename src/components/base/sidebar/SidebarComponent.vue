@@ -62,6 +62,31 @@
 
     <v-spacer></v-spacer>
 
+    <!-- BOTÃO DE AGENDA -->
+    <v-tooltip location="bottom">
+      <template v-slot:activator="{ props }">
+        <v-btn
+          v-bind="props"
+          icon
+          variant="text"
+          size="small"
+          class="mr-1 agenda-btn"
+          @click="modalAgenda = true"
+        >
+          <v-badge
+            v-if="agendaStore.quantidadeProximos > 0"
+            :content="agendaStore.quantidadeProximos"
+            color="var(--text-color-laranja)"
+            floating
+          >
+            <v-icon icon="mdi-calendar-clock" size="22"></v-icon>
+          </v-badge>
+          <v-icon v-else icon="mdi-calendar-clock" size="22"></v-icon>
+        </v-btn>
+      </template>
+      <span>Agenda</span>
+    </v-tooltip>
+
     <v-menu :close-on-content-click="false">
       <template v-slot:activator="{ props: menu }">
         <v-tooltip location="top">
@@ -250,6 +275,9 @@
 
   <!-- MODAL DE CONFIGURAÇÃO DE ACESSOS RÁPIDOS -->
   <ConfigAcessosRapidosModal v-model="modalAcessosRapidos" />
+
+  <!-- MODAL DE AGENDA -->
+  <AgendaModal v-model="modalAgenda" />
 </template>
 
 <script setup>
@@ -262,6 +290,8 @@ import {useAcessosRapidosStore} from "@/stores/acessos-rapidos";
 import {ref, onMounted, onBeforeUnmount, mergeProps, computed, watch} from 'vue'
 import ErrorAlertModal from "@/components/base/modais/ErrorAlertModal.vue";
 import ConfigAcessosRapidosModal from "@/components/base/modais/ConfigAcessosRapidosModal.vue";
+import AgendaModal from "@/components/base/modais/AgendaModal.vue";
+import {useAgendaStore} from "@/stores/agenda";
 
 // Inicializar o store da sidebar
 const sidebarStore = useSidebarStore();
@@ -287,6 +317,12 @@ const errorModal = ref(false);
 
 // modal de acessos rápidos
 const modalAcessosRapidos = ref(false);
+
+// modal de agenda
+const modalAgenda = ref(false);
+
+// Store de agenda
+const agendaStore = useAgendaStore();
 
 // links do menu perfil
 const items = ref([
@@ -495,5 +531,15 @@ onBeforeUnmount(() => {
 
 .gap-2 {
   gap: 8px;
+}
+
+.agenda-btn {
+  opacity: 0.75;
+  transition: all 0.2s ease;
+}
+
+.agenda-btn:hover {
+  opacity: 1;
+  color: var(--text-color-laranja) !important;
 }
 </style>
