@@ -112,6 +112,42 @@ export const useSidebarStore = defineStore('sidebar', () => {
             icon: 'mdi-package-variant',
             submenus: [
                 {
+                    text: 'Produtos',
+                    icon: 'mdi-tag-multiple',
+                    submenus: [
+                        {
+                            text: 'Produtos',
+                            icon: 'mdi-tag-outline',
+                            route: '/paginas/produtos'
+                        },
+                        {
+                          text: 'Grade de Produtos',
+                          icon: 'mdi-view-grid-outline',
+                          route: '/paginas/produtos/grade'
+                        },
+                        {
+                            text: 'Local Produtos',
+                            icon: 'mdi-map-marker',
+                            route: '/paginas/produtos/local'
+                        },
+                        {
+                            text: 'Entrada Nota Fiscal',
+                            icon: 'mdi-file-document-outline',
+                            route: '/paginas/entradadfe'
+                        },
+                        {
+                            text: 'Dev. Nota Fiscal',
+                            icon: 'mdi-file-document-edit-outline',
+                            route: '/paginas/deventrada'
+                        },
+                        {
+                            text: 'Certificados',
+                            icon: 'mdi-certificate',
+                            route: '/paginas/certificados'
+                        },
+                    ]
+                },
+                {
                     text: 'Grupos',
                     icon: 'mdi-shape-plus',
                     route: '/paginas/estoque/grupo'
@@ -136,34 +172,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     icon: 'mdi-function-variant',
                     route: '/paginas/estoque/formulas'
                 },
-            ]
-        },
-        {
-            id: 'produtos',
-            titulo: 'Produtos',
-            icon: 'mdi-tag-multiple',
-            submenus: [
-                {
-                    text: 'Produtos',
-                    icon: 'mdi-tag-outline',
-                    route: '/paginas/produtos'
-                },
-                {
-                    text: 'Local Produtos',
-                    icon: 'mdi-map-marker',
-                    route: '/paginas/produtos/local'
-                },
-                {
-                    text: 'Entrada Nota Fiscal',
-                    icon: 'mdi-file-document-outline',
-                    route: '/paginas/entradadfe'
-                },
-                {
-                    text: 'Certificados',
-                    icon: 'mdi-certificate',
-                    route: '/paginas/certificados'
-                },
-            ]
+            ],
         },
         {
             id: 'PDV',

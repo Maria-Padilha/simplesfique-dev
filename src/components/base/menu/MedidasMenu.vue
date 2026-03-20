@@ -1,7 +1,6 @@
 <template>
   <busca-padrao-menu
       v-model="menu"
-      :pesquisar="pesquisar"
       :modelInput="termoPesquisa"
       :resultados="medidas"
       @update:modelInput="termoPesquisa = $event"

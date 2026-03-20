@@ -38,8 +38,7 @@ const props = defineProps({
     required: true
   },
   editando: {
-    type: Boolean,
-    required: true
+    type: Boolean
   },
   cancelarFormulario: {
     type: Function,

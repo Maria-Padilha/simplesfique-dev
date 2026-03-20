@@ -1,7 +1,6 @@
 <template>
   <busca-padrao-menu
       v-model="menu"
-      :pesquisar="pesquisar"
       :modalCadastrar="abrirModalCadastrar"
       :modelInput="termoPesquisa"
       :resultados="garantias"

@@ -249,6 +249,11 @@ const routes = [
         component: () => import('@/views/pages/produtos/ProdutosDetalhesView.vue')
     },
     {
+        path: '/paginas/produtos/grade',
+        name: 'produtos-grade',
+        component: () => import('@/views/pages/produtos/ProdutoGradeView.vue')
+    },
+    {
         path: '/paginas/produtos/local',
         name: 'produtos-local',
         component: () => import('@/views/pages/produtos/LocalView.vue')
@@ -257,6 +262,16 @@ const routes = [
         path: '/paginas/entradadfe',
         name: 'entradadfe',
         component: () => import('@/views/pages/produtos/entrada/EntradaDfeView.vue')
+    },
+    {
+        path: '/paginas/deventrada',
+        name: 'deventrada',
+        component: () => import('@/views/pages/produtos/devolucao/DevolucaoEntradaView.vue')
+    },
+    {
+        path: '/paginas/deventrada/nova',
+        name: 'deventrada-nova',
+        component: () => import('@/views/pages/produtos/devolucao/DevolucaoEntradaNovaView.vue')
     },
     {
         path: '/paginas/entradadfe/nova',
