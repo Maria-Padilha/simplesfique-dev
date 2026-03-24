@@ -21,6 +21,7 @@ import DebitoRealView from '@/views/pages/financeiro/pagar/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/manutencao/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
 import GrupoTributacaoView from '@/views/pages/estoque/GrupoTributacaoView.vue';
+import TransfAlmoxView from '@/views/pages/estoque/TransfAlmoxView.vue';
 import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
 import CarteiraCobrancaView from '@/views/pages/financeiro/banco/CarteiraCobrancaView.vue';
 import PdvView from '@/views/pages/pdv/PdvView.vue';
@@ -110,6 +111,11 @@ const routes = [
         path: '/paginas/estoque/grupo-tributacao',
         name: 'estoque_grupo_tributacao',
         component: () => import('@/views/pages/estoque/GrupoTributacaoView.vue')
+    },
+    {
+        path: '/paginas/estoque/transfalmox',
+        name: 'estoque_transfalmox',
+        component: TransfAlmoxView
     },
 
     //   paginas de autenticação

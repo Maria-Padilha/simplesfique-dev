@@ -92,8 +92,12 @@
 
                   <!-- Contato: Nome (vstb_contato.nome) -->
                   <v-col cols="12" sm="6">
-                    <v-text-field
+                    <v-combobox
                       v-model="form.contato_nome"
+                      :items="contatoStore.contatos"
+                      item-title="nome"
+                      item-value="nome"
+                      :return-object="false"
                       label="Remetente *"
                       placeholder="Nome do responsável"
                       prepend-inner-icon="mdi-account-outline"
@@ -103,7 +107,30 @@
                       :rules="[rules.required]"
                       :theme="themeStore.darkMode ? 'dark' : 'light'"
                       color="var(--text-color-laranja)"
-                    ></v-text-field>
+                      @update:modelValue="onRemetenteChange"
+                    >
+                      <template #append-inner>
+                        <v-btn
+                          icon="mdi-account-plus"
+                          variant="text"
+                          size="x-small"
+                          density="compact"
+                          color="var(--text-color-laranja)"
+                          title="Gerenciar contatos"
+                          @click.stop="dialogContatos = true"
+                        ></v-btn>
+                      </template>
+                      <template #item="{ item, props: itemProps }">
+                        <v-list-item v-bind="itemProps">
+                          <template #subtitle>
+                            <span v-if="item.raw?.telefone" class="text-caption opacity-70">
+                              <v-icon icon="mdi-phone-outline" size="11"></v-icon>
+                              {{ item.raw.telefone }}
+                            </span>
+                          </template>
+                        </v-list-item>
+                      </template>
+                    </v-combobox>
                   </v-col>
 
                   <!-- Contato: Telefone (vstb_contato.telefone) -->
@@ -235,7 +262,8 @@
                     <v-btn variant="text" color="grey" @click="resetarFormulario">Limpar</v-btn>
                     <v-btn
                       type="submit"
-                      :disabled="!formValido"
+                      :disabled="!formValido || agendaStore.loading"
+                      :loading="agendaStore.loading"
                       color="var(--text-color-laranja)"
                       variant="flat"
                       class="text-white px-6"
@@ -437,6 +465,122 @@
     </v-card>
   </v-dialog>
 
+  <!-- Dialog de Contatos Salvos -->
+  <v-dialog v-model="dialogContatos" max-width="480" :theme="themeStore.darkMode ? 'dark' : 'light'">
+    <v-card class="background-secondary" rounded="xl">
+      <v-card-title class="pa-5 pb-3 d-flex align-center justify-space-between">
+        <div class="d-flex align-center gap-2">
+          <v-icon icon="mdi-contacts-outline" color="var(--text-color-laranja)" size="22"></v-icon>
+          <span>{{ editandoContatoId ? 'Editar Contato' : 'Contatos Salvos' }}</span>
+        </div>
+        <v-btn icon="mdi-close" variant="text" size="small" @click="dialogContatos = false" />
+      </v-card-title>
+
+      <v-card-text class="pa-4 pt-0">
+        <!-- Form para novo contato -->
+        <v-form ref="formContatoRef" v-model="formContatoValido">
+          <v-row dense>
+            <v-col cols="12" sm="7">
+              <v-text-field
+                v-model="novoContato.nome"
+                label="Nome *"
+                placeholder="Nome do contato"
+                prepend-inner-icon="mdi-account-outline"
+                variant="outlined"
+                density="compact"
+                maxlength="100"
+                :rules="[rules.required]"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
+                color="var(--text-color-laranja)"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="5">
+              <v-text-field
+                v-model="novoContato.telefone"
+                label="Telefone"
+                placeholder="(00) 00000-0000"
+                prepend-inner-icon="mdi-phone-outline"
+                variant="outlined"
+                density="compact"
+                maxlength="15"
+                :theme="themeStore.darkMode ? 'dark' : 'light'"
+                color="var(--text-color-laranja)"
+                @input="formatarTelefoneContato"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" class="d-flex justify-end gap-2 pb-1">
+              <v-btn
+                v-if="editandoContatoId"
+                variant="text"
+                color="grey"
+                @click="cancelarEdicaoContato"
+              >Cancelar</v-btn>
+              <v-btn
+                :loading="contatoStore.loading"
+                :disabled="!formContatoValido"
+                color="var(--text-color-laranja)"
+                variant="flat"
+                class="text-white"
+                :prepend-icon="editandoContatoId ? 'mdi-check' : 'mdi-content-save-outline'"
+                @click="salvarContato"
+              >{{ editandoContatoId ? 'Atualizar' : 'Salvar Contato' }}</v-btn>
+            </v-col>
+          </v-row>
+        </v-form>
+
+        <v-divider class="my-3"></v-divider>
+
+        <!-- Lista de contatos salvos -->
+        <div v-if="contatoStore.loading && contatoStore.contatos.length === 0" class="text-center py-6">
+          <v-progress-circular indeterminate color="var(--text-color-laranja)" size="28"></v-progress-circular>
+        </div>
+        <div v-else-if="contatoStore.contatos.length === 0" class="text-center py-6">
+          <v-icon icon="mdi-contacts-outline" size="44" class="mb-2 opacity-30"></v-icon>
+          <p class="text-caption opacity-50">Nenhum contato salvo ainda</p>
+        </div>
+        <div v-else style="max-height: 260px; overflow-y: auto;">
+          <v-list density="compact" class="pa-0">
+            <v-list-item
+              v-for="c in contatoStore.contatos"
+              :key="c.id"
+              class="background-card rounded-lg mb-2"
+              style="cursor: pointer;"
+              @click="aplicarContato(c)"
+            >
+              <template #title>
+                <span class="text-body-2 font-weight-medium">{{ c.nome }}</span>
+              </template>
+              <template #subtitle>
+                <span class="text-caption opacity-70">
+                  <v-icon icon="mdi-phone-outline" size="11" class="mr-1"></v-icon>
+                  {{ c.telefone || 'Sem telefone' }}
+                </span>
+              </template>
+              <template #append>
+                <div class="d-flex gap-1">
+                  <v-btn
+                    icon="mdi-pencil-outline"
+                    variant="text"
+                    size="x-small"
+                    color="var(--text-color-laranja)"
+                    @click.stop="iniciarEdicaoContato(c)"
+                  ></v-btn>
+                  <v-btn
+                    icon="mdi-trash-can-outline"
+                    variant="text"
+                    size="x-small"
+                    color="red"
+                    @click.stop="contatoStore.excluirContato(c.id)"
+                  ></v-btn>
+                </div>
+              </template>
+            </v-list-item>
+          </v-list>
+        </div>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
+
   <!-- Dialog de exclusão -->
   <v-dialog v-model="dialogExclusao" max-width="380" :theme="themeStore.darkMode ? 'dark' : 'light'">
     <v-card class="background-secondary" rounded="xl">
@@ -462,7 +606,8 @@ import {
   useAgendaStore,
   OPCOES_NOTIFICAR,
   DIAS_SEMANA_CAMPOS,
-} from '@/stores/agenda'
+} from '@/stores/APIs/agenda'
+import { useAgendaContatoStore } from '@/stores/APIs/agendacontato'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false }
@@ -477,6 +622,13 @@ const fechar = () => { dialog.value = false }
 
 const themeStore = useThemeStore()
 const agendaStore = useAgendaStore()
+const contatoStore = useAgendaContatoStore()
+
+const dialogContatos = ref(false)
+const novoContato = ref({ nome: '', telefone: '' })
+const formContatoRef = ref(null)
+const formContatoValido = ref(false)
+const editandoContatoId = ref(null)
 
 const abaAtiva = ref('novo')
 const modoVisualizacao = ref('lista')
@@ -534,18 +686,61 @@ const corDiaSemana = computed(() => {
   return CORES_DIA[d.getDay()]
 })
 
+const aplicarMascaraTelefone = (valor) => {
+  let v = (valor || '').replace(/\D/g, '').slice(0, 11)
+  if (v.length > 10) return v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3')
+  if (v.length > 6) return v.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3')
+  if (v.length > 2) return v.replace(/^(\d{2})(\d+)$/, '($1) $2')
+  if (v.length > 0) return '(' + v
+  return v
+}
+
 const formatarTelefone = (e) => {
-  let v = e.target.value.replace(/\D/g, '').slice(0, 11)
-  if (v.length > 10) {
-    v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3')
-  } else if (v.length > 6) {
-    v = v.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3')
-  } else if (v.length > 2) {
-    v = v.replace(/^(\d{2})(\d+)$/, '($1) $2')
-  } else if (v.length > 0) {
-    v = '(' + v
+  form.value.contato_telefone = aplicarMascaraTelefone(e.target.value)
+}
+
+const formatarTelefoneContato = (e) => {
+  novoContato.value.telefone = aplicarMascaraTelefone(e.target.value)
+}
+
+const onRemetenteChange = (val) => {
+  if (!val) return
+  const contato = contatoStore.contatos.find(c => c.nome === val)
+  if (contato?.telefone) {
+    form.value.contato_telefone = contato.telefone
   }
-  form.value.contato_telefone = v
+}
+
+const aplicarContato = (contato) => {
+  form.value.contato_nome = contato.nome || ''
+  form.value.contato_telefone = contato.telefone || ''
+  dialogContatos.value = false
+}
+
+const iniciarEdicaoContato = (c) => {
+  editandoContatoId.value = c.id
+  novoContato.value = { nome: c.nome, telefone: c.telefone || '' }
+}
+
+const cancelarEdicaoContato = () => {
+  editandoContatoId.value = null
+  novoContato.value = { nome: '', telefone: '' }
+  formContatoRef.value?.resetValidation()
+}
+
+const salvarContato = async () => {
+  if (!formContatoRef.value) return
+  const { valid } = await formContatoRef.value.validate()
+  if (!valid) return
+  const payload = { nome: novoContato.value.nome, telefone: novoContato.value.telefone, tipo: 'U' }
+  const resultado = editandoContatoId.value
+    ? await contatoStore.editarContato(editandoContatoId.value, payload)
+    : await contatoStore.cadastrarContato(payload)
+  if (resultado !== null) {
+    novoContato.value = { nome: '', telefone: '' }
+    editandoContatoId.value = null
+    formContatoRef.value.resetValidation()
+  }
 }
 
 const salvarCompromisso = async () => {
@@ -554,15 +749,34 @@ const salvarCompromisso = async () => {
   if (!valid) return
   if (form.value.tipo_alarme === 2 && semDiaSelecionado.value) return
 
-  if (editandoId.value) {
-    agendaStore.editarCompromisso(editandoId.value, { ...form.value })
-    editandoId.value = null
-  } else {
-    agendaStore.adicionarCompromisso({ ...form.value })
+  const contato = contatoStore.contatos.find(c => c.nome === form.value.contato_nome)
+  const id_contato = contato?.id || null
+
+  const payload = {
+    id_contato,
+    assunto: form.value.assunto,
+    corpo: form.value.corpo,
+    tipo_alarme: form.value.tipo_alarme,
+    notificar: form.value.notificar,
+    data_notificacao: form.value.data_notificacao || null,
+    horario_notificacao: form.value.horario_notificacao,
+    segunda: form.value.segunda,
+    terca: form.value.terca,
+    quarta: form.value.quarta,
+    quinta: form.value.quinta,
+    sexta: form.value.sexta,
+    sabado: form.value.sabado,
+    domingo: form.value.domingo,
   }
 
-  resetarFormulario()
-  abaAtiva.value = 'lista'
+  const resultado = editandoId.value
+    ? await agendaStore.editarCompromisso(editandoId.value, payload)
+    : await agendaStore.adicionarCompromisso(payload)
+
+  if (resultado !== null) {
+    resetarFormulario()
+    abaAtiva.value = 'lista'
+  }
 }
 
 const resetarFormulario = () => {
@@ -586,8 +800,8 @@ const confirmarExclusao = (comp) => {
   dialogExclusao.value = true
 }
 
-const excluirConfirmado = () => {
-  agendaStore.excluirCompromisso(compromissoParaExcluir.value.id)
+const excluirConfirmado = async () => {
+  await agendaStore.excluirCompromisso(compromissoParaExcluir.value.id)
   dialogExclusao.value = false
   compromissoParaExcluir.value = null
 }
@@ -668,10 +882,22 @@ const eventosDiaSelecionado = computed(() => diaSelecioando.value ? eventosNoDia
 const selecionarDia = (dia) => { diaSelecioando.value = diaSelecioando.value === dia ? null : dia }
 
 watch(dialog, (val) => {
-  if (!val) {
+  if (val) {
+    contatoStore.listarContatos()
+    agendaStore.listarCompromissos()
+  } else {
     resetarFormulario()
     pesquisa.value = ''
     diaSelecioando.value = null
+    dialogContatos.value = false
+  }
+})
+
+watch(dialogContatos, (val) => {
+  if (!val) {
+    novoContato.value = { nome: '', telefone: '' }
+    editandoContatoId.value = null
+    formContatoRef.value?.resetValidation()
   }
 })
 </script>

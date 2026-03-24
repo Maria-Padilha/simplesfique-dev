@@ -188,6 +188,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     icon: 'mdi-receipt-text-check-outline',
                     route: '/paginas/estoque/grupo-tributacao'
                 },
+                {
+                    text: 'Transferência entre Estoques',
+                    icon: 'mdi-swap-horizontal',
+                    route: '/paginas/estoque/transfalmox'
+                },
             ]
         },
         {

@@ -291,7 +291,7 @@ import {ref, onMounted, onBeforeUnmount, mergeProps, computed, watch} from 'vue'
 import ErrorAlertModal from "@/components/base/modais/ErrorAlertModal.vue";
 import ConfigAcessosRapidosModal from "@/components/base/modais/ConfigAcessosRapidosModal.vue";
 import AgendaModal from "@/components/base/modais/AgendaModal.vue";
-import {useAgendaStore} from "@/stores/agenda";
+import {useAgendaStore} from "@/stores/APIs/agenda";
 
 // Inicializar o store da sidebar
 const sidebarStore = useSidebarStore();
@@ -372,24 +372,22 @@ const selecionarEmpresa = async (empresa) => {
 // Função para buscar configurações do sistema
 const buscarConfiguracoes = async () => {
   try {
-    // Buscar ID da empresa do localStorage
-    let idEmpresa = localStorage.getItem('empresa');
-    
-    // Se não encontrar, tenta buscar do objeto empresaSelecionada
+    // Preferir empresa selecionada no store (reativo), com fallback no localStorage
+    let idEmpresa = empresaStore.empresaSelecionada?.id;
+
     if (!idEmpresa) {
-      const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada');
-      if (empresaSelecionadaStr) {
-        try {
-          const empresaSelecionada = JSON.parse(empresaSelecionadaStr);
-          idEmpresa = empresaSelecionada.id;
-        } catch (e) {
-          console.error('Erro ao parsear empresaSelecionada:', e);
+      try {
+        const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada');
+        if (empresaSelecionadaStr) {
+          idEmpresa = JSON.parse(empresaSelecionadaStr)?.id;
         }
+      } catch (e) {
+        console.error('Erro ao parsear empresaSelecionada:', e);
       }
     }
-    
+
     if (!idEmpresa) {
-      console.error('ID da empresa não encontrado');
+      console.warn('ID da empresa não encontrado — aguardando seleção de empresa.');
       return;
     }
     
@@ -425,21 +423,30 @@ const buscarConfiguracoes = async () => {
 onMounted(async () => {
   console.log('[SidebarComponent] Inicializando aplicação...');
 
-  // Primeiro carrega a empresa salva
-  empresaStore.carregarEmpresaSelecionada();
-  console.log('[SidebarComponent] Empresa carregada:', empresaStore.empresaSelecionada?.razao_social);
-
-  // Carregar lista de empresas
+  // Carregar lista de empresas primeiro
   await empresaStore.buscarTodasEmpresas();
+
+  // Restaurar empresa salva no localStorage
+  empresaStore.carregarEmpresaSelecionada();
+
+  // Se nenhuma empresa estiver selecionada, auto-selecionar a matriz (ou a primeira)
+  if (!empresaStore.empresaSelecionada && empresaStore.empresas.length > 0) {
+    const matriz = empresaStore.empresas.find(e => e.matriz === 'S') || empresaStore.empresas[0];
+    empresaStore.selecionarEmpresa(matriz);
+    console.log('[SidebarComponent] Empresa auto-selecionada:', matriz?.razao_social);
+  } else {
+    console.log('[SidebarComponent] Empresa carregada:', empresaStore.empresaSelecionada?.razao_social);
+  }
+
+  // Buscar acessos e configurações após empresa estar definida
+  if (empresaStore.empresaSelecionada?.id) {
+    await acessoStore.buscarAcessos(empresaStore.empresaSelecionada.id);
+  }
+  await buscarConfiguracoes();
 
   // Event listener para resize
   window.addEventListener('resize', onResize);
   onResize();
-
-  // Aguarda um pouco para carregar configurações
-  setTimeout(async () => {
-    await buscarConfiguracoes();
-  }, 2000);
 });
 
 watch(
@@ -447,6 +454,7 @@ watch(
   async (empresaSelecionada) => {
     if (empresaSelecionada && empresaSelecionada.id) {
       await acessoStore.buscarAcessos(empresaSelecionada.id);
+      await buscarConfiguracoes();
     }
   },
   { immediate: false }

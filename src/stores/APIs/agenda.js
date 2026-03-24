@@ -74,7 +74,7 @@ export const useAgendaStore = defineStore('agenda', () => {
   const adicionarCompromisso = async (dados) => {
     loading.value = true
     try {
-      const response = await api.post('/agendacontatonot', dados, {
+      const response = await api.post('/agendacontatonot', { data: [dados] }, {
         headers: { Authorization: `Bearer ${getToken()}` }
       })
       toast.success('Compromisso salvo com sucesso!')
@@ -93,7 +93,7 @@ export const useAgendaStore = defineStore('agenda', () => {
   const editarCompromisso = async (id, dados) => {
     loading.value = true
     try {
-      const response = await api.put(`/agendacontatonot/${id}`, dados, {
+      const response = await api.put(`/agendacontatonot/${id}`, { data: [dados] }, {
         headers: { Authorization: `Bearer ${getToken()}` }
       })
       toast.success('Compromisso atualizado com sucesso!')
