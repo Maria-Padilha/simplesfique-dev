@@ -455,6 +455,16 @@
                           <span>{{ item.destino_label }}</span>
                         </template>
 
+                        <template v-slot:[`item.situacao`]="{ item }">
+                          <v-chip
+                            :color="item.situacao === 'C' ? 'success' : 'warning'"
+                            size="x-small"
+                            variant="flat"
+                          >
+                            {{ item.situacao === 'C' ? 'Concluído' : 'Pendente' }}
+                          </v-chip>
+                        </template>
+
                         <template v-slot:[`item.actions`]="{ item }">
                           <v-btn
                             icon="mdi-eye-outline"
@@ -497,9 +507,16 @@
                             ></v-text-field>
                           </v-col>
 
-                          <v-col cols="12" sm="8" class="d-flex align-center">
+                          <v-col cols="12" sm="8" class="d-flex align-center gap-2">
                             <v-chip color="var(--text-color-laranja)" class="text-white" variant="flat">
                               {{ recebimentoSelecionado.itens.length }} item(ns)
+                            </v-chip>
+                            <v-chip
+                              :color="recebimentoSelecionado.situacao === 'C' ? 'success' : 'warning'"
+                              variant="flat"
+                            >
+                              <v-icon start :icon="recebimentoSelecionado.situacao === 'C' ? 'mdi-check-circle' : 'mdi-clock-outline'"></v-icon>
+                              {{ recebimentoSelecionado.situacao === 'C' ? 'Concluído' : 'Pendente' }}
                             </v-chip>
                           </v-col>
 
@@ -581,12 +598,21 @@
                           >Imprimir</v-btn>
 
                           <v-btn
+                            variant="outlined"
                             color="var(--text-color-laranja)"
-                            variant="flat"
-                            class="text-white"
                             prepend-icon="mdi-open-in-new"
                             @click="abrirRecebimentoNaTransferencia"
                           >Abrir na transferência</v-btn>
+
+                          <v-btn
+                            v-if="recebimentoSelecionado.situacao !== 'C'"
+                            color="var(--text-color-laranja)"
+                            variant="flat"
+                            class="text-white"
+                            prepend-icon="mdi-check-circle-outline"
+                            :loading="store.loading"
+                            @click="confirmarRecebimento"
+                          >Confirmar Recebimento</v-btn>
                         </div>
                       </template>
                     </v-card-text>
@@ -858,6 +884,7 @@ const headersRecebimento = [
   { title: 'ID', key: 'id', sortable: true, width: '80px' },
   { title: 'Origem', key: 'origem_label', sortable: true },
   { title: 'Destino', key: 'destino_label', sortable: true },
+  { title: 'Situação', key: 'situacao', sortable: true, width: '110px' },
   { title: 'Ações', key: 'actions', sortable: false, width: '70px' },
 ]
 
@@ -1216,5 +1243,24 @@ const imprimirRecebimento = () => {
     idTransferencia: recebimentoSelecionado.value.id || '-',
     itens: recebimentoSelecionado.value.itens || [],
   })
+}
+
+const confirmarRecebimento = async () => {
+  if (!recebimentoSelecionado.value) return
+  const rec = recebimentoSelecionado.value
+  const payload = {
+    data: [{
+      id: rec.id,
+      id_empresasaida: rec.id_empresasaida,
+      id_almoxsaida: rec.id_almoxsaida,
+      id_empresaentrada: rec.id_empresaentrada,
+      id_almoxentrada: rec.id_almoxentrada,
+    }]
+  }
+  const resultado = await store.receberTransferencia(payload)
+  if (resultado) {
+    recebimentoSelecionado.value = null
+    await carregarRecebimentos()
+  }
 }
 </script>

@@ -79,13 +79,13 @@ export const useTransfAlmoxStore = defineStore('transfalmox', {
     },
 
     /**
-     * Cadastrar transferência
-     * POST /transfalmox
+     * Cadastrar/Enviar transferência
+     * POST /transfalmox/env
      */
     async cadastrarTransferencia(payload) {
       this.loading = true
       try {
-        const response = await api.post('/transfalmox', payload, {
+        const response = await api.post('/transfalmox/env', payload, {
           headers: this.getAuthHeaders()
         })
         toast.success('Transferência registrada com sucesso!')
@@ -94,6 +94,29 @@ export const useTransfAlmoxStore = defineStore('transfalmox', {
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao registrar transferência.'
         console.error('Erro ao registrar transferência:', error)
+        toast.error(this.errorMessage)
+        return null
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Confirmar recebimento de transferência
+     * POST /transfalmox/rec
+     */
+    async receberTransferencia(payload) {
+      this.loading = true
+      try {
+        const response = await api.post('/transfalmox/rec', payload, {
+          headers: this.getAuthHeaders()
+        })
+        toast.success('Recebimento confirmado com sucesso!')
+        this.errorMessage = ''
+        return response.data
+      } catch (error) {
+        this.errorMessage = error.response?.data?.message || 'Erro ao confirmar recebimento.'
+        console.error('Erro ao confirmar recebimento:', error)
         toast.error(this.errorMessage)
         return null
       } finally {

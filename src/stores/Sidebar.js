@@ -193,6 +193,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     icon: 'mdi-swap-horizontal',
                     route: '/paginas/estoque/transfalmox'
                 },
+                {
+                    text: 'Posição de Estoque',
+                    icon: 'mdi-chart-timeline-variant-shimmer',
+                    route: '/paginas/estoque/posicao'
+                },
             ]
         },
         {

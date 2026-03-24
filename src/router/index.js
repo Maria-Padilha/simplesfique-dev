@@ -20,6 +20,7 @@ import PlanoContaView from '@/views/pages/fiscal/PlanoContaView.vue';
 import DebitoRealView from '@/views/pages/financeiro/pagar/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/manutencao/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
+import PosicaoEstoqueView from '@/views/pages/estoque/PosicaoEstoqueView.vue';
 import GrupoTributacaoView from '@/views/pages/estoque/GrupoTributacaoView.vue';
 import TransfAlmoxView from '@/views/pages/estoque/TransfAlmoxView.vue';
 import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
@@ -296,6 +297,11 @@ const routes = [
         path: '/paginas/estoque/formulas',
         name: 'formulas',
         component: () => import('@/views/pages/estoque/FormulaView.vue')
+    },
+    {
+        path: '/paginas/estoque/posicao',
+        name: 'posicao_estoque',
+        component: PosicaoEstoqueView
     },
 
     // Paginas de adiantamento de cliente
