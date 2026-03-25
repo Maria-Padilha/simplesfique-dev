@@ -121,15 +121,15 @@
   <v-navigation-drawer
       class="background-sidebar menu-scroll"
       v-model="drawer"
-      :width="280"
+      :width="260"
       rail-width="65"
   >
     <v-list class="flex items-center flex-col justify-center">
-      <v-sheet v-if="!sidebarRail" width="50px" class="bg-transparent mt-5">
+      <v-sheet v-if="!sidebarRail" width="50px" class="bg-transparent mt-10">
         <v-img alt="logo da simplesfique" cover class="w-[100%] h-[100%]" :src="require('@/assets/img/logo/logo.png')" />
       </v-sheet>
 
-      <v-sheet v-else width="40px" class="bg-transparent mt-5 ml-2">
+      <v-sheet v-else width="40px" class="bg-transparent mt-8 ml-2">
         <v-img alt="logo da simplesfique" cover class="w-[100%] h-[100%]" :src="require('@/assets/img/logo/logo.png')" />
       </v-sheet>
 

@@ -8,14 +8,14 @@
     </template>
 
     <!-- Cards Resumo -->
-    <v-row class="mb-4">
+    <v-row class="">
       <v-col cols="12" sm="6" md="3">
         <v-tooltip text="Lançar uma nova conta a pagar" location="top">
           <template v-slot:activator="{ props }">
             <v-card 
               v-bind="props"
               class="background-card pa-4 card-clicavel" 
-              elevation="2" 
+              elevation="1"
               style="min-height: 120px; height: 75%; display: flex; flex-direction: column; justify-content: space-between;"
               @click="router.push({ path: '/paginas/financeiro/pagar', query: { novo: 'true' } })"
             >
@@ -157,55 +157,66 @@
     <!-- Gráficos Principais -->
     <v-row class="mb-4">
       <!-- Fluxo de Caixa -->
-      <v-col cols="12" lg="8">
-        <v-card class="background-secondary" elevation="2">
+      <v-col cols="12" lg="8" class="d-flex">
+        <v-card class="background-secondary w-100 dashboard-card" elevation="2">
           <v-card-title class="pa-4 d-flex align-center justify-space-between">
             <div class="d-flex align-center">
               <v-icon icon="mdi-chart-line" class="mr-2" color="var(--text-color-laranja)"></v-icon>
               {{ fluxoCaixaDados.titulo }}
             </div>
+
             <div class="d-flex align-center gap-2">
-              <span class="text-caption" :style="{ color: tipoFluxoCaixa === 'mensal' ? 'var(--text-color-laranja)' : 'var(--text-color)' }">
-                Mensal
-              </span>
+          <span
+              class="text-caption"
+              :style="{ color: tipoFluxoCaixa === 'mensal' ? 'var(--text-color-laranja)' : 'var(--text-color)' }"
+          >
+            Mensal
+          </span>
+
               <v-switch
-                v-model="tipoFluxoCaixa"
-                true-value="diario"
-                false-value="mensal"
-                color="var(--text-color-laranja)"
-                hide-details
-                density="compact"
-              ></v-switch>
-              <span class="text-caption" :style="{ color: tipoFluxoCaixa === 'diario' ? 'var(--text-color-laranja)' : 'var(--text-color)' }">
-                Diário
-              </span>
+                  v-model="tipoFluxoCaixa"
+                  true-value="diario"
+                  false-value="mensal"
+                  color="var(--text-color-laranja)"
+                  hide-details
+                  density="compact"
+              />
+
+              <span
+                  class="text-caption"
+                  :style="{ color: tipoFluxoCaixa === 'diario' ? 'var(--text-color-laranja)' : 'var(--text-color)' }"
+              >
+            Diário
+          </span>
             </div>
           </v-card-title>
+
           <v-card-text class="pa-4">
             <apexchart
-              type="area"
-              height="320"
-              :options="fluxoCaixaOptions"
-              :series="fluxoCaixaSeries"
-            ></apexchart>
+                type="area"
+                height="320"
+                :options="fluxoCaixaOptions"
+                :series="fluxoCaixaSeries"
+            />
           </v-card-text>
         </v-card>
       </v-col>
 
       <!-- Distribuição por Banco -->
-      <v-col cols="12" lg="4">
-        <v-card class="background-secondary" elevation="2">
+      <v-col cols="12" lg="4" class="d-flex">
+        <v-card class="background-secondary w-100 dashboard-card" elevation="2">
           <v-card-title class="pa-4 d-flex align-center">
             <v-icon icon="mdi-chart-donut" class="mr-2" color="var(--text-color-laranja)"></v-icon>
             Distribuição Bancária
           </v-card-title>
+
           <v-card-text class="pa-4">
             <apexchart
-              type="donut"
-              height="320"
-              :options="distribuicaoBancariaOptions"
-              :series="distribuicaoBancariaSeries"
-            ></apexchart>
+                type="donut"
+                height="320"
+                :options="distribuicaoBancariaOptions"
+                :series="distribuicaoBancariaSeries"
+            />
           </v-card-text>
         </v-card>
       </v-col>
@@ -215,7 +226,7 @@
     <v-row class="mb-4">
       <!-- Contas a Pagar vs Receber -->
       <v-col cols="12" md="6">
-        <v-card class="background-secondary" elevation="2">
+        <v-card class="background-secondary dashboard-card" elevation="2">
           <v-card-title class="pa-4 d-flex align-center justify-space-between">
             <div class="d-flex align-center">
               <v-icon icon="mdi-chart-bar" class="mr-2" color="var(--text-color-laranja)"></v-icon>
@@ -251,7 +262,7 @@
 
       <!-- Movimentação do Caixa -->
       <v-col cols="12" md="6">
-        <v-card class="background-secondary" elevation="2">
+        <v-card class="background-secondary dashboard-card" elevation="2">
           <v-card-title class="pa-4 d-flex align-center">
             <v-icon icon="mdi-cash-multiple" class="mr-2" color="var(--text-color-laranja)"></v-icon>
             Movimentação do Caixa
@@ -272,7 +283,7 @@
     <v-row class="mb-4">
       <!-- Estoque por Grupo -->
       <v-col cols="12" md="4">
-        <v-card class="background-secondary" elevation="2">
+        <v-card class="background-secondary dashboard-card" elevation="2">
           <v-card-title class="pa-4 d-flex align-center">
             <v-icon icon="mdi-chart-pie" class="mr-2" color="var(--text-color-laranja)"></v-icon>
             Estoque por Grupo
@@ -290,7 +301,7 @@
 
       <!-- Adiantamentos -->
       <v-col cols="12" md="4">
-        <v-card class="background-secondary" elevation="2">
+        <v-card class="background-secondary dashboard-card" elevation="2">
           <v-card-title class="pa-4 d-flex align-center">
             <v-icon icon="mdi-account-cash" class="mr-2" color="var(--text-color-laranja)"></v-icon>
             Adiantamentos de Clientes
@@ -308,7 +319,7 @@
 
       <!-- Top Clientes/Fornecedores -->
       <v-col cols="12" md="4">
-        <v-card class="background-secondary" elevation="2">
+        <v-card class="background-secondary dashboard-card" elevation="2">
           <v-card-title class="pa-4 d-flex align-center">
             <v-icon icon="mdi-account-group" class="mr-2" color="var(--text-color-laranja)"></v-icon>
             Top 5 Clientes
@@ -926,6 +937,16 @@ const getAvatarColor = (index) => {
 </script>
 
 <style scoped>
+.dashboard-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-card .v-card-title {
+  min-height: 72px;
+}
+
 .text-success {
   color: #4CAF50 !important;
 }
