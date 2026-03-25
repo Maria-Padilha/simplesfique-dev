@@ -2,7 +2,7 @@
   <!-- NAVBAR NO TOPO -->
   <v-app-bar class="py-2 z-10 background-navbar" elevation="0" density="compact">
     <v-icon icon="mdi-menu" size="25px" class="ml-5 cursor-pointer" @click="openSidebar"></v-icon>
-    <p class="ml-5 mt-1 text-lg">Simples <span class="texto-color-laranja">Fique</span></p>
+    <p class="ml-3 text-xl text-uppercase">Simples <span class="texto-color-laranja">Fique</span></p>
 
     <v-spacer></v-spacer>
 
@@ -121,7 +121,7 @@
   <v-navigation-drawer
       class="background-sidebar menu-scroll"
       v-model="drawer"
-      :width="240"
+      :width="280"
       rail-width="65"
   >
     <v-list class="flex items-center flex-col justify-center">
@@ -146,7 +146,9 @@
           prepend-icon="mdi-home"
           title="Home"
           to="/paginas/home"
-      ></v-list-item>
+      >
+        <template #title><span class="grupo-primario">Home</span></template>
+      </v-list-item>
 
       <!-- RENDERIZAR DINAMICAMENTE TODOS OS MÓDULOS DO STORE -->
       <v-list-group
@@ -158,6 +160,7 @@
           <v-list-item
               v-bind="props"
               :prepend-icon="modulo.icon"
+              class="menu-pai"
           >
             <template #title>
               <span class="grupo-primario">{{ modulo.titulo }}</span>
@@ -451,65 +454,302 @@ onBeforeUnmount(() => {
 
 .background-sidebar {
   background: var(--bg-navbar);
-  color: white;
+  color: #fff;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-
+/* Scroll */
 .menu-scroll {
-  scrollbar-color: transparent transparent;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
 
-.submenu-item {
-  padding-left: 30px !important; /* padrão costuma ser 24px ou mais */
-}
-.submenu-item .v-list-item__prepend {
-  margin-right: 8px !important; /* ajusta o espaço entre ícone e texto */
-}
-
-.sub-submenu-item {
-  padding-left: 50px !important; /* mais indentação para sub-submenus */
-}
-.sub-submenu-item .v-list-item__prepend {
-  margin-right: 8px !important;
+/* Lista base */
+.v-list {
+  padding-top: 6px;
+  padding-bottom: 10px;
 }
 
-.span {
-  font-size: 12px !important;
-  opacity: .9;
+/* Divider */
+.v-divider {
+  border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-.span-small {
-  font-size: 11px !important;
-  opacity: .85;
+/* =========================
+   CAMPO DE PESQUISA
+========================= */
+.v-text-field {
+  border-radius: 12px;
+}
+
+.v-text-field :deep(.v-field) {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  transition: all 0.2s ease;
+}
+
+.v-text-field :deep(.v-field:hover) {
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.v-text-field :deep(input) {
+  color: #fff !important;
+}
+
+.v-text-field :deep(input::placeholder) {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.v-text-field :deep(.v-field__append-inner .v-icon) {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.v-text-field :deep(.v-field__outline) {
+  display: none;
+}
+
+/* =========================
+   ITEM BASE
+========================= */
+.v-list-item {
+  min-height: 44px;
+  margin: 4px 10px;
+  border-radius: 12px;
+  transition:
+      background-color 0.2s ease,
+      transform 0.15s ease,
+      box-shadow 0.2s ease;
+}
+
+.v-list-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Ícones */
+.v-list-item :deep(.v-list-item__prepend) {
+  margin-right: 10px;
+}
+
+.v-icon {
+  opacity: 0.95;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.v-list-item:hover .v-icon {
+  opacity: 1;
+  transform: scale(1.04);
+}
+
+/* =========================
+   HOME
+========================= */
+.v-list-item--nav {
+  padding-inline: 12px;
+}
+
+/* Item ativo geral */
+.v-list-item--active {
+  background: rgba(255, 255, 255, 0.14) !important;
+  box-shadow: inset 3px 0 0 #ffffff;
+}
+
+/* =========================
+   MENU PAI
+========================= */
+.menu-pai {
+  min-height: 48px;
+  background: rgba(193, 193, 193, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.menu-pai:hover {
+  background: rgba(0, 0, 0, 0.14);
 }
 
 .grupo-primario {
-  font-weight: 700 !important;
   font-size: 14px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.2px;
+  color: #fff;
 }
 
-/* Acessos Rápidos */
+/* Grupo aberto */
+:deep(.v-list-group--open > .v-list-item.menu-pai) {
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow:
+      inset 3px 0 0 #fff,
+      inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* Espaço entre módulos */
+.v-list-group {
+  margin-top: 6px;
+}
+
+/* =========================
+   SUBMENUS NÍVEL 1
+========================= */
+.submenu-item {
+  min-height: 40px;
+  margin: 3px 14px 3px 22px !important;
+  padding-left: 18px !important;
+  border-radius: 10px;
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* trilha vertical */
+.submenu-item::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* traço horizontal ligando */
+.submenu-item::after {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  width: 10px;
+  height: 2px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.submenu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.submenu-item.v-list-item--active {
+  background: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: inset 2px 0 0 rgba(255, 255, 255, 0.95);
+}
+
+.span {
+  font-size: 13px !important;
+  font-weight: 500;
+  opacity: 0.95;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* =========================
+   SUBMENUS NÍVEL 2
+========================= */
+.sub-submenu-item {
+  min-height: 38px;
+  margin: 2px 14px 2px 42px !important;
+  padding-left: 16px !important;
+  border-radius: 10px;
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.sub-submenu-item::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 5px;
+  bottom: 5px;
+  width: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.sub-submenu-item::after {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  width: 12px;
+  height: 2px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.sub-submenu-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.sub-submenu-item.v-list-item--active {
+  background: rgba(255, 255, 255, 0.11) !important;
+  box-shadow: inset 2px 0 0 rgba(255, 255, 255, 0.9);
+}
+
+.span-small {
+  font-size: 13px !important;
+  font-weight: 500;
+  opacity: 0.88;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* =========================
+   CHEVRON / EXPANSÃO
+========================= */
+:deep(.v-list-group__header .v-list-item__append .v-icon) {
+  opacity: 0.85;
+  font-size: 18px !important;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+:deep(.v-list-group--open > .v-list-item .v-list-item__append .v-icon) {
+  opacity: 1;
+}
+
+/* =========================
+   ACESSOS RÁPIDOS
+========================= */
 .acesso-rapido-btn {
-  opacity: 0.7;
+  opacity: 0.75;
   transition: all 0.2s ease;
 }
 
 .acesso-rapido-btn:hover {
   opacity: 1;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.10);
 }
 
 .config-acesso-btn {
-  opacity: 0.5;
+  opacity: 0.55;
   transition: all 0.2s ease;
 }
 
 .config-acesso-btn:hover {
   opacity: 1;
-  color: var(--text-color-laranja) !important;
+  color: #fff !important;
 }
 
 .gap-2 {
   gap: 8px;
+}
+
+/* =========================
+   RAIL MODE
+========================= */
+:deep(.v-navigation-drawer--rail .v-list-item) {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+:deep(.v-navigation-drawer--rail .submenu-item),
+:deep(.v-navigation-drawer--rail .sub-submenu-item) {
+  margin-left: 8px !important;
+  margin-right: 8px !important;
+  padding-left: 0 !important;
+}
+
+:deep(.v-navigation-drawer--rail .submenu-item::before),
+:deep(.v-navigation-drawer--rail .submenu-item::after),
+:deep(.v-navigation-drawer--rail .sub-submenu-item::before),
+:deep(.v-navigation-drawer--rail .sub-submenu-item::after) {
+  display: none;
 }
 </style>
