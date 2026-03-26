@@ -16,6 +16,7 @@ import InventarioView from "@/views/pages/inventario/InventarioView.vue";
 import ContagemInventarioView from "@/views/pages/inventario/ContagemInventarioView.vue";
 import PessoasView from '@/views/pages/manutencao/PessoasView.vue';
 import EmpresaView from '@/views/pages/manutencao/EmpresaView.vue';
+import LancamentoColabView from '@/views/pages/financeiro/pagar/LancamentoColabView.vue';
 import PlanoContaView from '@/views/pages/fiscal/PlanoContaView.vue';
 import DebitoRealView from '@/views/pages/financeiro/pagar/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/manutencao/UsuariosView.vue';
@@ -160,6 +161,11 @@ const routes = [
         path: '/paginas/financeiro/pagar',
         name: 'financeiro_pagar',
         component: PagarView
+    },
+    {
+        path: '/paginas/financeiro/pagar/lancamento-colaborador',
+        name: 'financeiro_lancamento_colaborador',
+        component: LancamentoColabView
     },
     {
         path: '/paginas/financeiro/receber',

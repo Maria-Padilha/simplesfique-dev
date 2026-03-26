@@ -49,7 +49,8 @@ export const useSidebarStore = defineStore('sidebar', () => {
                         { text: 'Adt Fornecedores', icon: 'mdi-account-tie', route: '/paginas/adiantamento/fornecedor' },
                         { text: 'Centro de Custo', icon: 'mdi-file-tree', route: '/paginas/financeiro/centrodecusto/cadastro' },
                         { text: 'Previsão C. Custo', icon: 'mdi-chart-timeline-variant', route: '/paginas/financeiro/centrodecusto/previsao' },
-                        { text: 'Realizado C. Custo', icon: 'mdi-chart-bar', route: '/paginas/financeiro/centrodecusto/debitoreal' }
+                        { text: 'Realizado C. Custo', icon: 'mdi-chart-bar', route: '/paginas/financeiro/centrodecusto/debitoreal' },
+                        { text: 'Adt Colaborador' , icon: 'mdi-account-cash', route: '/paginas/financeiro/pagar/lancamento-colaborador' },
                     ]
                 },
                 {

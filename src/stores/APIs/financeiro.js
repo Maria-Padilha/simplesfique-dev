@@ -1251,6 +1251,42 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
+    async calcularParcelasColab(dadosCalculo) {
+      this.loading = true
+      this.error = null
+      try {
+        const dadosParcela = {
+          vlrtotal: dadosCalculo.vlrtotal,
+          qtdparcelas: dadosCalculo.qtdparcelas,
+          intervalo: dadosCalculo.intervalo || 30,
+          primeirovencimento: dadosCalculo.primeirovencimento,
+        }
+
+        const payload = { data: [dadosParcela] }
+
+        const response = await api.post('/adtcolabocalcparc', payload, {
+          headers: this.getAuthHeaders()
+        })
+
+        const resp = response.data
+        let parcelas = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          parcelas = resp.data
+        } else if (Array.isArray(resp)) {
+          parcelas = resp
+        } else if (resp && typeof resp === 'object') {
+          parcelas = [resp]
+        }
+
+        return parcelas
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao calcular parcelas'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     // ========== HISTÓRICO CONTABIL ==========
 
     // Buscar históricos contábeis (GET /historicocontabil)
@@ -2720,6 +2756,88 @@ export const useFinanceiroStore = defineStore('financeiro', {
       } catch (error) {
         console.error('[Store] Erro ao deletar modelo DRE:', error)
         this.error = error.response?.data?.error || 'Erro ao deletar modelo DRE'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // ========== LANÇAMENTO COLABORADOR ==========
+
+    // Buscar lançamentos de colaborador (GET /adtcolabo)
+    async buscarLancamentosColab(idEmpresa, params = {}) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get(`/adtcolabo/${idEmpresa}`, {
+          headers: this.getAuthHeaders(),
+          params,
+        })
+        const resp = response.data
+        let dados
+        if (resp && resp.data && Array.isArray(resp.data)) dados = resp.data
+        else if (Array.isArray(resp)) dados = resp
+        else if (resp && typeof resp === 'object') dados = [resp]
+        else dados = []
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar lançamentos de colaborador'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Criar lançamento de colaborador (POST /adtcolabo)
+    // payload: { data: [{ ...campos }], parcela: [{ valor, dtvencimento }] }
+    async criarLancamentoColab(payload) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.post('/adtcolabo', payload, { headers: this.getAuthHeaders() })
+        toast.success('Lançamento salvo com sucesso!')
+        const resp = response.data
+        if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0]
+        return resp
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao criar lançamento de colaborador'
+        toast.error(this.error)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Atualizar lançamento de colaborador (PUT /adtcolabo/:id)
+    async atualizarLancamentoColab(id, payload) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.put(`/adtcolabo/${id}`, payload, { headers: this.getAuthHeaders() })
+        toast.success('Lançamento atualizado com sucesso!')
+        const resp = response.data
+        if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0]
+        return resp
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao atualizar lançamento de colaborador'
+        toast.error(this.error)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Deletar lançamento de colaborador (DELETE /adtcolabo/:id)
+    async deletarLancamentoColab(id) {
+      this.loading = true
+      this.error = null
+      try {
+        await api.delete(`/adtcolabo/${id}`, { headers: this.getAuthHeaders() })
+        toast.success('Lançamento excluído com sucesso!')
+        return true
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao deletar lançamento de colaborador'
+        toast.error(this.error)
         throw error
       } finally {
         this.loading = false
