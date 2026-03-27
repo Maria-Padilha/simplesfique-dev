@@ -38,7 +38,7 @@
             :cfop-nome="cfopNome"
             :selecionar-almoxarifado="selecionarAlmoxarifado"
             @ler-xml="lerXML"
-            @preencher-itens="(itens) => (produtos.value = itens)"
+            @preencher-itens="(itens) => (produtos = itens)"
             :entradas="entradasFormatadas"
             :themeStore="themeStore"
         />
@@ -140,6 +140,7 @@ const cnpjEmpresa = idEmpresa?.cnpj || null;
 const pessoas = computed(() => pessoasStore.pessoas);
 const todosProdutos = computed(() => produtosStore.produtos);
 const aliquotas = computed(() => estoqueStore.aliquotas ?? []);
+const produtos = computed(() => produtosStore.produtos ?? []);
 
 const almoxarifadoNome = ref("");
 const cfopNome = ref("");
@@ -394,16 +395,17 @@ const normalizarForm = (data) => {
 
 // ======================= ENTRADAS (para selecionar no autocomplete) =======================
 
-const entradas = computed(() => produtosStore.entradasdfe ?? []);
+const entradas = computed(() => produtosStore.entradadfe ?? []);
 
-// deixa “bonitinho” no autocomplete
-const entradasFormatadas = computed(() =>
-    console.log("Formatando entradas para autocomplete: ", entradas.value),
-    (entradas.value || []).map(e => ({
-      ...e,
-      label: `#${e.id} • NF ${e.numero_nf ?? e.id_nota ?? '-'} Série ${e.serie_nf ?? e.id_serie ?? '-'} • ${e.nome_razao ?? ''}`.trim()
-    }))
-);
+const entradasFormatadas = computed(() => {
+  console.log("Formatando entradas para autocomplete:", entradas.value);
+
+  return (entradas.value || []).map(e => ({
+    ...e,
+    label: `#${e.id} • NF ${e.numero_nf ?? e.id_nota ?? '-'} - Série ${e.serie_nf ?? e.id_serie ?? '-'} • ${e.nome_razao ?? ''}`.trim(),
+    value: e.id
+  }));
+});
 
 // ao montar: buscar entradas (pra poder selecionar)
 onMounted(async () => {

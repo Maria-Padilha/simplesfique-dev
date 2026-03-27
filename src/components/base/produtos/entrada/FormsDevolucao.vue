@@ -14,7 +14,7 @@
                 v-model="entradaSelecionadaId"
                 :items="entradas"
                 item-title="label"
-                item-value="id"
+                item-value="value"
                 clearable
                 class="required-left-border"
                 :rules="validacao"
@@ -365,7 +365,10 @@
 
 <script setup>
 import AlmoxarifadoMenu from "@/components/base/menu/AlmoxarifadoMenu.vue";
-import { defineEmits, defineProps, ref, toRefs } from "vue";
+import {computed, defineEmits, defineProps, ref, toRefs} from "vue";
+import {useProdutosStore} from "@/stores/APIs/produtos";
+
+const produtosStore = useProdutosStore();
 
 const props = defineProps({
   forms: { type: Object, required: true },
@@ -393,86 +396,104 @@ const onXmlSelected = (files) => {
   emit("ler-xml", file);
 };
 
-const onSelecionarEntrada = (id) => {
+const onSelecionarEntrada = async (entradaId) => {
   // limpar
-  if (!id) {
+  console.log('entrada id: ', entradaId);
+
+  if (!entradaId) {
     forms.value.id_entrada_origem = null;
     emit("preencher-itens", []);
     emit("entrada-selecionada", null);
     return;
   }
 
-  const entrada = (entradas.value || []).find((e) => e.id === id);
-  if (!entrada) return;
+  console.log('preenchendo nota')
 
-  // 1) salva ID origem no forms
-  forms.value.id_entrada_origem = entrada.id;
+  try {
+    const idEmpresa = JSON.parse(localStorage.getItem("empresaSelecionada"));
 
-  // 2) Preenche cabeçalho (ajuste os nomes conforme seu retorno)
-  forms.value.id_fornecedor = entrada.id_fornecedor ?? forms.value.id_fornecedor ?? null;
-  forms.value.numero_nf = entrada.numero_nf ?? entrada.id_nota ?? forms.value.numero_nf ?? null;
-  forms.value.serie_nf = entrada.serie_nf ?? entrada.id_serie ?? forms.value.serie_nf ?? null;
+    await produtosStore.buscarEntradaDfePorId(idEmpresa?.id, entradaId);
 
-  forms.value.id_almoxarifado = entrada.id_almoxarifado ?? forms.value.id_almoxarifado ?? null;
-  forms.value.id_cfop = entrada.id_cfop ?? forms.value.id_cfop ?? null;
-  forms.value.id_uf = entrada.id_uf ?? forms.value.id_uf ?? null;
+    const entrada = computed(() => produtosStore.entradadfeItem);
 
-  forms.value.dtemissao = entrada.dtemissao ?? forms.value.dtemissao ?? null;
-  forms.value.dtsaida = entrada.dtentrada ?? entrada.dtsaida ?? forms.value.dtsaida ?? null;
+    console.log('visualizando nota selecionada: ', entrada.value);
 
-  forms.value.especie = entrada.especie ?? forms.value.especie ?? null;
-  forms.value.vlr_total_produto = entrada.vlr_total_produto ?? forms.value.vlr_total_produto ?? null;
-  forms.value.vlr_nf = entrada.vlr_nf ?? forms.value.vlr_nf ?? null;
-  forms.value.situacao = entrada.situacao ?? forms.value.situacao ?? null;
+    if (!entrada.value) return;
 
-  // cálculos (se vier)
-  const t = entrada.totais ?? entrada; // se você mandar em objeto "totais", usa ele; senão usa a entrada
-  forms.value.base_icms = t.base_icms ?? forms.value.base_icms ?? null;
-  forms.value.aliquota_icms = t.aliquota_icms ?? forms.value.aliquota_icms ?? null;
-  forms.value.vlr_icms = t.vlr_icms ?? forms.value.vlr_icms ?? null;
-  forms.value.isento_icms = t.isento_icms ?? forms.value.isento_icms ?? null;
+    console.log('começando a preencher forms')
 
-  forms.value.base_ipi = t.base_ipi ?? forms.value.base_ipi ?? null;
-  forms.value.vlr_ipi = t.vlr_ipi ?? forms.value.vlr_ipi ?? null;
-  forms.value.isento_ipi = t.isento_ipi ?? forms.value.isento_ipi ?? null;
+    // 1) salva ID origem no forms
+    forms.value.id_entrada_origem = entrada.value.id;
 
-  forms.value.base_icms_subst = t.base_icms_subst ?? forms.value.base_icms_subst ?? null;
-  forms.value.vlr_icms_subst = t.vlr_icms_subst ?? forms.value.vlr_icms_subst ?? null;
+    // 2) Preenche cabeçalho
+    forms.value.id_fornecedor = entrada.value.id_fornecedor ?? forms.value.id_fornecedor ?? null;
+    forms.value.numero_nf = entrada.value.numero_nf ?? entrada.value.id_nota ?? forms.value.numero_nf ?? null;
+    forms.value.serie_nf = entrada.value.serie_nf ?? entrada.value.id_serie ?? forms.value.serie_nf ?? null;
 
-  forms.value.vlr_seguro = t.vlr_seguro ?? forms.value.vlr_seguro ?? null;
-  forms.value.vlr_desconto = t.vlr_desconto ?? forms.value.vlr_desconto ?? null;
-  forms.value.tipo_frete = t.tipo_frete ?? forms.value.tipo_frete ?? null;
-  forms.value.vlr_frete = t.vlr_frete ?? forms.value.vlr_frete ?? null;
+    forms.value.id_almoxarifado = entrada.value.id_almoxarifado ?? forms.value.id_almoxarifado ?? null;
+    forms.value.id_cfop = entrada.value.id_cfop ?? forms.value.id_cfop ?? null;
+    forms.value.id_uf = entrada.value.id_uf ?? forms.value.id_uf ?? null;
 
-  forms.value.outras_despesas = t.outras_despesas ?? forms.value.outras_despesas ?? null;
-  forms.value.outras_despesas_foranf = t.outras_despesas_foranf ?? forms.value.outras_despesas_foranf ?? null;
+    forms.value.dtemissao = entrada.value.dtemissao ?? forms.value.dtemissao ?? null;
+    forms.value.dtsaida = entrada.value.dtentrada ?? entrada.value.dtsaida ?? forms.value.dtsaida ?? null;
 
-  forms.value.peso_bruto = t.peso_bruto ?? forms.value.peso_bruto ?? null;
-  forms.value.peso_liquido = t.peso_liquido ?? forms.value.peso_liquido ?? null;
-  forms.value.qtd_volume = t.qtd_volume ?? forms.value.qtd_volume ?? null;
-  forms.value.especie_volume = t.especie_volume ?? forms.value.especie_volume ?? null;
-  forms.value.placa_veiculo = t.placa_veiculo ?? forms.value.placa_veiculo ?? null;
+    forms.value.especie = entrada.value.especie ?? forms.value.especie ?? null;
+    forms.value.vlr_total_produto = entrada.value.vlr_total_produto ?? forms.value.vlr_total_produto ?? null;
+    forms.value.vlr_nf = entrada.value.vlr_nf ?? forms.value.vlr_nf ?? null;
+    forms.value.situacao = entrada.value.situacao ?? forms.value.situacao ?? null;
 
-  // NFe
-  forms.value.nfe_numero = entrada.nfe_numero ?? forms.value.nfe_numero ?? null;
-  forms.value.nfe_numero_serie = entrada.nfe_numero_serie ?? forms.value.nfe_numero_serie ?? null;
-  forms.value.nfe_acesso = entrada.nfe_acesso ?? forms.value.nfe_acesso ?? null;
-  forms.value.nfe_chavedeacesso = entrada.nfe_chavedeacesso ?? forms.value.nfe_chavedeacesso ?? null;
-  forms.value.nfe_modelo = entrada.nfe_modelo ?? forms.value.nfe_modelo ?? null;
+    const t = entrada.value.totais ?? entrada.value;
 
-  // 3) Preenche itens
-  // Esperado: entrada.itens (ou entrada.items). Ajuste conforme seu retorno real.
-  const itensOrigem = entrada.itens ?? entrada.items ?? [];
+    forms.value.base_icms = t.base_icms ?? forms.value.base_icms ?? null;
+    forms.value.aliquota_icms = t.aliquota_icms ?? forms.value.aliquota_icms ?? null;
+    forms.value.vlr_icms = t.vlr_icms ?? forms.value.vlr_icms ?? null;
+    forms.value.isento_icms = t.isento_icms ?? forms.value.isento_icms ?? null;
 
-  // A devolução normalmente começa com os MESMOS itens da entrada.
-  // Se você quiser já setar quantidade devolvida = quantidade, mantém assim.
-  const itensDevolucao = (itensOrigem || []).map((i) => ({
-    ...i,
-    // se quiser resetar algum campo específico:
-    // id_movimentoalmox: forms.value.id_almoxarifado,
-  }));
+    forms.value.base_ipi = t.base_ipi ?? forms.value.base_ipi ?? null;
+    forms.value.vlr_ipi = t.vlr_ipi ?? forms.value.vlr_ipi ?? null;
+    forms.value.isento_ipi = t.isento_ipi ?? forms.value.isento_ipi ?? null;
 
-  emit("preencher-itens", itensDevolucao);
-  emit("entrada-selecionada", entrada);
+    forms.value.base_icms_subst = t.base_icms_subst ?? forms.value.base_icms_subst ?? null;
+    forms.value.vlr_icms_subst = t.vlr_icms_subst ?? forms.value.vlr_icms_subst ?? null;
+
+    forms.value.vlr_seguro = t.vlr_seguro ?? forms.value.vlr_seguro ?? null;
+    forms.value.vlr_desconto = t.vlr_desconto ?? forms.value.vlr_desconto ?? null;
+    forms.value.tipo_frete = t.tipo_frete ?? forms.value.tipo_frete ?? null;
+    forms.value.vlr_frete = t.vlr_frete ?? forms.value.vlr_frete ?? null;
+
+    forms.value.outras_despesas = t.outras_despesas ?? forms.value.outras_despesas ?? null;
+    forms.value.outras_despesas_foranf = t.outras_despesas_foranf ?? forms.value.outras_despesas_foranf ?? null;
+
+    forms.value.peso_bruto = t.peso_bruto ?? forms.value.peso_bruto ?? null;
+    forms.value.peso_liquido = t.peso_liquido ?? forms.value.peso_liquido ?? null;
+    forms.value.qtd_volume = t.qtd_volume ?? forms.value.qtd_volume ?? null;
+    forms.value.especie_volume = t.especie_volume ?? forms.value.especie_volume ?? null;
+    forms.value.placa_veiculo = t.placa_veiculo ?? forms.value.placa_veiculo ?? null;
+
+    // NFe
+    forms.value.nfe_numero = entrada.value.nfe_numero ?? forms.value.nfe_numero ?? null;
+    forms.value.nfe_numero_serie = entrada.value.nfe_numero_serie ?? forms.value.nfe_numero_serie ?? null;
+    forms.value.nfe_acesso = entrada.value.nfe_acesso ?? forms.value.nfe_acesso ?? null;
+    forms.value.nfe_chavedeacesso = entrada.value.nfe_chavedeacesso ?? forms.value.nfe_chavedeacesso ?? null;
+    forms.value.nfe_modelo = entrada.value.nfe_modelo ?? forms.value.nfe_modelo ?? null;
+    forms.value.id_transportadora = entrada.value.id_transportadora ?? null
+
+    forms.value.importacaoxml = entrada.value.importacaoxml === 'S' ?? false
+    forms.value.nf_origem = entrada.value.nf_origem === 'S' ?? false
+
+    // 3) Preenche itens
+    const itensOrigem = entrada.value.itens ?? entrada.value.items ?? [];
+
+    const itensDevolucao = itensOrigem.map((i) => ({
+      ...i,
+    }));
+
+    emit("preencher-itens", itensDevolucao);
+    emit("entrada-selecionada", entrada.value);
+  } catch (error) {
+    console.error("Erro ao buscar entrada por ID:", error);
+    emit("preencher-itens", []);
+    emit("entrada-selecionada", null);
+  }
 };
 </script>
