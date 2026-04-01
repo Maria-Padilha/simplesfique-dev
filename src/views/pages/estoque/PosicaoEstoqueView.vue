@@ -1,38 +1,28 @@
 <template>
-  <div class="pa-4">
+  <top-all-pages icon="mdi-package-variant-closed">
+    <template #titulo>Posição de Estoque</template>
+    <template #section>
+      <v-card class="background-secondary" :color="themeStore.darkMode ? 'text-white' : ''" elevation="0">
+        <v-tabs
+          v-model="abaAtiva"
+          color="var(--text-color-laranja)"
+          class="px-4 pt-2"
+          density="comfortable"
+        >
+          <v-tab value="posicao">
+            <v-icon icon="mdi-chart-box-outline" class="mr-2"></v-icon>
+            Posição de Estoque
+          </v-tab>
+          <v-tab value="acompanhamento">
+            <v-icon icon="mdi-chart-timeline-variant" class="mr-2"></v-icon>
+            Acompanhamento de Estoque
+          </v-tab>
+        </v-tabs>
 
-    <!-- ===== HEADER ===== -->
-    <v-card class="background-secondary mb-4">
-      <v-card-title class="text-h5 pa-4 d-flex justify-space-between align-center flex-wrap gap-2">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-package-variant-closed" class="mr-3" color="var(--text-color-laranja)"></v-icon>
-          Posição de Estoque
-        </div>
-      </v-card-title>
-    </v-card>
+        <v-divider></v-divider>
 
-    <!-- ===== CONTEÚDO ===== -->
-    <v-card class="background-secondary" :color="themeStore.darkMode ? 'text-white' : ''">
-      <v-tabs
-        v-model="abaAtiva"
-        color="var(--text-color-laranja)"
-        class="px-4 pt-2"
-        density="comfortable"
-      >
-        <v-tab value="posicao">
-          <v-icon icon="mdi-chart-box-outline" class="mr-2"></v-icon>
-          Posição de Estoque
-        </v-tab>
-        <v-tab value="acompanhamento">
-          <v-icon icon="mdi-chart-timeline-variant" class="mr-2"></v-icon>
-          Acompanhamento de Estoque
-        </v-tab>
-      </v-tabs>
-
-      <v-divider></v-divider>
-
-      <v-card-text class="pa-0">
-        <v-tabs-window v-model="abaAtiva">
+        <v-card-text class="pa-0">
+          <v-tabs-window v-model="abaAtiva">
 
           <!-- ======================================================= -->
           <!-- TAB 1: POSIÇÃO DE ESTOQUE                               -->
@@ -63,285 +53,299 @@
                 </v-btn>
               </div>
 
-              <!-- === FILTROS POR CATEGORIA (grade uniforme) === -->
-              <div class="secao-titulo mb-2">FILTROS POR CATEGORIA</div>
-              <div class="filtro-radio-grid mb-5">
+              <!-- Filtros por Categoria -->
+              <v-card class="background-card mb-4" elevation="0">
+                <v-card-title class="text-subtitle-2 pa-3 text-uppercase opacity-60">Filtros por Categoria</v-card-title>
+                <v-card-text class="pa-3">
+                  <v-row>
+                    <v-col cols="12" md="3">
+                      <v-autocomplete
+                        v-model="filtrosPosicao.idGrupo"
+                        :items="gruposOpcoes"
+                        item-title="descgrupo"
+                        item-value="id"
+                        label="Grupo"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-folder-outline"
+                        hide-details="auto"
+                        clearable
+                        color="var(--text-color-laranja)"
+                        :loading="estoqueStore.loading"
+                        @update:model-value="onGrupoPosicaoChange"
+                      />
+                    </v-col>
 
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">GRUPO</div>
-                  <v-autocomplete
-                    v-model="filtrosPosicao.idGrupo"
-                    :items="gruposOpcoes"
-                    item-title="descgrupo"
-                    item-value="id"
-                    label="Todos"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    clearable
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    :loading="estoqueStore.loading"
-                    @update:model-value="onGrupoPosicaoChange"
-                  ></v-autocomplete>
-                </v-card>
+                    <v-col cols="12" md="3">
+                      <v-autocomplete
+                        v-model="filtrosPosicao.idSubgrupo"
+                        :items="subgruposPosicaoOpcoes"
+                        item-title="descsubgrupo"
+                        item-value="id"
+                        label="Subgrupo"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-folder-open-outline"
+                        hide-details="auto"
+                        clearable
+                        :disabled="!filtrosPosicao.idGrupo"
+                        color="var(--text-color-laranja)"
+                        :loading="estoqueStore.loading"
+                      />
+                    </v-col>
 
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">SUBGRUPO</div>
-                  <v-autocomplete
-                    v-model="filtrosPosicao.idSubgrupo"
-                    :items="subgruposPosicaoOpcoes"
-                    item-title="descsubgrupo"
-                    item-value="id"
-                    label="Todos"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    clearable
-                    :disabled="!filtrosPosicao.idGrupo"
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    :loading="estoqueStore.loading"
-                  ></v-autocomplete>
-                </v-card>
+                    <v-col cols="12" md="3">
+                      <v-autocomplete
+                        v-model="filtrosPosicao.idAlmox"
+                        :items="estoqueStore.almoxarifados"
+                        item-title="descalmoxarifado"
+                        item-value="id"
+                        label="Almoxarifado"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-warehouse"
+                        hide-details="auto"
+                        clearable
+                        color="var(--text-color-laranja)"
+                        :loading="estoqueStore.loading"
+                      />
+                    </v-col>
 
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">ALMOXARIFADO</div>
-                  <v-autocomplete
-                    v-model="filtrosPosicao.idAlmox"
-                    :items="estoqueStore.almoxarifados"
-                    item-title="descalmoxarifado"
-                    item-value="id"
-                    label="Todos"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    clearable
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    :loading="estoqueStore.loading"
-                  ></v-autocomplete>
-                </v-card>
+                    <v-col cols="12" md="3">
+                      <v-autocomplete
+                        v-model="filtrosPosicao.idLocalizacao"
+                        :items="produtosStore.localizacoes"
+                        item-title="descricao"
+                        item-value="id"
+                        label="Localização"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-map-marker"
+                        hide-details="auto"
+                        clearable
+                        color="var(--text-color-laranja)"
+                        :loading="produtosStore.loading"
+                      />
+                    </v-col>
 
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">LOCALIZAÇÃO</div>
-                  <v-autocomplete
-                    v-model="filtrosPosicao.idLocalizacao"
-                    :items="produtosStore.localizacoes"
-                    item-title="descricao"
-                    item-value="id"
-                    label="Todas"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    clearable
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    :loading="produtosStore.loading"
-                  ></v-autocomplete>
-                </v-card>
+                    <v-col cols="12" md="3">
+                      <v-autocomplete
+                        v-model="filtrosPosicao.idClasse"
+                        :items="estoqueStore.classes"
+                        item-title="descclasse"
+                        item-value="id"
+                        label="Classe"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-shape"
+                        hide-details="auto"
+                        clearable
+                        color="var(--text-color-laranja)"
+                        :loading="estoqueStore.loading"
+                      />
+                    </v-col>
 
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">CLASSE</div>
-                  <v-autocomplete
-                    v-model="filtrosPosicao.idClasse"
-                    :items="estoqueStore.classes"
-                    item-title="descclasse"
-                    item-value="id"
-                    label="Todas"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    clearable
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    :loading="estoqueStore.loading"
-                  ></v-autocomplete>
-                </v-card>
+                    <v-col cols="12" md="3">
+                      <v-autocomplete
+                        v-model="filtrosPosicao.idMarca"
+                        :items="produtosStore.marcas"
+                        item-title="descmarca"
+                        item-value="id"
+                        label="Marca"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-tag"
+                        hide-details="auto"
+                        clearable
+                        color="var(--text-color-laranja)"
+                        :loading="produtosStore.loading"
+                      />
+                    </v-col>
 
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">MARCA</div>
-                  <v-autocomplete
-                    v-model="filtrosPosicao.idMarca"
-                    :items="produtosStore.marcas"
-                    item-title="descmarca"
-                    item-value="id"
-                    label="Todas"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    clearable
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    :loading="produtosStore.loading"
-                  ></v-autocomplete>
-                </v-card>
+                    <v-col cols="12" md="3">
+                      <v-autocomplete
+                        v-model="filtrosPosicao.idNcm"
+                        :items="estoqueStore.ncms"
+                        :item-title="(item) => item.id + ' - ' + item.desc_ncm"
+                        item-value="id"
+                        label="NCM"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-barcode"
+                        hide-details="auto"
+                        clearable
+                        color="var(--text-color-laranja)"
+                        :loading="estoqueStore.loading"
+                        :menu-props="{ maxHeight: 250, maxWidth: 400 }"
+                      />
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
 
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">NCM</div>
-                  <v-autocomplete
-                    v-model="filtrosPosicao.idNcm"
-                    :items="estoqueStore.ncms"
-                    :item-title="(item) => item.id + ' - ' + item.desc_ncm"
-                    item-value="id"
-                    label="Todos"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    clearable
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    :loading="estoqueStore.loading"
-                    :menu-props="{ maxHeight: 250, maxWidth: 400 }"
-                  ></v-autocomplete>
-                </v-card>
+              <!-- Configurações do Relatório -->
+              <v-card class="background-card mb-4" elevation="0">
+                <v-card-title class="text-subtitle-2 pa-3 text-uppercase opacity-60">Configurações do Relatório</v-card-title>
+                <v-card-text class="pa-3">
+                  <v-row>
+                    <v-col cols="12" md="3">
+                      <v-select
+                        v-model="filtrosPosicao.statusProduto"
+                        :items="[{ title: 'Todos', value: 'todos' }, { title: 'Ativo', value: 'ativo' }, { title: 'Inativo', value: 'inativo' }]"
+                        item-title="title"
+                        item-value="value"
+                        label="Status Produtos"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-check-circle-outline"
+                        hide-details="auto"
+                        color="var(--text-color-laranja)"
+                      />
+                    </v-col>
 
-              </div>
+                    <v-col cols="12" md="3">
+                      <v-select
+                        v-model="filtrosPosicao.tipoEstoque"
+                        :items="[{ title: 'Todos', value: 'todos' }, { title: 'Estoque Positivo', value: 'positivo' }, { title: 'Estoque Negativo', value: 'negativo' }]"
+                        item-title="title"
+                        item-value="value"
+                        label="Estoque"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-package-variant"
+                        hide-details="auto"
+                        color="var(--text-color-laranja)"
+                      />
+                    </v-col>
 
-              <!-- === CONFIGURAÇÕES DO RELATÓRIO (grade uniforme) === -->
-              <div class="secao-titulo mb-2">CONFIGURAÇÕES DO RELATÓRIO</div>
-              <div class="filtro-radio-grid mb-5">
+                    <v-col cols="12" md="3">
+                      <v-select
+                        v-model="filtrosPosicao.emitir"
+                        :items="[
+                          { title: 'Preço de Venda', value: 'preco_venda' },
+                          { title: 'Custo de Compra', value: 'custo_compra' },
+                          { title: 'Custo de Aquisição', value: 'custo_aquisicao' },
+                          { title: 'Custo Médio', value: 'custo_medio' },
+                        ]"
+                        item-title="title"
+                        item-value="value"
+                        label="Emitir"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-currency-brl"
+                        hide-details="auto"
+                        color="var(--text-color-laranja)"
+                      />
+                    </v-col>
 
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                    <v-checkbox
-                    v-model="filtrosPosicao.imprimirQtdZero"
-                    label="Imprimir Qtd. Zero"
-                    density="compact"
-                    color="var(--text-color-laranja)"
-                    hide-details
-                    ></v-checkbox>
-                </v-card>
+                    <v-col cols="12" md="3">
+                      <v-select
+                        v-model="filtrosPosicao.ordem"
+                        :items="[
+                          { title: 'Alfabética', value: 'alfabetica' },
+                          { title: 'Ordenador', value: 'ordenador' },
+                          { title: 'Numérica', value: 'numerica' },
+                        ]"
+                        item-title="title"
+                        item-value="value"
+                        label="Ordem"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-sort"
+                        hide-details="auto"
+                        color="var(--text-color-laranja)"
+                      />
+                    </v-col>
 
-                    <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <v-checkbox
-                    v-model="filtrosPosicao.imprimirPeso"
-                    label="Imprimir Peso"
-                    density="compact"
-                    color="var(--text-color-laranja)"
-                    hide-details
-                  ></v-checkbox>
-                </v-card>
+                    <v-col cols="12" md="3">
+                      <v-select
+                        v-model="filtrosPosicao.agruparPor"
+                        :items="[
+                          { title: 'Grupo / SubGrupo', value: 'grupo' },
+                          { title: 'NCM', value: 'ncm' },
+                          { title: 'Localização', value: 'localizacao' },
+                        ]"
+                        item-title="title"
+                        item-value="value"
+                        label="Agrupar Por"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-group"
+                        hide-details="auto"
+                        color="var(--text-color-laranja)"
+                      />
+                    </v-col>
 
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">STATUS PRODUTOS</div>
-                  <v-select
-                    v-model="filtrosPosicao.statusProduto"
-                    :items="[{ title: 'Todos', value: 'todos' }, { title: 'Ativo', value: 'ativo' }, { title: 'Inativo', value: 'inativo' }]"
-                    item-title="title" item-value="value"
-                    variant="outlined" density="compact" hide-details
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                  ></v-select>
-                </v-card>
+                    <v-col cols="6" md="2">
+                      <v-checkbox
+                        v-model="filtrosPosicao.imprimirQtdZero"
+                        label="Imprimir Qtd. Zero"
+                        density="compact"
+                        color="var(--text-color-laranja)"
+                        hide-details
+                      />
+                    </v-col>
 
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">ESTOQUE</div>
-                  <v-select
-                    v-model="filtrosPosicao.tipoEstoque"
-                    :items="[{ title: 'Todos', value: 'todos' }, { title: 'Estoque Positivo', value: 'positivo' }, { title: 'Estoque Negativo', value: 'negativo' }]"
-                    item-title="title" item-value="value"
-                    variant="outlined" density="compact" hide-details
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                  ></v-select>
-                </v-card>
+                    <v-col cols="6" md="2">
+                      <v-checkbox
+                        v-model="filtrosPosicao.imprimirPeso"
+                        label="Imprimir Peso"
+                        density="compact"
+                        color="var(--text-color-laranja)"
+                        hide-details
+                      />
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
 
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">EMITIR</div>
-                  <v-select
-                    v-model="filtrosPosicao.emitir"
-                    :items="[
-                      { title: 'Preço de Venda', value: 'preco_venda' },
-                      { title: 'Custo de Compra', value: 'custo_compra' },
-                      { title: 'Custo de Aquisição', value: 'custo_aquisicao' },
-                      { title: 'Custo Médio', value: 'custo_medio' },
-                    ]"
-                    item-title="title" item-value="value"
-                    variant="outlined" density="compact" hide-details
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                  ></v-select>
-                </v-card>
-
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">ORDEM</div>
-                  <v-select
-                    v-model="filtrosPosicao.ordem"
-                    :items="[
-                      { title: 'Alfabética', value: 'alfabetica' },
-                      { title: 'Ordenador', value: 'ordenador' },
-                      { title: 'Numérica', value: 'numerica' },
-                    ]"
-                    item-title="title" item-value="value"
-                    variant="outlined" density="compact" hide-details
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                  ></v-select>
-                </v-card>
-
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">AGRUPAR POR</div>
-                  <v-select
-                    v-model="filtrosPosicao.agruparPor"
-                    :items="[
-                      { title: 'Grupo / SubGrupo', value: 'grupo' },
-                      { title: 'NCM', value: 'ncm' },
-                      { title: 'Localização', value: 'localizacao' },
-                    ]"
-                    item-title="title" item-value="value"
-                    variant="outlined" density="compact" hide-details
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                  ></v-select>
-                </v-card>
-
-              </div>
-
-              <!-- === APLICAÇÃO DO PRODUTO === -->
-              <div class="secao-titulo mb-2">APLICAÇÃO DO PRODUTO</div>
-              <v-card class="background-card pa-3 mb-2" rounded="lg" elevation="0">
-                <v-row dense>
-                  <v-col cols="6" sm="3">
-                    <v-checkbox
-                      v-model="filtrosPosicao.aplicacoes"
-                      value="venda_revenda"
-                      label="Venda / Revenda"
-                      density="compact"
-                      color="var(--text-color-laranja)"
-                      hide-details
-                    ></v-checkbox>
-                  </v-col>
-                  <v-col cols="6" sm="3">
-                    <v-checkbox
-                      v-model="filtrosPosicao.aplicacoes"
-                      value="consumo"
-                      label="Consumo"
-                      density="compact"
-                      color="var(--text-color-laranja)"
-                      hide-details
-                    ></v-checkbox>
-                  </v-col>
-                  <v-col cols="6" sm="3">
-                    <v-checkbox
-                      v-model="filtrosPosicao.aplicacoes"
-                      value="materia_prima"
-                      label="Matéria Prima"
-                      density="compact"
-                      color="var(--text-color-laranja)"
-                      hide-details
-                    ></v-checkbox>
-                  </v-col>
-                  <v-col cols="6" sm="3">
-                    <v-checkbox
-                      v-model="filtrosPosicao.aplicacoes"
-                      value="imobilizado"
-                      label="Imobilizado"
-                      density="compact"
-                      color="var(--text-color-laranja)"
-                      hide-details
-                    ></v-checkbox>
-                  </v-col>
-                </v-row>
+              <!-- Aplicação do Produto -->
+              <v-card class="background-card mb-4" elevation="0">
+                <v-card-title class="text-subtitle-2 pa-3 text-uppercase opacity-60">Aplicação do Produto</v-card-title>
+                <v-card-text class="pa-3">
+                  <v-row>
+                    <v-col cols="6" sm="3">
+                      <v-checkbox
+                        v-model="filtrosPosicao.aplicacoes"
+                        value="venda_revenda"
+                        label="Venda / Revenda"
+                        density="compact"
+                        color="var(--text-color-laranja)"
+                        hide-details
+                      />
+                    </v-col>
+                    <v-col cols="6" sm="3">
+                      <v-checkbox
+                        v-model="filtrosPosicao.aplicacoes"
+                        value="consumo"
+                        label="Consumo"
+                        density="compact"
+                        color="var(--text-color-laranja)"
+                        hide-details
+                      />
+                    </v-col>
+                    <v-col cols="6" sm="3">
+                      <v-checkbox
+                        v-model="filtrosPosicao.aplicacoes"
+                        value="materia_prima"
+                        label="Matéria Prima"
+                        density="compact"
+                        color="var(--text-color-laranja)"
+                        hide-details
+                      />
+                    </v-col>
+                    <v-col cols="6" sm="3">
+                      <v-checkbox
+                        v-model="filtrosPosicao.aplicacoes"
+                        value="imobilizado"
+                        label="Imobilizado"
+                        density="compact"
+                        color="var(--text-color-laranja)"
+                        hide-details
+                      />
+                    </v-col>
+                  </v-row>
+                </v-card-text>
               </v-card>
 
             </div>
@@ -376,261 +380,268 @@
                 </v-btn>            
               </div>
 
-              <!-- === PRODUTO + PERÍODO === -->
-              <v-row dense class="mb-4">
-                <v-col cols="12" md="6">
-                  <v-autocomplete
-                    v-model="filtrosAcomp.idProduto"
-                    :items="produtosStore.produtos"
-                    item-title="descproduto"
-                    item-value="id"
-                    label="Produto"
-                    variant="outlined"
-                    density="compact"
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    hide-details
-                    clearable
-                    prepend-inner-icon="mdi-package-variant-closed"
-                  >
-                    <template #item="{ item, props: itemProps }">
-                      <v-list-item v-bind="itemProps">
-                        <template #subtitle>
-                          <span class="text-caption opacity-60">Cód: {{ item.raw.id }}</span>
+              <!-- Período e Produto -->
+              <v-card class="background-card mb-4" elevation="0">
+                <v-card-text class="pa-3">
+                  <v-row>
+                    <v-col cols="12" md="4">
+                      <v-autocomplete
+                        v-model="filtrosAcomp.idProduto"
+                        :items="produtosStore.produtos"
+                        item-title="descproduto"
+                        item-value="id"
+                        label="Produto"
+                        variant="outlined"
+                        density="compact"
+                        color="var(--text-color-laranja)"
+                        hide-details="auto"
+                        clearable
+                        prepend-inner-icon="mdi-package-variant-closed"
+                      >
+                        <template #item="{ item, props: itemProps }">
+                          <v-list-item v-bind="itemProps">
+                            <template #subtitle>
+                              <span class="text-caption opacity-60">Cód: {{ item.raw.id }}</span>
+                            </template>
+                          </v-list-item>
                         </template>
-                      </v-list-item>
-                    </template>
-                  </v-autocomplete>
-                </v-col>
-                <v-col cols="12" sm="6" md="3">
-                  <v-text-field
-                    v-model="filtrosAcomp.periodoInicio"
-                    label="Período de"
-                    type="date"
-                    variant="outlined"
-                    density="compact"
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    hide-details
-                    prepend-inner-icon="mdi-calendar-start"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="6" md="3">
-                  <v-text-field
-                    v-model="filtrosAcomp.periodoFim"
-                    label="Período até"
-                    type="date"
-                    variant="outlined"
-                    density="compact"
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    hide-details
-                    prepend-inner-icon="mdi-calendar-end"
-                  ></v-text-field>
-                </v-col>
-              </v-row>
-
-              <!-- === FILTROS POR CATEGORIA (grade uniforme) === -->
-              <div class="secao-titulo mb-2">FILTROS POR CATEGORIA</div>
-              <div class="filtro-radio-grid mb-5">
-
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">ALMOXARIFADO</div>
-                  <v-autocomplete
-                    v-model="filtrosAcomp.idAlmox"
-                    :items="estoqueStore.almoxarifados"
-                    item-title="descalmoxarifado"
-                    item-value="id"
-                    label="Todos"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    clearable
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    :loading="estoqueStore.loading"
-                  ></v-autocomplete>
-                </v-card>
-
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">GRUPO</div>
-                  <v-autocomplete
-                    v-model="filtrosAcomp.idGrupo"
-                    :items="gruposOpcoes"
-                    item-title="descgrupo"
-                    item-value="id"
-                    label="Todos"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    clearable
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    :loading="estoqueStore.loading"
-                    @update:model-value="onGrupoAcompChange"
-                  ></v-autocomplete>
-                </v-card>
-
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">SUBGRUPO</div>
-                  <v-autocomplete
-                    v-model="filtrosAcomp.idSubgrupo"
-                    :items="subgruposAcompOpcoes"
-                    item-title="descsubgrupo"
-                    item-value="id"
-                    label="Todos"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    clearable
-                    :disabled="!filtrosAcomp.idGrupo"
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    :loading="estoqueStore.loading"
-                  ></v-autocomplete>
-                </v-card>
-
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">CLASSE</div>
-                  <v-autocomplete
-                    v-model="filtrosAcomp.idClasse"
-                    :items="estoqueStore.classes"
-                    item-title="descclasse"
-                    item-value="id"
-                    label="Todas"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    clearable
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    :loading="estoqueStore.loading"
-                  ></v-autocomplete>
-                </v-card>
-
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">MARCA</div>
-                  <v-autocomplete
-                    v-model="filtrosAcomp.idMarca"
-                    :items="produtosStore.marcas"
-                    item-title="descmarca"
-                    item-value="id"
-                    label="Todas"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    clearable
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                    :loading="produtosStore.loading"
-                  ></v-autocomplete>
-                </v-card>
-
-              </div>
-
-              <!-- === CONFIGURAÇÕES === -->
-              <div class="secao-titulo mb-2">CONFIGURAÇÕES</div>
-              <div class="filtro-radio-grid mb-5">
-
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <v-checkbox
-                    v-model="filtrosAcomp.agruparPorData"
-                    label="Agrupar por Data"
-                    density="compact"
-                    color="var(--text-color-laranja)"
-                    hide-details
-                  ></v-checkbox>
-                </v-card>
-
-                <v-card class="background-card filtro-radio-item" rounded="lg" elevation="0">
-                  <div class="filtro-radio-label">ORDEM</div>
-                  <v-select
-                    v-model="filtrosAcomp.ordem"
-                    :items="[{ title: 'Alfabética', value: 'alfabetica' }, { title: 'Numérica', value: 'numerica' }]"
-                    item-title="title" item-value="value"
-                    variant="outlined" density="compact" hide-details
-                    :theme="themeStore.darkMode ? 'dark' : 'light'"
-                    color="var(--text-color-laranja)"
-                  ></v-select>
-                </v-card>
-
-              </div>
-
-              <!-- === APLICAÇÃO DO PRODUTO === -->
-              <div class="secao-titulo mb-2">APLICAÇÃO DO PRODUTO</div>
-              <v-card class="background-card pa-3 mb-4" rounded="lg" elevation="0">
-                <v-row dense>
-                  <v-col cols="6" sm="3">
-                    <v-checkbox
-                      v-model="filtrosAcomp.aplicacoes"
-                      value="consumo"
-                      label="Consumo"
-                      density="compact"
-                      color="var(--text-color-laranja)"
-                      hide-details
-                    ></v-checkbox>
-                  </v-col>
-                  <v-col cols="6" sm="3">
-                    <v-checkbox
-                      v-model="filtrosAcomp.aplicacoes"
-                      value="materia_prima"
-                      label="Matéria Prima"
-                      density="compact"
-                      color="var(--text-color-laranja)"
-                      hide-details
-                    ></v-checkbox>
-                  </v-col>
-                  <v-col cols="6" sm="3">
-                    <v-checkbox
-                      v-model="filtrosAcomp.aplicacoes"
-                      value="imobilizado"
-                      label="Imobilizado"
-                      density="compact"
-                      color="var(--text-color-laranja)"
-                      hide-details
-                    ></v-checkbox>
-                  </v-col>
-                  <v-col cols="6" sm="3">
-                    <v-checkbox
-                      v-model="filtrosAcomp.aplicacoes"
-                      value="venda"
-                      label="Venda"
-                      density="compact"
-                      color="var(--text-color-laranja)"
-                      hide-details
-                    ></v-checkbox>
-                  </v-col>
-                </v-row>
+                      </v-autocomplete>
+                    </v-col>
+                    <v-col cols="12" sm="6" md="3">
+                      <v-text-field
+                        v-model="filtrosAcomp.periodoInicio"
+                        label="Período de"
+                        type="date"
+                        variant="outlined"
+                        density="compact"
+                        color="var(--text-color-laranja)"
+                        hide-details="auto"
+                        prepend-inner-icon="mdi-calendar-start"
+                      />
+                    </v-col>
+                    <v-col cols="12" sm="6" md="3">
+                      <v-text-field
+                        v-model="filtrosAcomp.periodoFim"
+                        label="Período até"
+                        type="date"
+                        variant="outlined"
+                        density="compact"
+                        color="var(--text-color-laranja)"
+                        hide-details="auto"
+                        prepend-inner-icon="mdi-calendar-end"
+                      />
+                    </v-col>
+                  </v-row>
+                </v-card-text>
               </v-card>
 
-              <!-- === TIPO DE OPERAÇÃO ESPECÍFICA === -->
-              <div class="d-flex align-center gap-2 mb-3">
-                <div class="secao-titulo">TIPO DE OPERAÇÃO ESPECÍFICA?</div>
-                <v-checkbox
-                  v-model="filtrosAcomp.tipoOperacaoEspecifica"
-                  density="compact"
-                  color="var(--text-color-laranja)"
-                  hide-details
-                  class="ma-0 pa-0 flex-grow-0"
-                ></v-checkbox>
-              </div>
+              <!-- Filtros por Categoria -->
+              <v-card class="background-card mb-4" elevation="0">
+                <v-card-title class="text-subtitle-2 pa-3 text-uppercase opacity-60">Filtros por Categoria</v-card-title>
+                <v-card-text class="pa-3">
+                  <v-row>
+                    <v-col cols="12" md="3">
+                      <v-autocomplete
+                        v-model="filtrosAcomp.idAlmox"
+                        :items="estoqueStore.almoxarifados"
+                        item-title="descalmoxarifado"
+                        item-value="id"
+                        label="Almoxarifado"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-warehouse"
+                        hide-details="auto"
+                        clearable
+                        color="var(--text-color-laranja)"
+                        :loading="estoqueStore.loading"
+                      />
+                    </v-col>
 
-              <v-expand-transition>
-                <v-card v-if="filtrosAcomp.tipoOperacaoEspecifica" class="background-card pa-3 mb-2" rounded="lg" elevation="0">
-                  <v-row dense>
-                    <v-col v-for="op in operacoesDisponiveis" :key="op.value" cols="12" sm="6" md="4">
+                    <v-col cols="12" md="3">
+                      <v-autocomplete
+                        v-model="filtrosAcomp.idGrupo"
+                        :items="gruposOpcoes"
+                        item-title="descgrupo"
+                        item-value="id"
+                        label="Grupo"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-folder-outline"
+                        hide-details="auto"
+                        clearable
+                        color="var(--text-color-laranja)"
+                        :loading="estoqueStore.loading"
+                        @update:model-value="onGrupoAcompChange"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3">
+                      <v-autocomplete
+                        v-model="filtrosAcomp.idSubgrupo"
+                        :items="subgruposAcompOpcoes"
+                        item-title="descsubgrupo"
+                        item-value="id"
+                        label="Subgrupo"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-folder-open-outline"
+                        hide-details="auto"
+                        clearable
+                        :disabled="!filtrosAcomp.idGrupo"
+                        color="var(--text-color-laranja)"
+                        :loading="estoqueStore.loading"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3">
+                      <v-autocomplete
+                        v-model="filtrosAcomp.idClasse"
+                        :items="estoqueStore.classes"
+                        item-title="descclasse"
+                        item-value="id"
+                        label="Classe"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-shape"
+                        hide-details="auto"
+                        clearable
+                        color="var(--text-color-laranja)"
+                        :loading="estoqueStore.loading"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3">
+                      <v-autocomplete
+                        v-model="filtrosAcomp.idMarca"
+                        :items="produtosStore.marcas"
+                        item-title="descmarca"
+                        item-value="id"
+                        label="Marca"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-tag"
+                        hide-details="auto"
+                        clearable
+                        color="var(--text-color-laranja)"
+                        :loading="produtosStore.loading"
+                      />
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+
+              <!-- Configurações -->
+              <v-card class="background-card mb-4" elevation="0">
+                <v-card-title class="text-subtitle-2 pa-3 text-uppercase opacity-60">Configurações</v-card-title>
+                <v-card-text class="pa-3">
+                  <v-row>
+                    <v-col cols="12" md="4">
+                      <v-select
+                        v-model="filtrosAcomp.ordem"
+                        :items="[{ title: 'Alfabética', value: 'alfabetica' }, { title: 'Numérica', value: 'numerica' }]"
+                        item-title="title"
+                        item-value="value"
+                        label="Ordem"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-sort"
+                        hide-details="auto"
+                        color="var(--text-color-laranja)"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="4">
                       <v-checkbox
-                        v-model="filtrosAcomp.operacoes"
-                        :value="op.value"
-                        :label="op.label"
+                        v-model="filtrosAcomp.agruparPorData"
+                        label="Agrupar por Data"
                         density="compact"
                         color="var(--text-color-laranja)"
                         hide-details
-                      ></v-checkbox>
+                      />
                     </v-col>
                   </v-row>
-                </v-card>
-              </v-expand-transition>
+                </v-card-text>
+              </v-card>
+
+              <!-- Aplicação do Produto -->
+              <v-card class="background-card mb-4" elevation="0">
+                <v-card-title class="text-subtitle-2 pa-3 text-uppercase opacity-60">Aplicação do Produto</v-card-title>
+                <v-card-text class="pa-3">
+                  <v-row>
+                    <v-col cols="6" sm="3">
+                      <v-checkbox
+                        v-model="filtrosAcomp.aplicacoes"
+                        value="consumo"
+                        label="Consumo"
+                        density="compact"
+                        color="var(--text-color-laranja)"
+                        hide-details
+                      />
+                    </v-col>
+                    <v-col cols="6" sm="3">
+                      <v-checkbox
+                        v-model="filtrosAcomp.aplicacoes"
+                        value="materia_prima"
+                        label="Matéria Prima"
+                        density="compact"
+                        color="var(--text-color-laranja)"
+                        hide-details
+                      />
+                    </v-col>
+                    <v-col cols="6" sm="3">
+                      <v-checkbox
+                        v-model="filtrosAcomp.aplicacoes"
+                        value="imobilizado"
+                        label="Imobilizado"
+                        density="compact"
+                        color="var(--text-color-laranja)"
+                        hide-details
+                      />
+                    </v-col>
+                    <v-col cols="6" sm="3">
+                      <v-checkbox
+                        v-model="filtrosAcomp.aplicacoes"
+                        value="venda"
+                        label="Venda"
+                        density="compact"
+                        color="var(--text-color-laranja)"
+                        hide-details
+                      />
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+
+              <!-- Tipo de Operação Específica -->
+              <v-card class="background-card mb-4" elevation="0">
+                <v-card-title class="text-subtitle-2 pa-3 d-flex align-center">
+                  <span class="text-uppercase opacity-60">Tipo de Operação Específica?</span>
+                  <v-checkbox
+                    v-model="filtrosAcomp.tipoOperacaoEspecifica"
+                    density="compact"
+                    color="var(--text-color-laranja)"
+                    hide-details
+                    class="ma-0 pa-0 ml-3 flex-grow-0"
+                  />
+                </v-card-title>
+
+                <v-expand-transition>
+                  <v-card-text v-if="filtrosAcomp.tipoOperacaoEspecifica" class="pa-3">
+                    <v-row>
+                      <v-col v-for="op in operacoesDisponiveis" :key="op.value" cols="12" sm="6" md="4">
+                        <v-checkbox
+                          v-model="filtrosAcomp.operacoes"
+                          :value="op.value"
+                          :label="op.label"
+                          density="compact"
+                          color="var(--text-color-laranja)"
+                          hide-details
+                        />
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-expand-transition>
+              </v-card>
 
             </div>
           </v-tabs-window-item>
@@ -638,12 +649,13 @@
         </v-tabs-window>
       </v-card-text>
     </v-card>
-
-  </div>
+    </template>
+  </top-all-pages>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import TopAllPages from '@/components/base/padrao-paginas/TopAllPages.vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useEstoqueStore } from '@/stores/APIs/estoque'
 import { useProdutosStore } from '@/stores/APIs/produtos'
@@ -794,58 +806,3 @@ onMounted(async () => {
   await Promise.all(tarefas)
 })
 </script>
-
-<style scoped>
-/* ===== GRADE DE FILTROS RADIO ===== */
-/* Todos os itens têm o mesmo tamanho e se organizam em grid uniforme */
-.filtro-radio-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 8px;
-  align-items: start;
-}
-
-.filtro-radio-item {
-  padding: 10px 12px !important;
-  /* Sem min-height fixo: o card expande apenas se o campo de código aparecer */
-}
-
-.filtro-radio-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  opacity: 0.55;
-  margin-bottom: 2px;
-  text-transform: uppercase;
-}
-
-.filtro-radio-group {
-  padding-top: 0 !important;
-}
-
-.filtro-select :deep(.v-field__input) {
-  min-height: 34px !important;
-}
-
-/* Reduz o espaço interno dos radios para ficar mais compacto */
-.filtro-radio-group :deep(.v-selection-control) {
-  min-height: 28px !important;
-}
-
-.filtro-radio-group :deep(.v-label) {
-  font-size: 0.8rem !important;
-}
-
-.filtro-radio-group :deep(.v-radio) {
-  margin-inline-end: 6px !important;
-}
-
-/* ===== TÍTULO DE SEÇÃO ===== */
-.secao-titulo {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  opacity: 0.55;
-  text-transform: uppercase;
-}
-</style>

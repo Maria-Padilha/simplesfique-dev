@@ -33,10 +33,24 @@
 
               <v-card-text class="pa-4">
                 <v-form ref="formRef" v-model="formValido">
-                  <v-row dense>
+                  <v-row>
+                    <!-- Linha 1: Dados principais -->
+                    
+                    <!-- Número do Documento -->
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        v-model="formData.nrdocumento"
+                        label="Número do Documento"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-file-document"
+                        maxlength="20"
+                        hide-details="auto"
+                      />
+                    </v-col>
 
                     <!-- Tipo Movimento -->
-                    <v-col cols="12" sm="6" md="2">
+                    <v-col cols="12" md="4">
                       <v-select
                         v-model="formData.tipo_movimento"
                         :items="tiposMovimento"
@@ -46,15 +60,34 @@
                         variant="outlined"
                         density="compact"
                         prepend-inner-icon="mdi-swap-horizontal"
-                        hide-details
+                        hide-details="auto"
                         :rules="[rules.required]"
                         class="required-left-border"
                         @update:model-value="onTipoMovimentoChange"
                       />
                     </v-col>
 
+                    <!-- Tipo Documento -->
+                    <v-col cols="12" md="4">
+                      <v-autocomplete
+                        v-model="formData.id_tipodocumento"
+                        :items="financeiroStore.tiposDocumento"
+                        :item-title="(item) => item.desctipodocumento || item.descricao || ''"
+                        item-value="id"
+                        label="Tipo Documento"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-file-document-outline"
+                        clearable
+                        hide-details="auto"
+                        no-data-text="Nenhum tipo encontrado"
+                      />
+                    </v-col>
+
+                    <!-- Linha 2: Colaborador, Plano de Conta, Histórico -->
+
                     <!-- Colaborador -->
-                    <v-col cols="12" md="3">
+                    <v-col cols="12" md="4">
                       <v-autocomplete
                         v-model="formData.id_colaborador"
                         :items="colaboradores"
@@ -67,6 +100,7 @@
                         clearable
                         :rules="[rules.required]"
                         class="required-left-border"
+                        hide-details="auto"
                         no-data-text="Nenhum colaborador encontrado"
                         :loading="loadingColaboradores"
                       >
@@ -80,141 +114,26 @@
                       </v-autocomplete>
                     </v-col>
 
-                    <!-- Dt Lançamento -->
-                    <v-col cols="12" sm="6" md="2">
-                      <v-text-field
-                        v-model="formData.dtlancamento"
-                        label="Dt Lançamento"
-                        type="date"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-calendar"
-                        hide-details
-                      />
-                    </v-col>
-
-                    <!-- Tipo Documento -->
-                    <v-col cols="12" sm="6" md="2">
-                      <v-autocomplete
-                        v-model="formData.id_tipodocumento"
-                        :items="financeiroStore.tiposDocumento"
-                        :item-title="(item) => item.desctipodocumento || item.descricao || ''"
-                        item-value="id"
-                        label="Tipo Documento"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-file-document-outline"
-                        clearable
-                        hide-details
-                        no-data-text="Nenhum tipo encontrado"
-                      />
-                    </v-col>
-
-                    <!-- Tipo Pagamento/Recebimento -->
-                    <v-col cols="12" sm="6" md="3">
-                      <v-autocomplete
-                        v-model="formData.id_tipopagrec"
-                        :items="financeiroStore.tiposPagRec"
-                        :item-title="(item) => item.desctipopagrec || item.descricao || ''"
-                        :item-value="(item) => parseInt(item.id) || item.id"
-                        label="Tipo Pagamento/Recebimento"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-credit-card-outline"
-                        clearable
-                        hide-details
-                        no-data-text="Nenhum tipo encontrado"
-                      />
-                    </v-col>
-
-                    <!-- Caixa (quando tipo = C) -->
-                    <v-col cols="12" md="3" v-if="formData.tipo_movimento === 'C'">
-                      <v-autocomplete
-                        v-model="formData.id_caixa"
-                        :items="caixas"
-                        :item-title="(item) => item.id + ' - ' + (item.descricao || item.nome || '')"
-                        item-value="id"
-                        label="Caixa"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-cash-register"
-                        clearable
-                        hide-details
-                        no-data-text="Nenhum caixa encontrado"
-                      />
-                    </v-col>
-
-                    <!-- Histórico Caixa (quando tipo = C) -->
-                    <v-col cols="12" md="3" v-if="formData.tipo_movimento === 'C'">
-                      <v-autocomplete
-                        v-model="formData.id_caixahist"
-                        :items="historicosCaixa"
-                        :item-title="(item) => item.deschistorico || item.descricao || ''"
-                        item-value="id"
-                        label="Histórico Caixa"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-history"
-                        clearable
-                        hide-details
-                        no-data-text="Nenhum histórico encontrado"
-                      />
-                    </v-col>
-
-                    <!-- Conta Corrente (quando tipo = B) -->
-                    <v-col cols="12" md="3" v-if="formData.tipo_movimento === 'B'">
-                      <v-autocomplete
-                        v-model="formData.id_ccorrente"
-                        :items="contasCorrentes"
-                        :item-title="(item) => (item.id_ccorrente || item.id) + ' - ' + (item.titular || item.numero_ccorrente || '')"
-                        item-value="id"
-                        label="Conta Corrente"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-bank"
-                        clearable
-                        hide-details
-                        no-data-text="Nenhuma conta encontrada"
-                      />
-                    </v-col>
-
-                    <!-- Histórico Conta Corrente (quando tipo = B) -->
-                    <v-col cols="12" md="3" v-if="formData.tipo_movimento === 'B'">
-                      <v-autocomplete
-                        v-model="formData.id_ccorrentehist"
-                        :items="historicosBancarios"
-                        :item-title="(item) => item.deschistorico || item.descricao || ''"
-                        item-value="id"
-                        label="Histórico Bancário"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-history"
-                        clearable
-                        hide-details
-                        no-data-text="Nenhum histórico encontrado"
-                      />
-                    </v-col>
-
                     <!-- Conta Despesa (Plano de Conta) -->
-                    <v-col cols="12" md="3">
+                    <v-col cols="12" md="4">
                       <v-autocomplete
                         v-model="formData.id_conta_despesa"
                         :items="planosContaFormatados"
                         item-title="label"
                         item-value="id"
-                        label="Conta Despesa (Plano de Conta)"
+                        label="Plano de Conta"
                         variant="outlined"
                         density="compact"
                         prepend-inner-icon="mdi-chart-tree"
                         clearable
-                        hide-details
+                        hide-details="auto"
                         no-data-text="Nenhum plano encontrado"
                         :loading="loadingPlanos"
                       />
                     </v-col>
 
                     <!-- Histórico Contábil -->
-                    <v-col cols="12" md="3">
+                    <v-col cols="12" md="4">
                       <v-autocomplete
                         v-model="formData.id_historico_ctb"
                         :items="historicosContabeis"
@@ -225,13 +144,15 @@
                         density="compact"
                         prepend-inner-icon="mdi-book-open-outline"
                         clearable
-                        hide-details
+                        hide-details="auto"
                         no-data-text="Nenhum histórico encontrado"
                       />
                     </v-col>
 
-                    <!-- Vlr Face -->
-                    <v-col cols="6" sm="4" md="2">
+                    <!-- Linha 3: Valores e Datas -->
+
+                    <!-- Valor Face -->
+                    <v-col cols="12" md="2">
                       <v-text-field
                         v-model.number="formData.vlrface"
                         label="Valor Face *"
@@ -249,42 +170,41 @@
                       />
                     </v-col>
 
+                    <!-- Data de Lançamento -->
+                    <v-col cols="12" md="2">
+                      <v-text-field
+                        v-model="formData.dtlancamento"
+                        label="Dt Lançamento *"
+                        type="date"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-calendar"
+                        hide-details="auto"
+                        :rules="[rules.required]"
+                        class="required-left-border"
+                      />
+                    </v-col>
+
                     <!-- % Juros -->
-                    <v-col cols="6" sm="4" md="1">
+                    <v-col cols="12" md="2">
                       <v-text-field
                         v-model.number="formData.percjuros"
-                        label="% Juros"
+                        label="Juros"
                         type="number"
                         step="0.01"
                         min="0"
                         variant="outlined"
                         density="compact"
                         prepend-inner-icon="mdi-percent"
-                        hide-details
                         suffix="%"
+                        :hint="formData.vlrjuros ? formatarMoeda(formData.vlrjuros) : ''"
+                        persistent-hint
                         @input="calcularTotal"
                       />
                     </v-col>
 
-                    <!-- Vlr Juros -->
-                    <v-col cols="6" sm="4" md="1">
-                      <v-text-field
-                        v-model.number="formData.vlrjuros"
-                        label="Vlr Juros"
-                        type="number"
-                        step="0.01"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-currency-brl"
-                        hide-details
-                        readonly
-                        :hint="formData.vlrjuros ? formatarMoeda(formData.vlrjuros) : ''"
-                        persistent-hint
-                      />
-                    </v-col>
-
                     <!-- Vlr Total -->
-                    <v-col cols="6" sm="4" md="2">
+                    <v-col cols="12" md="2">
                       <v-text-field
                         v-model.number="formData.vlrtotal"
                         label="Valor Total"
@@ -293,10 +213,97 @@
                         variant="outlined"
                         density="compact"
                         prepend-inner-icon="mdi-currency-brl"
-                        hide-details
+                        hide-details="auto"
                         readonly
                         :hint="formData.vlrtotal ? formatarMoeda(formData.vlrtotal) : ''"
                         persistent-hint
+                      />
+                    </v-col>
+
+                    <!-- Tipo Pagamento/Recebimento -->
+                    <v-col cols="12" md="4">
+                      <v-autocomplete
+                        v-model="formData.id_tipopagrec"
+                        :items="financeiroStore.tiposPagRec"
+                        :item-title="(item) => item.desctipopagrec || item.descricao || ''"
+                        :item-value="(item) => parseInt(item.id) || item.id"
+                        label="Tipo Pagamento/Recebimento"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-credit-card-outline"
+                        clearable
+                        hide-details="auto"
+                        no-data-text="Nenhum tipo encontrado"
+                      />
+                    </v-col>
+
+                    <!-- Linha 4: Campos específicos Caixa ou Banco -->
+
+                    <!-- Caixa (quando tipo = C) -->
+                    <v-col cols="12" md="3" v-if="formData.tipo_movimento === 'C'">
+                      <v-autocomplete
+                        v-model="formData.id_caixa"
+                        :items="caixas"
+                        :item-title="(item) => item.id + ' - ' + (item.descricao || item.nome || '')"
+                        item-value="id"
+                        label="Caixa"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-cash-register"
+                        clearable
+                        hide-details="auto"
+                        no-data-text="Nenhum caixa encontrado"
+                      />
+                    </v-col>
+
+                    <!-- Histórico Caixa (quando tipo = C) -->
+                    <v-col cols="12" md="3" v-if="formData.tipo_movimento === 'C'">
+                      <v-autocomplete
+                        v-model="formData.id_caixahist"
+                        :items="historicosCaixa"
+                        :item-title="(item) => item.deschistorico || item.descricao || ''"
+                        item-value="id"
+                        label="Histórico Caixa"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-history"
+                        clearable
+                        hide-details="auto"
+                        no-data-text="Nenhum histórico encontrado"
+                      />
+                    </v-col>
+
+                    <!-- Conta Corrente (quando tipo = B) -->
+                    <v-col cols="12" md="3" v-if="formData.tipo_movimento === 'B'">
+                      <v-autocomplete
+                        v-model="formData.id_ccorrente"
+                        :items="contasCorrentes"
+                        :item-title="(item) => (item.id_ccorrente || item.id) + ' - ' + (item.titular || item.numero_ccorrente || '')"
+                        item-value="id"
+                        label="Conta Corrente"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-bank"
+                        clearable
+                        hide-details="auto"
+                        no-data-text="Nenhuma conta encontrada"
+                      />
+                    </v-col>
+
+                    <!-- Histórico Conta Corrente (quando tipo = B) -->
+                    <v-col cols="12" md="3" v-if="formData.tipo_movimento === 'B'">
+                      <v-autocomplete
+                        v-model="formData.id_ccorrentehist"
+                        :items="historicosBancarios"
+                        :item-title="(item) => item.deschistorico || item.descricao || ''"
+                        item-value="id"
+                        label="Histórico Bancário"
+                        variant="outlined"
+                        density="compact"
+                        prepend-inner-icon="mdi-history"
+                        clearable
+                        hide-details="auto"
+                        no-data-text="Nenhum histórico encontrado"
                       />
                     </v-col>
 
@@ -309,7 +316,7 @@
                         density="compact"
                         prepend-inner-icon="mdi-note-text-outline"
                         maxlength="200"
-                        hide-details
+                        hide-details="auto"
                       />
                     </v-col>
 
