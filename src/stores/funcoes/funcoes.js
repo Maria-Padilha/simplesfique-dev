@@ -18,25 +18,23 @@ export const useFuncoesStore = defineStore("funcoes", {
                 return "0." + "0".repeat(casas);
             }
 
-            // número gigante vindo do XML (ex: 262900000000)
-            if (typeof valor === "number") {
-                return (valor / Math.pow(10, casas)).toFixed(casas);
+            const num = Number(String(valor).replace(",", ".").trim());
+
+            return isNaN(num)
+                ? "0." + "0".repeat(casas)
+                : num.toFixed(casas);
+        },
+
+        normalizarQuantidade(valor, casas = 4) {
+            if (valor === null || valor === undefined || valor === "") {
+                return "0." + "0".repeat(casas);
             }
 
-            // string tipo "R$ 1.234,56"
-            if (typeof valor === "string") {
-                const num = Number(
-                    valor
-                        .replace("R$", "")
-                        .replaceAll(".", "")
-                        .replace(",", ".")
-                        .trim()
-                );
+            const num = Number(String(valor).replace(",", ".").trim());
 
-                return isNaN(num) ? "0." + "0".repeat(casas) : num.toFixed(casas);
-            }
-
-            return "0." + "0".repeat(casas);
+            return isNaN(num)
+                ? "0." + "0".repeat(casas)
+                : num.toFixed(casas);
         },
 
         /**
@@ -122,31 +120,29 @@ export const useFuncoesStore = defineStore("funcoes", {
                         id_seq: Number(item?.nItem ?? (idx + 1)),
                         id_produto: null,
                         id_cor: 0,
-                        id_tamanho: 0,
+                        id_tamanho: '0',
+                        uCom: prod?.uCom ?? null,
 
                         descprodutovst: null,
                         descprodutoxml: prod?.xProd ?? null,
 
                         quantidade: Number(String(prod?.qCom ?? 0).replace(",", ".")),
-                        vlr_unitario: Number(prod?.vUnCom).toFixed(2) ?? 0.00,
-                        desconto_total_item: this.normalizarMoeda(prod?.vDesc ?? 0.00), // se não tiver no XML, fica 0
-                        vlr_total_item: Number(prod?.vProd).toFixed(2) ?? 0.00,
 
-                        vlr_seguro_item: this.normalizarMoeda(prod?.vSeg ?? 0.00),
-                        vlr_frete_item: this.normalizarMoeda(prod?.vFrete ?? 0.00),
+                        vlr_unitario: this.normalizarMoeda(prod?.vUnCom),
+                        desconto_total_item: this.normalizarMoeda(prod?.vDesc ?? 0),
+                        vlr_total_item: this.normalizarMoeda(prod?.vProd),
 
-                        custo_medio: Number(prod?.vUnCom).toFixed(2) ?? 0.00,
+                        vlr_seguro_item: this.normalizarMoeda(prod?.vSeg ?? 0),
+                        vlr_frete_item: this.normalizarMoeda(prod?.vFrete ?? 0),
+
+                        custo_medio: this.normalizarMoeda(prod?.vUnCom),
                         id_movimentoalmox: forms.id_almoxarifado ?? null,
 
-                        // ===== Fiscal (geral)
                         id_cfop_item: prod?.CFOP ?? null,
-
                         cst_item: icmsGroup?.CST ?? null,
                         csosn_item: icmsGroup?.CSOSN ?? null,
+                        cest_item: prod?.CEST ?? null,
 
-                        cest_item: prod?.CEST ?? null, // alguns XMLs trazem em prod.CEST; se vier em outro lugar, ajuste aqui
-
-                        // ===== ICMS
                         aliquota_icms_item: this.normalizarMoeda(icmsGroup?.pICMS),
                         base_icms_item: this.normalizarMoeda(icmsGroup?.vBC),
                         vlr_icms_item: this.normalizarMoeda(icmsGroup?.vICMS),
@@ -155,33 +151,28 @@ export const useFuncoesStore = defineStore("funcoes", {
                         base_icms_subst_item: this.normalizarMoeda(icmsGroup?.vBCST),
                         vlr_icms_subst_item: this.normalizarMoeda(icmsGroup?.vICMSST),
 
-                        // ===== IPI
                         cst_ipi: ipiGroup?.CST ?? null,
                         aliquota_ipi_item: this.normalizarMoeda(ipiGroup?.pIPI),
                         cenqipi: imp?.IPI?.cEnq ?? null,
                         base_ipi_item: this.normalizarMoeda(ipiGroup?.vBC),
                         vlr_ipi_item: this.normalizarMoeda(ipiGroup?.vIPI),
 
-                        // ===== PIS
                         cst_pis: pisGroup?.CST ?? null,
                         aliquota_pis_item: this.normalizarMoeda(pisGroup?.pPIS),
                         base_pis_item: this.normalizarMoeda(pisGroup?.vBC),
 
-                        // ===== COFINS
                         cst_cofins: cofinsGroup?.CST ?? null,
                         aliquota_cofins_item: this.normalizarMoeda(cofinsGroup?.pCOFINS),
                         base_cofins_item: this.normalizarMoeda(cofinsGroup?.vBC),
 
-                        // ===== Outros / contábil / bases
+                        reducao_base_calc: this.normalizarMoeda(icmsGroup?.pRedBC),
+                        vlr_outras_item: this.normalizarMoeda(prod?.vOutro ?? 0),
+                        vlr_outras_item_foranf: this.normalizarMoeda(prod?.vOutro ?? 0),
 
-                        reducao_base_calc: this.normalizarMoeda(icmsGroup?.pRedBC ?? null),
-                        vlr_outras_item: this.normalizarMoeda(prod?.vOutro ?? 0.00),
-                        vlr_outras_item_foranf: this.normalizarMoeda(prod?.vOutro ?? 0.00),
-
-                        base_cbsibs_item: this.normalizarMoeda(gIBSCBS?.vBC ?? null),
-                        vlr_cbs_item: this.normalizarMoeda(gCBS?.vCBS ?? null),
-                        vlr_ibsuf_item: this.normalizarMoeda(gUF?.vIBSUF ?? null),
-                        vlr_ibsmun_item: this.normalizarMoeda(gMun?.vIBSMun ?? null),
+                        base_cbsibs_item: this.normalizarMoeda(gIBSCBS?.vBC),
+                        vlr_cbs_item: this.normalizarMoeda(gCBS?.vCBS),
+                        vlr_ibsuf_item: this.normalizarMoeda(gUF?.vIBSUF),
+                        vlr_ibsmun_item: this.normalizarMoeda(gMun?.vIBSMun),
 
                         aliq_mva: this.normalizarMoeda(icmsGroup?.pMVAST),
                         pmva_item: this.normalizarMoeda(icmsGroup?.pMVAST),
@@ -192,20 +183,17 @@ export const useFuncoesStore = defineStore("funcoes", {
                         predbc: this.normalizarMoeda(icmsGroup?.pRedBC),
                         predbcst: this.normalizarMoeda(icmsGroup?.pRedBCST),
 
-                        // ===== NCM / incidência
                         id_ncm_item: prod?.NCM ?? null,
                         incidenciafiscal_item: null,
 
-                        // ===== II (Importação) — se não existir no XML, deixa 0
-                        aliquota_ii_item: this.normalizarMoeda(icmsGroup?.pII ?? 0.00),
-                        base_ii_item: this.normalizarMoeda(icmsGroup?.vBC ?? 0.00),
-                        vlr_ii_item: this.normalizarMoeda(icmsGroup?.vII ?? 0.00),
-                        vlr_siscomex_item: this.normalizarMoeda(icmsGroup?.vDespAdu ?? 0.00),
-                        vlr_afrmm_item: this.normalizarMoeda(icmsGroup?.vAFRMM ?? 0.00),
+                        aliquota_ii_item: this.normalizarMoeda(icmsGroup?.pII ?? 0),
+                        base_ii_item: this.normalizarMoeda(icmsGroup?.vBC ?? 0),
+                        vlr_ii_item: this.normalizarMoeda(icmsGroup?.vII ?? 0),
+                        vlr_siscomex_item: this.normalizarMoeda(icmsGroup?.vDespAdu ?? 0),
+                        vlr_afrmm_item: this.normalizarMoeda(icmsGroup?.vAFRMM ?? 0),
 
-                        // ===== IBS/CBS (reforma) — nomes CERTOS da sua lista
-                        cclasstrib_item: imp?.IBSCBS?.cClassTrib ?? this.normalizarMoeda(0.00),
-                        cst_cbsibs_item: imp?.IBSCBS?.CST ?? this.normalizarMoeda(0.00),
+                        cclasstrib_item: imp?.IBSCBS?.cClassTrib ?? "0.00",
+                        cst_cbsibs_item: imp?.IBSCBS?.CST ?? "0.00",
 
                         perc_cbs_item: this.normalizarMoeda(gCBS?.pCBS),
                         perc_ibsuf_item: this.normalizarMoeda(gUF?.pIBSUF),
