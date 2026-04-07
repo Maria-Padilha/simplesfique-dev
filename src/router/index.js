@@ -21,6 +21,7 @@ import PlanoContaView from '@/views/pages/fiscal/PlanoContaView.vue';
 import DebitoRealView from '@/views/pages/financeiro/pagar/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/manutencao/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
+import AmbienteView from '@/views/pages/vendas/AmbienteView.vue';
 import PosicaoEstoqueView from '@/views/pages/estoque/PosicaoEstoqueView.vue';
 import GrupoTributacaoView from '@/views/pages/estoque/GrupoTributacaoView.vue';
 import TransfAlmoxView from '@/views/pages/estoque/TransfAlmoxView.vue';
@@ -166,6 +167,11 @@ const routes = [
         path: '/paginas/pdv/terminal',
         name: 'pdv_terminal',
         component: TerminalView
+    },
+    {
+        path: '/paginas/vendas/ambiente',
+        name: 'vendas_ambiente',
+        component: AmbienteView
     },
 
     //    Páginas do módulo financeiro

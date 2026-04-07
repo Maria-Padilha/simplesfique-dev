@@ -64,8 +64,8 @@
 
                   <v-col cols="12" md="4">
                     <v-text-field
-                      v-model="formData.imp_nfe"
-                      label="Impressora NF-e"
+                      v-model="formData.imp_nfe_nfce"
+                      label="Impressora NF-e / NFC-e"
                       variant="outlined"
                       density="compact"
                       prepend-inner-icon="mdi-printer"
@@ -76,11 +76,37 @@
 
                   <v-col cols="12" md="4">
                     <v-text-field
-                      v-model="formData.imp_nfce"
-                      label="Impressora NFC-e"
+                      v-model="formData.imp_ipc_nfe_nfce"
+                      label="Impressora IPC NF-e / NFC-e"
                       variant="outlined"
                       density="compact"
                       prepend-inner-icon="mdi-printer-pos"
+                      hide-details="auto"
+                      color="var(--text-color-laranja)"
+                    />
+                  </v-col>
+
+                  <v-col cols="12" md="4">
+                    <v-select
+                      v-model="formData.totem_autoatendimento"
+                      :items="opcoesSimNao"
+                      label="Totem de Autoatendimento"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-tablet"
+                      hide-details="auto"
+                      color="var(--text-color-laranja)"
+                    />
+                  </v-col>
+
+                  <v-col cols="12" md="4">
+                    <v-select
+                      v-model="formData.imprime_pedido"
+                      :items="opcoesImprimePedido"
+                      label="Impressão de Pedido"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-printer-check"
                       hide-details="auto"
                       color="var(--text-color-laranja)"
                     />
@@ -195,14 +221,29 @@ const itemsFiltrados = computed(() => {
   return Array.isArray(dados) ? dados : []
 })
 
+// Opções dos selects
+const opcoesSimNao = [
+  { title: 'Sim', value: 'S' },
+  { title: 'Não', value: 'N' }
+]
+
+const opcoesImprimePedido = [
+  { title: '1 - Imprime Totem', value: '1' },
+  { title: '2 - Imprime Ambiente', value: '2' },
+  { title: '3 - Imprime Ambos', value: '3' },
+  { title: '4 - Não Imprime', value: '4' }
+]
+
 // Form Data
 const formData = reactive({
   id: null,
   descterminal: '',
   nome_dispositivo: '',
   ip_dispositivo: '',
-  imp_nfe: '',
-  imp_nfce: ''
+  imp_nfe_nfce: '',
+  imp_ipc_nfe_nfce: '',
+  totem_autoatendimento: 'N',
+  imprime_pedido: '4'
 })
 
 // Headers da tabela
@@ -211,8 +252,8 @@ const headers = [
   { title: 'Descrição', key: 'descterminal', sortable: true },
   { title: 'Dispositivo', key: 'nome_dispositivo', sortable: true },
   { title: 'IP', key: 'ip_dispositivo', sortable: true },
-  { title: 'Impressora NF-e', key: 'imp_nfe', sortable: false },
-  { title: 'Impressora NFC-e', key: 'imp_nfce', sortable: false },
+  { title: 'Impressora NF-e/NFC-e', key: 'imp_nfe_nfce', sortable: false },
+  { title: 'Impressora IPC', key: 'imp_ipc_nfe_nfce', sortable: false },
   { title: 'Ações', key: 'actions', sortable: false }
 ]
 
@@ -238,8 +279,10 @@ const cancelarFormulario = () => {
   formData.descterminal = ''
   formData.nome_dispositivo = ''
   formData.ip_dispositivo = ''
-  formData.imp_nfe = ''
-  formData.imp_nfce = ''
+  formData.imp_nfe_nfce = ''
+  formData.imp_ipc_nfe_nfce = ''
+  formData.totem_autoatendimento = 'N'
+  formData.imprime_pedido = '4'
   formularioAberto.value = false
 }
 
@@ -252,8 +295,10 @@ const salvarTerminal = async () => {
       descterminal: formData.descterminal,
       nome_dispositivo: formData.nome_dispositivo || null,
       ip_dispositivo: formData.ip_dispositivo || null,
-      imp_nfe: formData.imp_nfe || null,
-      imp_nfce: formData.imp_nfce || null
+      imp_nfe_nfce: formData.imp_nfe_nfce || null,
+      imp_ipc_nfe_nfce: formData.imp_ipc_nfe_nfce || null,
+      totem_autoatendimento: formData.totem_autoatendimento,
+      imprime_pedido: formData.imprime_pedido
     }
 
     if (editando.value) {
@@ -274,8 +319,10 @@ const editarTerminal = (item) => {
   formData.descterminal = item.descterminal
   formData.nome_dispositivo = item.nome_dispositivo || ''
   formData.ip_dispositivo = item.ip_dispositivo || ''
-  formData.imp_nfe = item.imp_nfe || ''
-  formData.imp_nfce = item.imp_nfce || ''
+  formData.imp_nfe_nfce = item.imp_nfe_nfce || ''
+  formData.imp_ipc_nfe_nfce = item.imp_ipc_nfe_nfce || ''
+  formData.totem_autoatendimento = item.totem_autoatendimento || 'N'
+  formData.imprime_pedido = item.imprime_pedido || '4'
   
   editando.value = true
   formularioAberto.value = true

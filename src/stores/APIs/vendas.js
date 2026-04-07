@@ -10,6 +10,7 @@ export const useVendasStore = defineStore('vendas', {
     successMessage: '',
     motivosPerda: [],
     terminais: [],
+    ambientes: []
   }),
 
   actions: {
@@ -278,6 +279,134 @@ export const useVendasStore = defineStore('vendas', {
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao deletar terminal'
         console.error('Erro ao deletar terminal:', error)
+        toast.error(this.errorMessage)
+        return false
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // ========== AMBIENTE DE VENDAS ==========
+
+    /**
+     * LISTAR AMBIENTES
+     *
+     * @return {Promise<void>}
+     */
+    async listarAmbientes() {
+      this.loading = true
+      const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
+      const idEmpresa = empresaSelecionada?.id
+
+      if (!idEmpresa) {
+        toast.error('Empresa não selecionada')
+        this.loading = false
+        return
+      }
+
+      try {
+        const response = await api.get(`/ambiente/${idEmpresa}`, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        })
+
+        this.ambientes = response.data?.data || response.data || []
+        this.errorMessage = ''
+      } catch (error) {
+        this.errorMessage = error.response?.data?.message || 'Erro ao buscar ambientes'
+        console.error('Erro ao listar ambientes:', error)
+        toast.error(this.errorMessage)
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * CADASTRAR AMBIENTE
+     *
+     * @param {Object} payload - { data: [{...}], terminal: [{id_terminal}], grupo: [{id_grupo}] }
+     * @return {Promise<Object|null>}
+     */
+    async cadastrarAmbiente(payload) {
+      this.loading = true
+      const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
+      const idEmpresa = empresaSelecionada?.id
+
+      try {
+        const response = await api.post(`/ambiente/${idEmpresa}`, payload, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        })
+
+        this.successMessage = 'Ambiente cadastrado com sucesso!'
+        this.errorMessage = ''
+        toast.success(this.successMessage)
+
+        return response.data
+      } catch (error) {
+        this.errorMessage = error.response?.data?.message || 'Erro ao cadastrar ambiente'
+        console.error('Erro ao cadastrar ambiente:', error)
+        toast.error(this.errorMessage)
+        return null
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * ALTERAR AMBIENTE
+     *
+     * @param {number} id
+     * @param {Object} payload - { data: [{...}], terminal: [{id_terminal}], grupo: [{id_grupo}] }
+     * @return {Promise<Object|null>}
+     */
+    async alterarAmbiente(id, payload) {
+      this.loading = true
+      const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
+      const idEmpresa = empresaSelecionada?.id
+
+      try {
+        const response = await api.put(`/ambiente/${idEmpresa}/id/${id}`, payload, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        })
+
+        this.successMessage = 'Ambiente atualizado com sucesso!'
+        this.errorMessage = ''
+        toast.success(this.successMessage)
+
+        return response.data
+      } catch (error) {
+        this.errorMessage = error.response?.data?.message || 'Erro ao alterar ambiente'
+        console.error('Erro ao alterar ambiente:', error)
+        toast.error(this.errorMessage)
+        return null
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * DELETAR AMBIENTE
+     *
+     * @param {number} id
+     * @return {Promise<boolean>}
+     */
+    async deletarAmbiente(id) {
+      this.loading = true
+      const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
+      const idEmpresa = empresaSelecionada?.id
+
+      try {
+        await api.delete(`/ambiente/${idEmpresa}/id/${id}`, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        })
+
+        this.successMessage = 'Ambiente deletado com sucesso!'
+        this.errorMessage = ''
+        toast.success(this.successMessage)
+
+        return true
+      } catch (error) {
+        this.errorMessage = error.response?.data?.message || 'Erro ao deletar ambiente'
+        console.error('Erro ao deletar ambiente:', error)
         toast.error(this.errorMessage)
         return false
       } finally {

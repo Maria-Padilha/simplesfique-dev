@@ -104,6 +104,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     route: '/paginas/vendas/terminal'
                 },
                 {
+                    text: 'Ambiente de Vendas',
+                    icon: 'mdi-storefront',
+                    route: '/paginas/vendas/ambiente'
+                },
+                {
                     text: 'PDV',
                     icon: 'mdi-package-variant',
                     route: '/paginas/pdv/operacao'
