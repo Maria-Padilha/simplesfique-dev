@@ -97,6 +97,16 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     text: 'Motivo Perda de orçamento',
                     icon: 'mdi-close-circle-outline',
                     route: '/paginas/vendas/motivo-perda-orcamento'
+                },
+                {
+                    text: 'Terminal de Vendas',
+                    icon: 'mdi-monitor-dashboard',
+                    route: '/paginas/vendas/terminal'
+                },
+                {
+                    text: 'PDV',
+                    icon: 'mdi-package-variant',
+                    route: '/paginas/pdv/operacao'
                 }
             ]
                 },
@@ -233,18 +243,18 @@ export const useSidebarStore = defineStore('sidebar', () => {
                 }
             ]
         },
-        {
-            id: 'PDV',
-            titulo: 'PDV',
-            icon: 'mdi-package-variant',
-            submenus: [
-                {
-                    text: 'Operação',
-                    icon: 'mdi-shape-plus',
-                    route: '/paginas/pdv/operacao'
-                },
-            ]
-        },
+        // {
+        //     id: 'PDV',
+        //     titulo: 'PDV',
+        //     icon: 'mdi-package-variant',
+        //     submenus: [
+        //         {
+        //             text: 'Operação',
+        //             icon: 'mdi-shape-plus',
+        //             route: '/paginas/pdv/operacao'
+        //         },
+        //     ]
+        // },
         {
             id: 'relatorios',
             titulo: 'Relatórios',

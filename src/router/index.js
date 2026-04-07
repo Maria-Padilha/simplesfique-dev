@@ -26,6 +26,7 @@ import GrupoTributacaoView from '@/views/pages/estoque/GrupoTributacaoView.vue';
 import TransfAlmoxView from '@/views/pages/estoque/TransfAlmoxView.vue';
 import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
 import CarteiraCobrancaView from '@/views/pages/financeiro/banco/CarteiraCobrancaView.vue';
+import TerminalView from '@/views/pages/vendas/TerminalView.vue';
 import PdvView from '@/views/pages/pdv/PdvView.vue';
 import PagamentoView from '@/views/pages/pdv/PagamentoView.vue';
 import MovimentacaoView from '@/views/pages/financeiro/banco/MovimentacaoView.vue';
@@ -154,6 +155,17 @@ const routes = [
         path : '/paginas/vendas/motivo-perda-orcamento',
         name : 'motivo_perda_orcamento',
         component : MotivoPerdaOrcamentoView
+    },
+    {
+        path: '/paginas/vendas/terminal',
+        name: 'vendas_terminal',
+        component: TerminalView,
+        meta: { requiresToken: true, title: 'Terminal de Vendas' }
+    },
+    {
+        path: '/paginas/pdv/terminal',
+        name: 'pdv_terminal',
+        component: TerminalView
     },
 
     //    Páginas do módulo financeiro
