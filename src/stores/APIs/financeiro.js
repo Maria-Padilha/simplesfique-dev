@@ -2517,7 +2517,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         const dadosSemId = { ...carteiraData }
         delete dadosSemId.id
 
-        const response = await api.post('/carteira', { data: [dadosSemId] }, {
+        const response = await api.post('/carteiracob', { data: [dadosSemId] }, {
           headers: this.getAuthHeaders()
         })
 
@@ -2538,7 +2538,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         const dadosParaUpdate = { ...carteiraData }
         delete dadosParaUpdate.id
 
-        const response = await api.put(`/carteira/${id}`, { data: [dadosParaUpdate] }, {
+        const response = await api.put(`/carteiracob/${id}`, { data: [dadosParaUpdate] }, {
           headers: this.getAuthHeaders()
         })
 
@@ -2556,7 +2556,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true
       this.error = null
       try {
-        await api.delete(`/carteira/${id}`, {
+        await api.delete(`/carteiracob/${id}`, {
           headers: this.getAuthHeaders()
         })
 

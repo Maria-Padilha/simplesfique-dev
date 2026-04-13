@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boleto Bancário - SimplesFique</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            font-size: 11px;
+            color: #2b2b2b;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+        }
+
+        /* ── HEADER SIMPLESFIQUE ────────────────────────────── */
+        .header {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #F57C00;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-img {
+            width: 46px;
+            height: 46px;
+            object-fit: contain;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #F57C00;
+        }
+
+        .logo-text span {
+            color: #de7e3e;
+        }
+
+        .header-info {
+            font-size: 11px;
+            line-height: 1.7;
+            text-align: right;
+            color: #444;
+        }
+
+        .header-info strong {
+            color: #F57C00;
+        }
+
+        /* ── SEÇÃO: RECIBO DO PAGADOR ───────────────────────── */
+        .recibo-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #F57C00;
+            margin-bottom: 6px;
+        }
+
+        .recibo-box {
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
+
+        .recibo-row {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 5px 0;
+        }
+
+        .recibo-row:last-child {
+            border-bottom: none;
+        }
+
+        .recibo-field {
+            flex: 1;
+        }
+
+        .recibo-field + .recibo-field {
+            border-left: 1px solid #e0e0e0;
+            padding-left: 10px;
+            margin-left: 10px;
+        }
+
+        .field-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #888;
+            margin-bottom: 2px;
+        }
+
+        .field-value {
+            font-size: 11px;
+            font-weight: 600;
+            color: #222;
+        }
+
+        .field-value.large {
+            font-size: 13px;
+            color: #F57C00;
+        }
+
+        .linha-digitavel-recibo {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #222;
+            padding: 5px 0 2px 0;
+        }
+
+        /* ── LINHA SEPARADORA ───────────────────────────────── */
+        .separador {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 12px 0;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .separador-linha {
+            flex: 1;
+            border-top: 1px dashed #aaa;
+        }
+
+        /* ── FICHA DE COMPENSAÇÃO ────────────────────────────── */
+        .ficha-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #222;
+            border-top: 2px solid #222;
+            padding: 6px 0;
+            margin-bottom: 0;
+        }
+
+        .ficha-logo-banco {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-right: 2px solid #222;
+            padding-right: 12px;
+            margin-right: 12px;
+        }
+
+        .ficha-logo-banco .logo-img-small {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .ficha-logo-banco .logo-text-small {
+            font-size: 14px;
+            font-weight: bold;
+            color: #F57C00;
+        }
+
+        .ficha-codigo-banco {
+            font-size: 16px;
+            font-weight: 900;
+            color: #222;
+            border-right: 2px solid #222;
+            padding-right: 12px;
+            margin-right: 12px;
+            letter-spacing: 1px;
+        }
+
+        .ficha-linha-digitavel {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #222;
+            text-align: right;
+        }
+
+        /* ── TABELA DE CAMPOS DA FICHA ──────────────────────── */
+        .ficha-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .ficha-table td {
+            border: 1px solid #bbb;
+            padding: 4px 6px;
+            vertical-align: top;
+        }
+
+        .ficha-table .cell-label {
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #777;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .ficha-table .cell-value {
+            font-size: 11px;
+            font-weight: 600;
+            color: #111;
+            display: block;
+        }
+
+        .ficha-table .cell-value-orange {
+            font-size: 12px;
+            font-weight: 700;
+            color: #F57C00;
+        }
+
+        .td-instrucoes {
+            border: 1px solid #bbb;
+            padding: 6px;
+            min-height: 70px;
+            vertical-align: top;
+        }
+
+        .td-instrucoes .cell-label {
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #777;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .td-instrucoes .cell-value {
+            font-size: 10px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* ── SACADO ─────────────────────────────────────────── */
+        .sacado-row {
+            border: 1px solid #bbb;
+            border-top: none;
+            padding: 5px 6px;
+        }
+
+        .sacado-row .cell-label {
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #777;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .sacado-row .cell-value {
+            font-size: 11px;
+            font-weight: 600;
+            color: #111;
+        }
+
+        /* ── AUTENTICAÇÃO ─────────────────────────────────── */
+        .autenticacao-row {
+            border: 1px solid #bbb;
+            border-top: none;
+            padding: 4px 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 28px;
+        }
+
+        .autenticacao-row .cell-label {
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #777;
+        }
+
+        /* ── BARRAS DO CÓDIGO DE BARRAS ─────────────────────── */
+        .barcode-container {
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .barcode-label {
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #777;
+            margin-bottom: 4px;
+        }
+
+        .barcode {
+            display: flex;
+            align-items: flex-end;
+            height: 50px;
+            gap: 0;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            background: #000;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .bar-space {
+            height: 100%;
+            background: #fff;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        /* ── RODAPÉ ─────────────────────────────────────────── */
+        .footer {
+            margin-top: 18px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 9px;
+            color: #999;
+            text-align: center;
+        }
+
+        @media print {
+            body { padding: 10px; }
+            .separador { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── CABEÇALHO SIMPLESFIQUE ─────────────────────────────────── -->
+    <div class="header">
+        <div class="logo-container">
+            <img class="logo-img" id="logo-img" src="" alt="SimplesFique">
+            <div class="logo-text">Simples<span>Fique</span></div>
+        </div>
+        <div class="header-info">
+            <strong>Boleto Bancário</strong><br>
+            Emitido por: <span id="emitente-nome">{{emitente_nome}}</span><br>
+            CNPJ: <span id="emitente-cnpj">{{emitente_cnpj}}</span><br>
+            Emissão: <span id="data-emissao">{{data_emissao}}</span>
+        </div>
+    </div>
+
+    <!-- ─── RECIBO DO PAGADOR ──────────────────────────────────────── -->
+    <div class="recibo-title">Recibo do Pagador</div>
+
+    <div class="recibo-box">
+        <!-- Beneficiário -->
+        <div class="recibo-row">
+            <div class="recibo-field">
+                <div class="field-label">Beneficiário / Cedente</div>
+                <div class="field-value" id="rec-beneficiario">{{beneficiario_nome}}</div>
+            </div>
+            <div class="recibo-field" style="flex:0 0 200px;">
+                <div class="field-label">CNPJ / CPF do Beneficiário</div>
+                <div class="field-value" id="rec-beneficiario-cnpj">{{beneficiario_cnpj}}</div>
+            </div>
+        </div>
+
+        <!-- Números e datas -->
+        <div class="recibo-row">
+            <div class="recibo-field">
+                <div class="field-label">Nosso Número</div>
+                <div class="field-value" id="rec-nosso-numero">{{nosso_numero}}</div>
+            </div>
+            <div class="recibo-field">
+                <div class="field-label">Número do Documento</div>
+                <div class="field-value" id="rec-num-doc">{{numero_documento}}</div>
+            </div>
+            <div class="recibo-field">
+                <div class="field-label">Agência / Conta</div>
+                <div class="field-value" id="rec-agencia">{{agencia_conta}}</div>
+            </div>
+            <div class="recibo-field" style="flex:0 0 100px;">
+                <div class="field-label">Data de Vencimento</div>
+                <div class="field-value large" id="rec-vencimento">{{data_vencimento}}</div>
+            </div>
+            <div class="recibo-field" style="flex:0 0 120px;">
+                <div class="field-label">Valor do Documento</div>
+                <div class="field-value large" id="rec-valor">{{valor_documento}}</div>
+            </div>
+        </div>
+
+        <!-- Sacado -->
+        <div class="recibo-row">
+            <div class="recibo-field">
+                <div class="field-label">Pagador / Sacado</div>
+                <div class="field-value" id="rec-sacado">{{sacado_nome}}</div>
+            </div>
+            <div class="recibo-field" style="flex:0 0 200px;">
+                <div class="field-label">CPF / CNPJ do Pagador</div>
+                <div class="field-value" id="rec-sacado-cpf">{{sacado_cpf_cnpj}}</div>
+            </div>
+        </div>
+
+        <!-- Endereço do sacado -->
+        <div class="recibo-row">
+            <div class="recibo-field">
+                <div class="field-label">Endereço</div>
+                <div class="field-value" id="rec-sacado-end">{{sacado_endereco}}</div>
+            </div>
+            <div class="recibo-field" style="flex:0 0 160px;">
+                <div class="field-label">CEP</div>
+                <div class="field-value" id="rec-sacado-cep">{{sacado_cep}}</div>
+            </div>
+            <div class="recibo-field" style="flex:0 0 120px;">
+                <div class="field-label">Cidade / UF</div>
+                <div class="field-value" id="rec-sacado-cidade">{{sacado_cidade_uf}}</div>
+            </div>
+        </div>
+
+        <!-- Linha digitável -->
+        <div class="recibo-row">
+            <div class="recibo-field">
+                <div class="field-label">Linha Digitável</div>
+                <div class="linha-digitavel-recibo" id="rec-linha-digitavel">{{linha_digitavel}}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── SEPARADOR ──────────────────────────────────────────────── -->
+    <div class="separador">
+        <div class="separador-linha"></div>
+        <span>✂ Recorte aqui</span>
+        <div class="separador-linha"></div>
+    </div>
+
+    <!-- ─── FICHA DE COMPENSAÇÃO ──────────────────────────────────── -->
+    <div class="ficha-header">
+        <div style="display:flex; align-items:center;">
+            <div class="ficha-logo-banco">
+                <img class="logo-img-small" id="logo-img-ficha" src="" alt="SF">
+                <div class="logo-text-small">Simples<span style="color:#de7e3e">Fique</span></div>
+            </div>
+            <div class="ficha-codigo-banco" id="ficha-codigo-banco">{{codigo_banco}}</div>
+        </div>
+        <div class="ficha-linha-digitavel" id="ficha-linha-digitavel">{{linha_digitavel}}</div>
+    </div>
+
+    <!-- Linha 1: Agência / Espécie / Quantidade / Nosso Número -->
+    <table class="ficha-table">
+        <tr>
+            <td style="width:20%">
+                <span class="cell-label">Agência / Código Beneficiário</span>
+                <span class="cell-value" id="fi-agencia">{{agencia_codigo_beneficiario}}</span>
+            </td>
+            <td style="width:10%">
+                <span class="cell-label">Espécie</span>
+                <span class="cell-value" id="fi-especie">{{especie}}</span>
+            </td>
+            <td style="width:10%">
+                <span class="cell-label">Quantidade</span>
+                <span class="cell-value" id="fi-quantidade">{{quantidade}}</span>
+            </td>
+            <td style="width:20%">
+                <span class="cell-label">Nosso Número</span>
+                <span class="cell-value" id="fi-nosso-numero">{{nosso_numero}}</span>
+            </td>
+            <td style="width:15%">
+                <span class="cell-label">Número do Documento</span>
+                <span class="cell-value" id="fi-num-doc">{{numero_documento}}</span>
+            </td>
+            <td style="width:15%">
+                <span class="cell-label">Data de Processamento</span>
+                <span class="cell-value" id="fi-data-proc">{{data_processamento}}</span>
+            </td>
+            <td style="width:10%">
+                <span class="cell-label">Vencimento</span>
+                <span class="cell-value cell-value-orange" id="fi-vencimento">{{data_vencimento}}</span>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Linha 2: Beneficiário + Valor do Documento -->
+    <table class="ficha-table" style="margin-top:-1px;">
+        <tr>
+            <td style="width:60%">
+                <span class="cell-label">Beneficiário</span>
+                <span class="cell-value" id="fi-beneficiario">{{beneficiario_nome}} — CNPJ: {{beneficiario_cnpj}}</span>
+            </td>
+            <td style="width:20%">
+                <span class="cell-label">Espécie Moeda</span>
+                <span class="cell-value" id="fi-moeda">{{especie_moeda}}</span>
+            </td>
+            <td style="width:20%">
+                <span class="cell-label">Valor do Documento (R$)</span>
+                <span class="cell-value cell-value-orange" id="fi-valor">{{valor_documento}}</span>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Linha 3: Instruções (esquerda) + Campos de valor (direita) -->
+    <table class="ficha-table" style="margin-top:-1px;">
+        <tr>
+            <!-- Instruções -->
+            <td class="td-instrucoes" style="width:65%; border-right:1px solid #bbb;" rowspan="5">
+                <span class="cell-label">Instruções (Texto de responsabilidade do Beneficiário)</span>
+                <div class="cell-value" id="fi-instrucoes">{{instrucoes}}</div>
+            </td>
+            <td style="width:35%">
+                <span class="cell-label">Desconto / Abatimento (R$)</span>
+                <span class="cell-value" id="fi-desconto">{{desconto}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="cell-label">Mora / Multa (R$)</span>
+                <span class="cell-value" id="fi-mora">{{mora_multa}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="cell-label">Outros Acréscimos (R$)</span>
+                <span class="cell-value" id="fi-acrescimos">{{outros_acrescimos}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="cell-label">Deduções (R$)</span>
+                <span class="cell-value" id="fi-deducoes">{{deducoes}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td style="background:#fff8f0;">
+                <span class="cell-label" style="color:#F57C00;">Valor Cobrado (R$)</span>
+                <span class="cell-value cell-value-orange" style="font-size:14px;" id="fi-valor-cobrado">{{valor_cobrado}}</span>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Sacado -->
+    <div class="sacado-row">
+        <span class="cell-label">Pagador / Sacado</span>
+        <span class="cell-value" id="fi-sacado">
+            <span id="fi-sacado-nome">{{sacado_nome}}</span>
+            &nbsp;—&nbsp;
+            CPF/CNPJ: <span id="fi-sacado-cpf">{{sacado_cpf_cnpj}}</span>
+            &nbsp;|&nbsp;
+            <span id="fi-sacado-end">{{sacado_endereco}}</span>,
+            <span id="fi-sacado-cidade">{{sacado_cidade_uf}}</span>
+            — CEP: <span id="fi-sacado-cep">{{sacado_cep}}</span>
+        </span>
+    </div>
+
+    <!-- Autenticação Mecânica -->
+    <div class="autenticacao-row">
+        <span class="cell-label">Autenticação Mecânica / Ficha de Compensação</span>
+        <span style="font-size:9px; color:#aaa;">SimplesFique — Uso exclusivo do banco</span>
+    </div>
+
+    <!-- ─── CÓDIGO DE BARRAS ────────────────────────────────────────── -->
+    <div class="barcode-container">
+        <div class="barcode-label">Código de Barras</div>
+        <div class="barcode" id="barcode-render">
+            <!-- Gerado dinamicamente pelo JS via renderBarcode() -->
+        </div>
+        <div style="font-size:9px; color:#aaa; margin-top:4px;" id="barcode-numero">{{codigo_barras}}</div>
+    </div>
+
+    <!-- ─── RODAPÉ ─────────────────────────────────────────────────── -->
+    <div class="footer">
+        SimplesFique — Sistema de Gestão Empresarial &nbsp;|&nbsp; Documento gerado em <span id="footer-data">{{data_emissao}}</span>
+    </div>
+
+    <script>
+        /**
+         * Preenche todos os campos do boleto com os dados recebidos via postMessage
+         * ou diretamente via window.dadosBoleto (para uso interno).
+         *
+         * Estrutura esperada de `dados`:
+         * {
+         *   emitente_nome, emitente_cnpj,
+         *   beneficiario_nome, beneficiario_cnpj, agencia_conta, agencia_codigo_beneficiario,
+         *   sacado_nome, sacado_cpf_cnpj, sacado_endereco, sacado_cep, sacado_cidade_uf,
+         *   nosso_numero, numero_documento,
+         *   data_emissao, data_vencimento, data_processamento,
+         *   valor_documento, valor_cobrado, desconto, mora_multa, outros_acrescimos, deducoes,
+         *   especie, especie_moeda, quantidade,
+         *   instrucoes,
+         *   linha_digitavel, codigo_banco, codigo_barras,
+         *   logo_base64   // opcional — substitui a tag <img>
+         * }
+         */
+        function preencherBoleto(dados) {
+            const set = (id, val) => {
+                const el = document.getElementById(id);
+                if (el && val !== undefined && val !== null) el.textContent = val;
+            };
+
+            // Logo
+            if (dados.logo_base64) {
+                document.querySelectorAll('#logo-img, #logo-img-ficha').forEach(img => {
+                    img.src = dados.logo_base64;
+                });
+            }
+
+            // Cabeçalho
+            set('emitente-nome',        dados.emitente_nome);
+            set('emitente-cnpj',        dados.emitente_cnpj);
+            set('data-emissao',         dados.data_emissao);
+            set('footer-data',          dados.data_emissao);
+
+            // Recibo
+            set('rec-beneficiario',     dados.beneficiario_nome);
+            set('rec-beneficiario-cnpj',dados.beneficiario_cnpj);
+            set('rec-nosso-numero',     dados.nosso_numero);
+            set('rec-num-doc',          dados.numero_documento);
+            set('rec-agencia',          dados.agencia_conta);
+            set('rec-vencimento',       dados.data_vencimento);
+            set('rec-valor',            dados.valor_documento);
+            set('rec-sacado',           dados.sacado_nome);
+            set('rec-sacado-cpf',       dados.sacado_cpf_cnpj);
+            set('rec-sacado-end',       dados.sacado_endereco);
+            set('rec-sacado-cep',       dados.sacado_cep);
+            set('rec-sacado-cidade',    dados.sacado_cidade_uf);
+            set('rec-linha-digitavel',  dados.linha_digitavel);
+
+            // Ficha de compensação
+            set('ficha-codigo-banco',   dados.codigo_banco);
+            set('ficha-linha-digitavel',dados.linha_digitavel);
+            set('fi-agencia',           dados.agencia_codigo_beneficiario);
+            set('fi-especie',           dados.especie);
+            set('fi-quantidade',        dados.quantidade);
+            set('fi-nosso-numero',      dados.nosso_numero);
+            set('fi-num-doc',           dados.numero_documento);
+            set('fi-data-proc',         dados.data_processamento);
+            set('fi-vencimento',        dados.data_vencimento);
+            set('fi-beneficiario',      (dados.beneficiario_nome || '') + ' — CNPJ: ' + (dados.beneficiario_cnpj || ''));
+            set('fi-moeda',             dados.especie_moeda);
+            set('fi-valor',             dados.valor_documento);
+            set('fi-instrucoes',        dados.instrucoes);
+            set('fi-desconto',          dados.desconto       || '0,00');
+            set('fi-mora',              dados.mora_multa     || '0,00');
+            set('fi-acrescimos',        dados.outros_acrescimos || '0,00');
+            set('fi-deducoes',          dados.deducoes       || '0,00');
+            set('fi-valor-cobrado',     dados.valor_cobrado);
+            set('fi-sacado-nome',       dados.sacado_nome);
+            set('fi-sacado-cpf',        dados.sacado_cpf_cnpj);
+            set('fi-sacado-end',        dados.sacado_endereco);
+            set('fi-sacado-cidade',     dados.sacado_cidade_uf);
+            set('fi-sacado-cep',        dados.sacado_cep);
+            set('barcode-numero',       dados.codigo_barras);
+
+            // Código de barras
+            if (dados.codigo_barras) renderBarcode(dados.codigo_barras);
+        }
+
+        /**
+         * Renderiza o código de barras Interleaved 2of5 / visual simplificado
+         * a partir da string numérica de 44 dígitos.
+         * Para produção, usar biblioteca como JsBarcode ou bwip-js.
+         */
+        function renderBarcode(code) {
+            const container = document.getElementById('barcode-render');
+            if (!container) return;
+            container.innerHTML = '';
+
+            // Padrão visual representativo (pseudorandom baseado no código)
+            const patterns = [
+                [2,1,2,1,1], [1,1,2,2,1], [2,1,1,2,1],
+                [1,2,2,1,1], [2,2,1,1,1], [1,1,1,2,2],
+                [2,1,2,2,1], [1,2,1,1,2], [2,2,1,2,1], [1,1,2,1,2]
+            ];
+
+            // Barra inicial
+            [[2,'bar'],[1,'space'],[2,'bar'],[1,'space']].forEach(([w, type]) => {
+                const el = document.createElement('div');
+                el.className = type === 'bar' ? 'bar' : 'bar-space';
+                el.style.width = w + 'px';
+                container.appendChild(el);
+            });
+
+            // Barras de dados
+            for (let i = 0; i < code.length - 1; i += 2) {
+                const d1 = parseInt(code[i])   || 0;
+                const d2 = parseInt(code[i+1]) || 0;
+                const p1 = patterns[d1];
+                const p2 = patterns[d2];
+                for (let j = 0; j < 5; j++) {
+                    ['bar','space'].forEach((type, ti) => {
+                        const el = document.createElement('div');
+                        el.className = type === 'bar' ? 'bar' : 'bar-space';
+                        el.style.width = (ti === 0 ? p1[j] : p2[j]) + 'px';
+                        container.appendChild(el);
+                    });
+                }
+            }
+
+            // Barra final
+            [[2,'bar'],[1,'space'],[1,'bar']].forEach(([w, type]) => {
+                const el = document.createElement('div');
+                el.className = type === 'bar' ? 'bar' : 'bar-space';
+                el.style.width = w + 'px';
+                container.appendChild(el);
+            });
+        }
+
+        // Ouvir mensagens do Vue (window.postMessage)
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.tipo === 'boleto') {
+                preencherBoleto(event.data.dados);
+            }
+        });
+
+        // Fallback: se dados já estiverem disponíveis no escopo global
+        if (window.dadosBoleto) {
+            preencherBoleto(window.dadosBoleto);
+        }
+    </script>
+</body>
+</html>
