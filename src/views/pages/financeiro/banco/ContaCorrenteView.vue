@@ -1340,15 +1340,19 @@ const editarConta = async (conta) => {
     // Buscar dados completos da conta via API
     const contaId = conta?.id ?? conta?.ID
     const contaCompleta = await financeiroStore.buscarContaPorId(contaId)
-    
-    // Se retornou dados, usar eles; senão, usar os dados da tabela
-    const dadosConta = contaCompleta?.data?.[0] ?? contaCompleta?.[0] ?? contaCompleta ?? conta
-    
-    // Copiar os campos do registro para o formData
+
+    // Resposta: { data: {...}, chavepix: [{tipochavepix, chavepix, ...}] }
+    const dadosConta = contaCompleta?.data ?? conta
+    const pixInfo = Array.isArray(contaCompleta?.chavepix) ? contaCompleta.chavepix[0] : null
+
+    // Copiar campos da conta
     Object.assign(formData, dadosConta)
+
+    // Preencher chave PIX se existir
+    formData.tipochavepix = pixInfo?.tipochavepix ? Number(pixInfo.tipochavepix) : 0
+    formData.chavepix = pixInfo?.chavepix ?? ''
   } catch (error) {
     console.warn('[ContaCorrente] Erro ao buscar conta específica, usando dados da tabela:', error)
-    // Em caso de erro, usar os dados que já temos da tabela
     Object.assign(formData, conta)
   }
 
@@ -1458,14 +1462,22 @@ const resetarForm = () => {
 
 const salvarConta = async () => {
   try {
-    // Criar uma cópia para normalizar IDs antes de enviar
-    const payload = { ...formData }
+    const { tipochavepix, chavepix, ...contaFields } = formData
+
     // Normalizar id_banco e id_agencia caso estejam como objetos
-    payload.id_banco = normalizeId(payload.id_banco)
-    payload.id_agencia = normalizeId(payload.id_agencia)
+    const data = {
+      ...contaFields,
+      id_banco: normalizeId(contaFields.id_banco),
+      id_agencia: normalizeId(contaFields.id_agencia)
+    }
+
+    const payload = {
+      data: [data],
+      chavepix: [{ tipochavepix, chavepix }]
+    }
 
     if (editando.value) {
-      const recordId = payload.id ?? payload.id_ccorrente ?? payload.numero_ccorrente
+      const recordId = data.id ?? data.id_ccorrente ?? data.numero_ccorrente
       await financeiroStore.atualizarConta(recordId, payload)
       mostrarSnackbar('Conta atualizada com sucesso!', 'success')
     } else {

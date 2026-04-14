@@ -247,16 +247,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        // Garantir que não estamos enviando o id na criação
-        const dadosSemId = { ...contaData };
-        delete dadosSemId.id;
-
-        // Normalizar id_banco: enviar somente o ID numérico se vier como objeto
-        if (dadosSemId.id_banco && typeof dadosSemId.id_banco === 'object') {
-          dadosSemId.id_banco = dadosSemId.id_banco.ID ?? dadosSemId.id_banco.id ?? dadosSemId.id_banco
-        }
-
-        const response = await api.post('/ccorrente', { data: [dadosSemId] }, {
+        const response = await api.post('/ccorrente', contaData, {
           headers: this.getAuthHeaders()
         });
         
@@ -277,16 +268,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        // Remover o id dos dados a serem enviados (vai na URL)
-        const dadosParaUpdate = { ...contaData };
-        delete dadosParaUpdate.id_ccorrente; // Nome correto do campo ID
-
-        // Normalizar id_banco se necessário
-        if (dadosParaUpdate.id_banco && typeof dadosParaUpdate.id_banco === 'object') {
-          dadosParaUpdate.id_banco = dadosParaUpdate.id_banco.ID ?? dadosParaUpdate.id_banco.id ?? dadosParaUpdate.id_banco
-        }
-
-        const response = await api.put(`/ccorrente/${id}`, { data: [dadosParaUpdate] }, {
+        const response = await api.put(`/ccorrente/${id}`, contaData, {
           headers: this.getAuthHeaders()
         });
         
@@ -2437,6 +2419,27 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return dados
       } catch (error) {
         this.error = error.response?.data?.message || 'Erro ao buscar tipos de carteira'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Gerar Nosso Número / boleto para parcelas selecionadas
+    // POST /bolnossonumero/:idcarteira/idccorrente/:idccorrente
+    async gerarNossoNumero(idCarteira, idCcorrente, parcelasIds) {
+      this.loading = true
+      this.error = null
+      try {
+        const payload = { data: parcelasIds.map(id => ({ id_parcela: id })) }
+        const response = await api.post(
+          `/bolnossonumero/${idCarteira}/idccorrente/${idCcorrente}`,
+          payload,
+          { headers: this.getAuthHeaders() }
+        )
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao gerar nosso número'
         throw error
       } finally {
         this.loading = false

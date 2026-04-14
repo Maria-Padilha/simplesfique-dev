@@ -41,12 +41,45 @@
         <!-- Lista de Contas a Receber -->
         <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary" elevation="0">
           <v-card-text class="pa-4">
-            <BotaoExpandTransition
-                :formulario-aberto="formularioAberto"
-                texto-abrir="Nova Conta a Receber"
-                texto-fechar="Cancelar"
-                @toggle="toggleFormulario"
-            />
+            <div class="d-flex align-center gap-2 flex-wrap">
+              <BotaoExpandTransition
+                  :formulario-aberto="formularioAberto"
+                  texto-abrir="Nova Conta a Receber"
+                  texto-fechar="Cancelar"
+                  @toggle="toggleFormulario"
+              />
+
+              <template v-if="!formularioAberto">
+                <v-btn
+                    v-if="!modoGerarBoleto"
+                    color="var(--text-color-laranja)"
+                    variant="outlined"
+                    prepend-icon="mdi-barcode"
+                    @click="ativarModoGerarBoleto"
+                >
+                  Gerar Boleto
+                </v-btn>
+                <template v-else>
+                  <v-btn
+                      color="success"
+                      variant="flat"
+                      prepend-icon="mdi-check"
+                      :disabled="parcelasSelecionadas.length === 0"
+                      :loading="loadingBoleto"
+                      @click="dialogBoleto.aberto = true"
+                  >
+                    Gerar ({{ parcelasSelecionadas.length }})
+                  </v-btn>
+                  <v-btn
+                      color="grey"
+                      variant="text"
+                      @click="cancelarModoGerarBoleto"
+                  >
+                    Cancelar
+                  </v-btn>
+                </template>
+              </template>
+            </div>
 
             <!-- Formulário Expansível -->
             <v-expand-transition>
@@ -659,6 +692,7 @@
             </v-expand-transition>
 
             <!-- Busca Avançada -->
+            <!-- Busca Avançada -->
             <div v-if="!formularioAberto" class="my-4">
               <BuscaAvancada
                   v-model="filtrosAvancados"
@@ -668,6 +702,7 @@
 
             <!-- Tabela de Contas a Receber -->
             <TabelaPadrao
+                ref="tabelaRef"
                 :formulario-aberto="formularioAberto"
                 :headers="headers"
                 :items="contasReceberFiltradas"
@@ -675,7 +710,7 @@
                 :search="search"
                 @update:search="(value) => search = value"
                 search-label="Pesquisar Parcelas"
-                item-key="id"
+                item-key="id_parcela"
                 no-data-icon="mdi-cash-plus"
                 no-data-text="Nenhuma registro encontrado."
                 :show-custom-action="false"
@@ -684,6 +719,19 @@
                 @edit-item="editarContaReceber"
                 @confirm-delete="excluirContaReceber"
             >
+              <!-- Checkbox manual para selecionar parcelas (modo boleto) -->
+              <template v-slot:[`item.boleto_check`]="{ item }">
+                <v-checkbox
+                    v-if="modoGerarBoleto"
+                    :model-value="parcelasSelecionadas.includes(item.id_parcela)"
+                    :disabled="!!item.nosso_numero"
+                    hide-details
+                    density="compact"
+                    color="var(--text-color-laranja)"
+                    @update:model-value="(val) => toggleParcela(val, item)"
+                ></v-checkbox>
+              </template>
+
               <!-- Coluna de Imagem -->
               <template v-slot:[`item.imagem`]="{ item }">
                 <MediaShow
@@ -736,7 +784,18 @@
                 <span v-else class="text-grey">-</span>
               </template>
 
-              <!-- Ações personalizadas -->
+              <!-- Formatação para Nosso Número -->
+              <template v-slot:[`item.nosso_numero`]="{ item }">
+                <v-chip
+                    v-if="item.nosso_numero"
+                    size="small"
+                    color="success"
+                    variant="tonal"
+                >
+                  {{ item.nosso_numero }}
+                </v-chip>
+                <span v-else class="text-grey text-caption">—</span>
+              </template>
               <template v-slot:[`item.actions`]="{ item }">
                 <div class="d-flex gap-1">
                   <!-- Editar -->
@@ -840,6 +899,49 @@
             :nome-programa="'Lançamentos de Contas a Receber'"
             :tipo-acesso="tipoAcessoNegado"
         />
+
+        <!-- Dialog: Selecionar Carteira para Gerar Nosso numero -->
+        <v-dialog v-model="dialogBoleto.aberto" max-width="480px" persistent>
+          <v-card class="background-secondary">
+            <v-card-title class="text-h6 pa-4">
+              <v-icon icon="mdi-barcode" color="var(--text-color-laranja)" class="mr-2"></v-icon>
+              Gerar Boleto
+            </v-card-title>
+            <v-card-text class="pa-4">
+              <p class="text-body-2 mb-4">
+                Será gerado o nosso número para <strong>{{ parcelasSelecionadas.length }}</strong> {{ parcelasSelecionadas.length === 1 ? 'parcela selecionada' : 'parcelas selecionadas' }}.
+              </p>
+              <v-autocomplete
+                  v-model="dialogBoleto.carteiraId"
+                  :items="carteirasDisponiveis"
+                  item-title="_label"
+                  item-value="_carteira_key"
+                  label="Carteira de Cobrança *"
+                  variant="outlined"
+                  density="comfortable"
+                  class="custom-text-field mt-2"
+                  prepend-inner-icon="mdi-wallet"
+                  :loading="loadingCarteiras"
+                  no-data-text="Nenhuma carteira disponível"
+                  persistent-placeholder
+              ></v-autocomplete>
+            </v-card-text>
+            <v-card-actions class="pa-4">
+              <v-spacer></v-spacer>
+              <v-btn color="grey" variant="text" @click="dialogBoleto.aberto = false">Cancelar</v-btn>
+              <v-btn
+                  color="var(--text-color-laranja)"
+                  variant="flat"
+                  class="text-white"
+                  :disabled="!dialogBoleto.carteiraId"
+                  :loading="loadingBoleto"
+                  @click="confirmarGerarBoleto"
+              >
+                Confirmar
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </div>
     </template>
   </top-all-pages>
@@ -918,6 +1020,76 @@ const snackbar = reactive({
   color: 'success'
 })
 
+// ---- Gerar Boleto ----
+const tabelaRef = ref(null)
+const modoGerarBoleto = ref(false)
+const parcelasSelecionadas = ref([])
+const loadingBoleto = ref(false)
+const loadingCarteiras = ref(false)
+const carteirasDisponiveis = ref([])
+const dialogBoleto = reactive({
+  aberto: false,
+  carteiraId: null
+})
+
+
+const toggleParcela = (selected, item) => {
+  const id = item.id_parcela
+  if (selected) {
+    if (!parcelasSelecionadas.value.includes(id)) {
+      parcelasSelecionadas.value = [...parcelasSelecionadas.value, id]
+    }
+  } else {
+    parcelasSelecionadas.value = parcelasSelecionadas.value.filter(i => i !== id)
+  }
+}
+
+const ativarModoGerarBoleto = async () => {
+  modoGerarBoleto.value = true
+  parcelasSelecionadas.value = []
+  tabelaRef.value?.clearSelection()
+  if (carteirasDisponiveis.value.length === 0) {
+    try {
+      loadingCarteiras.value = true
+      const lista = await financeiroStore.buscarCarteiras()
+      // Montar label e chave composta para o autocomplete
+      carteirasDisponiveis.value = (lista || []).map(c => ({
+        ...c,
+        _label: `Carteira ${c.id_carteira} – CC: ${c.id_ccorrente}`,
+        _carteira_key: `${c.id_carteira}|${c.id_ccorrente}`
+      }))
+    } catch (e) {
+      toast.error('Erro ao carregar carteiras')
+    } finally {
+      loadingCarteiras.value = false
+    }
+  }
+}
+
+const cancelarModoGerarBoleto = () => {
+  modoGerarBoleto.value = false
+  parcelasSelecionadas.value = []
+  tabelaRef.value?.clearSelection()
+  dialogBoleto.aberto = false
+  dialogBoleto.carteiraId = null
+}
+
+const confirmarGerarBoleto = async () => {
+  if (!dialogBoleto.carteiraId) return
+  const [idCarteira, idCcorrente] = dialogBoleto.carteiraId.split('|')
+  const ids = parcelasSelecionadas.value
+  try {
+    loadingBoleto.value = true
+    await financeiroStore.gerarNossoNumero(idCarteira, idCcorrente, ids)
+    toast.success(`Nosso número gerado para ${ids.length} ${ids.length === 1 ? 'parcela' : 'parcelas'}!`)
+    cancelarModoGerarBoleto()
+  } catch (e) {
+    toast.error('Erro ao gerar nosso número: ' + (e?.response?.data?.message || e.message))
+  } finally {
+    loadingBoleto.value = false
+  }
+}
+
 // Modal de Exportação/Impressão
 const modalExportacaoAberto = ref(false)
 
@@ -933,24 +1105,31 @@ const dialogExclusao = reactive({
 })
 
 // Headers da tabela
-const headers = [
-  { title: '', key: 'imagem', sortable: false, width: '60px' },
-  { title: 'Documento', key: 'nrdocumento', sortable: true },
-  { title: 'Série', key: 'serie', sortable: true },
-  { title: 'Espécie', key: 'especie', sortable: true },
-  { title: 'Parcela', key: 'id_parcela', sortable: true },
-  { title: 'Qtd Total', key: 'qtdparcelas', sortable: true },
-  { title: 'Data Emissão', key: 'dtemissao', sortable: true },
-  { title: 'Vencimento', key: 'dtvencimento', sortable: true },
-  { title: 'Cliente', key: 'cliente', sortable: true },
-  { title: 'Vlr Documento', key: 'vlrdocumento', sortable: true },
-  { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
-  { title: 'Origem', key: 'origem', sortable: true },
-  { title: 'Tipo Doc.', key: 'abreviatura', sortable: true },
-  { title: 'Local Cobrança', key: 'desclocalcobranca', sortable: true },
-  { title: 'Usuário', key: 'user_inc', sortable: true },
-  { title: 'Ações', key: 'actions', sortable: false }
-]
+const headers = computed(() => {
+  const base = [
+    { title: '', key: 'imagem', sortable: false, width: '60px' },
+    { title: 'Documento', key: 'nrdocumento', sortable: true },
+    { title: 'Série', key: 'serie', sortable: true },
+    { title: 'Espécie', key: 'especie', sortable: true },
+    { title: 'Parcela', key: 'id_parcela', sortable: true },
+    { title: 'Qtd Total', key: 'qtdparcelas', sortable: true },
+    { title: 'Data Emissão', key: 'dtemissao', sortable: true },
+    { title: 'Vencimento', key: 'dtvencimento', sortable: true },
+    { title: 'Cliente', key: 'cliente', sortable: true },
+    { title: 'Vlr Documento', key: 'vlrdocumento', sortable: true },
+    { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
+    { title: 'Origem', key: 'origem', sortable: true },
+    { title: 'Tipo Doc.', key: 'abreviatura', sortable: true },
+    { title: 'Local Cobrança', key: 'desclocalcobranca', sortable: true },
+    { title: 'Nosso Número', key: 'nosso_numero', sortable: true },
+    { title: 'Usuário', key: 'user_inc', sortable: true },
+    { title: 'Ações', key: 'actions', sortable: false }
+  ]
+  if (modoGerarBoleto.value) {
+    return [{ title: '', key: 'boleto_check', sortable: false, width: '50px' }, ...base]
+  }
+  return base
+})
 
 // Headers da tabela de parcelas
 const headersParcelas = [
@@ -1125,8 +1304,11 @@ const contasReceberFiltradas = computed(() => {
   const dados = contasReceber.value || []
   if (!Array.isArray(dados)) return []
 
-  // Toda filtragem é feita pela API
-  return dados
+  // Adiciona campo _selectable: true apenas para parcelas sem nosso_numero
+  return dados.map(item => ({
+    ...item,
+    _selectable: !item.nosso_numero
+  }))
 })
 
 // Calcular o valor total das parcelas filtradas
