@@ -410,7 +410,7 @@ router.beforeEach(async (to, from, next) => {
 
     const manutencao = siteStore.manutencao;
 
-    if (manutencao && to.name !== 'manutencao') {
+    if (manutencao && to.name === 'login') {
         return next({ name: 'manutencao' });
     }
 
