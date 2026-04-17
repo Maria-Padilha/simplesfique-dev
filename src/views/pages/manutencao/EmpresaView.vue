@@ -10,7 +10,7 @@
           <botao-expand-transition :formulario-aberto="formularioAberto" @toggle="toggleFormulario">
             <template #default>{{ formularioAberto ? 'Cancelar' : 'Nova Empresa' }}</template>
           </botao-expand-transition>
-
+          
           <!-- Formulário expansível -->
           <v-expand-transition>
             <div v-if="formularioAberto">

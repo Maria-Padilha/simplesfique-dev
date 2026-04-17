@@ -14,7 +14,7 @@ import CentroDeCustoView from "@/views/pages/financeiro/pagar/CentroDeCustoView.
 import PrevisaoDebitosView from "@/views/pages/financeiro/pagar/PrevisaoDebitosView.vue";
 import InventarioView from "@/views/pages/inventario/InventarioView.vue";
 import ContagemInventarioView from "@/views/pages/inventario/ContagemInventarioView.vue";
-import PessoasView from '@/views/pages/manutencao/PessoasView.vue';
+import ClientesView from '@/views/pages/manutencao/ClientesView.vue';
 import EmpresaView from '@/views/pages/manutencao/EmpresaView.vue';
 import LancamentoColabView from '@/views/pages/financeiro/pagar/LancamentoColabView.vue';
 import PlanoContaView from '@/views/pages/fiscal/PlanoContaView.vue';
@@ -77,9 +77,9 @@ const routes = [
         component: () => import('@/views/ManutencaoView.vue')
     },
     {
-        path: '/paginas/manutencao/pessoas',
-        name: 'manutencao_pessoas',
-        component: PessoasView
+        path: '/paginas/manutencao/clientes',
+        name: 'manutencao_clientes',
+        component: ClientesView
     },
     {
         path: '/paginas/manutencao/empresas',

@@ -2,7 +2,7 @@
   <top-all-pages icon="mdi-account-group">
     <template #titulo>
       <v-sheet class="bg-transparent w-[100%] text-h5 pa-4 d-flex justify-space-between align-center">
-        Pessoas
+        Clientes
         <v-btn
             color="var(--text-color-laranja)"
             variant="flat"
@@ -21,7 +21,7 @@
         <v-card elevation="0" class="background-secondary">
           <v-card-text class="pa-4">
             <botao-expand-transition :formulario-aberto="formularioAberto" @toggle="toggleFormulario">
-              <template #default>{{ formularioAberto ? 'Cancelar' : 'Nova Pessoa' }}</template>
+              <template #default>{{ formularioAberto ? 'Cancelar' : 'Novo Cliente' }}</template>
             </botao-expand-transition>
 
             <!-- Formulário expansível -->
@@ -30,7 +30,7 @@
                 <v-card class="background-card mb-7" elevation="0">
                   <v-card-title class="text-h6 pa-4">
                     <v-icon :icon="editando ? 'mdi-pencil' : 'mdi-plus'" class="mr-2" size="23px"/>
-                    {{ editando ? 'Editar Pessoa' : 'Nova Pessoa' }}
+                    {{ editando ? 'Editar Cliente' : 'Novo Cliente' }}
                   </v-card-title>
 
                   <v-card-text class="pa-4">
@@ -53,41 +53,8 @@
                               prepend-inner-icon="mdi-account-circle"
                           />
                         </v-col>
-
-                        <!-- Nome / Razão -->
-                        <v-col cols="12" md="4">
-                          <v-text-field
-                              v-model="form.nome_razao"
-                              label="Nome / Razão *"
-                              :rules="[rules.required]"
-                              maxlength="100"
-                              variant="outlined"
-                              density="compact"
-                              :theme="themeStore.darkMode ? 'dark' : 'light'"
-                              class="custom-text-field required-left-border"
-                              prepend-inner-icon="mdi-account"
-                              hide-details="auto"
-                          />
-                        </v-col>
-
-                        <!-- Apelido / Fantasia -->
-                        <v-col cols="12" md="5">
-                          <v-text-field
-                              v-model="form.apelido_fantasia"
-                              label="Apelido / Fantasia *"
-                              :rules="[rules.required]"
-                              maxlength="100"
-                              variant="outlined"
-                              density="compact"
-                              hide-details="auto"
-                              :theme="themeStore.darkMode ? 'dark' : 'light'"
-                             class="custom-text-field required-left-border"
-                              prepend-inner-icon="mdi-rename-box"
-                          />
-                        </v-col>
-
                         <!-- CPF / CNPJ -->
-                        <v-col cols="12" md="4">
+                        <v-col cols="12" md="3">
                           <v-text-field
                               v-if="form.tipo_pessoa === 'F'"
                               v-model="form.cpf_cnpj"
@@ -116,8 +83,40 @@
                           />
                         </v-col>
 
+                        <!-- Nome / Razão -->
+                        <v-col cols="12" md="3">
+                          <v-text-field
+                              v-model="form.nome_razao"
+                              label="Nome / Razão *"
+                              :rules="[rules.required]"
+                              maxlength="100"
+                              variant="outlined"
+                              density="compact"
+                              :theme="themeStore.darkMode ? 'dark' : 'light'"
+                              class="custom-text-field required-left-border"
+                              prepend-inner-icon="mdi-account"
+                              hide-details="auto"
+                          />
+                        </v-col>
+
+                        <!-- Apelido / Fantasia -->
+                        <v-col cols="12" md="3">
+                          <v-text-field
+                              v-model="form.apelido_fantasia"
+                              label="Apelido / Fantasia *"
+                              :rules="[rules.required]"
+                              maxlength="100"
+                              variant="outlined"
+                              density="compact"
+                              hide-details="auto"
+                              :theme="themeStore.darkMode ? 'dark' : 'light'"
+                             class="custom-text-field required-left-border"
+                              prepend-inner-icon="mdi-rename-box"
+                          />
+                        </v-col>
+
                         <!-- RG / Inscrição -->
-                        <v-col cols="12" md="4">
+                        <v-col cols="12" md="3">
                           <v-text-field
                               v-model="form.rg_inscricao"
                               label="RG / Inscrição Estadual"
@@ -132,7 +131,7 @@
                         </v-col>
 
                         <!-- Telefone -->
-                        <v-col cols="12" md="4">
+                        <v-col cols="12" md="3">
                           <v-text-field
                               v-model="form.telefone"
                               label="Telefone"
@@ -148,7 +147,7 @@
                         </v-col>
 
                         <!-- Celular -->
-                        <v-col cols="12" md="4">
+                        <v-col cols="12" md="3">
                           <v-text-field
                               v-model="form.celular"
                               label="Celular"
@@ -164,7 +163,7 @@
                         </v-col>
 
                         <!-- WhatsApp -->
-                        <v-col cols="12" md="4">
+                        <v-col cols="12" md="3">
                           <v-text-field
                               v-model="form.whats"
                               label="WhatsApp"
@@ -180,7 +179,7 @@
                         </v-col>
 
                         <!-- Redes sociais -->
-                        <v-col cols="12" md="4">
+                        <v-col cols="12" md="3">
                           <v-text-field
                               v-model="form.instagram"
                               label="Instagram"
@@ -195,7 +194,7 @@
                         </v-col>
 
                         <!-- Website -->
-                        <v-col cols="12">
+                        <v-col cols="3">
                           <v-text-field
                               v-model="form.website"
                               label="Website"
@@ -209,7 +208,7 @@
                           />
                         </v-col>
 
-                        <v-col cols="12" md="4">
+                        <v-col cols="12" md="3">
                           <v-text-field
                               v-model="form.facebook"
                               label="Facebook"
@@ -223,7 +222,7 @@
                           />
                         </v-col>
 
-                        <v-col cols="12" md="4">
+                        <v-col cols="12" md="3">
                           <v-text-field
                               v-model="form.twitter_x"
                               label="Twitter / X"
@@ -237,7 +236,7 @@
                           />
                         </v-col>
 
-                        <v-col cols="12" md="4">
+                        <v-col cols="12" md="3">
                           <v-text-field
                               v-model="form.tik_tok"
                               label="TikTok"
@@ -265,33 +264,135 @@
                           />
                         </v-col>
 
-                        <!-- Coordenadas -->
-                        <v-col cols="12" md="3">
-                          <v-text-field
-                              v-model="form.latitude"
-                              label="Latitude"
-                              type="number"
-                              variant="outlined"
-                              density="compact"
-                              hide-details="auto"
-                              :theme="themeStore.darkMode ? 'dark' : 'light'"
-                              class="custom-text-field"
-                              prepend-inner-icon="mdi-map-marker"
-                          />
+                        <!-- Endereços -->
+                        <v-col cols="12">
+                          <v-divider class="my-2"></v-divider>
+                          <div class="d-flex align-center justify-space-between mt-2 mb-2">
+                            <div class="text-subtitle-2 font-weight-bold">
+                              <v-icon icon="mdi-map-marker" class="mr-1" size="18px"></v-icon>
+                              Endereços
+                            </div>
+                            <v-btn
+                                prepend-icon="mdi-plus"
+                                size="x-small"
+                                color="var(--text-color-laranja)"
+                                variant="flat"
+                                class="text-white"
+                                :disabled="form.enderecos.length >= 4"
+                                @click="adicionarEndereco"
+                            >Adicionar</v-btn>
+                          </div>
                         </v-col>
 
-                        <v-col cols="12" md="3">
-                          <v-text-field
-                              v-model="form.longitude"
-                              label="Longitude"
-                              type="number"
-                              variant="outlined"
-                              density="compact"
-                              hide-details="auto"
-                              :theme="themeStore.darkMode ? 'dark' : 'light'"
-                              class="custom-text-field"
-                              prepend-inner-icon="mdi-map-marker-outline"
-                          />
+                        <v-col cols="12" v-for="(end, idx) in form.enderecos" :key="idx">
+                          <v-card class="background-secondary pa-3 mb-1" elevation="0">
+                            <v-row align="center" dense>
+                              <v-col cols="12" md="3">
+                                <v-select
+                                    v-model="end.tipo_endereco"
+                                    :items="tiposDisponiveis(idx)"
+                                    item-title="label"
+                                    item-value="value"
+                                    label="Tipo de Endereço"
+                                    variant="outlined"
+                                    density="compact"
+                                    hide-details="auto"
+                                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                                    class="custom-text-field"
+                                    prepend-inner-icon="mdi-home-map-marker"
+                                />
+                              </v-col>
+                              <v-col cols="12" md="2">
+                                <v-text-field
+                                    v-model="end.cep"
+                                    label="CEP"
+                                    maxlength="9"
+                                    variant="outlined"
+                                    density="compact"
+                                    hide-details="auto"
+                                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                                    class="custom-text-field"
+                                    prepend-inner-icon="mdi-map-marker"
+                                    :loading="end._buscandoCep"
+                                    @blur="buscarCep(end)"
+                                />
+                              </v-col>
+                              <v-col cols="12" md="2">
+                                <v-text-field
+                                    v-model="end.id_cidade"
+                                    label="ID Cidade"
+                                    type="number"
+                                    variant="outlined"
+                                    density="compact"
+                                    hide-details="auto"
+                                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                                    class="custom-text-field"
+                                    prepend-inner-icon="mdi-city"
+                                />
+                              </v-col>
+                              <v-col cols="12" md="2">
+                                <v-text-field
+                                    v-model="end.id_bairro"
+                                    label="ID Bairro"
+                                    type="number"
+                                    variant="outlined"
+                                    density="compact"
+                                    hide-details="auto"
+                                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                                    class="custom-text-field"
+                                    prepend-inner-icon="mdi-map-marker-radius"
+                                />
+                              </v-col>
+                              <v-col cols="12" md="3">
+                                <v-text-field
+                                    v-model="end.logradouro"
+                                    label="Logradouro"
+                                    maxlength="100"
+                                    variant="outlined"
+                                    density="compact"
+                                    hide-details="auto"
+                                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                                    class="custom-text-field"
+                                    prepend-inner-icon="mdi-road-variant"
+                                />
+                              </v-col>
+                              <v-col cols="12" md="2">
+                                <v-text-field
+                                    v-model="end.numero"
+                                    label="Número"
+                                    maxlength="10"
+                                    variant="outlined"
+                                    density="compact"
+                                    hide-details="auto"
+                                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                                    class="custom-text-field"
+                                    prepend-inner-icon="mdi-numeric"
+                                />
+                              </v-col>
+                              <v-col cols="12" md="3">
+                                <v-text-field
+                                    v-model="end.complemento"
+                                    label="Complemento"
+                                    maxlength="100"
+                                    variant="outlined"
+                                    density="compact"
+                                    hide-details="auto"
+                                    :theme="themeStore.darkMode ? 'dark' : 'light'"
+                                    class="custom-text-field"
+                                    prepend-inner-icon="mdi-home-plus"
+                                />
+                              </v-col>
+                              <v-col cols="12" md="auto" class="d-flex justify-end">
+                                <v-btn
+                                    icon="mdi-delete-outline"
+                                    size="small"
+                                    color="error"
+                                    variant="text"
+                                    @click="removerEndereco(idx)"
+                                ></v-btn>
+                              </v-col>
+                            </v-row>
+                          </v-card>
                         </v-col>
                       </v-row>
                     </v-form>
@@ -319,7 +420,7 @@
               <v-card class="background-card">
                 <v-card-title class="text-h6 pa-4 d-flex align-center">
                   <v-icon icon="mdi-file-upload" class="mr-2"></v-icon>
-                  Importar Pessoas via CSV
+                  Importar Clientes via CSV
                 </v-card-title>
 
                 <v-card-text class="pa-4">
@@ -433,7 +534,7 @@
                   <template v-slot:no-data>
                     <div class="text-center pa-4">
                       <v-icon icon="mdi-account-off" size="64" class="mb-2 opacity-60"></v-icon>
-                      <p class="text-body-1">Nenhuma pessoa encontrada</p>
+                      <p class="text-body-1">Nenhum cliente encontrado</p>
                     </div>
                   </template>
                 </v-data-table>
@@ -498,9 +599,9 @@ const form = reactive({
   "twitter_x": "",
   "tik_tok": "",
   "telegram": "",
-  "latitude": "",
-  "longitude": "",
-  "ativo": ""
+  "ativo": "",
+  "data": {},
+  "enderecos": []
 });
 
 // Snackbar
@@ -522,6 +623,57 @@ const rules = {
   required: (v) => !!v || 'Campo obrigatório'
 }
 
+const tiposEndereco = [
+  { label: 'Residencial/Comercial', value: 1 },
+  { label: 'Entrega', value: 2 },
+  { label: 'Cobrança', value: 3 },
+  { label: 'Fiscal', value: 4 }
+]
+
+const tiposDisponiveis = (idx) => {
+  const usados = form.enderecos.map((e, i) => i !== idx ? e.tipo_endereco : null).filter(t => t !== null)
+  return tiposEndereco.filter(t => !usados.includes(t.value))
+}
+
+const adicionarEndereco = () => {
+  if (form.enderecos.length >= 4) return
+  form.enderecos.push({
+    tipo_endereco: null,
+    id_cidade: null,
+    id_bairro: null,
+    logradouro: '',
+    numero: '',
+    complemento: '',
+    cep: ''
+  })
+}
+
+const removerEndereco = (idx) => {
+  form.enderecos.splice(idx, 1)
+}
+
+const buscarCep = async (end) => {
+  const cep = (end.cep || '').replace(/\D/g, '')
+  if (cep.length !== 8) return
+
+  end._buscandoCep = true
+  try {
+    const resp = await import('@/services/api').then(m => m.default.get(`/cep/${cep}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    }))
+    const d = resp.data?.data?.[0] ?? resp.data
+    if (d) {
+      if (d.logradouro)  end.logradouro = d.logradouro
+      if (d.id_bairro)   end.id_bairro  = d.id_bairro
+      if (d.id_cidade)   end.id_cidade  = d.id_cidade
+    }
+  } catch (e) {
+    console.error('Erro ao buscar CEP:', e)
+  } finally {
+    end._buscandoCep = false
+  }
+}
+
 // CRUD
 const buscarPessoas = async () => {
   if (pessoas.value.length === 0)
@@ -538,10 +690,17 @@ const toggleFormulario = () => {
   }
 }
 
-const editarPessoa = (p) => {
+const editarPessoa = async (p) => {
   editando.value = true
-  Object.assign(form, p)
   formularioAberto.value = true
+
+  const resultado = await pessoasStore.buscarpessoaId(p.id)
+
+  const pessoaData = resultado?.pessoa ?? p
+  const enderecoData = resultado?.endereco ?? []
+
+  Object.assign(form, pessoaData)
+  form.enderecos = Array.isArray(enderecoData) ? enderecoData.map(e => ({ ...e })) : []
 }
 
 const cancelarFormulario = () => {
@@ -570,10 +729,10 @@ const resetarForm = () => {
     twitter_x: '',
     tik_tok: '',
     telegram: '',
-    latitude: null,
-    longitude: null,
-    ativo: 'S'
+    ativo: 'S',
+    data: {}
   })
+  form.enderecos = []
   if (formRef.value) formRef.value.resetValidation()
 }
 
@@ -604,9 +763,9 @@ const fecharImportacao = () => {
 }
 
 const baixarModeloCSV = () => {
-  const csvContent = `tipo_pessoa,nome_razao,apelido_fantasia,cpf_cnpj,rg_inscricao,telefone,celular,whats,website,cliente,fornecedor,transportadora,colaborador,representante,instagram,facebook,twitter_x,tik_tok,telegram,latitude,longitude,ativo
-F,João Silva,João,12345678900,123456789,1133334444,11999998888,11999998888,https://exemplo.com,S,N,N,N,N,@joao,joao.silva,@joaosilva,@joao,@joaosilva,-23.5505,-46.6333,S
-J,Empresa XYZ Ltda,XYZ Comércio,12345678000199,987654321,1144445555,11988887777,11988887777,https://empresaxyz.com.br,N,S,N,N,N,@empresaxyz,empresa.xyz,@empresaxyz,@xyzempresa,@empresaxyz,-23.5489,-46.6388,S`
+  const csvContent = `tipo_pessoa,nome_razao,apelido_fantasia,cpf_cnpj,rg_inscricao,telefone,celular,whats,website,cliente,fornecedor,transportadora,colaborador,representante,instagram,facebook,twitter_x,tik_tok,telegram,ativo
+F,João Silva,João,12345678900,123456789,1133334444,11999998888,11999998888,https://exemplo.com,S,N,N,N,N,@joao,joao.silva,@joaosilva,@joao,@joaosilva,S
+J,Empresa XYZ Ltda,XYZ Comércio,12345678000199,987654321,1144445555,11988887777,11988887777,https://empresaxyz.com.br,N,S,N,N,N,@empresaxyz,empresa.xyz,@empresaxyz,@xyzempresa,@empresaxyz,S`
   
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
   const link = document.createElement('a')
@@ -698,7 +857,7 @@ const importarCSV = async () => {
     if (pessoas.length === 0) {
       resultadoImportacao.show = true
       resultadoImportacao.type = 'warning'
-      resultadoImportacao.message = 'Nenhuma pessoa encontrada no arquivo'
+      resultadoImportacao.message = 'Nenhum cliente encontrado no arquivo'
       return
     }
     
@@ -710,7 +869,7 @@ const importarCSV = async () => {
     if (pessoasValidas.length === 0) {
       resultadoImportacao.show = true
       resultadoImportacao.type = 'error'
-      resultadoImportacao.message = 'Nenhuma pessoa válida encontrada. Verifique os campos obrigatórios.'
+      resultadoImportacao.message = 'Nenhum cliente válido encontrado. Verifique os campos obrigatórios.'
       return
     }
     
@@ -719,7 +878,7 @@ const importarCSV = async () => {
     
     resultadoImportacao.show = true
     resultadoImportacao.type = 'success'
-    resultadoImportacao.message = `${pessoasValidas.length} pessoa(s) importada(s) com sucesso!`
+    resultadoImportacao.message = `${pessoasValidas.length} cliente(s) importado(s) com sucesso!`
     
     // Recarregar lista
     await pessoasStore.buscarTodasPessoas()
