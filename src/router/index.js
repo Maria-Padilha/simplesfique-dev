@@ -27,6 +27,7 @@ import PosicaoEstoqueView from '@/views/pages/estoque/PosicaoEstoqueView.vue';
 import GrupoTributacaoView from '@/views/pages/estoque/GrupoTributacaoView.vue';
 import TransfAlmoxView from '@/views/pages/estoque/TransfAlmoxView.vue';
 import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
+import TotemView from '@/views/pages/pdv/TotemView.vue';
 import CarteiraCobrancaView from '@/views/pages/financeiro/banco/CarteiraCobrancaView.vue';
 import TerminalView from '@/views/pages/vendas/TerminalView.vue';
 import PdvView from '@/views/pages/pdv/PdvView.vue';
@@ -350,9 +351,19 @@ const routes = [
         component: () => import('@/views/pages/produtos/ProdutosView.vue')
     },
     {
+        path: '/paginas/produtos/importar',
+        name: 'produtos-importar',
+        component: () => import('@/views/pages/produtos/ImportarProdutoView.vue')
+    },
+    {
         path: '/paginas/produtos/:id',
         name: 'produtos-detalhes',
         component: () => import('@/views/pages/produtos/ProdutosDetalhesView.vue')
+    },
+    {
+        path: '/paginas/produtos/grade',
+        name: 'produtos-grade',
+        component: () => import('@/views/pages/produtos/ProdutoGradeView.vue')
     },
     {
         path: '/paginas/produtos/local',
@@ -363,6 +374,16 @@ const routes = [
         path: '/paginas/entradadfe',
         name: 'entradadfe',
         component: () => import('@/views/pages/produtos/entrada/EntradaDfeView.vue')
+    },
+    {
+        path: '/paginas/deventrada',
+        name: 'deventrada',
+        component: () => import('@/views/pages/produtos/devolucao/DevolucaoEntradaView.vue')
+    },
+    {
+        path: '/paginas/deventrada/nova',
+        name: 'deventrada-nova',
+        component: () => import('@/views/pages/produtos/devolucao/DevolucaoEntradaNovaView.vue')
     },
     {
         path: '/paginas/entradadfe/nova',
@@ -400,6 +421,11 @@ const routes = [
         path: '/paginas/pdv/caixa',
         name: 'pdv_caixa',
         component: PdvCaixaView
+    },
+    {
+        path: '/paginas/pdv/totem',
+        name: 'pdv_totem',
+        component: TotemView
     },
     // páginas do pdv
     {
@@ -467,7 +493,7 @@ router.beforeEach(async (to, from, next) => {
 
     const manutencao = siteStore.manutencao;
 
-    if (manutencao && to.name !== 'manutencao') {
+    if (manutencao && to.name === 'login') {
         return next({ name: 'manutencao' });
     }
 

@@ -5,6 +5,48 @@
 
 @import "2-utilities/media_screen";
 
+//  ==================== FONTES =================
+
+body {
+  font-family: 'Quicksand', sans-serif;
+}
+
+@font-face {
+  font-family: 'Quicksand';
+  src: url('../../../public/static/Quicksand-Regular.ttf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Quicksand';
+  src: url('../../../public/static/Quicksand-Bold.ttf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Quicksand';
+  src: url('../../../public/static/Quicksand-Medium.ttf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Quicksand';
+  src: url('../../../public/static/Quicksand-SemiBold.ttf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Quicksand';
+  src: url('../../../public/static/Quicksand-Light.ttf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+}
+// =========================
+
 /* ✅ Vuetify 3: o scroll fica no wrapper */
 .minha-tabela .v-table__wrapper{
   overflow: auto;              /* já vem, mas deixo explícito */

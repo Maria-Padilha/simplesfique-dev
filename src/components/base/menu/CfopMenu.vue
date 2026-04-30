@@ -56,7 +56,7 @@ watch( () => termoPesquisa.value, async (pesquisa) => {
     return;
   }
   console.log("Pesquisando CFOP: ", pesquisa);
-  await estoqueStore.buscarCfops(pesquisa);
+  await estoqueStore.buscarCfops(pesquisa, '');
 })
 
 const selecionarCfop = (cfopSelecionado) => {

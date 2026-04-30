@@ -1,50 +1,59 @@
 <template>
   <!-- NAVBAR DO SITE -->
-  <v-app-bar class="background-navbar pl-5" elevation="0">
-    <v-sheet width="40px" class="bg-transparent">
-      <v-img
-          alt="logo da empresa" cover
-          :src="!themeStore.darkMode ? require('@/assets/img/logo/logo-dark.png') : require('@/assets/img/logo/logo.png')"
-      />
-    </v-sheet>
+  <v-app-bar class="background-navbar px-5 py-2" elevation="0">
+    <div class="flex items-center ml-2">
+      <v-sheet width="40px" class="bg-transparent">
+        <v-img
+            alt="logo da empresa" cover
+            :src="!themeStore.darkMode ? require('@/assets/img/logo/logo-dark.png') : require('@/assets/img/logo/logo.png')"
+        />
+      </v-sheet>
 
-    <p class="texto-color-primary uppercase mt-1">
-      imples <span class="texto-color-laranja">Fique</span>
-    </p>
-
-    <v-list v-if="!menu" class="flex bg-transparent ml-10 mt-1 gap-3" :lines="false" density="compact" nav>
-      <v-list-item
-          v-for="(item, index) in links"
-          :key="index"
-          :to="item.route"
-          :value="index"
-          rounded="0"
-          active-class="background-laranja"
-      >
-        <template #title>
-          <p class="texto-16px font-normal" :class="themeStore.darkMode ? 'text-white' : 'text-black'">
-            {{ item.name }}
-          </p>
-        </template>
-      </v-list-item>
-    </v-list>
+      <p class="texto-color-primary uppercase text-xl md:text-2xl font-semibold">
+        imples <span class="texto-color-laranja">Fique</span>
+      </p>
+    </div>
 
     <template v-slot:append>
+      <v-list v-if="!menu" class="desktop-nav bg-transparent d-flex align-center pa-0 mr-4" :lines="false" density="compact" nav>
+        <v-list-item
+            v-for="(item, index) in links"
+            :key="index"
+            :to="item.route"
+            :value="index"
+            rounded="xl"
+            class="nav-item mx-1"
+            active-class="nav-item-active"
+        >
+          <template #title>
+              <span
+                  class="nav-text"
+                  :class="themeStore.darkMode ? 'text-white' : 'text-black'"
+              >
+                {{ item.name }}
+              </span>
+          </template>
+        </v-list-item>
+      </v-list>
+
       <v-btn
           v-if="!menu"
-          size="small" prepend-icon="mdi-account-outline"
+          prepend-icon="mdi-account-outline"
           class="text-none text-white" color="var(--text-color-laranja)"
           variant="flat" to="/login"
-      >Acessar
+          rounded
+      >
+        Acessar
       </v-btn>
 
       <v-btn
-          v-if="!menu"
+          v-if="!menu" rounded
           :class="themeStore.darkMode ? 'text-orange' : 'text-black'"
           :prepend-icon="themeStore.darkMode ? 'mdi-white-balance-sunny' : 'mdi-weather-night'"
-          :color="themeStore.darkMode ? '#F1F1F1' : '#121212'" size="small"
+          :color="themeStore.darkMode ? '#F1F1F1' : '#121212'"
           variant="tonal" @click="alterarTema" class="text-none mr-3 ml-2"
-      >{{ themeStore.darkMode ? 'Claro' : 'Escuro' }}
+      >
+        {{ themeStore.darkMode ? 'Claro' : 'Escuro' }}
       </v-btn>
 
       <v-btn icon v-if="menu" @click="drawer = !drawer">
@@ -125,6 +134,40 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.desktop-nav {
+  gap: 4px;
+}
+
+.nav-item {
+  min-height: 44px;
+  padding-inline: 10px;
+  border-radius: 14px !important;
+  transition: all 0.25s ease;
+}
+
+.nav-item:hover {
+  background: rgba(255, 153, 0, 0.08);
+}
+
+.nav-item :deep(.v-list-item__content) {
+  overflow: visible;
+}
+
+.nav-text {
+  font-size: 18px;
+  font-weight: 500;
+  transition: all 0.25s ease;
+}
+
+.nav-item-active {
+  background: var(--text-color-laranja);
+}
+
+.nav-item-active .nav-text {
+  color: white !important;
+  font-weight: 700;
+}
+
 .padding-bottom{
   padding-bottom: 150px;
 }

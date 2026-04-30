@@ -3,8 +3,11 @@
     <v-card color="var(--bg-card)" class="texto-color-primary" min-height="auto">
       <v-card-title class="pa-0">
         <div class="background-laranja d-flex align-center justify-between py-0 pl-2">
-          <p class="text-lg text-capitalize">Cadastrar <slot name="titulo" /></p>
-          <v-btn icon="mdi-close" variant="text" @click="clearInput" />
+          <p class="text-lg text-capitalize">
+            {{ props.tituloAcao || 'Cadastrar' }} <slot name="titulo" />
+          </p>
+
+          <v-btn icon="mdi-close" variant="text" @click="onClose" />
         </div>
       </v-card-title>
 
@@ -21,7 +24,7 @@
             variant="tonal"
             density="comfortable"
             prepend-icon="mdi-cancel"
-            @click="clearInput"
+            @click="onClose"
         >
           Cancelar
         </v-btn>
@@ -31,10 +34,11 @@
             class="text-none text-white"
             variant="flat"
             density="comfortable"
-            prepend-icon="mdi-plus-circle-outline"
+            :prepend-icon="props.iconeBotao || 'mdi-plus-circle-outline'"
+            :loading="loading"
             @click="cadastrarcidade"
         >
-          Cadastrar
+          {{ props.textoBotao || 'Cadastrar' }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -42,14 +46,30 @@
 </template>
 
 <script setup>
-import { defineProps, computed } from "vue";
+import { defineProps, computed, defineEmits } from "vue";
+
+const emit = defineEmits(["update:cadastrarModal"]);
 
 const props = defineProps({
   cadastrarModal: Boolean,
   clearInput: Function,
   cadastrarcidade: Function,
   width: Number,
+  loading: Boolean,
+
+  // NOVO (opcional)
+  tituloAcao: String,   // "Cadastrar" | "Editar"
+  textoBotao: String,   // "Cadastrar" | "Salvar alterações"
+  iconeBotao: String,   // mdi-plus... | mdi-content-save-outline
 });
 
-const cadastrar = computed(() => props.cadastrarModal);
+const cadastrar = computed({
+  get: () => props.cadastrarModal,
+  set: (val) => emit("update:cadastrarModal", val),
+});
+
+function onClose() {
+  props.clearInput?.();
+  cadastrar.value = false;
+}
 </script>

@@ -3,7 +3,7 @@ import { ref } from 'vue';
 
 export const useSiteStore = defineStore('site', () => {
 
-        const manutencao = ref(false);
+        const manutencao = ref(true);
 
         return {
             manutencao,
