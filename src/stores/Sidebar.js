@@ -276,6 +276,23 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     route: '/paginas/relatorios/contabil'
                 }
             ]
+        },
+        {
+            id: 'integracoes',
+            titulo: 'Integrações',
+            icon: 'mdi-puzzle',
+            submenus: [
+                {
+                    text: 'Loja de Integrações',
+                    icon: 'mdi-store-outline',
+                    route: '/paginas/integracoes/loja'
+                },
+                {
+                    text: 'API Externa',
+                    icon: 'mdi-api',
+                    route: '/paginas/integracoes/api-externa'
+                }
+            ]
         }
     ]);
 

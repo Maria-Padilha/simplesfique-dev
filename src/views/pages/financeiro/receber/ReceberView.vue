@@ -1080,7 +1080,7 @@ const confirmarGerarBoleto = async () => {
   const ids = parcelasSelecionadas.value
   try {
     loadingBoleto.value = true
-    await financeiroStore.gerarNossoNumero(idCarteira, idCcorrente, ids)
+    await financeiroStore.gerarNossoNumero(idCarteira, idCcorrente, ids, idEmpresa.value)
     toast.success(`Nosso número gerado para ${ids.length} ${ids.length === 1 ? 'parcela' : 'parcelas'}!`)
     cancelarModoGerarBoleto()
   } catch (e) {

@@ -12,6 +12,7 @@ import ReceberView from "@/views/pages/financeiro/receber/ReceberView.vue";
 import ContaCorrenteView from "@/views/pages/financeiro/banco/ContaCorrenteView.vue";
 import CentroDeCustoView from "@/views/pages/financeiro/pagar/CentroDeCustoView.vue";
 import PrevisaoDebitosView from "@/views/pages/financeiro/pagar/PrevisaoDebitosView.vue";
+import ApiExternaView from '@/views/pages/integracoes/ApiExternaView.vue';
 import InventarioView from "@/views/pages/inventario/InventarioView.vue";
 import ContagemInventarioView from "@/views/pages/inventario/ContagemInventarioView.vue";
 import ClientesView from '@/views/pages/manutencao/ClientesView.vue';
@@ -434,6 +435,17 @@ const routes = [
         path: '/integracoes',
         name: 'site_integracoes',
         component: IntegracoesView
+    },    
+    // Páginas de Integrações
+    {
+        path: '/paginas/integracoes/api-externa',
+        name: 'integracoes_api_externa',
+        component: ApiExternaView
+    },
+    {
+        path: '/paginas/integracoes/loja',
+        name: 'integracoes_loja',
+        component: () => import('@/views/pages/integracoes/LojaIntegracoesView.vue')
     },
     {
         path: '/planos',

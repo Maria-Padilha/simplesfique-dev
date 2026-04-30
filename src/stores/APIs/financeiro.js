@@ -2427,13 +2427,13 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
     // Gerar Nosso Número / boleto para parcelas selecionadas
     // POST /bolnossonumero/:idcarteira/idccorrente/:idccorrente
-    async gerarNossoNumero(idCarteira, idCcorrente, parcelasIds) {
+    async gerarNossoNumero(idCarteira, idCcorrente, parcelasIds, idEmpresa) {
       this.loading = true
       this.error = null
       try {
         const payload = { data: parcelasIds.map(id => ({ id_parcela: id })) }
         const response = await api.post(
-          `/bolnossonumero/${idCarteira}/idccorrente/${idCcorrente}`,
+          `/bolnossonumero/${idEmpresa}/idcarteira/${idCarteira}/idccorrente/${idCcorrente}`,
           payload,
           { headers: this.getAuthHeaders() }
         )

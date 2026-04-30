@@ -287,7 +287,7 @@
                         <v-col cols="12" v-for="(end, idx) in form.enderecos" :key="idx">
                           <v-card class="background-secondary pa-3 mb-1" elevation="0">
                             <v-row align="center" dense>
-                              <v-col cols="12" md="3">
+                              <v-col cols="6" md="2">
                                 <v-select
                                     v-model="end.tipo_endereco"
                                     :items="tiposDisponiveis(idx)"
@@ -319,9 +319,9 @@
                               </v-col>
                               <v-col cols="12" md="2">
                                 <v-text-field
-                                    v-model="end.id_cidade"
-                                    label="ID Cidade"
-                                    type="number"
+                                    v-model="end.cidade"
+                                    label="Cidade"
+                                    maxlength="100"
                                     variant="outlined"
                                     density="compact"
                                     hide-details="auto"
@@ -332,9 +332,9 @@
                               </v-col>
                               <v-col cols="12" md="2">
                                 <v-text-field
-                                    v-model="end.id_bairro"
-                                    label="ID Bairro"
-                                    type="number"
+                                    v-model="end.bairro"
+                                    label="Bairro"
+                                    maxlength="100"
                                     variant="outlined"
                                     density="compact"
                                     hide-details="auto"
@@ -343,7 +343,7 @@
                                     prepend-inner-icon="mdi-map-marker-radius"
                                 />
                               </v-col>
-                              <v-col cols="12" md="3">
+                              <v-col cols="12" md="2">
                                 <v-text-field
                                     v-model="end.logradouro"
                                     label="Logradouro"
@@ -369,7 +369,7 @@
                                     prepend-inner-icon="mdi-numeric"
                                 />
                               </v-col>
-                              <v-col cols="12" md="3">
+                              <v-col cols="12" md="2">
                                 <v-text-field
                                     v-model="end.complemento"
                                     label="Complemento"
@@ -639,8 +639,8 @@ const adicionarEndereco = () => {
   if (form.enderecos.length >= 4) return
   form.enderecos.push({
     tipo_endereco: null,
-    id_cidade: null,
-    id_bairro: null,
+    cidade: '',
+    bairro: '',
     logradouro: '',
     numero: '',
     complemento: '',
@@ -664,8 +664,8 @@ const buscarCep = async (end) => {
     const d = resp.data?.data?.[0] ?? resp.data
     if (d) {
       if (d.logradouro)  end.logradouro = d.logradouro
-      if (d.id_bairro)   end.id_bairro  = d.id_bairro
-      if (d.id_cidade)   end.id_cidade  = d.id_cidade
+      if (d.bairro)      end.bairro     = d.bairro
+      if (d.localidade)  end.cidade     = d.localidade
     }
   } catch (e) {
     console.error('Erro ao buscar CEP:', e)
