@@ -52,7 +52,7 @@
         </template>
         </v-text-field>
 
-        
+
         <!-- Campo para estorno de títulos pagos no caixa -->
         <p class="texto-color-primary font-medium mb-2 mt-4">Código do hist. para estorno de tit. pagos no caixa:</p>
         <v-text-field
@@ -100,7 +100,7 @@
         </template>
         </v-text-field>
 
-       
+
 
         <div>
         <p class="texto-color-primary font-medium mb-2">Código do histórico para baixa no banco:</p>
@@ -289,7 +289,7 @@
         </v-text-field>
       </div>
 
-      
+
       </div>
 
       <!-- Contas Contábeis -->
@@ -648,7 +648,7 @@
         <v-icon class="mr-2">mdi-content-save</v-icon>
         Salvar Configurações
       </v-btn>
-      
+
       <v-btn
         variant="outlined"
         @click="resetarConfiguracoes"
@@ -860,7 +860,7 @@ const atualizarHistoricoAdtBancoResultados = () => {
 const atualizarTiposDocumentoResultados = () => {
   tiposDocumentoResultados.value = filtrarLista(tiposDocumento.value, termoTipoDocumento.value, ['desctipodocumento', 'abreviatura', 'id'])
 }
- 
+
 const pesquisarHistoricoCaixa = () => atualizarHistoricoCaixaResultados()
 const pesquisarHistoricoBanco = () => atualizarHistoricoBancoResultados()
 const pesquisarHistoricoCaixaCtb = () => atualizarHistoricoCaixaCtbResultados()
@@ -986,16 +986,16 @@ const buscarHistoricoBanco = async (id, campoDesc) => {
 // Função para carregar parâmetros financeiros e preencher o formulário
 const carregarParametrosFinanceiros = async () => {
   const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-  
+
   if (!idEmpresa) {
     console.error('ID da empresa não encontrado!')
     return
   }
-  
+
   try {
     const response = await useConfig.buscarParametrosFinanceirosPagar(idEmpresa)
     const dadosArray = response?.data
-    
+
     // Se o array tem pelo menos um objeto com algum campo preenchido, é PUT
     let dados = null
     if (Array.isArray(dadosArray) && dadosArray.length > 0) {
@@ -1005,14 +1005,14 @@ const carregarParametrosFinanceiros = async () => {
         dados = dadosArray[0]
       }
     }
-    
+
     if (dados) {
       Object.keys(config).forEach(key => {
         if (Object.prototype.hasOwnProperty.call(dados, key)) {
           config[key] = dados[key]
         }
       })
-      
+
       // Preencher descrições dos históricos
       buscarHistoricoCaixa(config.pag_id_hist_bxa_caixa, 'hist_bxa_caixa_desc')
       buscarHistoricoBanco(config.pag_id_hist_bxa_banco, 'hist_bxa_banco_desc')
@@ -1095,14 +1095,14 @@ const salvarConfiguracoes = async () => {
         pag_utiliza_aut_pagto: config.pag_utiliza_aut_pagto,
       }]
     }
-    
+
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-    
+
     if (!idEmpresa) {
       console.error('ID da empresa não encontrado!')
       return
     }
-    
+
     let response
     // PUT só se dadosExistem for verdadeiro (edição), POST se for falso (cadastro)
     if (dadosExistem.value === true) {
@@ -1110,7 +1110,7 @@ const salvarConfiguracoes = async () => {
     } else {
       response = await useConfig.cadastrarParametrosFinanceirosPagar(idEmpresa, dadosParaEnvio)
     }
-    
+
     if (response) {
       await carregarParametrosFinanceiros()
     }
@@ -1138,7 +1138,7 @@ const resetarConfiguracoes = () => {
   config.pag_utiliza_aprov_adt_for = 'N'
   config.pag_utiliza_aut_pagto = 'N'
   config.tipo_documento_padrao = null
-  
+
   // Campos de descrição
   config.hist_bxa_caixa_desc = ''
   config.hist_bxa_banco_desc = ''
@@ -1206,7 +1206,6 @@ watch(
 </script>
 
 <style scoped>
-@import "@/assets/scss/1-components/components.scss";
 
 .custom-text-field :deep(.v-field) {
   background-color: rgba(var(--v-theme-surface), 0.7);
