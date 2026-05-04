@@ -1,6 +1,7 @@
 import {defineStore} from "pinia"
 import api from "@/services/api";
 import {useApiStore} from "@/stores/APIs/api";
+import {toast} from "vue3-toastify";
 
 export const useEstoqueStore = defineStore('estoque', {
     state: () => ({
@@ -857,14 +858,30 @@ export const useEstoqueStore = defineStore('estoque', {
             }
         },
 
-        async compilarFormula(formulaData, emp, id) {
+        async compilarFormula(formulaData, emp) {
             this.loading = true;
+
             try {
-                const apiStoreInstance = useApiStore();
-                await apiStoreInstance.executarAcao(`formula/valida/${emp}/${id}`, 'post', formulaData);
+                await api.post(`/formula/valida/${emp}`, formulaData, {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`
+                    }
+                });
+
+                this.errorMessage = '';
+
                 await this.buscarTodasFormulas(emp);
+
             } catch (error) {
-                console.error('Erro ao compilar fórmula:', error);
+                this.errorMessage = error.response.statusText || error.response.data;
+
+                if (this.errorMessage === 'Not Acceptable') {
+                    this.errorMessage = 'Fórmula não aceita. Verifique se todas as variaveis existem e se a sintaxe está correta.';
+                }
+
+                toast.error(this.errorMessage);
+
+                console.error('Erro ao compilar fórmula:', this.errorMessage);
             } finally {
                 this.loading = false;
             }

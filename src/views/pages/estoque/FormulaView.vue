@@ -180,9 +180,9 @@
             </v-expand-transition>
           </template>
 
-          <template v-slot:[`item.ativo`]="{ item }">
-            <v-chip :color="item.ativo === 's' ? 'success' : 'error'" size="small" variant="flat">
-              {{ item.ativo === 's' ? 'Ativo' : 'Inativo' }}
+          <template v-slot:[`item.ativo`]>
+            <v-chip color="success" size="small" variant="flat">
+              Ativo
             </v-chip>
           </template>
 
@@ -207,7 +207,7 @@
                 size="small"
                 color="error"
                 variant="text"
-                @click="compilarFormula(item)"
+                @click="compilarFormula"
             />
           </template>
         </tabela-padrao>
@@ -226,7 +226,7 @@
 </template>
 
 <script setup>
-import {computed, reactive, ref, watch, watchEffect} from "vue";
+import {computed, reactive, ref, watchEffect} from "vue";
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import BotaoExpandTransition from "@/components/base/padrao-paginas/BotaoExpandTransition.vue";
 import TabelaPadrao from "@/components/base/padrao-paginas/TabelaPadrao.vue";
@@ -244,9 +244,7 @@ const loading = computed(() => estoqueStore.loading);
 const formulas = computed(() => estoqueStore.formulas ?? []); // garanta que exista no store
 
 watchEffect(() => {
-  if (formulas.value.length === 0) {
-    estoqueStore.buscarTodasFormulas(idEmpresa?.id); // ajuste o nome caso seja diferente
-  }
+  estoqueStore.buscarTodasFormulas(idEmpresa?.id); // ajuste o nome caso seja diferente
 });
 
 // Estado UI
@@ -364,24 +362,6 @@ const removeVariavel = (index) => {
   variaveis.value.splice(index, 1);
 };
 
-watch(
-    variaveis,
-    (novas) => {
-      const linhasVars = novas
-          .filter(v => v.varnome && v.vartype)
-          .map(v => `var ${v.varnome}: ${v.vartype};`)
-          .join("\n");
-
-      const formulaSemVars = (forms.formula || "")
-          .split("\n")
-          .filter(linha => !linha.trim().startsWith("var "))
-          .join("\n");
-
-      forms.formula = `${linhasVars}\n${formulaSemVars}`.trim();
-    },
-    { deep: true }
-);
-
 // LIMPAR FORMULARIO
 const cancelarFormulario = () => {
   Object.assign(forms, {
@@ -459,26 +439,38 @@ const editarItem = async (item) => {
   formularioAberto.value = true;
 };
 
-const compilarFormula = async (item) => {
-  Object.assign(forms, {
-    descformula: item.descformula,
-    formula: item.formula,
-    id_empresa: forms.id_empresa
-  });
+const compilarFormula = async () => {
+  const item = formulaId.value;
+
+  const dataFormula = item?.data?.[0];
+
+  if (!dataFormula?.formula) {
+    console.error('Fórmula não encontrada:', dataFormula);
+    return;
+  }
 
   const payload = {
     data: [
       {
+        formula: dataFormula.formula,
         id_empresa: forms.id_empresa,
-        descformula: forms.descformula,
-        formula: forms.formula,
+        descformula: dataFormula.descformula,
       }
-    ]
+    ],
+    var: item?.var
+        ?.filter(v => v.varnome && v.vartype)
+        ?.map(v => ({
+          varnome: v.varnome,
+          vartype: v.vartype,
+        })) || [],
   };
 
-  await estoqueStore.compilarFormula(payload, idEmpresa?.id, item.id);
+  await estoqueStore.compilarFormula(payload, idEmpresa?.id);
+
+  if (estoqueStore.errorMessage) return
+
   cancelarFormulario();
-}
+};
 
 // Excluir
 const modalExcluir = ref(false);

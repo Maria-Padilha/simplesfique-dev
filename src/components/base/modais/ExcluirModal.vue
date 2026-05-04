@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="modalExcluir" max-width="400">
+  <v-dialog v-model="modalExcluir" max-width="300">
     <v-card class="background-secondary" elevation="0">
       <v-card-title class="px-4 mt-5">
         <div class="w-100 flex flex-col items-center justify-center">
