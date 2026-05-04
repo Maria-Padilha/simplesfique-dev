@@ -94,10 +94,10 @@
         <v-card :color="themeStore.darkMode ? 'text-white' : ''" class="background-secondary mb-4">
           <v-card-title class="text-h6 pa-4">
             <v-icon 
-                :icon="inventario.tipo === 'automatico' ? 'mdi-barcode-scan' : 'mdi-keyboard'" 
+                :icon="inventario.tipo === 'A' ? 'mdi-barcode-scan' : inventario.tipo === 'L' ? 'mdi-link-variant' : 'mdi-keyboard'" 
                 class="mr-2"
             ></v-icon>
-            {{ inventario.tipo === 'automatico' ? 'Lançamento por Coletor de Dados' : 'Lançamento Manual' }}
+            {{ inventario.tipo === 'A' ? 'Lançamento por Coletor de Dados' : inventario.tipo === 'L' ? 'Contagem por Link' : 'Lançamento Manual' }}
           </v-card-title>
 
           <v-card-text class="pa-4">
@@ -235,93 +235,256 @@
             </div>
 
             <!-- Modo Manual -->
-            <div v-else>
-              <v-alert 
-                  type="info" 
-                  variant="tonal" 
+            <div v-else-if="inventario.tipo === 'M'">
+              <v-alert
+                  type="info"
+                  variant="tonal"
                   class="mb-4"
                   icon="mdi-information"
               >
-                <strong>Modo Manual:</strong> Selecione o produto e informe a quantidade encontrada no inventário.
+                <strong>Modo Manual:</strong> Filtre os produtos por grupo, subgrupo, marca ou localização e adicione-os ao inventário.
               </v-alert>
 
-              <v-form ref="formManualRef" v-model="formManualValido">
-                <v-row>
-                  <v-col cols="12" md="7" class="d-flex align-center">
-                    <v-autocomplete
-                        v-model="itemAtual.produtoId"
-                        :items="produtos"
-                        label="Produto *"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-package-variant"
-                        item-title="descproduto"
-                        item-value="id"
-                        :loading="carregandoProdutos"
-                        :rules="[v => !!v || 'Selecione um produto']"
-                        :disabled="!inventario.id_almoxarifado"
-                        :hint="!inventario.id_almoxarifado ? 'Selecione um almoxarifado primeiro' : ''"
-                        persistent-hint
-                        clearable
-                        @update:model-value="selecionarProdutoManual"
-                    >
-                      <template #item="{ props, item }">
-                        <v-list-item v-bind="props">
-                          <template #prepend>
-                            <v-icon icon="mdi-package-variant" color="var(--text-color-laranja)"></v-icon>
-                          </template>
-                          <template #subtitle>
-                            <span class="text-caption">Cód: {{ item.raw.codigo_sku || item.raw.codigo_gtin }} | Grupo: {{ item.raw.descgrupo }}</span>
-                          </template>
-                        </v-list-item>
-                      </template>
-                    </v-autocomplete>
-                  </v-col>
+              <v-row>
+                <!-- Código de busca -->
+                <v-col cols="12" md="4">
+                  <v-text-field
+                      v-model="filtroManual.codigo"
+                      label="Buscar por Código"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-barcode"
+                      hint="Pressione Enter para buscar"
+                      persistent-hint
+                      clearable
+                      @keyup.enter="buscarPorCodigo"
+                  >
+                    <template #append-inner>
+                      <v-btn icon="mdi-magnify" size="small" variant="text" @click="buscarPorCodigo"></v-btn>
+                    </template>
+                  </v-text-field>
+                </v-col>
 
-                  <v-col cols="12" md="3" class="d-flex align-center">
-                    <v-autocomplete
-                        v-model="itemAtual.localizacao"
-                        :items="localizacoes"
-                        label="Localização"
-                        variant="outlined"
-                        density="compact"
-                        prepend-inner-icon="mdi-map-marker"
-                        placeholder="Selecione a localização"
-                        item-title="descricao"
-                        item-value="id"
-                        :loading="carregandoLocalizacoes"
-                        clearable
-                    >
-                      <template #item="{ props, item }">
-                        <v-list-item v-bind="props">
-                          <template #prepend>
-                            <v-icon icon="mdi-map-marker" color="var(--text-color-laranja)"></v-icon>
-                          </template>
-                          <template #subtitle v-if="item.raw.rua || item.raw.bloco">
-                            <span class="text-caption">
-                              {{ [item.raw.rua, item.raw.bloco, item.raw.prateleira, item.raw.coluna].filter(Boolean).join(' - ') }}
-                            </span>
-                          </template>
-                        </v-list-item>
-                      </template>
-                    </v-autocomplete>
-                  </v-col>
+                <!-- Produto -->
+                <v-col cols="12" md="4">
+                  <v-autocomplete
+                      v-model="filtroManual.produtoId"
+                      :items="[{ descproduto: 'Todos os Produtos', id_produto: null }, ...produtosGrid]"
+                      label="Produto"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-package-variant"
+                      item-title="descproduto"
+                      item-value="id_produto"
+                      :loading="carregandoGridProdutos"
+                      clearable
+                  >
+                    <template #item="{ props, item }">
+                      <v-list-item v-bind="props">
+                        <template #subtitle v-if="item.raw.id">
+                          <span class="text-caption">Cód: {{ item.raw.codigo_sku || item.raw.codigo_gtin }}</span>
+                        </template>
+                      </v-list-item>
+                    </template>
+                  </v-autocomplete>
+                </v-col>
 
-                  <v-col cols="12" md="2" class=" align-center">
-                    <v-btn
-                        color="var(--text-color-laranja)"
-                        variant="flat"
-                        @click="adicionarItem"
-                        prepend-icon="mdi-plus"
-                        class="text-white"
-                        :disabled="!formManualValido || !itemAtual.produtoId"
-                        block
-                    >
-                      Adicionar
-                    </v-btn>
-                  </v-col>
-                </v-row>
-              </v-form>
+                <!-- Grupo -->
+                <v-col cols="12" md="4">
+                  <v-autocomplete
+                      v-model="filtroManual.grupoId"
+                      :items="[{ descgrupo: 'Todos os Grupos', id: null }, ...grupos]"
+                      label="Grupo"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-shape"
+                      item-title="descgrupo"
+                      item-value="id"
+                      :loading="carregandoGrupos"
+                      clearable
+                      @update:model-value="onGrupoChange"
+                  ></v-autocomplete>
+                </v-col>
+
+                <!-- SubGrupo -->
+                <v-col cols="12" md="4">
+                  <v-autocomplete
+                      v-model="filtroManual.subgrupoId"
+                      :items="[{ descsubgrupo: 'Todos os SubGrupos', id: null }, ...subgrupos]"
+                      label="SubGrupo"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-shape-plus"
+                      item-title="descsubgrupo"
+                      item-value="id"
+                      :loading="carregandoSubgrupos"
+                      :disabled="!filtroManual.grupoId"
+                      :hint="!filtroManual.grupoId ? 'Selecione um grupo primeiro' : ''"
+                      clearable
+                  ></v-autocomplete>
+                </v-col>
+
+                <!-- Marca -->
+                <v-col cols="12" md="4">
+                  <v-autocomplete
+                      v-model="filtroManual.marcaId"
+                      :items="[{ descmarca: 'Todas as Marcas', id: null }, ...marcas]"
+                      label="Marca"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-tag"
+                      item-title="descmarca"
+                      item-value="id"
+                      :loading="carregandoMarcas"
+                      clearable
+                  ></v-autocomplete>
+                </v-col>
+
+                <!-- Localização -->
+                <v-col cols="12" md="4">
+                  <v-autocomplete
+                      v-model="filtroManual.localizacaoId"
+                      :items="[{ descricao: 'Todas as Localizações', id: null }, ...localizacoes]"
+                      label="Localização"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-map-marker"
+                      item-title="descricao"
+                      item-value="id"
+                      :loading="carregandoLocalizacoes"
+                      clearable
+                  ></v-autocomplete>
+                </v-col>
+
+                <!-- Botão -->
+                <v-col cols="12">
+                  <v-btn
+                      color="var(--text-color-laranja)"
+                      variant="flat"
+                      prepend-icon="mdi-plus-circle"
+                      class="text-white"
+                      :disabled="!inventario.id_almoxarifado"
+                      :loading="carregandoGridProdutos"
+                      @click="buscarGridInventario"
+                      block
+                  >
+                    Listar Produtos ao Inventário
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </div>
+
+            <!-- Contagem por Link -->
+            <div v-else>
+              <v-alert
+                  type="info"
+                  variant="tonal"
+                  class="mb-4"
+                  icon="mdi-information"
+              >
+                <strong>Contagem por Link:</strong> Filtre os produtos desejados e ao finalizar será gerado um link para o responsável realizar a contagem via mobile.
+              </v-alert>
+
+              <v-row>
+                <!-- Produto -->
+                <v-col cols="12" md="4">
+                  <v-autocomplete
+                      v-model="filtroManual.produtoId"
+                      :items="[{ descproduto: 'Todos os Produtos', id_produto: null }, ...produtosGrid]"
+                      label="Produto"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-package-variant"
+                      item-title="descproduto"
+                      item-value="id_produto"
+                      :loading="carregandoGridProdutos"
+                      clearable
+                  ></v-autocomplete>
+                </v-col>
+
+                <!-- Grupo -->
+                <v-col cols="12" md="4">
+                  <v-autocomplete
+                      v-model="filtroManual.grupoId"
+                      :items="[{ descgrupo: 'Todos os Grupos', id: null }, ...grupos]"
+                      label="Grupo"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-shape"
+                      item-title="descgrupo"
+                      item-value="id"
+                      :loading="carregandoGrupos"
+                      clearable
+                      @update:model-value="onGrupoChange"
+                  ></v-autocomplete>
+                </v-col>
+
+                <!-- SubGrupo -->
+                <v-col cols="12" md="4">
+                  <v-autocomplete
+                      v-model="filtroManual.subgrupoId"
+                      :items="[{ descsubgrupo: 'Todos os SubGrupos', id: null }, ...subgrupos]"
+                      label="SubGrupo"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-shape-plus"
+                      item-title="descsubgrupo"
+                      item-value="id"
+                      :loading="carregandoSubgrupos"
+                      :disabled="!filtroManual.grupoId"
+                      :hint="!filtroManual.grupoId ? 'Selecione um grupo primeiro' : ''"
+                      clearable
+                  ></v-autocomplete>
+                </v-col>
+
+                <!-- Marca -->
+                <v-col cols="12" md="4">
+                  <v-autocomplete
+                      v-model="filtroManual.marcaId"
+                      :items="[{ descmarca: 'Todas as Marcas', id: null }, ...marcas]"
+                      label="Marca"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-tag"
+                      item-title="descmarca"
+                      item-value="id"
+                      :loading="carregandoMarcas"
+                      clearable
+                  ></v-autocomplete>
+                </v-col>
+
+                <!-- Localização -->
+                <v-col cols="12" md="4">
+                  <v-autocomplete
+                      v-model="filtroManual.localizacaoId"
+                      :items="[{ descricao: 'Todas as Localizações', id: null }, ...localizacoes]"
+                      label="Localização"
+                      variant="outlined"
+                      density="compact"
+                      prepend-inner-icon="mdi-map-marker"
+                      item-title="descricao"
+                      item-value="id"
+                      :loading="carregandoLocalizacoes"
+                      clearable
+                  ></v-autocomplete>
+                </v-col>
+
+                <!-- Botão Listar -->
+                <v-col cols="12">
+                  <v-btn
+                      color="var(--text-color-laranja)"
+                      variant="flat"
+                      prepend-icon="mdi-plus-circle"
+                      class="text-white"
+                      :disabled="!inventario.id_almoxarifado"
+                      :loading="carregandoGridProdutos"
+                      @click="buscarGridInventario"
+                      block
+                  >
+                    Listar Produtos ao Inventário
+                  </v-btn>
+                </v-col>
+              </v-row>
             </div>
           </v-card-text>
         </v-card>
@@ -346,17 +509,18 @@
             <v-table class="inventario-table" density="comfortable">
               <thead>
                 <tr>
+                  <th class="text-center" style="width: 5%">#</th>
                   <th class="text-left" style="width: 10%">Código</th>
-                  <th class="text-left" style="width: 35%">Produto</th>
-                  <th class="text-center" style="width: 15%">Qtd. Sistema</th>
-                  <th class="text-center" style="width: 15%">Qtd. Contada</th>
-                  <th class="text-center" style="width: 15%">Diferença</th>
+                  <th class="text-left" style="width: 33%">Produto</th>
+                  <th class="text-center" style="width: 13%">Qtd. Sistema</th>
+                  <th class="text-center" style="width: 13%">Qtd. Contada</th>
+                  <th class="text-center" style="width: 13%">Diferença</th>
                   <th class="text-center" style="width: 10%">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-if="itensInventario.length === 0">
-                  <td colspan="6" class="text-center pa-12">
+                  <td colspan="7" class="text-center pa-12">
                     <v-icon size="80" color="grey-lighten-1">mdi-package-variant-closed-remove</v-icon>
                     <p class="text-h6 mt-4 mb-2">Nenhum item adicionado ao inventário</p>
                     <p class="text-body-2 text-grey">
@@ -370,6 +534,7 @@
                     :key="index"
                     :class="getDiferencaClass(item.diferenca)"
                 >
+                  <td class="text-center text-body-2 font-weight-bold">{{ index + 1 }}</td>
                   <td class="text-body-2">{{ item.codigo }}</td>
                   <td>
                     <div class="text-body-2 font-weight-medium">{{ item.nome }}</div>
@@ -411,7 +576,7 @@
               </tbody>
               <tfoot>
                 <tr class="font-weight-bold">
-                  <td colspan="2" class="text-right pa-3">TOTAL:</td>
+                  <td colspan="3" class="text-right pa-3">TOTAL:</td>
                   <td class="text-center">{{ itensInventario.length }} itens</td>
                   <td class="text-center">-</td>
                   <td class="text-center">-</td>
@@ -451,10 +616,10 @@
                 color="var(--text-color-laranja)"
                 variant="flat"
                 class="text-white"
-                prepend-icon="mdi-check-circle"
+                :prepend-icon="inventario.tipo === 'L' ? 'mdi-link-variant' : 'mdi-check-circle'"
                 @click="finalizarLote"
                 >
-                Finalizar e Salvar Lote
+                {{ inventario.tipo === 'L' ? 'Finalizar e Gerar Link' : 'Finalizar e Salvar Lote' }}
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -488,12 +653,13 @@
             <v-table v-if="lotes.length > 0 && !loteAberto" class="inventario-table" density="comfortable">
               <thead>
                 <tr>
-                  <th class="text-left" style="width: 10%">#</th>
-                  <th class="text-left" style="width: 25%">Almoxarifado</th>
-                  <th class="text-center" style="width: 15%">Data</th>
-                  <th class="text-center" style="width: 15%">Tipo</th>
-                  <th class="text-center" style="width: 15%">Itens</th>
-                  <th class="text-left" style="width: 10%">Observações</th>
+                  <th class="text-left" style="width: 5%">#</th>
+                  <th class="text-left" style="width: 22%">Almoxarifado</th>
+                  <th class="text-center" style="width: 12%">Data</th>
+                  <th class="text-center" style="width: 12%">Tipo</th>
+                  <th class="text-center" style="width: 15%">Situação</th>
+                  <th class="text-center" style="width: 10%">Itens</th>
+                  <th class="text-left" style="width: 14%">Observações</th>
                   <th class="text-center" style="width: 10%">Ações</th>
                 </tr>
               </thead>
@@ -509,20 +675,34 @@
                   <td class="text-center">
                     <v-chip 
                         size="small" 
-                        :color="lote.tipo === 'automatico' ? 'primary' : 'success'"
+                        :color="lote.tipo === 'A' ? 'primary' : 'success'"
                         variant="tonal"
                     >
                       <v-icon 
-                          :icon="lote.tipo === 'automatico' ? 'mdi-barcode-scan' : 'mdi-keyboard'" 
+                          :icon="lote.tipo === 'A' ? 'mdi-barcode-scan' : 'mdi-keyboard'" 
                           size="x-small" 
                           class="mr-1"
                       ></v-icon>
-                      {{ lote.tipo === 'automatico' ? 'Automático' : 'Manual' }}
+                      {{ lote.desctipo || (lote.tipo === 'A' ? 'Automático' : 'Manual') }}
+                    </v-chip>
+                  </td>
+                  <td class="text-center">
+                    <v-chip
+                        size="small"
+                        :color="lote.situacao === 'E' ? 'success' : lote.situacao === 'C' ? 'error' : 'warning'"
+                        variant="tonal"
+                    >
+                      <v-icon
+                          :icon="lote.situacao === 'E' ? 'mdi-check-circle' : lote.situacao === 'C' ? 'mdi-cancel' : 'mdi-progress-clock'"
+                          size="x-small"
+                          class="mr-1"
+                      ></v-icon>
+                      {{ lote.descsituacao || 'EM PROCESSAMENTO' }}
                     </v-chip>
                   </td>
                   <td class="text-center">
                     <v-chip size="small" color="var(--text-color-laranja)" variant="flat" class="text-white">
-                      {{ (lote.itens || []).length }} {{ (lote.itens || []).length === 1 ? 'item' : 'itens' }}
+                      {{ lote.qtd_item ?? (lote.itens || []).length }} {{ (lote.qtd_item ?? (lote.itens || []).length) === 1 ? 'item' : 'itens' }}
                     </v-chip>
                   </td>
                   <td class="text-body-2">
@@ -540,6 +720,16 @@
                         @click="visualizarItensLote(lote)"
                     ></v-btn>
                     <v-btn
+                        v-if="lote.tipo === 'L'"
+                        icon="mdi-link-variant"
+                        size="small"
+                        variant="text"
+                        color="var(--text-color-laranja)"
+                        title="Gerar Link de Contagem"
+                        @click="gerarLinkContagem(lote.id)"
+                    ></v-btn>
+                    <v-btn
+                        v-if="lote.situacao !== 'E'"
                         icon="mdi-delete"
                         size="small"
                         variant="text"
@@ -578,10 +768,10 @@
                   <div class="text-body-1">
                     <v-chip 
                         size="small" 
-                        :color="loteVisualizando?.tipo === 'automatico' ? 'primary' : 'success'"
+                        :color="loteVisualizando?.tipo === 'A' ? 'primary' : 'success'"
                         variant="tonal"
                     >
-                      {{ loteVisualizando?.tipo === 'automatico' ? 'Automático' : 'Manual' }}
+                      {{ loteVisualizando?.tipo === 'A' ? 'Automático' : 'Manual' }}
                     </v-chip>
                   </div>
                 </v-col>
@@ -599,74 +789,98 @@
                 </v-col>
               </v-row>
 
-              <v-table class="inventario-table" density="comfortable">
-                <thead>
-                  <tr>
-                    <th class="text-left">Código</th>
-                    <th class="text-left">Produto</th>
-                    <th class="text-center">Qtd. Sistema</th>
-                    <th class="text-center">Qtd. Contada</th>
-                    <th class="text-center">Diferença</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-if="!loteVisualizando?.itens || loteVisualizando.itens.length === 0">
-                    <td colspan="5" class="text-center pa-12">
-                      <v-icon size="80" color="grey-lighten-1">mdi-package-variant-closed-remove</v-icon>
-                      <p class="text-h6 mt-4 mb-2">Nenhum item neste lote</p>
-                      <p class="text-body-2 text-grey">
-                        Este lote de inventário não possui itens cadastrados.
-                      </p>
-                    </td>
-                  </tr>
-                  <tr 
-                      v-else
-                      v-for="(item, index) in (loteVisualizando?.itens || [])" 
-                      :key="index"
-                      :class="getDiferencaClass(item.diferenca)"
+              <v-progress-linear
+                  v-if="carregandoItensLote"
+                  indeterminate
+                  color="var(--text-color-laranja)"
+                  class="mb-2"
+              ></v-progress-linear>
+
+              <v-data-table
+                  class="inventario-table"
+                  density="comfortable"
+                  :headers="headersItensModal"
+                  :items="loteVisualizando?.itens || []"
+                  :loading="carregandoItensLote"
+                  v-model:page="paginaModal"
+                  :items-per-page="itensPorPaginaModal"
+                  item-value="id_seq"
+                  no-data-text="Nenhum item neste lote"
+                  loading-text="Carregando itens..."
+              >
+                <template #[`item.id_seq`]="{ item }">
+                  <span class="font-weight-bold">{{ item.id_seq }}</span>
+                </template>
+
+                <template #[`item.nome`]="{ item }">
+                  <div class="text-body-2 font-weight-medium">{{ item.nome }}</div>
+                </template>
+
+                <template #[`item.estoqueSistema`]="{ item }">
+                  <v-chip size="small" variant="outlined">
+                    {{ formatarNumero(item.estoqueSistema) }}
+                  </v-chip>
+                </template>
+
+                <template #[`item.quantidadeContada`]="{ item }">
+                  <v-chip
+                      v-if="loteVisualizando?.situacao === 'E'"
+                      size="small"
+                      color="grey"
+                      variant="tonal"
                   >
-                    <td class="text-body-2">{{ item.codigo }}</td>
-                    <td>
-                      <div class="text-body-2 font-weight-medium">{{ item.nome }}</div>
-                      <div class="text-caption text-grey" v-if="item.localizacao">
-                        <v-icon icon="mdi-map-marker" size="x-small"></v-icon>
-                        {{ item.localizacao }}
-                      </div>
-                    </td>
-                    <td class="text-center">
-                      <v-chip size="small" variant="outlined">
-                        {{ formatarNumero(item.estoqueSistema) }} {{ item.unidade }}
-                      </v-chip>
-                    </td>
-                    <td class="text-center">
-                      <v-chip size="small" color="primary" variant="tonal">
-                        {{ formatarNumero(item.quantidadeContada) }} {{ item.unidade }}
-                      </v-chip>
-                    </td>
-                    <td class="text-center">
-                      <v-chip 
-                          size="small" 
-                          :color="item.diferenca > 0 ? 'success' : item.diferenca < 0 ? 'error' : 'grey'"
-                          variant="flat"
-                          class="text-white font-weight-bold"
-                      >
-                        {{ item.diferenca > 0 ? '+' : '' }}{{ formatarNumero(item.diferenca) }}
-                      </v-chip>
-                    </td>
-                  </tr>
-                </tbody>
-              </v-table>
+                    {{ formatarNumero(item.quantidadeContada) }}
+                  </v-chip>
+                  <v-text-field
+                      v-else
+                      v-model.number="item.quantidadeContada"
+                      type="number"
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                      min="0"
+                      style="max-width: 110px; margin: 0 auto"
+                      @update:model-value="item.diferenca = (item.quantidadeContada || 0) - item.estoqueSistema"
+                  ></v-text-field>
+                </template>
+
+                <template #[`item.diferenca`]="{ item }">
+                  <v-chip
+                      size="small"
+                      :color="item.diferenca > 0 ? 'success' : item.diferenca < 0 ? 'error' : 'grey'"
+                      variant="flat"
+                      class="text-white font-weight-bold"
+                  >
+                    {{ item.diferenca > 0 ? '+' : '' }}{{ formatarNumero(item.diferenca) }}
+                  </v-chip>
+                </template>
+
+                <template #bottom="{ pageCount }">
+                  <div class="d-flex align-center justify-space-between pa-3">
+                    <div class="d-flex align-center gap-2">
+                      <span class="text-body-2 text-grey mr-2">Itens por página:</span>
+                      <v-select
+                          v-model="itensPorPaginaModal"
+                          :items="[5, 10, 20, 50]"
+                          density="compact"
+                          variant="outlined"
+                          hide-details
+                          style="width: 80px"
+                      ></v-select>
+                    </div>
+                    <v-pagination
+                        v-model="paginaModal"
+                        :length="pageCount"
+                        :total-visible="5"
+                        density="compact"
+                        active-color="var(--text-color-laranja)"
+                    ></v-pagination>
+                  </div>
+                </template>
+              </v-data-table>
             </v-card-text>
 
             <v-card-actions class="pa-4">
-              <v-btn
-                  color="var(--text-color-laranja)"
-                  variant="outlined"
-                  prepend-icon="mdi-link-variant"
-                  @click="gerarLinkContagem"
-              >
-                Gerar Link de Contagem
-              </v-btn>
               <v-spacer></v-spacer>
               <v-btn
                   color="grey"
@@ -674,6 +888,18 @@
                   @click="modalItensAberto = false"
               >
                 Fechar
+              </v-btn>
+              <v-btn
+                  v-if="loteVisualizando?.situacao !== 'E'"
+                  color="var(--text-color-laranja)"
+                  variant="flat"
+                  class="text-white"
+                  prepend-icon="mdi-check-circle"
+                  :loading="salvandoContagem"
+                  :disabled="!loteVisualizando?.itens?.length"
+                  @click="salvarContagem"
+              >
+                Salvar Contagem
               </v-btn>
             </v-card-actions>
           </v-card>
@@ -773,7 +999,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import { useEstoqueStore } from '@/stores/APIs/estoque'
 import { useProdutosStore } from '@/stores/APIs/produtos'
@@ -791,14 +1017,29 @@ const loteAberto = ref(false)
 const carregandoAlmoxarifados = ref(false)
 const carregandoProdutos = ref(false)
 const carregandoLocalizacoes = ref(false)
+const carregandoGrupos = ref(false)
+const carregandoSubgrupos = ref(false)
+const carregandoMarcas = ref(false)
+const carregandoGridProdutos = ref(false)
+const adicionandoItens = ref(false)
 const processandoArquivo = ref(false)
 const usarSeparador = ref(true)
-const formManualValido = ref(false)
-const formManualRef = ref(null)
 const modalItensAberto = ref(false)
 const loteVisualizando = ref(null)
+const carregandoItensLote = ref(false)
 const modalLinkAberto = ref(false)
 const linkContagem = ref('')
+const salvandoContagem = ref(false)
+const paginaModal = ref(1)
+const itensPorPaginaModal = ref(10)
+
+const headersItensModal = [
+  { title: '#', key: 'id_seq', sortable: true, align: 'center', width: '5%' },
+  { title: 'Produto', key: 'nome', sortable: true, width: '40%' },
+  { title: 'Qtd. Sistema', key: 'estoqueSistema', sortable: true, align: 'center', width: '15%' },
+  { title: 'Qtd. Contada', key: 'quantidadeContada', sortable: false, align: 'center', width: '20%' },
+  { title: 'Diferença', key: 'diferenca', sortable: true, align: 'center', width: '15%' }
+]
 
 // Dados
 const inventario = reactive({
@@ -827,7 +1068,20 @@ const produtoEncontrado = ref(null)
 const lotes = ref([])
 const almoxarifados = ref([])
 const produtos = ref([])
+const produtosGrid = ref([])
 const localizacoes = ref([])
+const grupos = ref([])
+const subgrupos = ref([])
+const marcas = ref([])
+
+const filtroManual = reactive({
+  codigo: '',
+  produtoId: null,
+  grupoId: null,
+  subgrupoId: null,
+  marcaId: null,
+  localizacaoId: null
+})
 
 // Tipos de inventário
 const tiposInventario = [
@@ -842,6 +1096,12 @@ const tiposInventario = [
     value: 'M',
     icon: 'mdi-keyboard',
     color: 'success'
+  },
+  { 
+    title: 'Contagem por Link', 
+    value: 'L',
+    icon: 'mdi-link-variant',
+    color: 'info'
   }
 ]
 
@@ -968,7 +1228,10 @@ const finalizarLote = async () => {
         layout_dig_qtd: inventario.layout_dig_qtd || 0,
         layout_utilizado: inventario.layout_utilizado || ''
       }],
-      item: itensInventario.value.map(item => ({
+      item: itensInventario.value.map((item, index) => ({
+        id_seq: index + 1,
+        id_cor: 0,
+        id_tamanho: 0,
         id_produto: item.produtoId,
         qtd_sistema: item.estoqueSistema || 0,
         qtd_contada: item.quantidadeContada || 0,
@@ -988,11 +1251,17 @@ const finalizarLote = async () => {
       
       const novoLote = {
         ...response.data,
+        id_almoxarifado: inventario.id_almoxarifado,
         almoxarifadoNome: almoxarifado?.descalmoxarifado || 'Não identificado',
         itens: [...itensInventario.value]
       }
 
       lotes.value.push(novoLote)
+
+      // Se tipo L (Contagem por Link), abrir modal de link após salvar
+      if (inventario.tipo === 'L' && response.data.id) {
+        gerarLinkContagem(response.data.id, parseInt(idEmpresa))
+      }
     }
     
     limparFormulario()
@@ -1002,9 +1271,48 @@ const finalizarLote = async () => {
   }
 }
 
-const visualizarItensLote = (lote) => {
-  loteVisualizando.value = lote
+const visualizarItensLote = async (lote) => {
+  loteVisualizando.value = { ...lote, itens: [] }
   modalItensAberto.value = true
+
+  if (!lote.id) return
+
+  try {
+    const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada')
+    if (!empresaSelecionadaStr) return
+
+    const empresaSelecionada = JSON.parse(empresaSelecionadaStr)
+    const idEmpresa = empresaSelecionada.id
+    if (!idEmpresa) return
+
+    carregandoItensLote.value = true
+    const response = await inventarioStore.obterItensInventarioNovo(parseInt(idEmpresa), lote.id, lote.id_almoxarifado)
+    const dados = response?.data || response
+
+    if (dados) {
+      const itensApi = Array.isArray(dados) ? dados : (dados.itens || dados.item || dados.data || [])
+      const itensMapeados = itensApi.map(item => ({
+        id_seq: item.id_seq,
+        produtoId: item.id_produto,
+        nome: item.descproduto || `Produto #${item.id_produto}`,
+        estoqueSistema: item.qtd_sistema || 0,
+        quantidadeContada: item.qtd_contada || 0,
+        diferenca: item.qtd_diferenca || 0
+      }))
+
+      loteVisualizando.value = {
+        ...loteVisualizando.value,
+        ...dados,
+        almoxarifadoNome: lote.almoxarifadoNome,
+        itens: itensMapeados
+      }
+    }
+  } catch (error) {
+    console.error('[Inventário] Erro ao carregar itens do lote:', error)
+    toast.error('Erro ao carregar itens do lote')
+  } finally {
+    carregandoItensLote.value = false
+  }
 }
 
 const excluirLote = async (index) => {
@@ -1045,6 +1353,43 @@ const getDiferencaClass = (diferenca) => {
   if (diferenca > 0) return 'diferenca-positiva'
   if (diferenca < 0) return 'diferenca-negativa'
   return ''
+}
+
+const salvarContagem = async () => {
+  if (!loteVisualizando.value?.itens?.length) {
+    toast.warning('Nenhum item para salvar')
+    return
+  }
+
+  salvandoContagem.value = true
+  try {
+    const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada')
+    if (!empresaSelecionadaStr) {
+      toast.error('Empresa não selecionada')
+      return
+    }
+    const idEmpresa = JSON.parse(empresaSelecionadaStr).id
+
+    const itens = loteVisualizando.value.itens.map(item => ({
+      id_seq: item.id_seq,
+      id_produto: item.produtoId,
+      qtd_contada: item.quantidadeContada || 0,
+      qtd_diferenca: item.diferenca || 0,
+      id_cor: 0,
+      id_tamanho: 0,
+    }))
+
+    await inventarioStore.atualizarItemInventario(
+      parseInt(idEmpresa),
+      loteVisualizando.value.id,
+      itens,
+      loteVisualizando.value.id_almoxarifado
+    )
+  } catch (error) {
+    console.error('[Inventário] Erro ao salvar contagem:', error)
+  } finally {
+    salvandoContagem.value = false
+  }
 }
 
 const getDescricaoLocalizacao = (localizacaoId) => {
@@ -1177,7 +1522,7 @@ const importarArquivo = async () => {
               nome: produto.descproduto,
               estoqueSistema: qtdSistema,
               quantidadeContada: qtdContada,
-              diferenca: qtdContada - qtdSistema,
+              diferenca: 0,
               unidade: produto.unidade || 'UN',
               localizacaoId: localizacaoId ? parseInt(localizacaoId) : null,
               localizacao: localizacaoId ? getDescricaoLocalizacao(parseInt(localizacaoId)) : ''
@@ -1216,88 +1561,7 @@ const importarArquivo = async () => {
   }
 }
 
-const selecionarProdutoManual = async (produtoId) => {
-  if (!inventario.id_almoxarifado) {
-    toast.warning('Selecione um almoxarifado primeiro')
-    itemAtual.produtoId = null
-    produtoEncontrado.value = null
-    return
-  }
 
-  if (!produtoId) {
-    produtoEncontrado.value = null
-    return
-  }
-
-  const produto = produtos.value.find(p => p.id === produtoId)
-  if (produto) {
-    try {
-      // Buscar saldo do produto no almoxarifado via API
-      const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada')
-      const empresaSelecionada = JSON.parse(empresaSelecionadaStr)
-      const idEmpresa = empresaSelecionada.id
-      
-      const saldoData = await inventarioStore.consultarSaldoProdutoAlmoxarifado(
-        idEmpresa,
-        inventario.id_almoxarifado,
-        produto.id
-      )
-      
-      const saldoAlmoxarifado = saldoData?.saldo || saldoData?.quantidade || 0
-      console.log('[Inventário] Saldo do produto no almoxarifado:', saldoAlmoxarifado)
-      
-      // Mapear campos da API para o formato esperado
-      produtoEncontrado.value = {
-        id: produto.id,
-        codigo: produto.codigo_sku || produto.codigo_gtin || produto.id,
-        nome: produto.descproduto,
-        estoque: saldoAlmoxarifado,
-        unidade: produto.unidade || 'UN'
-      }
-    } catch (error) {
-      console.error('[Inventário] Erro ao buscar saldo do produto:', error)
-      toast.error('Erro ao consultar saldo do produto no almoxarifado')
-      produtoEncontrado.value = null
-    }
-  }
-}
-
-const adicionarItem = () => {
-  if (!produtoEncontrado.value) {
-    toast.warning('Selecione um produto')
-    return
-  }
-
-  // Verificar se produto já existe no inventário
-  const itemExistente = itensInventario.value.find(
-    item => item.produtoId === produtoEncontrado.value.id
-  )
-
-  if (itemExistente) {
-    toast.warning('Produto já adicionado ao inventário')
-    return
-  }
-
-  const novoItem = {
-    produtoId: produtoEncontrado.value.id,
-    codigo: produtoEncontrado.value.codigo,
-    nome: produtoEncontrado.value.nome,
-    estoqueSistema: produtoEncontrado.value.estoque || 0,
-    quantidadeContada: 0,
-    diferenca: 0 - (produtoEncontrado.value.estoque || 0),
-    unidade: produtoEncontrado.value.unidade || 'UN',
-    localizacaoId: itemAtual.localizacao || null,
-    localizacao: getDescricaoLocalizacao(itemAtual.localizacao)
-  }
-
-  itensInventario.value.push(novoItem)
-  toast.success('Item adicionado ao inventário')
-
-  // Limpar formulário
-  itemAtual.produtoId = null
-  itemAtual.localizacao = ''
-  produtoEncontrado.value = null
-}
 
 const removerItem = (index) => {
   itensInventario.value.splice(index, 1)
@@ -1319,20 +1583,35 @@ const exportarExcel = () => {
   toast.info('Exportação para Excel em desenvolvimento')
 }
 
-const gerarLinkContagem = () => {
-  if (!loteVisualizando.value) return
-  
+const gerarLinkContagem = (loteIdParam = null, idEmpresaParam = null) => {
+  let loteId = loteIdParam
+  let idEmpresa = idEmpresaParam
+
+  if (!loteId) {
+    toast.error('Este lote não possui ID válido para gerar o link')
+    return
+  }
+
+  if (!idEmpresa) {
+    const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada')
+    if (!empresaSelecionadaStr) {
+      toast.error('Empresa não selecionada')
+      return
+    }
+    idEmpresa = JSON.parse(empresaSelecionadaStr).id
+    if (!idEmpresa) {
+      toast.error('Empresa não identificada')
+      return
+    }
+  }
+
   // Gerar token único para o lote
   const token = gerarToken()
-  const loteId = lotes.value.indexOf(loteVisualizando.value)
-  
-  // Salvar lotes no localStorage para a tela de contagem acessar
-  localStorage.setItem('lotesInventario', JSON.stringify(lotes.value))
-  
-  // Construir URL
+
+  // Construir URL com empresa e id do inventário
   const baseUrl = window.location.origin
-  linkContagem.value = `${baseUrl}/inventario/contagem/${loteId}?token=${token}`
-  
+  linkContagem.value = `${baseUrl}/inventario/contagem/${idEmpresa}/${loteId}?token=${token}`
+
   // Abrir modal com o link
   modalLinkAberto.value = true
 }
@@ -1352,7 +1631,151 @@ const copiarLink = async () => {
   }
 }
 
+const buscarPorCodigo = () => {
+  if (!filtroManual.codigo) return
+  const produto = produtosGrid.value.find(p =>
+    String(p.id_produto) === String(filtroManual.codigo) ||
+    p.codigo_gtin === filtroManual.codigo
+  )
+  if (produto) {
+    filtroManual.produtoId = produto.id_produto
+  } else {
+    toast.warning('Produto não encontrado para o código informado')
+  }
+}
+
+const onGrupoChange = async (grupoId) => {
+  filtroManual.subgrupoId = null
+  subgrupos.value = []
+  if (!grupoId) return
+
+  carregandoSubgrupos.value = true
+  try {
+    await estoqueStore.buscarTodosSubgrupos(grupoId)
+    subgrupos.value = estoqueStore.subgrupos || []
+  } catch (error) {
+    console.error('[Inventário] Erro ao carregar subgrupos:', error)
+  } finally {
+    carregandoSubgrupos.value = false
+  }
+}
+
+const buscarGridInventario = async () => {
+  if (!inventario.id_almoxarifado) {
+    toast.warning('Selecione um almoxarifado primeiro')
+    return
+  }
+
+  adicionandoItens.value = true
+  try {
+    const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada')
+    if (!empresaSelecionadaStr) { toast.error('Empresa não selecionada'); return }
+    const idEmpresa = JSON.parse(empresaSelecionadaStr).id
+
+    // Passa os filtros como query params para a API
+    const filtros = {
+      idpro: filtroManual.produtoId || undefined,
+      idgrp: filtroManual.grupoId || undefined,
+      idsbg: filtroManual.subgrupoId || undefined,
+      idmar: filtroManual.marcaId || undefined,
+      idloc: filtroManual.localizacaoId || undefined
+    }
+
+    await inventarioStore.buscarGridInventario(parseInt(idEmpresa), inventario.id_almoxarifado, filtros)
+    const produtosFiltrados = inventarioStore.gridProdutos || []
+
+    if (produtosFiltrados.length === 0) {
+      toast.warning('Nenhum produto encontrado com os filtros selecionados')
+      return
+    }
+
+    const localizacaoId = filtroManual.localizacaoId || null
+    let adicionados = 0
+    for (const produto of produtosFiltrados) {
+      if (itensInventario.value.find(i => i.produtoId === produto.id_produto)) continue
+
+      const qtdSistema = parseFloat(produto.quantidade) || 0
+      itensInventario.value.push({
+        produtoId: produto.id_produto,
+        codigo: produto.codigo_gtin || produto.id_produto,
+        nome: produto.descproduto,
+        estoqueSistema: qtdSistema,
+        quantidadeContada: 0,
+        diferenca: 0,
+        unidade: produto.abreviatura || 'UN',
+        localizacaoId,
+        localizacao: getDescricaoLocalizacao(localizacaoId)
+      })
+      adicionados++
+    }
+
+    if (adicionados > 0) {
+      toast.success(`${adicionados} produto(s) adicionado(s) ao inventário`)
+    } else {
+      toast.info('Todos os produtos filtrados já estavam no inventário')
+    }
+  } catch (error) {
+    console.error('[Inventário] Erro ao adicionar itens manuais:', error)
+    toast.error('Erro ao adicionar produtos')
+  } finally {
+    adicionandoItens.value = false
+  }
+}
+
+const carregarGridProdutos = async () => {
+  if (!inventario.id_almoxarifado) {
+    produtosGrid.value = []
+    return
+  }
+  carregandoGridProdutos.value = true
+  try {
+    const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada')
+    if (!empresaSelecionadaStr) return
+    const idEmpresa = JSON.parse(empresaSelecionadaStr).id
+    await inventarioStore.buscarGridInventario(parseInt(idEmpresa), inventario.id_almoxarifado)
+    produtosGrid.value = inventarioStore.gridProdutos || []
+    console.log('[Inventário] Grid de produtos carregada:', produtosGrid.value.length, 'produtos')
+  } catch (error) {
+    console.error('[Inventário] Erro ao carregar grid de produtos:', error)
+  } finally {
+    carregandoGridProdutos.value = false
+  }
+}
+
+// Recarregar grid ao trocar almoxarifado (modo Manual)
+watch(() => inventario.id_almoxarifado, (novoAlmox) => {
+  if (novoAlmox) {
+    carregarGridProdutos()
+  } else {
+    produtosGrid.value = []
+  }
+})
+
 // Carregar dados iniciais
+const carregarGrupos = async () => {
+  carregandoGrupos.value = true
+  try {
+    await estoqueStore.buscarTodos('')
+    grupos.value = estoqueStore.grupos || []
+  } catch (error) {
+    console.error('[Inventário] Erro ao carregar grupos:', error)
+  } finally {
+    carregandoGrupos.value = false
+  }
+}
+
+const carregarMarcas = async () => {
+  carregandoMarcas.value = true
+  try {
+    await produtosStore.buscarMarcas()
+    marcas.value = produtosStore.marcas || []
+  } catch (error) {
+    console.error('[Inventário] Erro ao carregar marcas:', error)
+  } finally {
+    carregandoMarcas.value = false
+  }
+}
+
 const carregarAlmoxarifados = async () => {
   carregandoAlmoxarifados.value = true
   try {
@@ -1448,11 +1871,21 @@ const carregarInventarios = async () => {
     }
 
     await inventarioStore.listarInventarios(parseInt(idEmpresa))
-    // Garantir que cada lote tenha o array de itens
-    lotes.value = (inventarioStore.inventarios || []).map(lote => ({
-      ...lote,
-      itens: lote.itens || []
-    }))
+    // Mapear campos da API e garantir que cada lote tenha o array de itens
+    lotes.value = (inventarioStore.inventarios || []).map(lote => {
+      const desc = (lote.descsituacao || '').toUpperCase()
+      const situacao = desc === 'ENCERRADO' ? 'E' : desc === 'CANCELADO' ? 'C' : 'A'
+      return {
+        ...lote,
+        almoxarifadoNome: lote.descalmoxarifado || lote.almoxarifadoNome || 'Não identificado',
+        data: lote.dtgeracao ? lote.dtgeracao.split('T')[0] : lote.data,
+        situacao,
+        descsituacao: lote.descsituacao || '',
+        desctipo: lote.desctipo || (lote.tipo === 'M' ? 'MANUAL' : lote.tipo === 'A' ? 'AUTOMÁTICO' : ''),
+        qtd_item: lote.qtd_item ?? 0,
+        itens: lote.itens || []
+      }
+    })
     
     console.log('[Inventário] Inventários carregados:', lotes.value)
   } catch (error) {
@@ -1464,6 +1897,8 @@ onMounted(async () => {
   await carregarAlmoxarifados()
   await carregarProdutos()
   await carregarLocalizacoes()
+  await carregarGrupos()
+  await carregarMarcas()
   await carregarInventarios()
 })
 </script>
@@ -1507,5 +1942,34 @@ onMounted(async () => {
 
 :deep(.v-table__wrapper) {
   background-color: var(--background-card);
+}
+
+/* v-data-table - tema escuro */
+:deep(.v-data-table) {
+  background-color: transparent !important;
+}
+
+:deep(.v-data-table .v-data-table__wrapper) {
+  background-color: var(--background-card);
+}
+
+:deep(.v-data-table thead tr th) {
+  background-color: var(--text-color-laranja) !important;
+  color: white !important;
+  font-weight: 700 !important;
+}
+
+:deep(.v-data-table tbody tr td) {
+  color: var(--text-color) !important;
+}
+
+:deep(.v-data-table .v-data-table-footer) {
+  background-color: var(--background-card);
+  color: var(--text-color) !important;
+}
+
+:deep(.v-data-table .v-data-table-footer .v-field__input),
+:deep(.v-data-table .v-data-table-footer .v-select__selection-text) {
+  color: var(--text-color) !important;
 }
 </style>

@@ -12,16 +12,24 @@ import ReceberView from "@/views/pages/financeiro/receber/ReceberView.vue";
 import ContaCorrenteView from "@/views/pages/financeiro/banco/ContaCorrenteView.vue";
 import CentroDeCustoView from "@/views/pages/financeiro/pagar/CentroDeCustoView.vue";
 import PrevisaoDebitosView from "@/views/pages/financeiro/pagar/PrevisaoDebitosView.vue";
+import ApiExternaView from '@/views/pages/integracoes/ApiExternaView.vue';
 import InventarioView from "@/views/pages/inventario/InventarioView.vue";
 import ContagemInventarioView from "@/views/pages/inventario/ContagemInventarioView.vue";
-import PessoasView from '@/views/pages/manutencao/PessoasView.vue';
+import ClientesView from '@/views/pages/manutencao/ClientesView.vue';
+import EmpresaView from '@/views/pages/manutencao/EmpresaView.vue';
+import LancamentoColabView from '@/views/pages/financeiro/pagar/LancamentoColabView.vue';
 import PlanoContaView from '@/views/pages/fiscal/PlanoContaView.vue';
 import DebitoRealView from '@/views/pages/financeiro/pagar/DebitoRealView.vue';
 import UsuariosView from '@/views/pages/manutencao/UsuariosView.vue';
 import OperacaoView from '@/views/pages/pdv/OperacaoView.vue';
+import AmbienteView from '@/views/pages/vendas/AmbienteView.vue';
+import PosicaoEstoqueView from '@/views/pages/estoque/PosicaoEstoqueView.vue';
+import GrupoTributacaoView from '@/views/pages/estoque/GrupoTributacaoView.vue';
+import TransfAlmoxView from '@/views/pages/estoque/TransfAlmoxView.vue';
 import PdvCaixaView from '@/views/pages/pdv/CaixaView.vue';
 import TotemView from '@/views/pages/pdv/TotemView.vue';
 import CarteiraCobrancaView from '@/views/pages/financeiro/banco/CarteiraCobrancaView.vue';
+import TerminalView from '@/views/pages/vendas/TerminalView.vue';
 import PdvView from '@/views/pages/pdv/PdvView.vue';
 import PagamentoView from '@/views/pages/pdv/PagamentoView.vue';
 import MovimentacaoView from '@/views/pages/financeiro/banco/MovimentacaoView.vue';
@@ -36,10 +44,12 @@ import EstornoPagarView from '@/views/pages/estorno/EstornoPagarView.vue';
 import EstornoReceberView from '@/views/pages/estorno/EstornoReceberView.vue';
 import GrupoUsuarioView from '@/views/pages/manutencao/GrupoUsuarioView.vue';
 import DreView from '@/views/pages/dre/DreView.vue';
+import MensagensView from '@/views/pages/manutencao/MensagensView.vue';
 import RelatorioDreView from '@/views/pages/dre/RelatorioDreView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
 import api from "@/services/api";
+import MotivoPerdaOrcamentoView from '@/views/pages/vendas/MotivoPerdaOrcamentoView.vue';
 
 const routes = [
 
@@ -69,9 +79,19 @@ const routes = [
         component: () => import('@/views/ManutencaoView.vue')
     },
     {
-        path: '/paginas/manutencao/pessoas',
-        name: 'manutencao_pessoas',
-        component: PessoasView
+        path: '/paginas/manutencao/clientes',
+        name: 'manutencao_clientes',
+        component: ClientesView
+    },
+    {
+        path: '/paginas/manutencao/empresas',
+        name: 'manutencao_empresas',
+        component: EmpresaView
+    },
+    {
+        path: '/paginas/manutencao/mensagens-tributos',
+        name: 'manutencao_mensagens_tributos',
+        component: MensagensView
     },
     {
         path: '/paginas/manutencao/usuarios',
@@ -87,6 +107,21 @@ const routes = [
         path: '/paginas/manutencao/formulas',
         name: 'manutencao_formulas',
         component: () => import('@/views/pages/manutencao/FormulasView.vue')
+    },
+    {
+        path: '/paginas/manutencao/mensagens-tributos',
+        name: 'manutencao_mensagens',
+        component: () => import('@/views/pages/manutencao/MensagensView.vue')
+    },
+    {
+        path: '/paginas/estoque/grupo-tributacao',
+        name: 'estoque_grupo_tributacao',
+        component: () => import('@/views/pages/estoque/GrupoTributacaoView.vue')
+    },
+    {
+        path: '/paginas/estoque/transfalmox',
+        name: 'estoque_transfalmox',
+        component: TransfAlmoxView
     },
 
     //   paginas de autenticação
@@ -118,12 +153,39 @@ const routes = [
         name: 'home',
         component: HomeView
     },
+    //    Página do módulo vendas
+    {
+        path : '/paginas/vendas/motivo-perda-orcamento',
+        name : 'motivo_perda_orcamento',
+        component : MotivoPerdaOrcamentoView
+    },
+    {
+        path: '/paginas/vendas/terminal',
+        name: 'vendas_terminal',
+        component: TerminalView,
+        meta: { requiresToken: true, title: 'Terminal de Vendas' }
+    },
+    {
+        path: '/paginas/pdv/terminal',
+        name: 'pdv_terminal',
+        component: TerminalView
+    },
+    {
+        path: '/paginas/vendas/ambiente',
+        name: 'vendas_ambiente',
+        component: AmbienteView
+    },
 
     //    Páginas do módulo financeiro
     {
         path: '/paginas/financeiro/pagar',
         name: 'financeiro_pagar',
         component: PagarView
+    },
+    {
+        path: '/paginas/financeiro/pagar/lancamento-colaborador',
+        name: 'financeiro_lancamento_colaborador',
+        component: LancamentoColabView
     },
     {
         path: '/paginas/financeiro/receber',
@@ -225,7 +287,7 @@ const routes = [
     },
     // Página de contagem de inventário (acesso público com token)
     {
-        path: '/inventario/contagem/:loteId',
+        path: '/inventario/contagem/:emp/:id',
         name: 'contagem_inventario',
         component: ContagemInventarioView,
         meta: { requiresToken: false, public: true }
@@ -236,6 +298,11 @@ const routes = [
         path: '/paginas/estoque/grupo',
         name: 'grupo',
         component: () => import('@/views/pages/estoque/GruposView.vue')
+    },
+    {
+        path: '/paginas/estoque/grupo-tributacao',
+        name: 'grupo_tributacao',
+        component: GrupoTributacaoView
     },
     {
         path: '/paginas/estoque/classe',
@@ -256,6 +323,11 @@ const routes = [
         path: '/paginas/estoque/formulas',
         name: 'formulas',
         component: () => import('@/views/pages/estoque/FormulaView.vue')
+    },
+    {
+        path: '/paginas/estoque/posicao',
+        name: 'posicao_estoque',
+        component: PosicaoEstoqueView
     },
 
     // Paginas de adiantamento de cliente
@@ -389,6 +461,17 @@ const routes = [
         path: '/integracoes',
         name: 'site_integracoes',
         component: IntegracoesView
+    },    
+    // Páginas de Integrações
+    {
+        path: '/paginas/integracoes/api-externa',
+        name: 'integracoes_api_externa',
+        component: ApiExternaView
+    },
+    {
+        path: '/paginas/integracoes/loja',
+        name: 'integracoes_loja',
+        component: () => import('@/views/pages/integracoes/LojaIntegracoesView.vue')
     },
     {
         path: '/planos',

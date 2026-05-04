@@ -95,16 +95,42 @@
                         </v-autocomplete>
                       </v-col>
 
-                      <!-- Convênio / Código do Cedente -->
-                      <v-col cols="12" md="4">
+                      <!-- API Token -->
+                      <v-col cols="4">
                         <v-text-field
-                            v-model="formData.convenio"
-                            label="Convênio / Código do Cedente"
-                            maxlength="20"
+                            v-model="formData.apitoken"
+                            label="API Token"
                             variant="outlined"
                             density="compact"
                             class="custom-text-field"
-                            prepend-inner-icon="mdi-file-document-outline"
+                            prepend-inner-icon="mdi-key-variant"
+                            hint="Token de autenticação da API bancária"
+                            persistent-hint
+                        ></v-text-field>
+                      </v-col>
+
+                      <!-- Usuário -->
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            v-model="formData.username"
+                            label="Usuário"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-account"
+                        ></v-text-field>
+                      </v-col>
+
+                      <!-- Senha -->
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            v-model="formData.pass"
+                            label="Senha"
+                            type="password"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-lock-outline"
                         ></v-text-field>
                       </v-col>
 
@@ -118,19 +144,6 @@
                             density="compact"
                             class="custom-text-field"
                             prepend-inner-icon="mdi-numeric"
-                        ></v-text-field>
-                      </v-col>
-
-                      <!-- Número Remessa -->
-                      <v-col cols="12" md="4">
-                        <v-text-field
-                            v-model="formData.numero_remessa"
-                            label="Número Remessa"
-                            type="number"
-                            variant="outlined"
-                            density="compact"
-                            class="custom-text-field"
-                            prepend-inner-icon="mdi-send"
                         ></v-text-field>
                       </v-col>
 
@@ -487,14 +500,15 @@ const formData = reactive({
   dias_protesto_negativar: 0,
   tipo_dia_protesto: 'U',
   senha_boleto: 0,
-  nosso_numero: '',
-  numero_remessa: '',
-  convenio: '',
   primeiro_alerta_vencto: 0,
   segundo_alerta_vencto: 0,
   modelo_boleto: 'Boleto Simples',
   local_pagamento: '',
-  instrucoes: ''
+  instrucoes: '',
+  apitoken: '',
+  username: '',
+  pass: '',
+  nosso_numero: ''
 })
 
 // Opções
@@ -592,14 +606,15 @@ const resetarForm = () => {
     dias_protesto_negativar: 0,
     tipo_dia_protesto: 'U',
     senha_boleto: 0,
-    nosso_numero: '',
-    numero_remessa: '',
-    convenio: '',
     primeiro_alerta_vencto: 0,
     segundo_alerta_vencto: 0,
     modelo_boleto: 'Boleto Simples',
     local_pagamento: '',
-    instrucoes: ''
+    instrucoes: '',
+    apitoken: '',
+    username: '',
+    pass: '',
+    nosso_numero: ''
   })
   
   if (formRef.value) {

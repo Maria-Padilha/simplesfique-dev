@@ -31,6 +31,9 @@
           :show-expand="expandable"
           v-model:expanded="expandedModel"
           :expand-on-click="expandOnClick"
+          :show-select="showSelect"
+          v-model:selected="localSelected"
+          :item-selectable="itemSelectable || undefined"
         >
           <!-- Slots dinâmicos para formatação customizada -->
           <template
@@ -133,7 +136,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits, defineExpose } from 'vue'
+import { ref, computed, watch, defineProps, defineEmits, defineExpose } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
 
 const themeStore = useThemeStore()
@@ -280,6 +283,19 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+
+  showSelect: {
+    type: Boolean,
+    default: false
+  },
+  selected: {
+    type: Array,
+    default: () => []
+  },
+  itemSelectable: {
+    type: String,
+    default: null
+  }
 })
 
 const esconderFooter = computed(() => props.esconderFooter)
@@ -292,7 +308,8 @@ const emit = defineEmits([
   'custom-action',
   'confirm-delete',
   'update:search',
-  'update:expanded'
+  'update:expanded',
+  'update:selected'
 ])
 
 // Reactive data
@@ -300,10 +317,21 @@ const deleteDialog = ref(false)
 const itemToDelete = ref(null)
 
 // Computed
-const searchModel = computed(({
+const searchModel = computed({
   get: () => props.search,
   set: (value) => emit('update:search', value)
-}))
+})
+
+// Local ref para seleção — fluxo unidirecional: filho → pai via emit
+const localSelected = ref([...props.selected])
+
+watch(localSelected, (val) => {
+  emit('update:selected', val)
+}, { deep: true })
+
+const clearSelection = () => {
+  localSelected.value = []
+}
 
 // Methods
 const handleDeleteItem = (item) => {
@@ -336,7 +364,8 @@ const expandedModel = computed({
 defineExpose({
   openDeleteDialog: () => { deleteDialog.value = true },
   closeDeleteDialog,
-  expanded
+  expanded,
+  clearSelection
 })
 </script>
 

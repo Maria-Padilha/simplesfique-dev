@@ -1,9 +1,6 @@
 import {defineStore} from "pinia"
 import api from "@/services/api";
-import {useApiStore} from "@/stores/APIs/api";
 import {toast} from "vue3-toastify";
-
-const apiStore = useApiStore();
 
 export const useLocalizacaoStore = defineStore('localizacao', {
     state: () => ({
@@ -118,6 +115,8 @@ export const useLocalizacaoStore = defineStore('localizacao', {
          */
 
         async cadastrarBairro(bairroData) {
+            const { useApiStore } = await import('@/stores/APIs/api');
+            const apiStore = useApiStore();
             this.loading = apiStore.loading;
             await apiStore.executarAcao('bairro', 'post', bairroData);
         },

@@ -31,33 +31,45 @@ export const usePessoasStore = defineStore('pessoas', {
         },
 
         async salvarPessoa (formRef, form, editando = false, snackbar = null) {
-            if (!formRef?.validate()) return
+            const validation = await formRef?.validate()
+            if (validation && !validation.valid) return
 
-            // limpar mascaras
-            form.cpf_cnpj = form.cpf_cnpj.replace(/\D/g, '');
-            form.telefone = form.telefone.replace(/\D/g, '');
-            form.celular = form.celular.replace(/\D/g, '');
-            form.whats = form.whats.replace(/\D/g, '');
-            form.latitude = Number(form.latitude);
-            form.longitude = Number(form.longitude);
+            // Clonar para sair do Proxy reativo e evitar mutação na tela
+            const rawForm = JSON.parse(JSON.stringify(form))
+
+            // Limpar máscaras
+            rawForm.cpf_cnpj = (rawForm.cpf_cnpj || '').replace(/\D/g, '')
+            rawForm.telefone  = (rawForm.telefone  || '').replace(/\D/g, '')
+            rawForm.celular   = (rawForm.celular   || '').replace(/\D/g, '')
+            rawForm.whats     = (rawForm.whats     || '').replace(/\D/g, '')
+
+            // Separar enderecos e descartar campos obsoletos (latitude, longitude, data wrapper)
+            const { enderecos = [], ...pessoaData } = rawForm
+            delete pessoaData.data
+            delete pessoaData.latitude
+            delete pessoaData.longitude
+
+            const payload = {
+                data: [pessoaData],
+                endereco: enderecos
+            }
 
             this.loading = true
             try {
-                const payload = {data: [{...form}]}
                 if (editando) {
-                    await api.put(`/pessoa/${form.id}`, payload, {headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}})
-                    snackbar.message = 'Pessoa atualizada com sucesso!'
+                    await api.put(`/pessoa/${rawForm.id}`, payload, {headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}})
+                    snackbar.message = 'Cliente atualizado com sucesso!'
                 } else {
                     await api.post('/pessoa', payload, {headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}})
-                    snackbar.message = 'Pessoa criada com sucesso!'
+                    snackbar.message = 'Cliente criado com sucesso!'
                 }
                 snackbar.color = 'success'
                 snackbar.show = true
                 await this.buscarTodasPessoas();
             } catch (e) {
                 console.error(e)
-                this.errorMessage = 'Erro ao salvar pessoa!'
-                snackbar.message = 'Erro ao salvar pessoa'
+                this.errorMessage = 'Erro ao salvar cliente!'
+                snackbar.message = 'Erro ao salvar cliente'
                 snackbar.color = 'error'
                 snackbar.show = true
             } finally {
@@ -82,21 +94,19 @@ export const usePessoasStore = defineStore('pessoas', {
 
         async buscarpessoaId(id) {
             this.loading = true;
-
             try {
                 const response = await api.get(`/pessoa/${id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`
-                    }
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                 });
-
-                this.pessoa = response.data;
+                const pessoa = response.data?.data?.[0] ?? null
+                const endereco = response.data?.endereco ?? []
+                this.pessoa = pessoa
                 this.errorMessage = '';
-                console.log('pessoa encontrada: ', this.pessoa);
-
+                return { pessoa, endereco }
             } catch (error) {
                 this.errorMessage = error.response;
                 console.error('Erro ao buscar pessoa pelo ID:', error);
+                return null
             } finally {
                 this.loading = false;
             }

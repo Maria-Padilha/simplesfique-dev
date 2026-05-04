@@ -247,16 +247,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        // Garantir que não estamos enviando o id na criação
-        const dadosSemId = { ...contaData };
-        delete dadosSemId.id;
-
-        // Normalizar id_banco: enviar somente o ID numérico se vier como objeto
-        if (dadosSemId.id_banco && typeof dadosSemId.id_banco === 'object') {
-          dadosSemId.id_banco = dadosSemId.id_banco.ID ?? dadosSemId.id_banco.id ?? dadosSemId.id_banco
-        }
-
-        const response = await api.post('/ccorrente', { data: [dadosSemId] }, {
+        const response = await api.post('/ccorrente', contaData, {
           headers: this.getAuthHeaders()
         });
         
@@ -277,16 +268,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        // Remover o id dos dados a serem enviados (vai na URL)
-        const dadosParaUpdate = { ...contaData };
-        delete dadosParaUpdate.id_ccorrente; // Nome correto do campo ID
-
-        // Normalizar id_banco se necessário
-        if (dadosParaUpdate.id_banco && typeof dadosParaUpdate.id_banco === 'object') {
-          dadosParaUpdate.id_banco = dadosParaUpdate.id_banco.ID ?? dadosParaUpdate.id_banco.id ?? dadosParaUpdate.id_banco
-        }
-
-        const response = await api.put(`/ccorrente/${id}`, { data: [dadosParaUpdate] }, {
+        const response = await api.put(`/ccorrente/${id}`, contaData, {
           headers: this.getAuthHeaders()
         });
         
@@ -1232,6 +1214,42 @@ export const useFinanceiroStore = defineStore('financeiro', {
         })
 
         // Normalizar retorno: pode retornar { data: [...] } ou array direto
+        const resp = response.data
+        let parcelas = []
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          parcelas = resp.data
+        } else if (Array.isArray(resp)) {
+          parcelas = resp
+        } else if (resp && typeof resp === 'object') {
+          parcelas = [resp]
+        }
+
+        return parcelas
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao calcular parcelas'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async calcularParcelasColab(dadosCalculo) {
+      this.loading = true
+      this.error = null
+      try {
+        const dadosParcela = {
+          vlrtotal: dadosCalculo.vlrtotal,
+          qtdparcelas: dadosCalculo.qtdparcelas,
+          intervalo: dadosCalculo.intervalo || 30,
+          primeirovencimento: dadosCalculo.primeirovencimento,
+        }
+
+        const payload = { data: [dadosParcela] }
+
+        const response = await api.post('/adtcolabocalcparc', payload, {
+          headers: this.getAuthHeaders()
+        })
+
         const resp = response.data
         let parcelas = []
         if (resp && resp.data && Array.isArray(resp.data)) {
@@ -2407,6 +2425,27 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
+    // Gerar Nosso Número / boleto para parcelas selecionadas
+    // POST /bolnossonumero/:idcarteira/idccorrente/:idccorrente
+    async gerarNossoNumero(idCarteira, idCcorrente, parcelasIds, idEmpresa) {
+      this.loading = true
+      this.error = null
+      try {
+        const payload = { data: parcelasIds.map(id => ({ id_parcela: id })) }
+        const response = await api.post(
+          `/bolnossonumero/${idEmpresa}/idcarteira/${idCarteira}/idccorrente/${idCcorrente}`,
+          payload,
+          { headers: this.getAuthHeaders() }
+        )
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao gerar nosso número'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     // Buscar todas as carteiras (GET /carteira/:idempresa)
     async buscarCarteiras(idEmpresa) {
       this.loading = true
@@ -2481,7 +2520,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         const dadosSemId = { ...carteiraData }
         delete dadosSemId.id
 
-        const response = await api.post('/carteira', { data: [dadosSemId] }, {
+        const response = await api.post('/carteiracob', { data: [dadosSemId] }, {
           headers: this.getAuthHeaders()
         })
 
@@ -2502,7 +2541,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         const dadosParaUpdate = { ...carteiraData }
         delete dadosParaUpdate.id
 
-        const response = await api.put(`/carteira/${id}`, { data: [dadosParaUpdate] }, {
+        const response = await api.put(`/carteiracob/${id}`, { data: [dadosParaUpdate] }, {
           headers: this.getAuthHeaders()
         })
 
@@ -2520,7 +2559,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true
       this.error = null
       try {
-        await api.delete(`/carteira/${id}`, {
+        await api.delete(`/carteiracob/${id}`, {
           headers: this.getAuthHeaders()
         })
 
@@ -2720,6 +2759,88 @@ export const useFinanceiroStore = defineStore('financeiro', {
       } catch (error) {
         console.error('[Store] Erro ao deletar modelo DRE:', error)
         this.error = error.response?.data?.error || 'Erro ao deletar modelo DRE'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // ========== LANÇAMENTO COLABORADOR ==========
+
+    // Buscar lançamentos de colaborador (GET /adtcolabo)
+    async buscarLancamentosColab(idEmpresa, params = {}) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get(`/adtcolabo/${idEmpresa}`, {
+          headers: this.getAuthHeaders(),
+          params,
+        })
+        const resp = response.data
+        let dados
+        if (resp && resp.data && Array.isArray(resp.data)) dados = resp.data
+        else if (Array.isArray(resp)) dados = resp
+        else if (resp && typeof resp === 'object') dados = [resp]
+        else dados = []
+        return dados
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao buscar lançamentos de colaborador'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Criar lançamento de colaborador (POST /adtcolabo)
+    // payload: { data: [{ ...campos }], parcela: [{ valor, dtvencimento }] }
+    async criarLancamentoColab(payload) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.post('/adtcolabo', payload, { headers: this.getAuthHeaders() })
+        toast.success('Lançamento salvo com sucesso!')
+        const resp = response.data
+        if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0]
+        return resp
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao criar lançamento de colaborador'
+        toast.error(this.error)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Atualizar lançamento de colaborador (PUT /adtcolabo/:id)
+    async atualizarLancamentoColab(id, payload) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.put(`/adtcolabo/${id}`, payload, { headers: this.getAuthHeaders() })
+        toast.success('Lançamento atualizado com sucesso!')
+        const resp = response.data
+        if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0]
+        return resp
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao atualizar lançamento de colaborador'
+        toast.error(this.error)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Deletar lançamento de colaborador (DELETE /adtcolabo/:id)
+    async deletarLancamentoColab(id) {
+      this.loading = true
+      this.error = null
+      try {
+        await api.delete(`/adtcolabo/${id}`, { headers: this.getAuthHeaders() })
+        toast.success('Lançamento excluído com sucesso!')
+        return true
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao deletar lançamento de colaborador'
+        toast.error(this.error)
         throw error
       } finally {
         this.loading = false

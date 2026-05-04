@@ -62,6 +62,31 @@
 
     <v-spacer></v-spacer>
 
+    <!-- BOTÃO DE AGENDA -->
+    <v-tooltip location="bottom">
+      <template v-slot:activator="{ props }">
+        <v-btn
+          v-bind="props"
+          icon
+          variant="text"
+          size="small"
+          class="mr-1 agenda-btn"
+          @click="modalAgenda = true"
+        >
+          <v-badge
+            v-if="agendaStore.quantidadeProximos > 0"
+            :content="agendaStore.quantidadeProximos"
+            color="var(--text-color-laranja)"
+            floating
+          >
+            <v-icon icon="mdi-calendar-clock" size="22"></v-icon>
+          </v-badge>
+          <v-icon v-else icon="mdi-calendar-clock" size="22"></v-icon>
+        </v-btn>
+      </template>
+      <span>Agenda</span>
+    </v-tooltip>
+
     <v-menu :close-on-content-click="false">
       <template v-slot:activator="{ props: menu }">
         <v-tooltip location="top">
@@ -253,6 +278,9 @@
 
   <!-- MODAL DE CONFIGURAÇÃO DE ACESSOS RÁPIDOS -->
   <ConfigAcessosRapidosModal v-model="modalAcessosRapidos" />
+
+  <!-- MODAL DE AGENDA -->
+  <AgendaModal v-model="modalAgenda" />
 </template>
 
 <script setup>
@@ -262,9 +290,11 @@ import {useEmpresaStore} from "@/stores/APIs/empresa";
 import {useConfigParfinStore} from "@/stores/APIs/config";
 import {useAcessoStore} from "@/stores/APIs/acesso";
 import {useAcessosRapidosStore} from "@/stores/acessos-rapidos";
-import {ref, onMounted, onBeforeUnmount, mergeProps, computed, watchEffect} from 'vue'
+import {ref, onMounted, onBeforeUnmount, mergeProps, computed, watch} from 'vue'
 import ErrorAlertModal from "@/components/base/modais/ErrorAlertModal.vue";
 import ConfigAcessosRapidosModal from "@/components/base/modais/ConfigAcessosRapidosModal.vue";
+import AgendaModal from "@/components/base/modais/AgendaModal.vue";
+import {useAgendaStore} from "@/stores/APIs/agenda";
 
 // Inicializar o store da sidebar
 const sidebarStore = useSidebarStore();
@@ -274,7 +304,7 @@ const themeStore = useThemeStore();
 
 // Store de empresas
 const empresaStore = useEmpresaStore();
-const empresas = computed(() => empresaStore.empresas?.data || []);
+const empresas = computed(() => empresaStore.empresas || []);
 
 // Store de acessos
 const acessoStore = useAcessoStore();
@@ -290,6 +320,12 @@ const errorModal = ref(false);
 
 // modal de acessos rápidos
 const modalAcessosRapidos = ref(false);
+
+// modal de agenda
+const modalAgenda = ref(false);
+
+// Store de agenda
+const agendaStore = useAgendaStore();
 
 // links do menu perfil
 const items = ref([
@@ -339,24 +375,22 @@ const selecionarEmpresa = async (empresa) => {
 // Função para buscar configurações do sistema
 const buscarConfiguracoes = async () => {
   try {
-    // Buscar ID da empresa do localStorage
-    let idEmpresa = localStorage.getItem('empresa');
-    
-    // Se não encontrar, tenta buscar do objeto empresaSelecionada
+    // Preferir empresa selecionada no store (reativo), com fallback no localStorage
+    let idEmpresa = empresaStore.empresaSelecionada?.id;
+
     if (!idEmpresa) {
-      const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada');
-      if (empresaSelecionadaStr) {
-        try {
-          const empresaSelecionada = JSON.parse(empresaSelecionadaStr);
-          idEmpresa = empresaSelecionada.id;
-        } catch (e) {
-          console.error('Erro ao parsear empresaSelecionada:', e);
+      try {
+        const empresaSelecionadaStr = localStorage.getItem('empresaSelecionada');
+        if (empresaSelecionadaStr) {
+          idEmpresa = JSON.parse(empresaSelecionadaStr)?.id;
         }
+      } catch (e) {
+        console.error('Erro ao parsear empresaSelecionada:', e);
       }
     }
-    
+
     if (!idEmpresa) {
-      console.error('ID da empresa não encontrado');
+      console.warn('ID da empresa não encontrado — aguardando seleção de empresa.');
       return;
     }
     
@@ -392,48 +426,42 @@ const buscarConfiguracoes = async () => {
 onMounted(async () => {
   console.log('[SidebarComponent] Inicializando aplicação...');
 
-  // Primeiro carrega a empresa salva
+  // Carregar lista de empresas primeiro
+  await empresaStore.buscarTodasEmpresas();
+
+  // Restaurar empresa salva no localStorage
   empresaStore.carregarEmpresaSelecionada();
-  console.log('[SidebarComponent] Empresa carregada:', empresaStore.empresaSelecionada?.razao_social);
+
+  // Se nenhuma empresa estiver selecionada, auto-selecionar a matriz (ou a primeira)
+  if (!empresaStore.empresaSelecionada && empresaStore.empresas.length > 0) {
+    const matriz = empresaStore.empresas.find(e => e.matriz === 'S') || empresaStore.empresas[0];
+    empresaStore.selecionarEmpresa(matriz);
+    console.log('[SidebarComponent] Empresa auto-selecionada:', matriz?.razao_social);
+  } else {
+    console.log('[SidebarComponent] Empresa carregada:', empresaStore.empresaSelecionada?.razao_social);
+  }
+
+  // Buscar acessos e configurações após empresa estar definida
+  if (empresaStore.empresaSelecionada?.id) {
+    await acessoStore.buscarAcessos(empresaStore.empresaSelecionada.id);
+  }
+  await buscarConfiguracoes();
 
   // Event listener para resize
   window.addEventListener('resize', onResize);
   onResize();
-
-  // Aguarda um pouco para carregar configurações
-  setTimeout(async () => {
-    await buscarConfiguracoes();
-  }, 2000);
 });
 
-watchEffect(async () => {
-  console.log('[SidebarComponent] watchEffect disparado - Carregando lista de empresas...');
-
-  // Sempre carregar todas as empresas
-  if (empresas.value.length === 0) {
-    console.log('[SidebarComponent] Buscando empresas da API...');
-    await empresaStore.buscarTodasEmpresas();
-  }
-
-  // Verificar se tem empresa selecionada e buscar acessos
-  const empresaSelecionada = empresaStore.empresaSelecionada;
-  console.log('[SidebarComponent] Empresa selecionada agora:', empresaSelecionada?.razao_social);
-
-  if (empresaSelecionada && empresaSelecionada.id) {
-    console.log('[SidebarComponent] Buscando acessos para empresa:', empresaSelecionada.id);
-    await acessoStore.buscarAcessos(empresaSelecionada.id);
-    console.log('[SidebarComponent] Acessos carregados com sucesso');
-  } else {
-    console.log('[SidebarComponent] Nenhuma empresa selecionada ainda');
-
-    // Se não tem empresa selecionada, selecionar a primeira
-    if (empresas.value.length > 0 && !empresaSelecionada) {
-      const primeiraEmpresa = empresas.value[0];
-      console.log('[SidebarComponent] Selecionando primeira empresa automaticamente:', primeiraEmpresa.razao_social);
-      await selecionarEmpresa(primeiraEmpresa);
+watch(
+  () => empresaStore.empresaSelecionada,
+  async (empresaSelecionada) => {
+    if (empresaSelecionada && empresaSelecionada.id) {
+      await acessoStore.buscarAcessos(empresaSelecionada.id);
+      await buscarConfiguracoes();
     }
-  }
-});
+  },
+  { immediate: false }
+);
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onResize);
