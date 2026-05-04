@@ -436,6 +436,8 @@ const salvarFormulario = async () => {
   cancelarFormulario();
 };
 
+const formulaId = computed(() => estoqueStore.formula);
+
 // Editar
 const editarItem = async (item) => {
   await estoqueStore.buscarFormulaId(idEmpresa?.id, item.id);
@@ -449,7 +451,7 @@ const editarItem = async (item) => {
     id_empresa: forms.id_empresa
   });
 
-  variaveis.value = (item.variaveis ?? []).map(v => ({
+  variaveis.value = (formulaId.value?.var ?? []).map(v => ({
     varnome: v.varnome,
     vartype: v.vartype,
   }));
