@@ -746,7 +746,131 @@
           <v-tabs-window-item value="img">
             <v-card elevation="0" class="background-secondary mt-10">
               <v-card-text class="pa-4">
-                <p>Em construção...</p>
+
+                <div class="upload-produto-box">
+                  <div class="d-flex justify-end ga-3 mt-4">
+                    <v-btn
+                        variant="flat"
+                        color="var(--text-color-laranja)"
+                        prepend-icon="mdi-cloud-upload"
+                        class="text-none text-white"
+                        :loading="loadingUploadFoto"
+                        @click="uploadFotoProduto"
+                        :disabled="!fotoProduto"
+                    >
+                      Salvar foto
+                    </v-btn>
+
+                    <v-btn
+                        variant="tonal"
+                        color="error"
+                        class="text-none"
+                        prepend-icon="mdi-delete"
+                        :disabled="!form.foto_key && !previewImagem"
+                        @click="removerFotoProduto"
+                    >
+                      Apagar Foto
+                    </v-btn>
+                  </div>
+
+                  <v-file-input
+                      v-model="fotoProduto"
+                      label="Foto do produto"
+                      accept="image/*"
+                      prepend-icon="mdi-camera"
+                      variant="outlined"
+                      density="comfortable"
+                      hide-details="auto"
+                      class="mt-4"
+                  />
+
+                  <div class="preview-produto mt-4">
+                    <v-img
+                        v-if="previewImagem || form.foto_url"
+                        :src="previewImagem || form.foto_url"
+                        height="300px"
+                        class="rounded-lg"
+                    />
+
+                    <div v-else class="preview-placeholder">
+                      <v-icon size="60">mdi-image-plus</v-icon>
+                      <p>Nenhuma foto selecionada</p>
+                    </div>
+                  </div>
+
+                  <v-divider class="my-6" />
+
+                  <div class="d-flex align-center justify-space-between mb-4">
+                    <h3 class="text-subtitle-1 font-weight-bold">
+                      Fotos salvas
+                    </h3>
+
+                    <v-btn
+                        size="small"
+                        variant="tonal"
+                        prepend-icon="mdi-refresh"
+                        :loading="loadingFotos"
+                        @click="carregarFotosR2"
+                    >
+                      Buscar todas as fotos
+                    </v-btn>
+                  </div>
+
+                  <v-progress-linear
+                      v-if="loadingFotos"
+                      indeterminate
+                      class="mb-4"
+                  />
+
+                  <v-row v-if="!loadingFotos && fotosR2.length > 0">
+                    <v-col
+                        v-for="foto in fotosR2"
+                        :key="foto.key"
+                        cols="12"
+                        sm="6"
+                        md="4"
+                        lg="3"
+                    >
+                      <v-card
+                          class="foto-r2-card"
+                          elevation="2"
+                          @click="selecionarFotoR2(foto)"
+                      >
+                        <v-img
+                            :src="foto.url"
+                            height="150"
+                            cover
+                        />
+
+                        <v-card-text class="pa-3">
+                          <div class="text-caption text-truncate">
+                            {{ foto.nome }}
+                          </div>
+
+                          <v-btn
+                              block
+                              size="small"
+                              class="mt-3 text-none"
+                              color="primary"
+                              variant="tonal"
+                              @click.stop="selecionarFotoR2(foto)"
+                          >
+                            Usar essa foto
+                          </v-btn>
+                        </v-card-text>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+
+                  <v-alert
+                      v-if="!loadingFotos && fotosR2.length === 0"
+                      type="info"
+                      variant="tonal"
+                      class="mt-4"
+                  >
+                    Nenhuma foto encontrada.
+                  </v-alert>
+                </div>
               </v-card-text>
             </v-card>
           </v-tabs-window-item>
@@ -793,7 +917,7 @@ import {useProdutosStore} from "@/stores/APIs/produtos";
 import {useEstoqueStore} from "@/stores/APIs/estoque";
 import {useThemeStore} from "@/stores/config-temas/theme";
 import {usePessoasStore} from "@/stores/APIs/pessoas";
-import {computed, reactive, ref, watchEffect} from "vue";
+import {computed, reactive, ref, watchEffect, watch} from "vue";
 import GruposMenu from "@/components/base/menu/GruposMenu.vue";
 import ClassesMenu from "@/components/base/menu/ClassesMenu.vue";
 import NcmMenu from "@/components/base/menu/NcmMenu.vue";
@@ -804,6 +928,7 @@ import ExcluirModal from "@/components/base/modais/ExcluirModal.vue";
 import BotaoExpandTransition from "@/components/base/padrao-paginas/BotaoExpandTransition.vue";
 import FormsExpandTransition from "@/components/base/padrao-paginas/FormsExpandTransition.vue";
 import TabelaPadrao from "@/components/base/padrao-paginas/TabelaPadrao.vue";
+import axios from "axios";
 
 const route = useRoute();
 const produtosStore = useProdutosStore();
@@ -816,7 +941,7 @@ const idEmpresa = JSON.parse(localStorage.getItem('empresaSelecionada'));
 
 // STATE
 const openModalDelete = ref(false);
-const tab = ref('tributo');
+const tab = ref('img');
 const validacao = [(v) => !!v || 'Campo obrigatório'];
 const forms = computed(() => produtosStore.produto || {});
 
@@ -1346,6 +1471,235 @@ function formatarParaReal(valor) {
 }
 
 /**
+ * TRABALHANDO COM AS IMAGENS
+ */
+
+const form = ref({
+  foto_key: null,
+  foto_url: null,
+});
+
+const API_MIDIAS = "http://192.168.10.79:3005";
+
+const fotoProduto = ref(null);
+const previewImagem = ref(null);
+const loadingUploadFoto = ref(false);
+const loadingFotos = ref(false);
+const fotosR2 = ref([]);
+
+const normalizarKey = (key) => {
+  return String(key || "").replaceAll("\\/", "/");
+};
+
+const getPresignedUrl = async (key) => {
+  const keyNormalizada = normalizarKey(key);
+
+  const url = `${API_MIDIAS}/api/files/presigned/${encodeURIComponent(keyNormalizada)}`;
+
+  console.log("URL PRESIGNED:", url);
+
+  try {
+    const { data } = await axios.get(url, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    return data;
+  } catch (error) {
+    console.error("ERRO AXIOS COMPLETO:", {
+      message: error.message,
+      code: error.code,
+      status: error.response?.status,
+      data: error.response?.data,
+      headers: error.response?.headers,
+      request: error.request,
+    });
+
+    throw error;
+  }
+};
+
+const carregarFotosR2 = async () => {
+  loadingFotos.value = true;
+  fotosR2.value = [];
+
+  try {
+    await produtosStore.buscarFotosBanco(id);
+
+    const fotosBanco = produtosStore.fotosBanco?.data || [];
+
+    console.log("FOTOS DO BANCO AQUI:", fotosBanco);
+
+    const fotosComUrl = await Promise.all(
+        fotosBanco.map(async (foto) => {
+          try {
+            const key = normalizarKey(foto.r2key);
+
+            if (!key) return null;
+
+            const presigned = await getPresignedUrl(key);
+
+            return {
+              id_produto: foto.id_produto,
+              descproduto: foto.descproduto,
+              key,
+              nome: key.split("/").pop(),
+              url: presigned.signedUrl,
+              expiresAt: presigned.expiresAt,
+              contentType: presigned.fileInfo?.contentType,
+            };
+          } catch (error) {
+            console.error("Erro ao carregar foto individual:", foto, error);
+            return null;
+          }
+        })
+    );
+
+    fotosR2.value = fotosComUrl.filter(Boolean);
+
+    console.log("FOTOS R2 FINAL:", fotosR2.value);
+  } catch (error) {
+    console.error("Erro ao carregar fotos do produto:", error);
+    fotosR2.value = [];
+  } finally {
+    loadingFotos.value = false;
+  }
+};
+
+const selecionarFotoR2 = (foto) => {
+  form.value.foto_key = foto.key;
+  form.value.foto_url = foto.url;
+  previewImagem.value = foto.url;
+};
+
+const uploadFotoProduto = async () => {
+  const file = Array.isArray(fotoProduto.value)
+      ? fotoProduto.value[0]
+      : fotoProduto.value;
+
+  if (!file) return;
+
+  loadingUploadFoto.value = true;
+
+  try {
+    const idSaas = Number(idEmpresa?.id || 1);
+    const idUsuario = Number(idEmpresa?.id || 1);
+
+    const data = await produtosStore.uploadFile(idSaas, idUsuario, file);
+
+    console.log("RETORNO UPLOAD:", data);
+
+    const key = normalizarKey(data.key || data?.file?.key);
+
+    if (!key) {
+      throw new Error("Upload não retornou a key do arquivo.");
+    }
+
+    await produtosStore.salvarFotoBanco({
+      data: [
+        {
+          id_produto: Number(id),
+          r2key: key,
+        },
+      ],
+    });
+
+    form.value.foto_key = key;
+
+    const presigned = await getPresignedUrl(key);
+
+    form.value.foto_url = presigned.signedUrl;
+    previewImagem.value = presigned.signedUrl;
+
+    fotoProduto.value = null;
+
+    await carregarFotosR2();
+
+    console.log("Upload sucesso:", data);
+  } catch (error) {
+    console.error("Erro ao enviar foto:", error);
+  } finally {
+    loadingUploadFoto.value = false;
+  }
+};
+
+const removerFotoProduto = async () => {
+  const key = form.value.foto_key;
+
+  if (!key) return;
+
+  try {
+    loadingFotos.value = true;
+
+    // 1. Apaga no R2
+    await produtosStore.deleteFile(key);
+
+    // 2. Se deu certo, apaga no banco
+    await produtosStore.deletarFotoBanco(Number(id), {
+      data: [
+        {
+          r2key: normalizarKey(key),
+        },
+      ],
+    });
+
+    // 3. Limpa tela
+    form.value.foto_key = null;
+    form.value.foto_url = null;
+    fotoProduto.value = null;
+    previewImagem.value = null;
+
+    await carregarFotosR2();
+  } catch (error) {
+    console.error("Erro ao remover foto:", error);
+  } finally {
+    loadingFotos.value = false;
+  }
+};
+
+const limparPreviewLocal = () => {
+  if (previewImagem.value?.startsWith("blob:")) {
+    URL.revokeObjectURL(previewImagem.value);
+  }
+
+  previewImagem.value = null;
+};
+
+const gerarPreviewFoto = () => {
+  const file = Array.isArray(fotoProduto.value)
+      ? fotoProduto.value[0]
+      : fotoProduto.value;
+
+  limparPreviewLocal();
+
+  if (!file) return;
+
+  if (!(file instanceof File || file instanceof Blob)) {
+    console.warn("Preview ignorado. Valor não é File/Blob:", file);
+    return;
+  }
+
+  previewImagem.value = URL.createObjectURL(file);
+};
+
+watch(fotoProduto, (novoValor) => {
+  const file = Array.isArray(novoValor)
+      ? novoValor[0]
+      : novoValor;
+
+  if (!file) {
+    return;
+  }
+
+  if (!(file instanceof File || file instanceof Blob)) {
+    return;
+  }
+
+  gerarPreviewFoto();
+});
+
+/**
  * CHAMANDO AS APIs
  */
 
@@ -1375,3 +1729,38 @@ watchEffect(async () => {
   }
 });
 </script>
+
+<style scoped>
+.upload-produto-box {
+  width: 100%;
+}
+
+.preview-produto {
+  width: 100%;
+  min-height: 260px;
+  border: 2px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.preview-placeholder {
+  height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+}
+
+.foto-r2-card {
+  cursor: pointer;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: 0.2s ease;
+}
+
+.foto-r2-card:hover {
+  transform: translateY(-3px);
+}
+</style>

@@ -51,23 +51,6 @@
             </v-text-field>
           </v-col>
 
-          <!-- CFOP -->
-          <v-col cols="12" md="2">
-            <v-autocomplete
-                density="compact"
-                variant="outlined"
-                label="CFOP"
-                hide-details="auto"
-                :rules="validacao"
-                class="required-left-border"
-                v-model="forms.id_cfop"
-                :items="cfops"
-                item-title="title"
-                item-value="value"
-                clearable
-            />
-          </v-col>
-
           <!-- UF -->
           <v-col cols="12" md="2">
             <v-autocomplete
@@ -79,6 +62,23 @@
                 class="required-left-border"
                 v-model="forms.id_uf"
                 :items="ufs"
+                item-title="title"
+                item-value="value"
+                clearable
+            />
+          </v-col>
+
+          <!-- CFOP -->
+          <v-col cols="12" md="2">
+            <v-autocomplete
+                density="compact"
+                variant="outlined"
+                label="Aliquota"
+                hide-details="auto"
+                :rules="validacao"
+                class="required-left-border"
+                v-model="forms.id_cfop"
+                :items="cfops"
                 item-title="title"
                 item-value="value"
                 clearable

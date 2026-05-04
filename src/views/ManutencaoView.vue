@@ -214,7 +214,7 @@ onBeforeUnmount(() => {
   font-size: clamp(2.8rem, 5vw, 5.4rem);
   line-height: 0.98;
   letter-spacing: -0.05em;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-color-primary);
 }
 

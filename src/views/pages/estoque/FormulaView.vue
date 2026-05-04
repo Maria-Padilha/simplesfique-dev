@@ -24,37 +24,134 @@
           <template #form>
             <v-form ref="formRef">
               <v-row>
-                <v-col cols="12" md="12">
-                  <v-text-field
-                      v-model="forms.descformula"
-                      label="Descrição da Fórmula"
-                      variant="outlined"
-                      density="compact"
-                      :rules="validacaoDesc"
-                      :theme="themeStore.darkMode ? 'dark' : 'light'"
-                      class="required-left-border"
-                  />
+
+                <!-- 🔹 COLUNA PRINCIPAL -->
+                <v-col cols="12" md="8">
+                  <v-row>
+                    <v-col cols="12">
+                      <v-text-field
+                          v-model="forms.descformula"
+                          label="Descrição da Fórmula"
+                          variant="outlined"
+                          density="compact"
+                          :rules="validacaoDesc"
+                          :theme="themeStore.darkMode ? 'dark' : 'light'"
+                          class="required-left-border"
+                      />
+                    </v-col>
+
+                    <!-- Editor -->
+                    <v-col cols="12">
+                      <div class="flex items-center justify-between w-100 mb-4">
+                        <p class="text-sm opacity-70">Código (alto nível)</p>
+
+                        <v-btn
+                            v-if="editando"
+                            color="var(--text-color-laranja)"
+                            variant="flat"
+                            class="text-none text-white"
+                            @click="compilarFormula"
+                        >
+                          Compilar/Testar Fórmula
+                        </v-btn>
+                      </div>
+
+                      <MonacoEditor
+                          v-model:value="forms.formula"
+                          language="pascal"
+                          theme="vs-dark"
+                          :options="{
+              fontSize: 14,
+              minimap: { enabled: false },
+              wordWrap: 'on',
+              automaticLayout: true
+            }"
+                          height="420px"
+                      />
+                    </v-col>
+
+                    <!-- Erros -->
+                    <v-col cols="12" v-if="errosCompilacao.length">
+                      <v-alert type="error" variant="tonal" class="mt-2">
+                        <div v-for="(e, i) in errosCompilacao" :key="i">
+                          Linha {{ e.line }}: {{ e.message }}
+                        </div>
+                      </v-alert>
+                    </v-col>
+                  </v-row>
                 </v-col>
 
-                <!-- Editor do código normal -->
-                <v-col cols="12" md="12">
-                  <div class="text-sm opacity-70 mb-2">Código (alto nível)</div>
-                  <MonacoEditor
-                      v-model:value="forms.formula"
-                      language="pascal"
-                      theme="vs-dark"
-                      :options="{fontSize: 14,minimap: { enabled: false }, wordWrap: 'on',automaticLayout: true}"
-                      height="420px"
-                  />
-                </v-col>
+                <!-- 🔹 SIDEBAR DE VARIÁVEIS -->
+                <v-col cols="12" md="4">
+                  <v-card elevation="2" class="pa-4 h-100">
+                    <p class="font-weight-medium mb-3">Variáveis</p>
 
-                <!-- Erros -->
-                <v-col cols="12" v-if="errosCompilacao.length">
-                  <v-alert type="error" variant="tonal" class="mt-2">
-                    <div v-for="(e, i) in errosCompilacao" :key="i">
-                      Linha {{ e.line }}: {{ e.message }}
-                    </div>
-                  </v-alert>
+                    <v-divider class="mb-3" />
+
+                    <!-- cadastro único -->
+                    <v-text-field
+                        v-model="novaVariavel.varnome"
+                        label="Nome da variável"
+                        density="compact"
+                        variant="outlined"
+                        hide-details
+                        class="mb-4"
+                    />
+
+                    <v-select
+                        v-model="novaVariavel.vartype"
+                        :items="tiposVariaveis"
+                        label="Tipo da variável"
+                        density="compact"
+                        variant="outlined"
+                        hide-details
+                        class="mb-3"
+                    />
+
+                    <v-btn
+                        block
+                        variant="flat"
+                        color="var(--text-color-laranja)"
+                        class="text-none text-white mb-4"
+                        prepend-icon="mdi-plus"
+                        @click="addVariavel"
+                    >
+                      Adicionar variável
+                    </v-btn>
+
+                    <!-- tabela -->
+                    <v-table density="compact" class="variaveis-table">
+                      <thead>
+                      <tr>
+                        <th>Nome</th>
+                        <th>Tipo</th>
+                        <th class="text-center">Ação</th>
+                      </tr>
+                      </thead>
+
+                      <tbody>
+                      <tr v-if="!variaveis.length">
+                        <td colspan="3" class="text-center opacity-60 py-4">
+                          Nenhuma variável cadastrada
+                        </td>
+                      </tr>
+
+                      <tr v-for="(v, i) in variaveis" :key="i">
+                        <td>{{ v.varnome }}</td>
+                        <td>{{ v.vartype }}</td>
+                        <td class="text-center">
+                          <v-btn
+                              icon="mdi-delete"
+                              size="x-small"
+                              color="red"
+                              variant="text"
+                              @click="removeVariavel(i)"
+                          />
+                        </td>
+                      </tr>
+                      </tbody>
+                    </v-table>
+                  </v-card>
                 </v-col>
               </v-row>
             </v-form>
@@ -104,6 +201,14 @@
                 variant="text"
                 @click="excluirItem(item)"
             />
+            <v-btn
+                icon="mdi-code-json"
+                title="Compilar/Testar Fórmula"
+                size="small"
+                color="error"
+                variant="text"
+                @click="compilarFormula(item)"
+            />
           </template>
         </tabela-padrao>
 
@@ -121,7 +226,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watchEffect } from "vue";
+import {computed, reactive, ref, watch, watchEffect} from "vue";
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import BotaoExpandTransition from "@/components/base/padrao-paginas/BotaoExpandTransition.vue";
 import TabelaPadrao from "@/components/base/padrao-paginas/TabelaPadrao.vue";
@@ -134,7 +239,7 @@ import MonacoEditor from "@guolao/vue-monaco-editor";
 const estoqueStore = useEstoqueStore();
 const themeStore = useThemeStore();
 
-const idEmpresa = JSON.parse(localStorage.getItem('empresaSelecionada'));
+const idEmpresa = JSON.parse(localStorage.getItem("empresaSelecionada"));
 const loading = computed(() => estoqueStore.loading);
 const formulas = computed(() => estoqueStore.formulas ?? []); // garanta que exista no store
 
@@ -152,6 +257,13 @@ const errosCompilacao = ref([]);
 
 const toggleFormulario = () => {
   formularioAberto.value = !formularioAberto.value;
+  Object.assign(forms, {
+    descformula: "",
+    formula: "",
+  });
+
+  if (formRef.value) formRef.value.resetValidation();
+  editando.value = false;
 };
 
 // Tabela
@@ -181,20 +293,176 @@ const forms = reactive({
   formula: "",
 });
 
+// CADASTRANDO VARIAVEIS
+const variaveis = ref([]);
+
+const novaVariavel = reactive({
+  varnome: "",
+  vartype: "string",
+});
+
+const tiposVariaveis = [
+  // 🔢 Inteiros
+  { title: "Integer", value: "Integer" },
+  { title: "Shortint", value: "Shortint" },
+  { title: "Smallint", value: "Smallint" },
+  { title: "Longint", value: "Longint" },
+  { title: "Int64", value: "Int64" },
+  { title: "Byte", value: "Byte" },
+  { title: "Word", value: "Word" },
+  { title: "Cardinal", value: "Cardinal" },
+
+  // 🔢 Decimais
+  { title: "Double", value: "Double" },
+  { title: "Real", value: "Real" },
+  { title: "Extended", value: "Extended" },
+  { title: "Currency", value: "Currency" },
+
+  // 🔘 Booleano
+  { title: "Boolean", value: "Boolean" },
+
+  // 🔤 Texto
+  { title: "Char", value: "Char" },
+  { title: "AnsiChar", value: "AnsiChar" },
+  { title: "String", value: "String" },
+  { title: "AnsiString", value: "AnsiString" },
+  { title: "WideString", value: "WideString" },
+
+  // 📅 Datas
+  { title: "TDateTime", value: "TDateTime" },
+  { title: "TDate", value: "TDate" },
+  { title: "TTime", value: "TTime" },
+
+  // 🔀 Genéricos
+  { title: "Variant", value: "Variant" },
+
+  // 📦 Estruturas
+  { title: "Array", value: "Array" },
+  { title: "Record", value: "Record" },
+  { title: "Set", value: "Set" },
+];
+
+const addVariavel = () => {
+  if (!novaVariavel.varnome || !novaVariavel.vartype) return;
+
+  const nomeJaExiste = variaveis.value.some(
+      v => v.varnome.toLowerCase() === novaVariavel.varnome.toLowerCase()
+  );
+
+  if (nomeJaExiste) return;
+
+  variaveis.value.push({
+    varnome: novaVariavel.varnome.trim(),
+    vartype: novaVariavel.vartype,
+  });
+
+  novaVariavel.varnome = "";
+  novaVariavel.vartype = "string";
+};
+
+const removeVariavel = (index) => {
+  variaveis.value.splice(index, 1);
+};
+
+watch(
+    variaveis,
+    (novas) => {
+      const linhasVars = novas
+          .filter(v => v.varnome && v.vartype)
+          .map(v => `var ${v.varnome}: ${v.vartype};`)
+          .join("\n");
+
+      const formulaSemVars = (forms.formula || "")
+          .split("\n")
+          .filter(linha => !linha.trim().startsWith("var "))
+          .join("\n");
+
+      forms.formula = `${linhasVars}\n${formulaSemVars}`.trim();
+    },
+    { deep: true }
+);
+
+// LIMPAR FORMULARIO
 const cancelarFormulario = () => {
   Object.assign(forms, {
+    id_empresa: idEmpresa?.id,
     descformula: "",
     formula: "",
   });
 
+  variaveis.value = [];
+
   if (formRef.value) formRef.value.resetValidation();
+
   editando.value = false;
   formularioAberto.value = false;
 };
 
 // Salvar
 const salvarFormulario = async () => {
-  if (formRef.value && !(await formRef.value.validate())) return;
+  if (formRef.value) {
+    const { valid } = await formRef.value.validate();
+    if (!valid) return;
+  }
+
+  const payload = {
+    data: [
+      {
+        id_empresa: forms.id_empresa,
+        descformula: forms.descformula,
+        formula: forms.formula,
+      }
+    ],
+    var: variaveis.value
+        .filter(v => v.varnome && v.vartype)
+        .map(v => ({
+          varnome: v.varnome,
+          vartype: v.vartype,
+        })),
+  };
+
+  if (editando.value) {
+    await estoqueStore.editarFormula(
+        payload,
+        idEmpresa?.id,
+        itemSelecionado.value
+    );
+
+    cancelarFormulario();
+    return;
+  }
+
+  await estoqueStore.cadastrarFormula(payload, idEmpresa?.id);
+  cancelarFormulario();
+};
+
+// Editar
+const editarItem = async (item) => {
+  await estoqueStore.buscarFormulaId(idEmpresa?.id, item.id);
+
+  editando.value = true;
+  itemSelecionado.value = item.id;
+
+  Object.assign(forms, {
+    descformula: item.descformula,
+    formula: item.formula,
+    id_empresa: forms.id_empresa
+  });
+
+  variaveis.value = (item.variaveis ?? []).map(v => ({
+    varnome: v.varnome,
+    vartype: v.vartype,
+  }));
+
+  formularioAberto.value = true;
+};
+
+const compilarFormula = async (item) => {
+  Object.assign(forms, {
+    descformula: item.descformula,
+    formula: item.formula,
+    id_empresa: forms.id_empresa
+  });
 
   const payload = {
     data: [
@@ -206,29 +474,9 @@ const salvarFormulario = async () => {
     ]
   };
 
-  if (editando.value) {
-    await estoqueStore.editarFormula(payload, idEmpresa?.id, itemSelecionado.value);
-    cancelarFormulario();
-    return;
-  }
-
-  await estoqueStore.cadastrarFormula(payload, idEmpresa?.id);
+  await estoqueStore.compilarFormula(payload, idEmpresa?.id, item.id);
   cancelarFormulario();
-};
-
-// Editar
-const editarItem = (item) => {
-  editando.value = true;
-  itemSelecionado.value = item.id;
-
-  Object.assign(forms, {
-    descformula: item.descformula,
-    formula: item.formula,
-    id_empresa: forms.id_empresa
-  });
-
-  formularioAberto.value = true;
-};
+}
 
 // Excluir
 const modalExcluir = ref(false);
@@ -264,6 +512,22 @@ const formatarFormula = (txt) => {
 </script>
 
 <style scoped>
+.variaveis-table {
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.variaveis-table th {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.variaveis-table td {
+  font-size: 13px;
+}
+
 .monospace-textarea :deep(textarea) {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   line-height: 1.35;
