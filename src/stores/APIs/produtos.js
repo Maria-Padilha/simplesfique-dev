@@ -47,6 +47,9 @@ export const useProdutosStore = defineStore('produtos', {
 
         localizacoes: [],
 
+        API_MIDIAS: "http://192.168.10.79:3005",
+        fotosBanco: [],
+
         cores: [],
         tamanhos: [
             {title: 'PP', value: 'PP'},
@@ -1106,6 +1109,102 @@ export const useProdutosStore = defineStore('produtos', {
             } catch (error) {
                 this.errorMessage = error.response;
                 console.error('Erro ao buscar item do tributo por ID:', error);
+                return null;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async listFiles() {
+            const response = await fetch(`${this.API_MIDIAS}/api/files/list`);
+            return response.json();
+        },
+
+        getDownloadUrl(key) {
+            return `${this.API_MIDIAS}/api/files/download/${encodeURIComponent(key)}`;
+        },
+
+        async deleteFile(key) {
+            const response = await fetch(
+                `${this.API_MIDIAS}/api/files/${encodeURIComponent(key)}`,
+                { method: "DELETE" }
+            );
+
+            return response.json();
+        },
+
+        async uploadFile(idSaas, idUsuario, file) {
+            const API_BASE_URL = this.API_MIDIAS;
+
+            const formData = new FormData();
+
+            formData.append("id_saas", idSaas);
+            formData.append("id_usuario", idUsuario);
+            formData.append("file", file);
+
+            const response = await fetch(`${API_BASE_URL}/api/files/upload`, {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error("Erro no upload");
+            }
+
+            return response.json();
+        },
+
+        async salvarFotoBanco(dataFoto) {
+            this.loading = true;
+            const apiStore = useApiStore();
+            try {
+                await apiStore.executarAcao('profoto', 'post', dataFoto);
+            } catch (error) {
+                console.error('Erro ao cadastrar foto no banco de dados:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async buscarFotosBanco(idProduto) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/profoto/${idProduto}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                this.fotosBanco = response.data;
+                this.errorMessage = '';
+
+                console.log('fotos do banco encontradas:', this.fotosBanco);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar fotos do banco:', error);
+                return null;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async deletarFotoBanco(idProduto, payload) {
+            this.loading = true;
+
+            try {
+                await api.delete(`/profoto/${idProduto}`, {
+                    data: payload,
+                    headers: {
+                        Authorization: `Bearer ${this.token}`,
+                    },
+                });
+
+                this.errorMessage = '';
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao deletar fotos do banco:', error);
                 return null;
             } finally {
                 this.loading = false;

@@ -32,6 +32,7 @@ export const useEstoqueStore = defineStore('estoque', {
         nbs: [],
 
         formulas: [],
+        formula: null,
 
         almoxarifados: [],
         almoxarifado: null,
@@ -807,6 +808,29 @@ export const useEstoqueStore = defineStore('estoque', {
             }
         },
 
+        async buscarFormulaId(emp, id) {
+            this.loading = true;
+
+            try {
+                const response = await api.get(`/formula/${emp}/${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`
+                    }
+                });
+
+                this.formula = response.data;
+                this.errorMessage = '';
+
+                console.log('Formula por ID encontrada:', this.formulas);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar fórmula por id:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
         async cadastrarFormula(formulaData, emp) {
             this.loading = true;
             try {
@@ -828,6 +852,19 @@ export const useEstoqueStore = defineStore('estoque', {
                 await this.buscarTodasFormulas(emp);
             } catch (error) {
                 console.error('Erro ao editar fórmula:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async compilarFormula(formulaData, emp, id) {
+            this.loading = true;
+            try {
+                const apiStoreInstance = useApiStore();
+                await apiStoreInstance.executarAcao(`formula/valida/${emp}/${id}`, 'post', formulaData);
+                await this.buscarTodasFormulas(emp);
+            } catch (error) {
+                console.error('Erro ao compilar fórmula:', error);
             } finally {
                 this.loading = false;
             }

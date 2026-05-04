@@ -190,7 +190,7 @@ const infAdic = ref(null);
 const headers = ref([
   {title: 'N. Item', key: 'id_seq'},
   {title: 'Descrição do Produto', key: 'descprodutoxml'},
-  {title: 'Unidade', key: 'quant_item'},
+  {title: 'Unidade', key: 'uCom'},
   {title: 'Vlr. Unitário', key: 'vlr_unitario'},
   {title: 'Vlr. IPI Item', key: 'vlr_ipi_item'},
   {title: 'Vlr ICMS Item', key: 'vlr_icms_item'},

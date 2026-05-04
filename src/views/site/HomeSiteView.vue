@@ -1275,6 +1275,8 @@ const ativarBrilhoCard = () => {
       rgba(255, 255, 255, 0.18);
   border: 1px solid rgba(0, 0, 0, 0.04);
   backdrop-filter: blur(8px);
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .hero-lead-content {
@@ -1311,12 +1313,12 @@ const ativarBrilhoCard = () => {
 }
 
 .hero-description {
-  margin-top: 22px;
+  margin: 0;
+  text-align: start;
   font-size: 1.12rem;
   line-height: 1.8;
   color: var(--text-color);
   opacity: 0.88;
-  max-width: 650px;
 }
 
 .hero-actions {
@@ -1376,6 +1378,7 @@ const ativarBrilhoCard = () => {
 
 .hero-form-card {
   width: 100%;
+  max-width: 600px;
 }
 
 .hero-checkbox-text {
