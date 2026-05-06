@@ -291,7 +291,12 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     text: 'APIs Externas',
                     icon: 'mdi-api',
                     route: '/paginas/integracoes/api-externa'
-                }            
+                },
+                {
+                    text: 'Cloudflare R2',
+                    icon: 'mdi-cloud-upload-outline',
+                    route: '/paginas/integracao/cloudflare-r2'
+                }
             ]
         }
     ]);

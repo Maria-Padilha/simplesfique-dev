@@ -12,6 +12,8 @@
     "electron-build": "npm run build && npx electron ."
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1042.0",
+    "@aws-sdk/s3-request-presigner": "^3.1042.0",
     "@devindex/vue-mask": "^2.0.3",
     "@guolao/vue-monaco-editor": "^1.6.0",
     "@mdi/font": "5.9.55",
@@ -21,6 +23,7 @@
     "aos": "^2.3.4",
     "apexcharts": "^5.3.6",
     "autoprefixer": "^10.4.21",
+    "aws-sdk": "^2.1693.0",
     "axios": "^1.12.2",
     "core-js": "^3.8.3",
     "html2pdf.js": "^0.12.1",

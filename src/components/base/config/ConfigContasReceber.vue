@@ -52,7 +52,7 @@
         </template>
         </v-text-field>
 
-        
+
         <!-- Campo para estorno de títulos recebidos no caixa -->
         <p class="texto-color-primary font-medium mb-2 mt-4">Código do hist. para estorno de tit. recebidos no caixa:</p>
         <v-text-field
@@ -195,7 +195,7 @@
         </v-text-field>
       </div>
 
-      
+
       </div>
 
       <!-- Contas Contábeis -->
@@ -532,7 +532,7 @@
         <v-icon class="mr-2">mdi-content-save</v-icon>
         Salvar Configurações
       </v-btn>
-      
+
       <v-btn
         variant="outlined"
         @click="resetarConfiguracoes"
@@ -707,7 +707,7 @@ const atualizarHistoricoAdtBancoResultados = () => {
 const atualizarTiposDocumentoResultados = () => {
   tiposDocumentoResultados.value = filtrarLista(tiposDocumento.value, termoTipoDocumento.value, ['desctipodocumento', 'abreviatura', 'id'])
 }
- 
+
 const pesquisarHistoricoCaixa = () => atualizarHistoricoCaixaResultados()
 const pesquisarHistoricoBanco = () => atualizarHistoricoBancoResultados()
 const pesquisarHistoricoAdtCaixa = () => atualizarHistoricoAdtCaixaResultados()
@@ -815,12 +815,12 @@ const buscarHistoricoBanco = async (id, campoDesc) => {
 // Função para carregar parâmetros financeiros e preencher o formulário
 const carregarParametrosFinanceiros = async () => {
   const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-  
+
   if (!idEmpresa) {
     console.error('ID da empresa não encontrado!')
     return
   }
-  
+
   try {
     const response = await useConfig.buscarParametrosFinanceirosReceber(idEmpresa)
     const dadosArray = response?.data
@@ -915,14 +915,14 @@ const salvarConfiguracoes = async () => {
         rec_id_hist_adt_cli_banco: config.rec_id_hist_adt_cli_banco
       }]
     }
-    
+
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-    
+
     if (!idEmpresa) {
       console.error('ID da empresa não encontrado!')
       return
     }
-    
+
     let response
     // PUT só se dadosExistem for verdadeiro (edição), POST se for falso (cadastro)
     if (dadosExistem.value === true) {
@@ -930,7 +930,7 @@ const salvarConfiguracoes = async () => {
     } else {
       response = await useConfig.cadastrarParametrosFinanceirosReceber(idEmpresa, dadosParaEnvio)
     }
-    
+
     if (response) {
       await carregarParametrosFinanceiros()
       console.log('Configurações de Contas a Receber salvas com sucesso!')
@@ -955,7 +955,7 @@ const resetarConfiguracoes = () => {
   config.rec_id_hist_adt_cli_caixa = null
   config.rec_id_hist_adt_cli_banco = null
   config.tipo_documento_padrao = null
-  
+
   // Campos de descrição
   config.hist_bxa_caixa_desc = ''
   config.hist_bxa_banco_desc = ''
@@ -1018,7 +1018,6 @@ watch(
 </script>
 
 <style scoped>
-@import "@/assets/scss/1-components/components.scss";
 
 .custom-text-field :deep(.v-field) {
   background-color: rgba(var(--v-theme-surface), 0.7);
