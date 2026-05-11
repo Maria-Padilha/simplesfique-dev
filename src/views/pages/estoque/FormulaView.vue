@@ -438,7 +438,7 @@ const editarItem = async (item) => {
 };
 
 const compilarFormula = async () => {
-  const item = formulaId.value;
+  const item = estoqueStore.formula;
 
   const dataFormula = item?.data?.[0];
 

@@ -120,9 +120,9 @@ export const useSidebarStore = defineStore('sidebar', () => {
             icon: 'mdi-tools',
             submenus: [
                 {
-                    text: 'Pessoas',
+                    text: 'Clientes',
                     icon: 'mdi-account-group',
-                    route: '/paginas/manutencao/pessoas'
+                    route: '/paginas/manutencao/clientes'
                 },
                 {
                     text: 'Usuários',

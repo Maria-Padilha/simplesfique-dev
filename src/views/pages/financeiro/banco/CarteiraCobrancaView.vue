@@ -40,7 +40,7 @@
                   <v-form ref="formRef" v-model="formValido">
                     <v-row dense>
                       <!-- Código da Carteira (Obrigatório) -->
-                      <v-col cols="12" md="3">
+                      <v-col cols="12" md="4">
                         <v-text-field
                             v-model="formData.id_carteira"
                             label="Código da Carteira *"
@@ -54,7 +54,7 @@
                       </v-col>
 
                       <!-- Conta Corrente (Obrigatório) -->
-                      <v-col cols="12" md="9">
+                      <v-col cols="12" md="4">
                         <v-autocomplete
                             v-model="formData.id_ccorrente"
                             :items="financeiroStore.contas"
@@ -96,7 +96,7 @@
                       </v-col>
 
                       <!-- API Token -->
-                      <v-col cols="4">
+                      <v-col cols="12" md="4">
                         <v-text-field
                             v-model="formData.apitoken"
                             label="API Token"
@@ -144,6 +144,20 @@
                             density="compact"
                             class="custom-text-field"
                             prepend-inner-icon="mdi-numeric"
+                        ></v-text-field>
+                      </v-col>
+
+                      <!-- Convênio -->
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                            v-model="formData.convenio"
+                            label="Convênio"
+                            variant="outlined"
+                            density="compact"
+                            class="custom-text-field"
+                            prepend-inner-icon="mdi-handshake-outline"
+                            maxlength="20"
+                            counter="20"
                         ></v-text-field>
                       </v-col>
 
@@ -261,7 +275,7 @@
                       </v-col>
 
                       <!-- Senha do Boleto -->
-                      <v-col cols="12" md="12">
+                      <v-col cols="12" md="6">
                         <v-select
                             v-model="formData.senha_boleto"
                             :items="tiposSenhaBoleto"
@@ -285,7 +299,7 @@
                       </v-col>
 
                       <!-- Modelo de Boleto -->
-                      <v-col cols="12" md="12">
+                      <v-col cols="12" md="6">
                         <v-select
                             v-model="formData.modelo_boleto"
                             :items="modelosBoleto"
@@ -307,17 +321,20 @@
 
                       <!-- Local de Pagamento -->
                       <v-col cols="12">
-                        <v-textarea
-                            v-model="formData.local_pagamento"
+                        <v-text-field
+                            v-model="localPagamentoLabel"
                             label="Local de Pagamento"
                             variant="outlined"
                             density="compact"
-                            rows="2"
                             class="custom-text-field"
                             prepend-inner-icon="mdi-map-marker"
-                            hint="Informações sobre onde o boleto pode ser pago"
-                            persistent-hint
-                        ></v-textarea>
+                            readonly
+                            placeholder="Selecione um local de pagamento"
+                        >
+                          <template #append-inner>
+                            <LocalCobrancaMenu @selecionar="selecionarLocalPagamento" />
+                          </template>
+                        </v-text-field>
                       </v-col>
 
                       <!-- Instruções -->
@@ -445,6 +462,7 @@ import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue"
 import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
 import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
+import LocalCobrancaMenu from '@/components/base/menu/LocalCobrancaMenu.vue'
 
 // ID do programa desta tela
 const ID_PROGRAMA = 'FFIN002C'
@@ -464,6 +482,7 @@ const formValido = ref(false)
 const formRef = ref(null)
 const loading = ref(false)
 const search = ref('')
+const localPagamentoLabel = ref('')
 
 // Modais de exportação
 const modalExportacaoAberto = ref(false)
@@ -508,7 +527,8 @@ const formData = reactive({
   apitoken: '',
   username: '',
   pass: '',
-  nosso_numero: ''
+  nosso_numero: '',
+  convenio: ''
 })
 
 // Opções
@@ -564,6 +584,11 @@ const abrirFormulario = async () => {
   }
 }
 
+const selecionarLocalPagamento = (local) => {
+  formData.local_pagamento = local.desclocalcobranca || local.descricao || ''
+  localPagamentoLabel.value = formData.local_pagamento
+}
+
 const editarCarteira = async (carteira) => {
   // Verificar permissão para alterar
   if (!podeAlterar(ID_PROGRAMA)) {
@@ -584,6 +609,7 @@ const editarCarteira = async (carteira) => {
     
     // Copiar os campos do registro para o formData
     Object.assign(formData, dadosCarteira)
+    localPagamentoLabel.value = formData.local_pagamento || ''
   } catch (error) {
     console.warn('[Carteira] Erro ao buscar carteira específica, usando dados da tabela:', error)
     // Em caso de erro, usar os dados que já temos da tabela
@@ -614,8 +640,10 @@ const resetarForm = () => {
     apitoken: '',
     username: '',
     pass: '',
-    nosso_numero: ''
+    nosso_numero: '',
+    convenio: ''
   })
+  localPagamentoLabel.value = ''
   
   if (formRef.value) {
     formRef.value.resetValidation()

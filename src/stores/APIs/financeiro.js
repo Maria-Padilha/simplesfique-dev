@@ -2446,6 +2446,26 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
+    // POST /bolregistro/:idempresa/idcarteira/:idcarteira/idccorrente/:idccorrente
+    async registrarBoleto(idEmpresa, idCarteira, idCcorrente, parcelasIds) {
+      this.loading = true
+      this.error = null
+      try {
+        const payload = { data: parcelasIds.map(id => ({ id_parcela: id })) }
+        const response = await api.post(
+          `/bolregistro/${idEmpresa}/idcarteira/${idCarteira}/idccorrente/${idCcorrente}`,
+          payload,
+          { headers: this.getAuthHeaders() }
+        )
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Erro ao registrar boleto'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     // Buscar todas as carteiras (GET /carteira/:idempresa)
     async buscarCarteiras(idEmpresa) {
       this.loading = true
