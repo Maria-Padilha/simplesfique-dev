@@ -902,7 +902,7 @@
               <!-- Formatação para Data de Emissão -->
               <template v-slot:[`item.dtemissao`]="{ item }">
             <span v-if="item.dtemissao">
-              {{ new Date(item.dtemissao).toLocaleDateString('pt-BR') }}
+              {{ new Date(item.dtemissao + 'T00:00:00').toLocaleDateString('pt-BR') }}
             </span>
                 <span v-else class="text-grey">-</span>
               </template>
@@ -910,7 +910,7 @@
               <!-- Formatação para Data de Vencimento -->
               <template v-slot:[`item.dtvencimento`]="{ item }">
             <span v-if="item.dtvencimento">
-              {{ new Date(item.dtvencimento).toLocaleDateString('pt-BR') }}
+              {{ new Date(item.dtvencimento + 'T00:00:00').toLocaleDateString('pt-BR') }}
             </span>
                 <span v-else class="text-grey">-</span>
               </template>
@@ -3608,8 +3608,9 @@ const handleExportarCSV = ({ dados, nomeRelatorio }) => {
         `"${item.serie || ''}"`,
         `"${item.especie || ''}"`,
         `"${item.fornecedor || ''}"`,
-        `"${item.dtemissao ? new Date(item.dtemissao).toLocaleDateString('pt-BR') : ''}"`,
-        `"${item.dtvencimento ? new Date(item.dtvencimento).toLocaleDateString('pt-BR') : ''}"`,
+        `"${item.dtemissao ? new Date(item.dtemissao + 'T00:00:00').toLocaleDateString('pt-BR') : ''}"`,
+        `"${item.dtvencimento ? new Date(item.dtvencimento + 'T00:00:00').toLocaleDateString('pt-BR') : ''}"`,
+
         `"${formatarMoeda(item.vlrparcela) || '0,00'}"`,
         `"${formatarMoeda(item.vlrquitado) || '0,00'}"`,
         `"${formatarMoeda(item.saldo_devedor) || '0,00'}"`
@@ -3671,8 +3672,8 @@ const handleExportarExcel = ({ dados, nomeRelatorio }) => {
         item.serie || '',
         item.especie || '',
         item.fornecedor || '',
-        item.dtemissao ? new Date(item.dtemissao).toLocaleDateString('pt-BR') : '',
-        item.dtvencimento ? new Date(item.dtvencimento).toLocaleDateString('pt-BR') : '',
+        item.dtemissao ? new Date(item.dtemissao + 'T00:00:00').toLocaleDateString('pt-BR') : '',
+        item.dtvencimento ? new Date(item.dtvencimento + 'T00:00:00').toLocaleDateString('pt-BR') : '',
         formatarMoeda(item.vlrparcela) || '0,00',
         formatarMoeda(item.vlrquitado) || '0,00',
         formatarMoeda(item.saldo_devedor) || '0,00'

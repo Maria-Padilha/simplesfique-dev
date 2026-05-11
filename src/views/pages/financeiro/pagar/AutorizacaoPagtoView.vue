@@ -421,7 +421,10 @@ const formatarMoeda = (valor) => {
 const formatarData = (data) => {
   if (!data) return '--'
   try {
-    return new Date(data).toLocaleDateString('pt-BR')
+    const d = typeof data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(data)
+      ? new Date(data + 'T00:00:00')
+      : new Date(data)
+    return d.toLocaleDateString('pt-BR')
   } catch {
     return '--'
   }

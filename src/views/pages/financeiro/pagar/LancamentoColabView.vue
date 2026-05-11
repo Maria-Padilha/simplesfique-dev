@@ -594,7 +594,7 @@
                   <template #[`item.vlrface`]="{ item }">{{ formatarMoeda(item.vlrface) }}</template>
                   <template #[`item.vlrtotal`]="{ item }">{{ formatarMoeda(item.vlrtotal) }}</template>
                   <template #[`item.dtlancamento`]="{ item }">
-                    {{ item.dtlancamento ? new Date(item.dtlancamento).toLocaleDateString('pt-BR') : '--' }}
+                    {{ item.dtlancamento ? new Date(item.dtlancamento.length === 10 ? item.dtlancamento + 'T00:00:00' : item.dtlancamento).toLocaleDateString('pt-BR') : '--' }}
                   </template>
                   <template #[`item.acoes`]="{ item }">
                     <v-btn size="x-small" variant="text" color="var(--text-color-laranja)" @click.stop="selecionarLancamento(item)">
