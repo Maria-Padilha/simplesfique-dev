@@ -1,20 +1,42 @@
 {
-  "$schema": "https://opencode.ai/config.schema.json",
-  "instructions": "CLAUDE.md",
-  "context": [
+  "$schema": "https://opencode.ai/config.json",
+  "model": "anthropic/claude-sonnet-4-20250514",
+  "instructions": [
+    "CLAUDE.md",
     "@projeto/PROJECT_OVERVIEW.md",
     "@projeto/ARCHITECTURE.md",
     "@projeto/SPEC.md"
   ],
-  "agents": [
-    { "name": "code-reviewer", "file": ".agents/code-reviewer.md" },
-    { "name": "ui-component",  "file": ".agents/ui-component.md" },
-    { "name": "state-flow",    "file": ".agents/state-flow.md" }
-  ],
-  "mcpServers": {
-    "simplesfique-memoria": {
-      "command": "node",
-      "args": ["mcp-rag/index.js"]
+  "agent": {
+    "orchestrator": {
+      "description": "Coordena tasks complexas entre agents especializados"
+    },
+    "code-reviewer": {
+      "description": "Revisa código Vue/Nuxt para consistência, performance e boas práticas",
+      "tools": {
+        "write": false,
+        "edit": false
+      }
+    },
+    "ui-component": {
+      "description": "Cria e refatora componentes Vue seguindo o design system"
+    },
+    "state-flow": {
+      "description": "Gerencia arquitetura de estado com Pinia"
+    },
+    "testing": {
+      "description": "Cria e mantém testes com Vitest + @vue/test-utils"
     }
+  },
+  "mcp": {
+    "simplesfique-memoria": {
+      "type": "local",
+      "command": ["node", "mcp-rag/index.js"],
+      "enabled": true
+    }
+  },
+  "permission": {
+    "bash": "ask",
+    "edit": "allow"
   }
 }

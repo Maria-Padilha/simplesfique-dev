@@ -16,6 +16,7 @@ pnpm-lock.yaml
 
 # Build / dist
 dist
+coverage/
 *.zip
 *.tar.gz
 
@@ -35,6 +36,9 @@ Thumbs.db
 # reforçamos aqui para não consumir tokens)
 .idea
 .vscode
+
+# Husky internal scripts (não relevantes para contexto)
+.husky/_
 
 # Arquivos de dados / assets (não são código-fonte)
 importacao_pessoas.csv
