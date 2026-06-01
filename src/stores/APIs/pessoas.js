@@ -104,7 +104,7 @@ export const usePessoasStore = defineStore('pessoas', {
                 this.errorMessage = '';
                 return { pessoa, endereco }
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar pessoa pelo ID:', error);
                 return null
             } finally {

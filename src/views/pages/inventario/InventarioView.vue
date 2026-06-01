@@ -1617,8 +1617,10 @@ const gerarLinkContagem = (loteIdParam = null, idEmpresaParam = null) => {
 }
 
 const gerarToken = () => {
-  // Gerar token aleatório
-  return Math.random().toString(36).substring(2) + Date.now().toString(36)
+  // Gerar token criptograficamente seguro
+  const array = new Uint32Array(4)
+  crypto.getRandomValues(array)
+  return Array.from(array, v => v.toString(36)).join('')
 }
 
 const copiarLink = async () => {

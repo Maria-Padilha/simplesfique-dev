@@ -9,7 +9,7 @@ module.exports = defineConfig({
   transpileDependencies: true,
 
   devServer: {
-    host: '0.0.0.0',
+    host: 'localhost',
     port: 8080
   },
 
@@ -17,5 +17,6 @@ module.exports = defineConfig({
     vuetify: {
 			// https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vuetify-loader
 		}
-  }
+  },
+
 })

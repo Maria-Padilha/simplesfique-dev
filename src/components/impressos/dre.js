@@ -366,6 +366,11 @@ function formatarData(data) {
   return `${dia}/${mes}/${ano}`
 }
 
+function escapeHtml(text) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }
+  return String(text).replace(/[&<>"']/g, c => map[c])
+}
+
 /**
  * Retorna classe CSS do valor baseado em positivo/negativo/zero
  */
@@ -408,7 +413,7 @@ function gerarLinhasDRE(dadosRelatorio) {
       <tr class="linha-grupo ${classeGrupo}">
         <td>
           <span class="icone-grupo">${icone}</span>
-          ${grupo.nome}
+          ${escapeHtml(grupo.nome)}
         </td>
         <td class="valor ${classeValorGrupo}">
           ${formatarValor(grupo.valor)}
@@ -424,8 +429,8 @@ function gerarLinhasDRE(dadosRelatorio) {
         html += `
           <tr class="linha-categoria">
             <td>
-              ${categoria.nome}
-              ${categoria.classificador ? `<span class="classificador">${categoria.classificador}</span>` : ''}
+              ${escapeHtml(categoria.nome)}
+              ${categoria.classificador ? `<span class="classificador">${escapeHtml(categoria.classificador)}</span>` : ''}
             </td>
             <td class="valor ${classeValorCategoria}">
               ${formatarValor(categoria.valor)}
@@ -481,13 +486,13 @@ export function gerarRelatorioDRE(params) {
   let html = TEMPLATE_DRE
   
   // Substituir placeholders
-  html = html.replace(/{{NOME_EMPRESA}}/g, nomeEmpresa)
-  html = html.replace(/{{CNPJ_EMPRESA}}/g, cnpjEmpresa)
-  html = html.replace(/{{TITULO_DRE}}/g, tituloDre)
-  html = html.replace(/{{NOME_MODELO}}/g, nomeModelo)
+  html = html.replace(/{{NOME_EMPRESA}}/g, escapeHtml(nomeEmpresa))
+  html = html.replace(/{{CNPJ_EMPRESA}}/g, escapeHtml(cnpjEmpresa))
+  html = html.replace(/{{TITULO_DRE}}/g, escapeHtml(tituloDre))
+  html = html.replace(/{{NOME_MODELO}}/g, escapeHtml(nomeModelo))
   html = html.replace(/{{DATA_INICIAL}}/g, formatarData(dataInicial))
   html = html.replace(/{{DATA_FINAL}}/g, formatarData(dataFinal))
-  html = html.replace(/{{TIPO_PERIODO}}/g, tipoPeriodo)
+  html = html.replace(/{{TIPO_PERIODO}}/g, escapeHtml(tipoPeriodo))
   html = html.replace(/{{REGIME}}/g, regimeTexto)
   html = html.replace(/{{DATA_GERACAO}}/g, dataGeracao)
   html = html.replace(/{{LINHAS_DRE}}/g, linhasDRE)

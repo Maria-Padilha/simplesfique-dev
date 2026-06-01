@@ -330,6 +330,11 @@ import { toast } from 'vue3-toastify'
 import { TEMPLATE_CENTRO_CUSTO } from '@/components/impressos/centrodecusto.js'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
+const escapeHtml = (text) => {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }
+  return String(text).replace(/[&<>"']/g, c => map[c])
+}
+
 const themeStore = useThemeStore()
 const ccustoStore = useCCustoStore()
 const financeiroStore = useFinanceiroStore()
@@ -794,9 +799,9 @@ const abrirImpressao = (tipoRelatorio, dados, filtros) => {
     const tipoContraparte = tipoRelatorio.includes('Pagar') ? 'Fornecedor' : 'Cliente'
     
     html = html.replace(/src="{{logoUrl}}"/g, `src="${logo}"`)
-    html = html.replace(/{{tipoRelatorio}}/g, tipoRelatorio)
-    html = html.replace(/{{empresa}}/g, empresa)
-    html = html.replace(/{{operador}}/g, operador)
+    html = html.replace(/{{tipoRelatorio}}/g, escapeHtml(tipoRelatorio))
+    html = html.replace(/{{empresa}}/g, escapeHtml(empresa))
+    html = html.replace(/{{operador}}/g, escapeHtml(operador))
     html = html.replace(/{{dataInicio}}/g, formatarData(filtros.dtini))
     html = html.replace(/{{dataFim}}/g, formatarData(filtros.dtfim))
     html = html.replace(/{{dataImpressao}}/g, dataAtual.toLocaleString('pt-BR'))
@@ -814,8 +819,8 @@ const abrirImpressao = (tipoRelatorio, dados, filtros) => {
         <tr>
           <td>${titulo.dataCadastro}</td>
           <td>${titulo.dataVencimento}</td>
-          <td>${titulo.contraparte}</td>
-          <td class="text-center">${titulo.documento}</td>
+          <td>${escapeHtml(titulo.contraparte)}</td>
+          <td class="text-center">${escapeHtml(titulo.documento)}</td>
           <td class="text-right valor-positivo">${titulo.valor}</td>
           <td class="text-right ${parseFloat(titulo.juros) > 0 ? 'valor-negativo' : ''}">${titulo.juros}</td>
           <td class="text-right ${parseFloat(titulo.multa) > 0 ? 'valor-negativo' : ''}">${titulo.multa}</td>
@@ -1059,14 +1064,14 @@ const abrirImpressaoCentroCusto = (previsao, filtros) => {
       tabelasCCusto += `<div class="ccusto-bloco${classeQuebraPaginaCC}">`
       
       // Cabeçalho do centro de custo
-      tabelasCCusto += `<h3 class="ccusto-titulo">${nomeCCusto}</h3>`
+      tabelasCCusto += `<h3 class="ccusto-titulo">${escapeHtml(nomeCCusto)}</h3>`
       
       // Gerar uma tabela para cada grupo de dias (máx 15 por tabela)
       gruposDeDias.forEach((grupoDias, indexGrupo) => {
         // Header dos dias deste grupo
         let headersDiasGrupo = ''
         grupoDias.forEach(dia => {
-          headersDiasGrupo += `<th>${dia.label}</th>`
+          headersDiasGrupo += `<th>${escapeHtml(dia.label)}</th>`
         })
         
         // Calcular subtotal deste grupo de dias
@@ -1106,7 +1111,7 @@ const abrirImpressaoCentroCusto = (previsao, filtros) => {
             subtotalDespesa += despesa[dia.key] || 0
           })
           
-          let linha = `<tr><td>${despesa.descricao}</td>`
+          let linha = `<tr><td>${escapeHtml(despesa.descricao)}</td>`
           grupoDias.forEach(dia => {
             const valor = despesa[dia.key] || 0
             linha += `<td>${valor > 0 ? formatarMoeda(valor) : ''}</td>`
@@ -1178,7 +1183,7 @@ const abrirImpressaoCentroCusto = (previsao, filtros) => {
             const valorFormatado = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             legendaHtml += '<div style="display: flex; align-items: center; margin-bottom: 5px;">';
             legendaHtml += '<span style="display: inline-block; width: 14px; height: 14px; background: ' + cor + '; margin-right: 8px; border-radius: 3px;"></span>';
-            legendaHtml += '<span style="min-width: 180px;">' + label + '</span>';
+            legendaHtml += '<span style="min-width: 180px;">' + escapeHtml(label) + '</span>';
             legendaHtml += '<span style="min-width: 100px; text-align: right; font-weight: 500;">' + valorFormatado + '</span>';
             legendaHtml += '<span style="min-width: 60px; text-align: right; color: #666;">(' + percentual + '%)</span>';
             legendaHtml += '</div>';
@@ -1190,8 +1195,8 @@ const abrirImpressaoCentroCusto = (previsao, filtros) => {
     // 10. Substituir variáveis no template
     html = html.replace(/{{logoUrl}}/g, logo)
     html = html.replace(/{{colsClass}}/g, colsClass)
-    html = html.replace(/{{empresa}}/g, empresa)
-    html = html.replace(/{{operador}}/g, operador)
+    html = html.replace(/{{empresa}}/g, escapeHtml(empresa))
+    html = html.replace(/{{operador}}/g, escapeHtml(operador))
     html = html.replace(/{{dataInicio}}/g, formatarData(filtros.dtini))
     html = html.replace(/{{dataFim}}/g, formatarData(filtros.dtfim))
     html = html.replace(/{{dataImpressao}}/g, dataAtual.toLocaleString('pt-BR'))
@@ -1545,14 +1550,14 @@ const abrirImpressaoDebitosRealizados = (debitosResponse, filtros) => {
       tabelasCCusto += `<div class="ccusto-bloco${classeQuebraPaginaCC}">`
       
       // Cabeçalho do centro de custo
-      tabelasCCusto += `<h3 class="ccusto-titulo">${nomeCCusto}</h3>`
+      tabelasCCusto += `<h3 class="ccusto-titulo">${escapeHtml(nomeCCusto)}</h3>`
       
       // Gerar uma tabela para cada grupo de dias (máx 15 por tabela)
       gruposDeDias.forEach((grupoDias, indexGrupo) => {
         // Header dos dias deste grupo
         let headersDiasGrupo = ''
         grupoDias.forEach(dia => {
-          headersDiasGrupo += `<th>${dia.label}</th>`
+          headersDiasGrupo += `<th>${escapeHtml(dia.label)}</th>`
         })
         
         // Calcular subtotal deste grupo de dias
@@ -1592,7 +1597,7 @@ const abrirImpressaoDebitosRealizados = (debitosResponse, filtros) => {
             subtotalDespesa += despesa[dia.key] || 0
           })
           
-          let linha = `<tr><td>${despesa.descricao}</td>`
+          let linha = `<tr><td>${escapeHtml(despesa.descricao)}</td>`
           grupoDias.forEach(dia => {
             const valor = despesa[dia.key] || 0
             linha += `<td>${valor > 0 ? formatarMoeda(valor) : ''}</td>`
@@ -1658,7 +1663,7 @@ const abrirImpressaoDebitosRealizados = (debitosResponse, filtros) => {
             const valorFormatado = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             legendaHtml += '<div style="display: flex; align-items: center; margin-bottom: 5px;">';
             legendaHtml += '<span style="display: inline-block; width: 14px; height: 14px; background: ' + cor + '; margin-right: 8px; border-radius: 3px;"></span>';
-            legendaHtml += '<span style="min-width: 180px;">' + label + '</span>';
+            legendaHtml += '<span style="min-width: 180px;">' + escapeHtml(label) + '</span>';
             legendaHtml += '<span style="min-width: 100px; text-align: right; font-weight: 500;">' + valorFormatado + '</span>';
             legendaHtml += '<span style="min-width: 60px; text-align: right; color: #666;">(' + percentual + '%)</span>';
             legendaHtml += '</div>';
@@ -1670,8 +1675,8 @@ const abrirImpressaoDebitosRealizados = (debitosResponse, filtros) => {
     // 10. Substituir variáveis no template
     html = html.replace(/{{logoUrl}}/g, logo)
     html = html.replace(/{{colsClass}}/g, colsClass)
-    html = html.replace(/{{empresa}}/g, empresa)
-    html = html.replace(/{{operador}}/g, operador)
+    html = html.replace(/{{empresa}}/g, escapeHtml(empresa))
+    html = html.replace(/{{operador}}/g, escapeHtml(operador))
     html = html.replace(/{{dataInicio}}/g, formatarData(filtros.dtini))
     html = html.replace(/{{dataFim}}/g, formatarData(filtros.dtfim))
     html = html.replace(/{{dataImpressao}}/g, dataAtual.toLocaleString('pt-BR'))

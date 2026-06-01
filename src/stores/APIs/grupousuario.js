@@ -51,7 +51,7 @@ export const useGrupoUsuarioStore = defineStore('grupousuario', {
                 console.log('Grupos de usuário buscados com sucesso:', this.gruposUsuario);
 
             } catch (error) {
-                this.errorMessage = error;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.log(this.errorMessage)
             } finally {
                 this.loading = false;
@@ -72,7 +72,7 @@ export const useGrupoUsuarioStore = defineStore('grupousuario', {
                 this.records = response.data.records;
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -155,7 +155,7 @@ export const useGrupoUsuarioStore = defineStore('grupousuario', {
                 this.errorMessage = '';
                 this.successMessage = 'Grupo de usuário deletado com sucesso!';
             } catch (error) {
-                this.errorMessage = error;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.log(this.errorMessage)
             } finally {
                 this.loading = false;

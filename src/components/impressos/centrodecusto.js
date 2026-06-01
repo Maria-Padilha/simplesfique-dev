@@ -398,6 +398,11 @@ export const TEMPLATE_CENTRO_CUSTO = `<!DOCTYPE html>
 </body>
 </html>`
 
+function escapeHtml(text) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }
+  return String(text).replace(/[&<>"']/g, c => map[c])
+}
+
 /**
  * Gera HTML de Previsão/Débitos por Centro de Custo - Mesmo formato do FinanceiroRelatorioView
  * @param {string} tipoRelatorio - 'Previsão de Débitos' ou 'Débitos Realizados'
@@ -588,13 +593,13 @@ export const gerarHTMLCentroCusto = (tipoRelatorio, dados, filtros = {}, opcoes 
     // Abrir div do bloco do centro de custo
     const classeQuebraPaginaCC = (quebraPaginaPorCCusto && indexCCusto > 0) ? ' quebra-pagina' : ''
     tabelasCCusto += `<div class="ccusto-bloco${classeQuebraPaginaCC}">`
-    tabelasCCusto += `<h3 class="ccusto-titulo">${nomeCCusto}</h3>`
+    tabelasCCusto += `<h3 class="ccusto-titulo">${escapeHtml(nomeCCusto)}</h3>`
 
     // Gerar uma tabela para cada grupo de dias
     gruposDeDias.forEach((grupoDias, indexGrupo) => {
       let headersDiasGrupo = ''
       grupoDias.forEach(dia => {
-        headersDiasGrupo += `<th style="background: transparent; color: white; padding: 8px 6px;">${dia.label}</th>`
+        headersDiasGrupo += `<th style="background: transparent; color: white; padding: 8px 6px;">${escapeHtml(dia.label)}</th>`
       })
 
       let subtotalGrupo = 0
@@ -628,7 +633,7 @@ export const gerarHTMLCentroCusto = (tipoRelatorio, dados, filtros = {}, opcoes 
           subtotalDespesa += despesa[dia.key] || 0
         })
 
-        let linha = `<tr><td>${despesa.descricao}</td>`
+        let linha = `<tr><td>${escapeHtml(despesa.descricao)}</td>`
         grupoDias.forEach(dia => {
           const valor = despesa[dia.key] || 0
           linha += `<td>${valor > 0 ? formatarMoeda(valor) : ''}</td>`
@@ -662,8 +667,8 @@ export const gerarHTMLCentroCusto = (tipoRelatorio, dados, filtros = {}, opcoes 
 
   // 9. Substituir variáveis no template
   html = html.replace(/{{colsClass}}/g, colsClass)
-  html = html.replace(/{{empresa}}/g, empresa)
-  html = html.replace(/{{operador}}/g, operador)
+  html = html.replace(/{{empresa}}/g, escapeHtml(empresa))
+  html = html.replace(/{{operador}}/g, escapeHtml(operador))
   html = html.replace(/{{dataInicio}}/g, formatarData(filtros?.dataInicio || filtros?.dtini || ''))
   html = html.replace(/{{dataFim}}/g, formatarData(filtros?.dataFim || filtros?.dtfim || ''))
   html = html.replace(/{{dataImpressao}}/g, dataAtual.toLocaleString('pt-BR'))

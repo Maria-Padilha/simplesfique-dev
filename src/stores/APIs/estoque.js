@@ -68,7 +68,7 @@ export const useEstoqueStore = defineStore('estoque', {
                 console.log('Grupos encontrado:', this.grupos);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar Grupos:', error);
             } finally {
                 this.loading = false;
@@ -155,7 +155,7 @@ export const useEstoqueStore = defineStore('estoque', {
                 console.log('SubGrupos encontrado:', this.subgrupos);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar SubGrupos:', error);
             } finally {
                 this.loading = false;
@@ -241,7 +241,7 @@ export const useEstoqueStore = defineStore('estoque', {
                 console.log('Classes encontradas:', this.classes);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar classes:', error);
             } finally {
                 this.loading = false;
@@ -329,7 +329,7 @@ export const useEstoqueStore = defineStore('estoque', {
                 console.log('NCMs encontrados:', this.grupos);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar NCMs:', error);
             } finally {
                 this.loading = false;
@@ -359,7 +359,7 @@ export const useEstoqueStore = defineStore('estoque', {
                 console.log('CESTs encontrados:', this.cests);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar CESTs:', error);
             } finally {
                 this.loading = false;
@@ -449,7 +449,7 @@ export const useEstoqueStore = defineStore('estoque', {
                 console.log('NBS encontrados:', this.nbs);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar NBS:', error);
             } finally {
                 this.loading = false;
@@ -500,7 +500,7 @@ export const useEstoqueStore = defineStore('estoque', {
                 console.log('Almoxarifados encontrados:', this.almoxarifados);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar almoxarifados:', error);
             } finally {
                 this.loading = false;
@@ -530,7 +530,7 @@ export const useEstoqueStore = defineStore('estoque', {
                 console.log('Almoxarifado encontrado:', this.almoxarifado);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar almoxarifado por ID:', error);
             } finally {
                 this.loading = false;
@@ -622,7 +622,7 @@ export const useEstoqueStore = defineStore('estoque', {
                 console.log('CFOPs encontrados:', this.cfops);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar CFOPs:', error);
             } finally {
                 this.loading = false;
@@ -651,7 +651,7 @@ export const useEstoqueStore = defineStore('estoque', {
                 console.log('CFOP encontrado:', this.cfop);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar CFOP por ID:', error);
             } finally {
                 this.loading = false;
@@ -736,7 +736,7 @@ export const useEstoqueStore = defineStore('estoque', {
                 console.log('Alíquotas encontradas:', this.aliquotas);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar alíquotas:', error);
             } finally {
                 this.loading = false;
@@ -802,7 +802,7 @@ export const useEstoqueStore = defineStore('estoque', {
                 console.log('Fórmulas encontradas:', this.formulas);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar fórmulas:', error);
             } finally {
                 this.loading = false;
@@ -825,7 +825,7 @@ export const useEstoqueStore = defineStore('estoque', {
                 console.log('Formula por ID encontrada:', this.formulas);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar fórmula por id:', error);
             } finally {
                 this.loading = false;
@@ -873,7 +873,7 @@ export const useEstoqueStore = defineStore('estoque', {
                 await this.buscarTodasFormulas(emp);
 
             } catch (error) {
-                this.errorMessage = error.response.statusText || error.response.data;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
 
                 if (this.errorMessage === 'Not Acceptable') {
                     this.errorMessage = 'Fórmula não aceita. Verifique se todas as variaveis existem e se a sintaxe está correta.';

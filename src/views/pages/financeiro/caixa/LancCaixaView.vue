@@ -668,6 +668,12 @@ import { useCCustoStore } from '@/stores/APIs/ccusto'
 import { usePermissoes } from '@/utils/usePermissoes'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import html2pdf from 'html2pdf.js'
+
+const escapeHtml = (text) => {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }
+  return String(text).replace(/[&<>"']/g, c => map[c])
+}
+
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
 import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
@@ -1525,9 +1531,9 @@ const prepararDadosRelatorio = () => {
   })
 
   return {
-    nomeCaixa: caixaSelecionado?.desccaixa || 'Caixa',
-    operador: lancamentosFiltrados.value[0]?.nome || 'N/A',
-    empresa: empresa?.razao || empresa?.fantasia || 'Empresa',
+    nomeCaixa: escapeHtml(caixaSelecionado?.desccaixa || 'Caixa'),
+    operador: escapeHtml(lancamentosFiltrados.value[0]?.nome || 'N/A'),
+    empresa: escapeHtml(empresa?.razao || empresa?.fantasia || 'Empresa'),
     dataInicio: formatarData(filtros.dataInicio),
     dataFim: formatarData(filtros.dataFim),
     saldoAnterior: formatarMoeda(saldoAnterior.value),
@@ -1539,6 +1545,11 @@ const prepararDadosRelatorio = () => {
     logoUrl: new URL('/src/assets/img/logo/logo-2.png', import.meta.url).href,
     lancamentos: lancamentosComSaldo.map(item => ({
       ...item,
+      deschistorico: escapeHtml(item.deschistorico || ''),
+      desctipo: escapeHtml(item.desctipo || ''),
+      desctipopagrec: escapeHtml(item.desctipopagrec || ''),
+      nrdocumento: escapeHtml(item.nrdocumento || ''),
+      nome: escapeHtml(item.nome || ''),
       dtlancamento: formatarData(item.dtlancamento),
       valor: formatarMoeda(item.valor),
       saldo: formatarMoeda(item.saldoCalculado)

@@ -83,7 +83,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         
         return this.contas;
       } catch (error) {
-        this.error = error.message;
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         this.contas = []; // Garantir que contas seja um array vazio em caso de erro
         throw error;
       } finally {
@@ -125,7 +125,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         
         return this.contas;
       } catch (error) {
-        this.error = error.message;
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         this.contas = []; // Garantir que contas seja um array vazio em caso de erro
         throw error;
       } finally {
@@ -170,7 +170,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         
         return dados;
       } catch (error) {
-        this.error = error.message;
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -218,7 +218,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         
         return dados;
       } catch (error) {
-        this.error = error.message;
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -235,7 +235,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         });
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar conta';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -256,7 +256,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao criar conta';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -280,7 +280,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao atualizar conta';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -301,7 +301,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         
         return true;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao deletar conta';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -321,7 +321,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar movimentações';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -339,7 +339,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar movimentação';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -357,7 +357,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao criar movimentação';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -375,7 +375,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao atualizar movimentação';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -393,7 +393,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao deletar movimentação';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -435,7 +435,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         this.bancos = dados;
         return this.bancos;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar bancos';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         this.bancos = []; // Garantir que bancos seja um array vazio em caso de erro
         throw error;
       } finally {
@@ -453,7 +453,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         });
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar banco';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -496,7 +496,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return this.ufs;
       } catch (error) {
         console.error('Erro ao buscar UFs:', error);
-        this.error = error.response?.data?.message || 'Erro ao buscar UFs';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         this.ufs = [];
         throw error;
       } finally {
@@ -535,7 +535,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return this.usuarios
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar usuários'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         this.usuarios = []
         throw error
       } finally {
@@ -574,7 +574,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
           return dados
         } catch (error) {
           console.error('Erro ao buscar usuários vinculados à conta:', error)
-          this.error = error.response?.data?.message || 'Erro ao buscar usuários vinculados à conta'
+          this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
           throw error
         } finally {
           this.loading = false
@@ -604,7 +604,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
           if (resp && resp.data && Array.isArray(resp.data)) return resp.data
           return resp
         } catch (error) {
-          this.error = error.response?.data?.message || 'Erro ao atualizar acessos de usuários'
+          this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
           throw error
         } finally {
           this.loading = false
@@ -637,7 +637,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         this.agencias = dados;
         return this.agencias;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar agências';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         this.agencias = [];
         throw error;
       } finally {
@@ -680,7 +680,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         if (created) this.agencias.push(created);
         return created || response.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao criar agência';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -702,7 +702,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0];
         return resp;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar agência';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -744,7 +744,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return updated || response.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao atualizar agência';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -765,7 +765,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         this.agencias = this.agencias.filter(a => String(a.ID ?? a.id ?? a.id_agencia) !== String(id));
         return true;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao deletar agência';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -853,7 +853,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return response.data
       } catch (error) {
         console.error('[Store Financeiro] Erro ao salvar chaves de API:', error)
-        this.error = error.response?.data?.message || 'Erro ao salvar chaves de API'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         toast.error(this.error)
         throw error
       } finally {
@@ -877,7 +877,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return true
       } catch (error) {
         console.error('[Store Financeiro] Erro ao deletar chaves de API:', error)
-        this.error = error.response?.data?.message || 'Erro ao deletar chaves de API'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         toast.error(this.error)
         throw error
       } finally {
@@ -911,7 +911,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return dados;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar caixas';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -933,7 +933,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         if (Array.isArray(resp)) return resp[0];
         return resp;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar caixa';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -966,7 +966,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return created || response.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao criar caixa';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -999,7 +999,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return updated || response.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao atualizar caixa';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -1017,7 +1017,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return true;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao deletar caixa';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -1049,7 +1049,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         // retorno: array de objetos que representam vínculo (esperado campos como id_usuario, ativo, nome, email)
         return dados
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar usuários vinculados ao caixa'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1080,7 +1080,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         if (resp && resp.data && Array.isArray(resp.data)) return resp.data
         return resp
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao atualizar acessos de usuários no caixa'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1114,7 +1114,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return dados
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar baixas'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         console.error('Erro ao buscar baixas a pagar:', error)
         return []
       } finally {
@@ -1134,7 +1134,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         })
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao estornar baixa'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1166,7 +1166,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return dados
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar baixas'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         console.error('Erro ao buscar baixas a receber:', error)
         return []
       } finally {
@@ -1185,7 +1185,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         })
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao estornar baixa'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1226,7 +1226,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return parcelas
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao calcular parcelas'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1262,7 +1262,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return parcelas
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao calcular parcelas'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1291,7 +1291,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return dados
       }
       catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar históricos contábeis'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1320,7 +1320,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return created || response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao criar histórico contábil'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1367,7 +1367,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return dados
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar contas a pagar'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1421,7 +1421,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return dados
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar contas a pagar para baixa'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1441,7 +1441,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         // A API retorna: { data: [...], pagparcela: [...], media: [...], ccusto: [...] }
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar conta a pagar'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1480,7 +1480,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return created || response.data
       } catch (error) {
         console.error('criarContaPagar - erro:', error.response?.data)
-        this.error = error.response?.data?.message || 'Erro ao criar conta a pagar'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1515,7 +1515,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return updated || response.data
       } catch (error) {
         console.error('atualizarContaPagar - erro:', error.response?.data)
-        this.error = error.response?.data?.message || 'Erro ao atualizar conta a pagar'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1533,7 +1533,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return true
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao deletar conta a pagar'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1556,7 +1556,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao autorizar contas a pagar'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1605,7 +1605,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return dados
       } catch (error) {
         console.error('[Store] Erro ao buscar planos de conta:', error)
-        this.error = error.response?.data?.message || 'Erro ao buscar planos de conta'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1626,7 +1626,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       if (Array.isArray(resp)) return resp[0]
       return resp
       } catch (error) {
-      this.error = error.response?.data?.message || 'Erro ao buscar plano de conta'
+      this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
       throw error
       } finally {
       this.loading = false
@@ -1659,7 +1659,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
       return created || response.data
       } catch (error) {
-      this.error = error.response?.data?.message || 'Erro ao criar plano de conta'
+      this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
       throw error
       } finally {
       this.loading = false
@@ -1692,7 +1692,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
       return updated || response.data
       } catch (error) {
-      this.error = error.response?.data?.message || 'Erro ao atualizar plano de conta'
+      this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
       throw error
       } finally {
       this.loading = false
@@ -1710,7 +1710,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
       return true
       } catch (error) {
-      this.error = error.response?.data?.message || 'Erro ao deletar plano de conta'
+      this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
       throw error
       } finally {
       this.loading = false
@@ -1740,7 +1740,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         this.tiposDocumento = dados
         return dados
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar tipos de documento'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1768,7 +1768,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         this.tiposPagRec = dados
         return dados
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar tipos de pagamento/recebimento'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1796,7 +1796,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         this.locaisCobranca = dados
         return dados
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar locais de cobrança'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1826,7 +1826,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
           return dados
         } catch (error) {
-          this.error = error.response?.data?.message || 'Erro ao buscar pessoas/fornecedores'
+          this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
           throw error
         } finally {
           this.loading = false
@@ -1853,7 +1853,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return dados
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar pessoas'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1877,7 +1877,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         })
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao criar tipo de documento'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1954,7 +1954,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return created || response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao cadastrar fornecedor'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -1977,7 +1977,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         })
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao criar local de cobrança'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2020,7 +2020,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return parcelas
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao calcular parcelas'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2065,7 +2065,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return dados
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar contas a receber'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2085,7 +2085,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         // A API retorna: { data: [...], parcela: [...], media: [...] }
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar conta a receber'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2118,7 +2118,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return created || response.data
       } catch (error) {
         console.error('criarContaReceber - erro:', error.response?.data)
-        this.error = error.response?.data?.message || 'Erro ao criar conta a receber'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2152,7 +2152,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return updated || response.data
       } catch (error) {
         console.error('atualizarContaReceber - erro:', error.response?.data)
-        this.error = error.response?.data?.message || 'Erro ao atualizar conta a receber'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2170,7 +2170,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return true
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao deletar conta a receber'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2200,7 +2200,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return dados
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar pessoas/clientes'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2254,7 +2254,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return response.data;
       } catch (error) {
         console.error('Erro ao baixar pagamentos:', error);
-        this.error = error.response?.data?.message || 'Erro ao baixar pagamentos';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -2294,7 +2294,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return dados;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar contas a receber para baixa';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -2321,7 +2321,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         });
         return response.data;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao baixar contas a receber';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -2346,7 +2346,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return response.data;
       } catch (error) {
         console.error('❌ Erro ao realizar transferência:', error.response?.data);
-        this.error = error.response?.data?.message || 'Erro ao realizar transferência';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -2387,7 +2387,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return dados;
       } catch (error) {
         console.error('❌ Erro ao buscar transferências:', error.response?.data);
-        this.error = error.response?.data?.message || 'Erro ao buscar transferências';
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
         this.loading = false;
@@ -2418,7 +2418,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return dados
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar tipos de carteira'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2439,7 +2439,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         )
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao gerar nosso número'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2459,7 +2459,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         )
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao registrar boleto'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2508,7 +2508,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return dados
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar carteiras'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2525,7 +2525,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         })
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar carteira'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2546,7 +2546,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao criar carteira'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2567,7 +2567,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao atualizar carteira'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2585,7 +2585,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
         return true
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao deletar carteira'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2609,7 +2609,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return response.data
       } catch (error) {
         console.error('[Store] Erro ao salvar modelo DRE:', error)
-        this.error = error.response?.data?.error || 'Erro ao salvar modelo DRE'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2631,7 +2631,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return response.data
       } catch (error) {
         console.error('[Store] Erro ao atualizar modelo DRE:', error)
-        this.error = error.response?.data?.error || 'Erro ao atualizar modelo DRE'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2664,7 +2664,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         }))
       } catch (error) {
         console.error('[Store] Erro ao buscar modelos DRE:', error)
-        this.error = error.response?.data?.error || 'Erro ao buscar modelos DRE'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         return []
       } finally {
         this.loading = false
@@ -2759,7 +2759,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return null
       } catch (error) {
         console.error('[Store] Erro ao buscar modelo DRE:', error)
-        this.error = error.response?.data?.error || 'Erro ao buscar modelo DRE'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2778,7 +2778,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         return true
       } catch (error) {
         console.error('[Store] Erro ao deletar modelo DRE:', error)
-        this.error = error.response?.data?.error || 'Erro ao deletar modelo DRE'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2804,7 +2804,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         else dados = []
         return dados
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao buscar lançamentos de colaborador'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
         this.loading = false
@@ -2823,7 +2823,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0]
         return resp
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao criar lançamento de colaborador'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         toast.error(this.error)
         throw error
       } finally {
@@ -2842,7 +2842,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0]
         return resp
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao atualizar lançamento de colaborador'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         toast.error(this.error)
         throw error
       } finally {
@@ -2859,7 +2859,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         toast.success('Lançamento excluído com sucesso!')
         return true
       } catch (error) {
-        this.error = error.response?.data?.message || 'Erro ao deletar lançamento de colaborador'
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         toast.error(this.error)
         throw error
       } finally {

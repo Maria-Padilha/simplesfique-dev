@@ -114,8 +114,6 @@ const loginApi = async () => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('login_timestamp', new Date().toISOString());
       
-      console.log('Token salvo:', data.token); // DEBUG - remover depois
-      console.log('Resposta da API:', data); // DEBUG - remover depois
       
       toast.success('Login realizado com sucesso!');
       setTimeout(() => {

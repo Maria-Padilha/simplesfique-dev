@@ -103,16 +103,12 @@ export const gerarPresignedUpload = async (entidade, nomeArquivo, mimeType) => {
  */
 export const uploadArquivoR2 = async (arquivo, entidade = 'outro') => {
   try {
-    console.log('[R2] uploadArquivoR2:', arquivo.name, entidade)
-
-    if (!ACCOUNT_ID || !ACCESS_KEY_ID || !SECRET_ACCESS) {
+        if (!ACCOUNT_ID || !ACCESS_KEY_ID || !SECRET_ACCESS) {
       return { sucesso: false, erro: 'Credenciais R2 não configuradas. Verifique o .env' }
     }
 
     // 1. Gera presigned URL no front com AWS SDK
     const { url, caminho } = await gerarPresignedUpload(entidade, arquivo.name, arquivo.type)
-    console.log('[R2] Presigned URL gerada, fazendo PUT:', caminho)
-
     // 2. PUT direto no R2
     const response = await fetch(url, {
       method: 'PUT',
@@ -122,8 +118,7 @@ export const uploadArquivoR2 = async (arquivo, entidade = 'outro') => {
 
     if (!response.ok) {
       const txt = await response.text()
-      console.error('[R2] Erro PUT:', response.status, txt)
-      return { sucesso: false, erro: `Upload falhou: ${response.status} - ${response.statusText}` }
+      return { sucesso: false, erro: `Upload falhou: ${response.status} - ${txt}` }
     }
 
     // 3. Monta URL pública
@@ -131,7 +126,6 @@ export const uploadArquivoR2 = async (arquivo, entidade = 'outro') => {
       ? `${PUBLIC_URL}/${caminho}`
       : `${ENDPOINT}/${BUCKET_NAME}/${caminho}`
 
-    console.log('[R2] Upload OK! URL pública:', urlPublica)
     return {
       sucesso: true,
       url: urlPublica,
@@ -141,7 +135,6 @@ export const uploadArquivoR2 = async (arquivo, entidade = 'outro') => {
       tipo: arquivo.type
     }
   } catch (error) {
-    console.error('[R2] uploadArquivoR2 erro:', error)
     return { sucesso: false, erro: error.message }
   }
 }
@@ -173,7 +166,6 @@ export const downloadArquivoR2 = async (caminho) => {
     document.body.removeChild(link)
     return { sucesso: true }
   } catch (error) {
-    console.error('[R2] downloadArquivoR2 erro:', error)
     return { sucesso: false, erro: error.message }
   }
 }
@@ -189,7 +181,6 @@ export const deletarArquivoR2 = async (caminho) => {
     const client  = criarClienteR2()
     const command = new DeleteObjectCommand({ Bucket: BUCKET_NAME, Key: caminho })
     await client.send(command)
-    console.log('[R2] Arquivo deletado:', caminho)
     return true
   } catch (error) {
     console.error('[R2] deletarArquivoR2 erro:', error)
@@ -214,7 +205,6 @@ export const listarArquivosR2 = async (entidade) => {
     const result  = await client.send(command)
     return result.Contents || []
   } catch (error) {
-    console.error('[R2] listarArquivosR2 erro:', error)
     return []
   }
 }

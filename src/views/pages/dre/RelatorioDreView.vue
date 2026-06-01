@@ -736,9 +736,19 @@ const calcularFormula = (formula, gruposMap) => {
     console.log('[DRE] Fórmula original:', formula)
     console.log('[DRE] Expressão calculada:', expressao)
     
-    // Avaliar a expressão matemática
-    // eslint-disable-next-line no-eval
-    const resultado = eval(expressao) || 0
+    // Avaliar a expressão matemática (seguro)
+    const resultado = (() => {
+      const expr = String(expressao ?? '').replace(/,/g, '.')
+      if (!/^[\d+\-*/().\s]+$/.test(expr)) {
+        console.error('[DRE] Expressão inválida:', expressao)
+        return 0
+      }
+      try {
+        const fn = new Function(`return (${expr})`)
+        const val = fn()
+        return typeof val === 'number' && isFinite(val) ? val : 0
+      } catch { return 0 }
+    })()
     
     console.log('[DRE] Resultado:', resultado)
     

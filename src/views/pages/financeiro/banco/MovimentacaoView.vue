@@ -629,6 +629,11 @@ import { usePermissoes } from '@/utils/usePermissoes'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import html2pdf from 'html2pdf.js'
 
+const escapeHtml = (text) => {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }
+  return String(text).replace(/[&<>"']/g, c => map[c])
+}
+
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
 import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
@@ -1376,13 +1381,13 @@ const prepararDadosRelatorio = () => {
 
   // Usar dados da API: titular, numero_ccorrente, limite, dtvenctolimite, nome (operador)
   return {
-    associado: primeiraMovimentacao.titular || contaSelecionada?.titular || 'N/A',
-    empresa: empresa?.razao || empresa?.fantasia || 'Empresa',
+    associado: escapeHtml(primeiraMovimentacao.titular || contaSelecionada?.titular || 'N/A'),
+    empresa: escapeHtml(empresa?.razao || empresa?.fantasia || 'Empresa'),
     conta: primeiraMovimentacao.numero_ccorrente
-        ? `${primeiraMovimentacao.numero_ccorrente}`
-        : (contaSelecionada ? `${contaSelecionada.numero_ccorrente}-${contaSelecionada.digito_cc}` : 'N/A'),
-    operador: primeiraMovimentacao.nome || 'N/A',
-    agencia: primeiraMovimentacao.id_agencia || 'N/A',
+        ? `${escapeHtml(primeiraMovimentacao.numero_ccorrente)}`
+        : (contaSelecionada ? `${escapeHtml(contaSelecionada.numero_ccorrente)}-${escapeHtml(contaSelecionada.digito_cc)}` : 'N/A'),
+    operador: escapeHtml(primeiraMovimentacao.nome || 'N/A'),
+    agencia: escapeHtml(primeiraMovimentacao.id_agencia || 'N/A'),
     dataInicio: formatarData(filtros.dataInicio),
     dataFim: formatarData(filtros.dataFim),
     saldoAnterior: formatarMoeda(saldoAnterior.value),
@@ -1399,13 +1404,13 @@ const prepararDadosRelatorio = () => {
     dataImpressao: new Date().toLocaleString('pt-BR'),
     movimentacoes: movimentacoesComSaldo.map(item => ({
       data: formatarData(item.dtlancamento),
-      descricao: item.deschistorico || '--',
-      documento: item.nrdocumento || '--',
-      tipo: item.desctipo || (item.tipo === '+' ? 'Entrada' : 'Saída'),
+      descricao: escapeHtml(item.deschistorico || '--'),
+      documento: escapeHtml(item.nrdocumento || '--'),
+      tipo: escapeHtml(item.desctipo || (item.tipo === '+' ? 'Entrada' : 'Saída')),
       valor: `${item.tipo === '-' ? '-' : '+'} ${formatarMoeda(item.valor)}`,
       saldo: formatarMoeda(item.saldoCalculado),
       valorNegativo: item.tipo === '-',
-      observacao: item.observacao || '',
+      observacao: escapeHtml(item.observacao || ''),
       conciliado: item.dtconciliacao ? 'Sim' : 'Não'
     })),
     lancamentosFuturos: [] // Para implementação futura

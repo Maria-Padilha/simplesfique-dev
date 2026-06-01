@@ -101,7 +101,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('Produtos encontrados:', this.produtos);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar produtos:', error);
             } finally {
                 this.loading = false;
@@ -130,7 +130,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('Produto encontrado:', this.produto);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar produto por ID:', error);
             } finally {
                 this.loading = false;
@@ -219,7 +219,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('marcas encontradas:', this.marcas);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar marcas:', error);
             } finally {
                 this.loading = false;
@@ -266,7 +266,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('medidas encontradas:', this.medidas);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar medidas:', error);
             } finally {
                 this.loading = false;
@@ -313,7 +313,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('garantias encontradas:', this.garantias);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar garantias:', error);
             } finally {
                 this.loading = false;
@@ -360,7 +360,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('embalagens encontradas:', this.embalagens);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar embalagens:', error);
             } finally {
                 this.loading = false;
@@ -449,7 +449,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('fornecedores encontrados:', this.fornecedores);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar fornecedores:', error);
             } finally {
                 this.loading = false;
@@ -538,7 +538,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('produtos similares encontrados:', this.similar);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar produtos similares:', error);
             } finally {
                 this.loading = false;
@@ -627,7 +627,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('entradas dfe encontradas: ', this.entradadfe);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar entradas dfe: ', error);
             } finally {
                 this.loading = false;
@@ -654,7 +654,7 @@ export const useProdutosStore = defineStore('produtos', {
                 this.errorMessage = '';
                 console.log('Entrada DFE encontrada:', this.entradadfeItem);
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar entrada dfe por ID:', error);
             } finally {
                 this.loading = false;
@@ -738,7 +738,7 @@ export const useProdutosStore = defineStore('produtos', {
                 this.errorMessage = '';
                 console.log('devoluções de entrada encontradas:', this.deventrada);
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar devoluções de entrada:', error);
             } finally {
                 this.loading = false;
@@ -801,7 +801,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('localizações encontradas:', this.localizacoes);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar localizações:', error);
             } finally {
                 this.loading = false;
@@ -889,7 +889,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('cores encontradas:', this.cores);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar cores:', error);
             } finally {
                 this.loading = false;
@@ -994,7 +994,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('grade de produto encontrada:', this.grades);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar grade de produto:', error);
                 return [];
             } finally {
@@ -1019,7 +1019,7 @@ export const useProdutosStore = defineStore('produtos', {
                 return gradeItem;
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar item da grade de produto por ID:', error);
                 return null;
             } finally {
@@ -1045,7 +1045,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('tributos encontrados:', this.tributos);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar tributos:', error);
             } finally {
                 this.loading = false;
@@ -1107,7 +1107,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('item do tributo encontrado:', this.tributos);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar item do tributo por ID:', error);
                 return null;
             } finally {
@@ -1182,7 +1182,7 @@ export const useProdutosStore = defineStore('produtos', {
                 console.log('fotos do banco encontradas:', this.fotosBanco);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar fotos do banco:', error);
                 return null;
             } finally {
@@ -1203,7 +1203,7 @@ export const useProdutosStore = defineStore('produtos', {
 
                 this.errorMessage = '';
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao deletar fotos do banco:', error);
                 return null;
             } finally {

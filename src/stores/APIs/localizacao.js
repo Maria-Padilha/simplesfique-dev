@@ -43,7 +43,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
                 console.log('CEP encontrado:', this.cep);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar CEP:', error);
             } finally {
                 this.loading = false;
@@ -66,7 +66,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
                 this.errorMessage = '';
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar CNPJ:', error);
             } finally {
                 this.loading = false;
@@ -101,7 +101,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
                 console.log(response.data);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar bairros:', error);
             } finally {
                 this.loading = false;
@@ -148,7 +148,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
                 console.log('Total de registros:', this.recordsCidades);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar cidades:', error);
             } finally {
                 this.loading = false;
@@ -219,7 +219,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
                 console.log('UFs encontradas:', this.ufs);
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar UFs:', error);
             } finally {
                 this.loading = false;

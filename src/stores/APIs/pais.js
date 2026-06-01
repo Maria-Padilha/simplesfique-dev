@@ -32,7 +32,7 @@ export const usePaísStore = defineStore('país', {
                 console.log('Países buscados com sucesso:', this.paises);
 
             } catch (error) {
-                this.errorMessage = error;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.log(this.errorMessage)
             } finally {
                 this.loading = false;
@@ -54,7 +54,7 @@ export const usePaísStore = defineStore('país', {
                 this.records = response.data.records;
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -104,7 +104,7 @@ export const usePaísStore = defineStore('país', {
                 this.errorMessage = '';
                 this.successMessage = 'País deletado com sucesso!';
             } catch (error) {
-                this.errorMessage = error;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.log(this.errorMessage)
             } finally {
                 this.loading = false;

@@ -157,7 +157,7 @@ export const useEmpresaStore = defineStore('empresa', {
                 return response.data;
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar acesso do usuário:', error);
             } finally {
                 this.loading = false;

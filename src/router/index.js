@@ -498,6 +498,14 @@ router.beforeEach(async (to, from, next) => {
     const siteStore = useSiteStore();
     const apiStore = useApiStore();
 
+    // Proteção de rotas autenticadas
+    if (to.path.startsWith('/paginas')) {
+        const token = localStorage.getItem('token')
+        if (!token) {
+            return next({ name: 'login' })
+        }
+    }
+
     const manutencao = siteStore.manutencao;
 
     if (manutencao && to.name === 'login') {
