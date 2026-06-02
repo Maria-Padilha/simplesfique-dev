@@ -14,9 +14,11 @@ Agentes especializados em .agents/. Use o agente correto por tarefa:
 
 ## Skills
 Padrões reutilizáveis em .skills/. Sempre verifique antes de implementar componentes, stores ou correções.
+- Rules → .skills/rules.md (regras obrigatórias do projeto — LEIA PRIMEIRO)
 - Anatomy → .skills/component-anatomy.md
 - Store → .skills/pinia-store.md
 - Novo componente → .skills/novo-component.md
+- Nova tela → .skills/nova-tela.md
 - Revisão → .skills/review.md
 - Test → .skills/test.md
 
@@ -33,3 +35,5 @@ Padrões reutilizáveis em .skills/. Sempre verifique antes de implementar compo
 - Tests required for all composables and stores
 - No direct DOM manipulation outside composables
 - Read @projeto/ context before structural changes
+- Follow .skills/rules.md for all new code and changes
+- After completing any implementation, bug fix, refactor, or architectural decision, use the `store_memory` tool to register it in the RAG. Include: title, type, problem/context, solution, affected files, and relevant tags.

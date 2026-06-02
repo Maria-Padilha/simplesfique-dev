@@ -97,11 +97,6 @@
     ],
     "rules": {}
   },
-  "lint-staged": {
-    "*.{js,vue}": [
-      "vue-cli-service lint --fix"
-    ]
-  },
   "browserslist": [
     "> 1%",
     "last 2 versions",

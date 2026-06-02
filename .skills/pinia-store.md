@@ -45,10 +45,13 @@ export const useModuloStore = defineStore('modulo', {
       }
     },
 
+    /**
+     * API padrão THorse: enviar dados dentro de { data: [objeto] }
+     */
     async salvar(rota, dados) {
       this.loading = true
       try {
-        const res = await api.post(rota, dados, { headers: this.getAuthHeaders() })
+        const res = await api.post(rota, { data: [dados] }, { headers: this.getAuthHeaders() })
         await this.buscarDados(rota)
         return res
       } finally {
@@ -59,7 +62,7 @@ export const useModuloStore = defineStore('modulo', {
     async atualizar(rota, id, dados) {
       this.loading = true
       try {
-        const res = await api.put(`${rota}/${id}`, dados, { headers: this.getAuthHeaders() })
+        const res = await api.put(`${rota}/${id}`, { data: [dados] }, { headers: this.getAuthHeaders() })
         await this.buscarDados(rota)
         return res
       } finally {
@@ -102,6 +105,7 @@ export const useConfigStore = defineStore('config', {
 4. **Sempre usar `getAuthHeaders()`** para chamadas autenticadas
 5. **Tratar resposta flexível**: backend pode retornar `res.data`, `res.data.data`, `res.data.rows`, ou `res` direto
 6. **Loading/error pattern**: `loading = true` → try/catch → `finally { loading = false }`
-7. **Recarregar após mutação**: `salvar`, `atualizar`, `excluir` devem chamar `buscarDados` ao final
-8. **Store base `useApiStore`** para operações genéricas (alternativa ao padrão direto)
-9. **Componente nunca chama axios** — sempre usa a store
+7. **API wrapper**: POST e PUT sempre em `{ data: [objeto] }` — padrão THorse para criação/atualização
+8. **Recarregar após mutação**: `salvar`, `atualizar`, `excluir` devem chamar `buscarDados` ao final
+9. **Store base `useApiStore`** para operações genéricas (alternativa ao padrão direto)
+10. **Componente nunca chama axios** — sempre usa a store
