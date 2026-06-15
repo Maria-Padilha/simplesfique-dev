@@ -18,10 +18,10 @@
         <v-form class="mt-5 d-flex flex-column ga-4" @keyup.enter="login">
           <v-text-field
               hide-details="auto"
-              v-model="usuario"
-              prepend-inner-icon="mdi-account-outline"
-              placeholder="Usuário" variant="outlined"
-              :rules="rules.usuario"
+              v-model="email"
+              prepend-inner-icon="mdi-email-outline"
+              placeholder="E-mail" variant="outlined"
+              :rules="rules.email"
               :theme="themeStore.darkMode ? 'dark' : 'light'"
           />
 
@@ -58,79 +58,71 @@ import {useThemeStore} from "@/stores/config-temas/theme";
 import ParticleBackground from '@/components/particle/ParticleBackground.vue';
 import { useRouter } from "vue-router";
 import {toast} from "vue3-toastify";
-import api from "@/services/api";
+import {useApiStore} from "@/stores/APIs/api";
+import apiPhp from "@/services/apiPhp";
 
 
 const themeStore = useThemeStore();
 const router = useRouter();
+const apiStore = useApiStore();
 
 const exibirSenha = ref(false);
 
-const usuario = ref('');
+const email = ref('');
 const senha = ref('');
 
-// const usuarioValido = ref({
-//   usuario: 'admin',
-//   senha: '123'
-// })
-
 const rules = ref({
-  usuario: [
-    v => !!v || 'O usuário é obrigatório',
+  email: [
+    v => !!v || 'O e-mail é obrigatório',
   ],
   senha: [
     v => !!v || 'A senha é obrigatória',
   ]
 });
 
-const login = () => {
-  // ========== CÓDIGO TEMPORÁRIO - API LOGIN ==========
-  loginApi();
-  // ===================================================
-  
-  // if (usuario.value === usuarioValido.value.usuario && senha.value === usuarioValido.value.senha) {
-  //   toast.success('Login realizado com sucesso!');
-  //   setTimeout(() => {
-  //     router.push('/paginas/home');
-  //   }, 1800);
-  // } else {
-  //   toast.error('Usuário ou senha inválidos!');
-  // }
-};
-
 const loading = ref(false);
 
-// ========== FUNÇÃO TEMPORÁRIA - API LOGIN ==========
-const loginApi = async () => {
+const login = async () => {
   loading.value = true;
   try {
-    // POST vazio via axios - usando service API
-    const response = await api.post('vstsaaslogin');
+    const response = await apiPhp.post('/auth/login', {
+      email: email.value,
+      senha: senha.value,
+    });
 
     const data = response.data;
 
-    if (response.status === 200 && data.token) {
-      // Salvar token no localStorage
+    if (data.token) {
       localStorage.setItem('token', data.token);
       localStorage.setItem('login_timestamp', new Date().toISOString());
-      
-      
+
+      if (data.usuario) {
+        localStorage.setItem('usuario', JSON.stringify(data.usuario));
+      }
+      if (data.saas) {
+        localStorage.setItem('saas', JSON.stringify(data.saas));
+      }
+      if (data.empresas) {
+        localStorage.setItem('empresas', JSON.stringify(data.empresas));
+        apiStore.dataEmpresa = data.empresas;
+      }
+
       toast.success('Login realizado com sucesso!');
       setTimeout(() => {
         router.push('/paginas/home');
-      }, 1800);
+      }, 800);
     } else {
       toast.error('Erro ao obter token do servidor!');
     }
   } catch (error) {
-    console.error('Erro no login:', error);
-    toast.error('Erro ao conectar com o servidor!');
-  }
-  finally {
+    const msg = error.validationMessage
+      || error.response?.data?.message
+      || 'E-mail ou senha inválidos!';
+    toast.error(msg);
+  } finally {
     loading.value = false;
   }
 };
-// ===================================================
 </script>
 
 <style scoped>

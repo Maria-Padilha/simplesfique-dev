@@ -14,11 +14,13 @@ Regras obrigatórias para todo código novo ou alteração no projeto.
 - Nenhuma view pode chamar `api.get()`, `api.post()`, `api.put()` ou `api.delete()` diretamente
 - Toda requisição HTTP deve passar pela store Pinia correspondente em `src/stores/APIs/`
 
-## 3. API wrapper `{ data: [objeto] }`
+## 3. API — payload direto (sem wrapper)
 
-- Todo POST e PUT deve enviar os dados dentro de `{ data: [objeto] }` — padrão THorse
-- Correto: `api.post('/rota', { data: [payload] }, { headers })`
-- Incorreto: `api.post('/rota', payload, { headers })`
+- **API PHP (nova):** payload é enviado direto, sem wrapper — `apiPhp.post('/rota', payload)`
+- **API THorse (legado):** usava `{ data: [objeto] }` — manter apenas em stores não migradas
+- Correto (PHP): `apiPhp.post('/rota', payload)`
+- Correto (THorse): `api.post('/rota', { data: [payload] })`
+- Headers de auth são injetados automaticamente pelo interceptor de `apiPhp` ou `api`
 
 ## 4. TabelaPadrao obrigatório
 

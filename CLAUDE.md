@@ -5,12 +5,13 @@ SimplesFique — ERP de gestão empresarial brasileiro (Vue 3 + Vuetify + Pinia 
 Full context in @projeto/PROJECT_OVERVIEW.md e @projeto/ARCHITECTURE.md.
 
 ## Agents
-Agentes especializados em .agents/. Use o agente correto por tarefa:
-- Orchestrator → .agents/orchestrator.md (delega para os demais)
-- Review → .agents/code-reviewer.md
-- UI work → .agents/ui-component.md
-- Store/state → .agents/state-flow.md
-- Testing → .agents/testing.md
+Agentes especializados em `.opencode/agents/`. Use o agente correto por tarefa:
+- Orchestrator → `.opencode/agents/orchestrator.md` (delega para os demais via `task`)
+- UI work → `.opencode/agents/ui-component.md`
+- Store/state → `.opencode/agents/state-flow.md`
+- Review → `.opencode/agents/code-reviewer.md` (read-only: aponta problemas sem editar)
+- Testing → `.opencode/agents/testing.md`
+- API Migration → `.opencode/agents/api-migration.md` (migração THorse → PHP)
 
 ## Skills
 Padrões reutilizáveis em .skills/. Sempre verifique antes de implementar componentes, stores ou correções.
@@ -21,6 +22,7 @@ Padrões reutilizáveis em .skills/. Sempre verifique antes de implementar compo
 - Nova tela → .skills/nova-tela.md
 - Revisão → .skills/review.md
 - Test → .skills/test.md
+- API Migration → .skills/api-migration.md (padrões de migração THorse → PHP)
 
 ## Project Docs
 - @projeto/PROJECT_OVERVIEW.md — visão geral do produto

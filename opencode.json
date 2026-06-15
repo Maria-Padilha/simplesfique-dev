@@ -9,23 +9,26 @@
   ],
   "agent": {
     "orchestrator": {
-      "description": "Coordena tasks complexas entre agents especializados"
+      "description": "Coordena tasks complexas entre agents especializados. Analisa requisições e delega para sub-agentes (ui-component, state-flow, code-reviewer, testing, api-migration) usando a ferramenta task."
     },
     "code-reviewer": {
-      "description": "Revisa código Vue/Nuxt para consistência, performance e boas práticas",
+      "description": "Revisa código Vue/Nuxt para consistência, performance e boas práticas. Valida Composition API, Pinia, Vuetify, nomenclatura.",
       "tools": {
         "write": false,
         "edit": false
       }
     },
     "ui-component": {
-      "description": "Cria e refatora componentes Vue seguindo o design system"
+      "description": "Cria e refatora componentes Vue seguindo o design system do SimplesFique (Vuetify 3 + Tailwind + Composition API)."
     },
     "state-flow": {
-      "description": "Gerencia arquitetura de estado com Pinia"
+      "description": "Gerencia arquitetura de estado com Pinia no SimplesFique. Cria e modifica stores com padrão CRUD, loading/error, autenticação."
     },
     "testing": {
-      "description": "Cria e mantém testes com Vitest + @vue/test-utils"
+      "description": "Cria e mantém testes com Vitest + @vue/test-utils para stores Pinia, composables e componentes Vue."
+    },
+    "api-migration": {
+      "description": "Migra stores e chamadas de API do padrão THorse (porta 9005) para o novo backend PHP/Laravel (porta 8000)."
     }
   },
   "mcp": {

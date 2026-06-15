@@ -49,7 +49,7 @@ import MensagensView from '@/views/pages/manutencao/MensagensView.vue';
 import RelatorioDreView from '@/views/pages/dre/RelatorioDreView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
-import api from "@/services/api";
+import apiPhp from "@/services/apiPhp";
 import MotivoPerdaOrcamentoView from '@/views/pages/vendas/MotivoPerdaOrcamentoView.vue';
 
 const routes = [
@@ -524,10 +524,10 @@ router.beforeEach(async (to, from, next) => {
         }
 
         try {
-            const response = await api.get(`/empsaas`, {
+            const response = await apiPhp.get('/auth/me', {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            const data = await response.data;
+            const data = response.data;
 
             if (!data) {
                 router.push('/');

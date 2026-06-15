@@ -4,10 +4,10 @@ Padrão para criar stores Pinia no SimplesFique ERP.
 
 ## Store de domínio (mais comum)
 
+### Padrão para API PHP (nova)
 ```js
 import { defineStore } from 'pinia'
-import api from '@/services/api'
-import { useApiStore } from './api'
+import apiPhp from '@/services/apiPhp'
 
 export const useModuloStore = defineStore('modulo', {
   state: () => ({
@@ -21,23 +21,12 @@ export const useModuloStore = defineStore('modulo', {
   },
 
   actions: {
-    getAuthHeaders() {
-      const apiStore = useApiStore()
-      const token = apiStore.token || localStorage.getItem('token')
-      return {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      }
-    },
-
-    async buscarDados(rota, params = {}) {
+    async buscarDados(params = {}) {
       this.loading = true
       this.error = null
       try {
-        const res = await api.get(rota, { headers: this.getAuthHeaders(), params })
-        this.dados = Array.isArray(res.data) ? res.data
-                   : Array.isArray(res) ? res
-                   : res.data?.data || res.data?.rows || []
+        const res = await apiPhp.get('/entidade', { params })
+        this.dados = res.data?.data ?? res.data ?? []
       } catch (err) {
         this.error = err
       } finally {
@@ -45,42 +34,50 @@ export const useModuloStore = defineStore('modulo', {
       }
     },
 
-    /**
-     * API padrão THorse: enviar dados dentro de { data: [objeto] }
-     */
-    async salvar(rota, dados) {
+    async salvar(dados) {
       this.loading = true
       try {
-        const res = await api.post(rota, { data: [dados] }, { headers: this.getAuthHeaders() })
-        await this.buscarDados(rota)
+        // Payload direto (sem wrapper) — padrão PHP
+        const res = await apiPhp.post('/entidade', dados)
+        await this.buscarDados()
         return res
       } finally {
         this.loading = false
       }
     },
 
-    async atualizar(rota, id, dados) {
+    async atualizar(id, dados) {
       this.loading = true
       try {
-        const res = await api.put(`${rota}/${id}`, { data: [dados] }, { headers: this.getAuthHeaders() })
-        await this.buscarDados(rota)
+        const res = await apiPhp.put(`/entidade/${id}`, dados)
+        await this.buscarDados()
         return res
       } finally {
         this.loading = false
       }
     },
 
-    async excluir(rota, id) {
+    async excluir(id) {
       this.loading = true
       try {
-        await api.delete(`${rota}/${id}`, { headers: this.getAuthHeaders() })
-        await this.buscarDados(rota)
+        await apiPhp.delete(`/entidade/${id}`)
+        await this.buscarDados()
       } finally {
         this.loading = false
       }
     },
   },
 })
+```
+
+### Padrão para API THorse (legado, até migrar)
+
+```js
+import api from '@/services/api'
+
+async salvar(rota, dados) {
+  const res = await api.post(rota, { data: [dados] })
+}
 ```
 
 ## Store com persistência (tema, config)

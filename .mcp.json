@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "simplesfique-memoria": {
+      "command": "node",
+      "args": ["mcp-rag/index.js"],
+      "cwd": "/Users/kaioba/Documents/GitHub/simplesfique-dev"
+    }
+  }
+}
