@@ -21,7 +21,7 @@ export const usePaísStore = defineStore('país', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get('/api/v1/manutencao/pais');
+                const res = await apiPhp.get('/manutencao/pais');
 
                 this.paises = res.data?.data ?? res.data;
                 this.errorMessage = '';
@@ -39,7 +39,7 @@ export const usePaísStore = defineStore('país', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get(`/api/v1/manutencao/pais/${id}`);
+                const res = await apiPhp.get(`/manutencao/pais/${id}`);
 
                 this.pais = res.data?.data ?? res.data;
                 this.errorMessage = '';
@@ -56,7 +56,7 @@ export const usePaísStore = defineStore('país', {
         async cadastrarPais(id, nomePais, id_empresa) {
             this.loading = true;
             try {
-                await apiPhp.post('/api/v1/manutencao/pais', { id, nomePais });
+                await apiPhp.post('/manutencao/pais', { id, nomePais });
 
                 await this.buscarTodosPaises(id_empresa);
                 this.errorMessage = '';
@@ -84,7 +84,7 @@ export const usePaísStore = defineStore('país', {
         async deletePais(id, id_empresa) {
             this.loading = true;
             try {
-                await apiPhp.delete(`/api/v1/manutencao/pais/${id}`);
+                await apiPhp.delete(`/manutencao/pais/${id}`);
 
                 await this.buscarTodosPaises(id_empresa);
                 this.errorMessage = '';

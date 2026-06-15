@@ -34,7 +34,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get(`/api/v1/cep/${cep}`);
+                const res = await apiPhp.get(`/cep/${cep}`);
 
                 this.cep = res.data;
                 this.errorMessage = '';
@@ -56,7 +56,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get(`/api/v1/cnpj/${cnpj}`);
+                const res = await apiPhp.get(`/cnpj/${cnpj}`);
 
                 this.cnpj = res.data;
                 this.errorMessage = '';
@@ -78,7 +78,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get('/api/v1/manutencao/bairros', { params: { find } });
+                const res = await apiPhp.get('/manutencao/bairros', { params: { find } });
 
                 this.bairros = res.data?.data ?? res.data;
                 this.recordsBairros = res.data?.total ?? 0;
@@ -101,7 +101,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
             this.loading = true;
 
             try {
-                await apiPhp.post('/api/v1/manutencao/bairros', bairroData);
+                await apiPhp.post('/manutencao/bairros', bairroData);
                 this.errorMessage = '';
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
@@ -121,7 +121,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get('/api/v1/manutencao/cidades', { params: { find } });
+                const res = await apiPhp.get('/manutencao/cidades', { params: { find } });
 
                 this.cidades = res.data?.data ?? res.data;
                 this.recordsCidades = res.data?.total ?? 0;
@@ -183,7 +183,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get('/api/v1/manutencao/ufs');
+                const res = await apiPhp.get('/manutencao/ufs');
 
                 this.ufs = res.data?.data ?? res.data;
                 this.errorMessage = '';

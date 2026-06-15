@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import api from '@/services/api'
+import apiPhp from '@/services/apiPhp'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
@@ -54,37 +55,12 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get('/ccorrente', {
-          headers: this.getAuthHeaders()
-        });
-        
-        // Garantir que response.data seja um array válido
-        const resposta = response.data;
-        
-        // Verificar se a resposta tem a estrutura {data: [...], records: X}
-        let dados;
-        if (resposta && resposta.data && Array.isArray(resposta.data)) {
-          dados = resposta.data;
-        } 
-        // Se é array diretamente
-        else if (Array.isArray(resposta)) {
-          dados = resposta;
-        }
-        // Se é objeto válido (não null, não undefined, não string vazia), transformar em array
-        else if (resposta && resposta !== '' && typeof resposta === 'object' && !resposta.data) {
-          dados = [resposta];
-        }
-        // Qualquer outro caso (null, undefined, string vazia, etc), usar array vazio
-        else {
-          dados = [];
-        }
-        
-        this.contas = dados;
-        
+        const res = await apiPhp.get('/financeiro/contas-correntes');
+        this.contas = res.data?.data ?? res.data ?? [];
         return this.contas;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-        this.contas = []; // Garantir que contas seja um array vazio em caso de erro
+        this.contas = [];
         throw error;
       } finally {
         this.loading = false;
@@ -96,37 +72,12 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get('/ccorrente', {
-          headers: this.getAuthHeaders()
-        });
-        
-        // Garantir que response.data seja um array válido
-        const resposta = response.data;
-        
-        // Verificar se a resposta tem a estrutura {data: [...], records: X}
-        let dados;
-        if (resposta && resposta.data && Array.isArray(resposta.data)) {
-          dados = resposta.data;
-        } 
-        // Se é array diretamente
-        else if (Array.isArray(resposta)) {
-          dados = resposta;
-        }
-        // Se é objeto válido (não null, não undefined, não string vazia), transformar em array
-        else if (resposta && resposta !== '' && typeof resposta === 'object' && !resposta.data) {
-          dados = [resposta];
-        }
-        // Qualquer outro caso (null, undefined, string vazia, etc), usar array vazio
-        else {
-          dados = [];
-        }
-        
-        this.contas = dados;
-        
+        const res = await apiPhp.get('/financeiro/contas-correntes');
+        this.contas = res.data?.data ?? res.data ?? [];
         return this.contas;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-        this.contas = []; // Garantir que contas seja um array vazio em caso de erro
+        this.contas = [];
         throw error;
       } finally {
         this.loading = false;
@@ -143,32 +94,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get('/histbancario', {
-          headers: this.getAuthHeaders()
-        });
-        
-        // Garantir que response.data seja um array válido
-        const resposta = response.data;
-        
-        // Verificar se a resposta tem a estrutura {data: [...], records: X}
-        let dados;
-        if (resposta && resposta.data && Array.isArray(resposta.data)) {
-          dados = resposta.data;
-        } 
-        // Se é array diretamente
-        else if (Array.isArray(resposta)) {
-          dados = resposta;
-        }
-        // Se é objeto válido (não null, não undefined, não string vazia), transformar em array
-        else if (resposta && resposta !== '' && typeof resposta === 'object' && !resposta.data) {
-          dados = [resposta];
-        }
-        // Qualquer outro caso (null, undefined, string vazia, etc), usar array vazio
-        else {
-          dados = [];
-        }
-        
-        return dados;
+        const res = await apiPhp.get('/financeiro/historicos-bancarios');
+        return res.data?.data ?? res.data ?? [];
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
@@ -177,46 +104,13 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar contas correntes ativas do usuário logado (GET /ccorrenteusuativo)
+    // Buscar contas correntes ativas do usuário logado
     async buscarContasUsuarioAtivo() {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get('/ccorrenteusuativo', {
-          headers: this.getAuthHeaders()
-        });
-        
-        const resposta = response.data;
-        
-        // A API retorna {data: {id, numero_ccorrente, titular}}
-        // Precisamos transformar em array
-        let dados;
-        if (resposta && resposta.data) {
-          // Se data é um objeto único, transformar em array
-          if (typeof resposta.data === 'object' && !Array.isArray(resposta.data)) {
-            dados = [resposta.data];
-          }
-          // Se data já é array
-          else if (Array.isArray(resposta.data)) {
-            dados = resposta.data;
-          }
-          else {
-            dados = [];
-          }
-        } 
-        // Se é array diretamente
-        else if (Array.isArray(resposta)) {
-          dados = resposta;
-        }
-        // Se é objeto válido, transformar em array
-        else if (resposta && resposta !== '' && typeof resposta === 'object') {
-          dados = [resposta];
-        }
-        else {
-          dados = [];
-        }
-        
-        return dados;
+        const res = await apiPhp.get('/financeiro/contas-correntes/ativas');
+        return res.data?.data ?? res.data ?? [];
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
@@ -230,10 +124,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get(`/ccorrente/${id}`, {
-          headers: this.getAuthHeaders()
-        });
-        return response.data;
+        const res = await apiPhp.get(`/financeiro/contas-correntes/${id}`);
+        return res.data?.data ?? res.data;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
@@ -247,14 +139,10 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.post('/ccorrente', contaData, {
-          headers: this.getAuthHeaders()
-        });
-        
-        // Atualizar a lista local
-        this.contas.push(response.data);
-        
-        return response.data;
+        const res = await apiPhp.post('/financeiro/contas-correntes', contaData);
+        const created = res.data?.data ?? res.data;
+        if (created) this.contas.push(created);
+        return created;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
@@ -268,17 +156,13 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.put(`/ccorrente/${id}`, contaData, {
-          headers: this.getAuthHeaders()
-        });
-        
-        // Atualizar na lista local
+        const res = await apiPhp.put(`/financeiro/contas-correntes/${id}`, contaData);
+        const updated = res.data?.data ?? res.data;
         const index = this.contas.findIndex(conta => conta.id_ccorrente === id);
         if (index !== -1) {
-          this.contas[index] = response.data;
+          this.contas[index] = updated;
         }
-        
-        return response.data;
+        return updated;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
@@ -292,13 +176,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        await api.delete(`/ccorrente/${id}`, {
-          headers: this.getAuthHeaders()
-        });
-        
-        // Remover da lista local
+        await apiPhp.delete(`/financeiro/contas-correntes/${id}`);
         this.contas = this.contas.filter(conta => conta.id_ccorrente !== id);
-        
         return true;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
@@ -315,11 +194,10 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get(`/ccorrentemov/${idEmpresa}/idccorrente/${idCcorrente}/dtini/${dtini}/dtfim/${dtfim}`, {
-          headers: this.getAuthHeaders()
+        const res = await apiPhp.get('/financeiro/movimentos-conta-corrente', {
+          params: { id_ccorrente: idCcorrente, dtini, dtfim }
         });
-        
-        return response.data;
+        return res.data?.data ?? res.data ?? [];
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
@@ -333,11 +211,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get(`/ccorrentemov/${idEmpresa}/idccorrente/${idCcorrente}/id/${id}`, {
-          headers: this.getAuthHeaders()
-        });
-        
-        return response.data;
+        const res = await apiPhp.get(`/financeiro/movimentos-conta-corrente/${id}`);
+        return res.data?.data ?? res.data;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
@@ -351,11 +226,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.post(`/ccorrentemov/${idEmpresa}/idccorrente/${idCcorrente}`, payload, {
-          headers: this.getAuthHeaders()
-        });
-        
-        return response.data;
+        const res = await apiPhp.post('/financeiro/movimentos-conta-corrente', payload);
+        return res.data?.data ?? res.data;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
@@ -369,11 +241,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.put(`/ccorrentemov/${idEmpresa}/idccorrente/${idCcorrente}/id/${id}`, payload, {
-          headers: this.getAuthHeaders()
-        });
-        
-        return response.data;
+        const res = await apiPhp.put(`/financeiro/movimentos-conta-corrente/${id}`, payload);
+        return res.data?.data ?? res.data;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
@@ -387,11 +256,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.delete(`/ccorrentemov/${idEmpresa}/idccorrente/${idCcorrente}/id/${id}`, {
-          headers: this.getAuthHeaders()
-        });
-        
-        return response.data;
+        await apiPhp.delete(`/financeiro/movimentos-conta-corrente/${id}`);
+        return true;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
@@ -401,42 +267,18 @@ export const useFinanceiroStore = defineStore('financeiro', {
     },
 
     // ========== BANCOS ==========
-    
+
     // Buscar todos os bancos
     async buscarBancos() {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get('/banco', {
-          headers: this.getAuthHeaders()
-        });
-        
-        // Garantir que response.data seja um array válido
-        const resposta = response.data;
-        
-        // Verificar se a resposta tem a estrutura {data: [...], records: X}
-        let dados;
-        if (resposta && resposta.data && Array.isArray(resposta.data)) {
-          dados = resposta.data;
-        } 
-        // Se é array diretamente
-        else if (Array.isArray(resposta)) {
-          dados = resposta;
-        }
-        // Se é objeto válido (não null, não undefined, não string vazia), transformar em array
-        else if (resposta && resposta !== '' && typeof resposta === 'object' && !resposta.data) {
-          dados = [resposta];
-        }
-        // Qualquer outro caso (null, undefined, string vazia, etc), usar array vazio
-        else {
-          dados = [];
-        }
-        
-        this.bancos = dados;
+        const res = await apiPhp.get('/financeiro/bancos');
+        this.bancos = res.data?.data ?? res.data ?? [];
         return this.bancos;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-        this.bancos = []; // Garantir que bancos seja um array vazio em caso de erro
+        this.bancos = [];
         throw error;
       } finally {
         this.loading = false;
@@ -448,10 +290,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get(`/banco/${id}`, {
-          headers: this.getAuthHeaders()
-        });
-        return response.data;
+        const res = await apiPhp.get(`/financeiro/bancos/${id}`);
+        return res.data?.data ?? res.data ?? [];
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
@@ -460,28 +300,14 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
     // ========== UFS ==========
-    
+
     // Buscar todas as UFs
     async buscarUFs() {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get('/uf', {
-          headers: this.getAuthHeaders()
-        });
-
-
-        // Normalizar a resposta para garantir chaves consistentes (SIGLA, ID, DESCUF, NOMEPAIS)
-        let raw = []
-        if (response.data && response.data.data && Array.isArray(response.data.data)) {
-          raw = response.data.data
-        } else if (Array.isArray(response.data)) {
-          raw = response.data
-        } else if (response.data && typeof response.data === 'object') {
-          raw = [response.data]
-        } else {
-          raw = []
-        }
+        const res = await apiPhp.get('/manutencao/ufs');
+        const raw = res.data?.data ?? res.data ?? [];
 
         // Mapear cada item para uma forma previsível usada pela UI
         this.ufs = raw.map(u => ({
@@ -492,10 +318,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
           NOMEPAIS: u.NOMEPAIS ?? u.nomepais ?? u.nomePais ?? ''
         }))
 
-
         return this.ufs;
       } catch (error) {
-        console.error('Erro ao buscar UFs:', error);
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         this.ufs = [];
         throw error;
@@ -543,37 +367,14 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-      // Buscar usuários vinculados a uma conta corrente (GET /ccorrenteusu/:id)
+      // Buscar usuários vinculados a uma conta corrente
       async buscarUsuariosPorConta(contaId) {
         this.loading = true
         this.error = null
         try {
-
-          
-          const response = await api.get(`/ccorrenteusu/${contaId}`, {
-            headers: this.getAuthHeaders()
-          })
-          
-
-          
-          const resp = response.data
-          let dados = []
-          if (resp && resp.data && Array.isArray(resp.data)) {
-            dados = resp.data
-          } else if (Array.isArray(resp)) {
-            dados = resp
-          } else if (resp && typeof resp === 'object') {
-            dados = [resp]
-          } else {
-            dados = []
-          }
-
-
-
-          // retorno: array de objetos que representam vínculo (esperado campos como id_usuario, ativo, nome, email)
-          return dados
+          const res = await apiPhp.get(`/financeiro/contas-correntes/${contaId}/usuarios`)
+          return res.data?.data ?? res.data ?? []
         } catch (error) {
-          console.error('Erro ao buscar usuários vinculados à conta:', error)
           this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
           throw error
         } finally {
@@ -581,7 +382,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         }
       },
 
-      // Atualizar acessos de usuários para uma conta (POST /ccorrenteusu/:id)
+      // Atualizar acessos de usuários para uma conta
       // payload: { contaId, users: [{ id: <usuarioId>, acesso: true|false }, ...] }
       async atualizarAcessoConta(payload) {
         this.loading = true
@@ -589,20 +390,10 @@ export const useFinanceiroStore = defineStore('financeiro', {
         try {
           const contaId = payload.contaId
           const users = Array.isArray(payload.users) ? payload.users : []
-
-          // Enviar as atualizações; o backend pode aceitar múltiplos registros em data array
-          // Construir array de objetos com { id_usuario, ativo }
           const dataArray = users.map(u => ({ id_usuario: u.id, ativo: u.acesso ? 'S' : 'N' }))
 
-          // Enviar em um único POST encapsulado em { data: [...] }
-          const response = await api.post(`/ccorrenteusu/${contaId}`, { data: dataArray }, {
-            headers: this.getAuthHeaders()
-          })
-
-          // Opcional: retornar o body normalizado
-          const resp = response.data
-          if (resp && resp.data && Array.isArray(resp.data)) return resp.data
-          return resp
+          const res = await apiPhp.post(`/financeiro/contas-correntes/${contaId}/usuarios`, dataArray)
+          return res.data?.data ?? res.data
         } catch (error) {
           this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
           throw error
@@ -617,24 +408,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get('/agencia', {
-          headers: this.getAuthHeaders()
-        });
-        // Normalizar resposta no padrão THorse: { data: [...] }
-        const resp = response.data;
-        let dados;
-        if (resp && resp.data && Array.isArray(resp.data)) {
-          dados = resp.data;
-        } else if (Array.isArray(resp)) {
-          dados = resp;
-        } else if (resp && resp !== '' && typeof resp === 'object') {
-          // Single object -> transformar em array
-          dados = [resp];
-        } else {
-          dados = [];
-        }
-
-        this.agencias = dados;
+        const res = await apiPhp.get('/financeiro/agencias');
+        this.agencias = res.data?.data ?? res.data ?? [];
         return this.agencias;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
@@ -660,25 +435,10 @@ export const useFinanceiroStore = defineStore('financeiro', {
           ag.id_uf = ag.id_uf.SIGLA ?? ag.id_uf.sigla ?? ag.id_uf.Sigla ?? ag.id_uf.ID ?? ag.id_uf.id ?? ''
         }
 
-        // THorse expects payload wrapped in { data: [ ... ] }
-        const payload = { data: [ag] };
-        const response = await api.post('/agencia', payload, {
-          headers: this.getAuthHeaders()
-        });
-
-        // Normalizar resposta: pode retornar { data: [...] } ou o objeto criado
-        const resp = response.data;
-        let created;
-        if (resp && resp.data && Array.isArray(resp.data)) {
-          created = resp.data[0];
-        } else if (resp && typeof resp === 'object') {
-          created = resp;
-        } else {
-          created = null;
-        }
-
+        const res = await apiPhp.post('/financeiro/agencias', ag);
+        const created = res.data?.data ?? res.data ?? null;
         if (created) this.agencias.push(created);
-        return created || response.data;
+        return created;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
@@ -687,20 +447,14 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar uma agência por ID (agora requer id do banco na rota)
-    // usar: buscarAgenciaPorId(idBanco, idAgencia)
+    // Buscar uma agência por ID
+    // idBanco é mantido na assinatura para não quebrar callers, mas é ignorado
     async buscarAgenciaPorId(idBanco, id) {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get(`/agencia/${idBanco}/id/${id}`, {
-          headers: this.getAuthHeaders()
-        });
-
-        // Normalizar retorno
-        const resp = response.data;
-        if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0];
-        return resp;
+        const res = await apiPhp.get(`/financeiro/agencias/${id}`);
+        return res.data?.data ?? res.data ?? [];
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
@@ -709,8 +463,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Atualizar agência (rota agora inclui id do banco)
-    // usar: atualizarAgencia(idBanco, idAgencia, agenciaData)
+    // Atualizar agência
+    // idBanco é mantido na assinatura para não quebrar callers, mas é ignorado
     async atualizarAgencia(idBanco, id, agenciaData) {
       this.loading = true;
       this.error = null;
@@ -723,26 +477,16 @@ export const useFinanceiroStore = defineStore('financeiro', {
           ag.id_uf = ag.id_uf.SIGLA ?? ag.id_uf.sigla ?? ag.id_uf.Sigla ?? ag.id_uf.ID ?? ag.id_uf.id ?? ''
         }
 
-        const payload = { data: [ag] };
-        const response = await api.put(`/agencia/${idBanco}/id/${id}`, payload, {
-          headers: this.getAuthHeaders()
-        });
+        const res = await apiPhp.put(`/financeiro/agencias/${id}`, ag);
+        const updated = res.data?.data ?? res.data ?? null;
 
-        const resp = response.data;
-        let updated;
-        if (resp && resp.data && Array.isArray(resp.data)) {
-          updated = resp.data[0];
-        } else if (resp && typeof resp === 'object') {
-          updated = resp;
-        }
-
-        // Atualizar na lista local (tenta casar por várias chaves possíveis)
+        // Atualizar na lista local
         if (updated) {
           const findIndex = this.agencias.findIndex(a => String(a.ID ?? a.id ?? a.id_agencia) === String(id));
           if (findIndex !== -1) this.agencias[findIndex] = updated;
         }
 
-        return updated || response.data;
+        return updated;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
@@ -751,17 +495,15 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Deletar agência (rota agora inclui id do banco)
-    // usar: deletarAgencia(idBanco, idAgencia)
+    // Deletar agência
+    // idBanco é mantido na assinatura para não quebrar callers, mas é ignorado
     async deletarAgencia(idBanco, id) {
       this.loading = true;
       this.error = null;
       try {
-        await api.delete(`/agencia/${idBanco}/id/${id}`, {
-          headers: this.getAuthHeaders()
-        });
+        await apiPhp.delete(`/financeiro/agencias/${id}`);
 
-        // Remover da lista local com chaves variantes
+        // Remover da lista local
         this.agencias = this.agencias.filter(a => String(a.ID ?? a.id ?? a.id_agencia) !== String(id));
         return true;
       } catch (error) {
@@ -781,22 +523,9 @@ export const useFinanceiroStore = defineStore('financeiro', {
     async buscarChavesAPI(idConta) {
       this.loading = true
       try {
-        const response = await api.get(`/ccorrenteapi/${idConta}`, {
-          headers: this.getAuthHeaders()
-        })
-
-        // Normalizar resposta
-        const resp = response.data
-        if (resp && resp.data && Array.isArray(resp.data)) {
-          return resp.data[0] || resp.data
-        }
-        if (Array.isArray(resp)) {
-          return resp[0] || resp
-        }
-        return resp
+        const res = await apiPhp.get(`/financeiro/contas-correntes/${idConta}/chaves-api`)
+        return res.data?.data ?? res.data
       } catch (error) {
-        console.error('[Store Financeiro] Erro ao buscar chaves de API:', error)
-        // Se retornar 404, significa que não há chaves cadastradas ainda
         if (error.response?.status === 404) {
           return null
         }
@@ -815,16 +544,6 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true
       this.error = null
       try {
-        // Verificar se já existe cadastro (GET primeiro)
-        let existe = false
-        try {
-          const chavesExistentes = await this.buscarChavesAPI(idConta)
-          existe = !!chavesExistentes
-        } catch (error) {
-          existe = false
-        }
-      
-        // Preparar payload
         const payload = {
           id_ccorrente: idConta,
           clid_api_pix: dados.data[0].clid_api_pix || '',
@@ -833,26 +552,11 @@ export const useFinanceiroStore = defineStore('financeiro', {
           clsecret_api_cob: dados.data[0].clsecret_api_cob || '',
           tpambiente: dados.data[0].tpambiente || 'P'
         }
-      
-        let response
-      
-        if (existe) {
-          // Atualizar (PUT)
-          response = await api.put(`/ccorrenteapi/${idConta}`, { data: [payload] }, {
-            headers: this.getAuthHeaders()
-          })
-          toast.success('Chaves de API atualizadas com sucesso!')
-        } else {
-          // Criar (POST)
-          response = await api.post('/ccorrenteapi', { data: [payload] }, {
-            headers: this.getAuthHeaders()
-          })
-          toast.success('Chaves de API cadastradas com sucesso!')
-        }
-      
-        return response.data
+
+        const res = await apiPhp.put(`/financeiro/contas-correntes/${idConta}/chaves-api`, payload)
+        toast.success('Chaves de API salvas com sucesso!')
+        return res.data?.data ?? res.data
       } catch (error) {
-        console.error('[Store Financeiro] Erro ao salvar chaves de API:', error)
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         toast.error(this.error)
         throw error
@@ -869,14 +573,10 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true
       this.error = null
       try {
-        await api.delete(`/ccorrenteapi/${idConta}`, {
-          headers: this.getAuthHeaders()
-        })
-
+        await apiPhp.delete(`/financeiro/contas-correntes/${idConta}/chaves-api`)
         toast.success('Chaves de API removidas com sucesso!')
         return true
       } catch (error) {
-        console.error('[Store Financeiro] Erro ao deletar chaves de API:', error)
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         toast.error(this.error)
         throw error
@@ -2396,27 +2096,13 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
     // ========== CARTEIRA DE COBRANÇA ==========
 
-    // Buscar tipos de carteira de cobrança por banco (GET /tpcarteiracob/:idbanco)
+    // Buscar tipos de carteira de cobrança por banco
     async buscarTiposCarteiraPorBanco(idBanco) {
       this.loading = true
       this.error = null
       try {
-        const response = await api.get(`/tpcarteiracob/${idBanco}`, {
-          headers: this.getAuthHeaders()
-        })
-
-        const resposta = response.data
-        let dados = []
-
-        if (resposta && resposta.data && Array.isArray(resposta.data)) {
-          dados = resposta.data
-        } else if (Array.isArray(resposta)) {
-          dados = resposta
-        } else if (resposta && typeof resposta === 'object') {
-          dados = [resposta]
-        }
-
-        return dados
+        const res = await apiPhp.get('/financeiro/carteiras-cobranca', { params: { banco: idBanco } })
+        return res.data?.data ?? res.data ?? []
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
@@ -2426,18 +2112,12 @@ export const useFinanceiroStore = defineStore('financeiro', {
     },
 
     // Gerar Nosso Número / boleto para parcelas selecionadas
-    // POST /bolnossonumero/:idcarteira/idccorrente/:idccorrente
-    async gerarNossoNumero(idCarteira, idCcorrente, parcelasIds, idEmpresa) {
+    async gerarNossoNumero(idCarteira, idCcorrente, parcelasIds) {
       this.loading = true
       this.error = null
       try {
-        const payload = { data: parcelasIds.map(id => ({ id_parcela: id })) }
-        const response = await api.post(
-          `/bolnossonumero/${idEmpresa}/idcarteira/${idCarteira}/idccorrente/${idCcorrente}`,
-          payload,
-          { headers: this.getAuthHeaders() }
-        )
-        return response.data
+        const res = await apiPhp.post('/financeiro/boletos/nosso-numero', { parcelas: parcelasIds })
+        return res.data?.data ?? res.data
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
@@ -2446,18 +2126,17 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // POST /bolregistro/:idempresa/idcarteira/:idcarteira/idccorrente/:idccorrente
+    // Registrar boleto para parcelas selecionadas
     async registrarBoleto(idEmpresa, idCarteira, idCcorrente, parcelasIds) {
       this.loading = true
       this.error = null
       try {
-        const payload = { data: parcelasIds.map(id => ({ id_parcela: id })) }
-        const response = await api.post(
-          `/bolregistro/${idEmpresa}/idcarteira/${idCarteira}/idccorrente/${idCcorrente}`,
-          payload,
-          { headers: this.getAuthHeaders() }
-        )
-        return response.data
+        const res = await apiPhp.post('/financeiro/boletos/registrar', {
+          id_carteira: idCarteira,
+          id_ccorrente: idCcorrente,
+          parcelas: parcelasIds
+        })
+        return res.data?.data ?? res.data
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
@@ -2466,47 +2145,13 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar todas as carteiras (GET /carteira/:idempresa)
-    async buscarCarteiras(idEmpresa) {
+    // Buscar todas as carteiras
+    async buscarCarteiras() {
       this.loading = true
       this.error = null
       try {
-        let empresaId = idEmpresa || localStorage.getItem('empresa') || localStorage.getItem('id_empresa')
-        
-        // Se não encontrou, tenta buscar de empresaSelecionada
-        if (!empresaId) {
-          const empresaSelecionada = localStorage.getItem('empresaSelecionada')
-          if (empresaSelecionada) {
-            try {
-              const empresa = JSON.parse(empresaSelecionada)
-              empresaId = empresa.id
-            } catch (e) {
-              console.error('[Store] Erro ao parsear empresaSelecionada:', e)
-            }
-          }
-        }
-        
-        if (!empresaId) {
-          console.warn('[Store] ID da empresa não encontrado para buscar carteiras')
-          return []
-        }
-        
-        const response = await api.get(`/carteiracob/${empresaId}`, {
-          headers: this.getAuthHeaders()
-        })
-
-        const resposta = response.data
-        let dados = []
-
-        if (resposta && resposta.data && Array.isArray(resposta.data)) {
-          dados = resposta.data
-        } else if (Array.isArray(resposta)) {
-          dados = resposta
-        } else if (resposta && typeof resposta === 'object') {
-          dados = [resposta]
-        }
-
-        return dados
+        const res = await apiPhp.get('/financeiro/carteiras-cobranca')
+        return res.data?.data ?? res.data ?? []
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
@@ -2515,15 +2160,13 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar carteira por ID (GET /carteira/:id)
+    // Buscar carteira por ID
     async buscarCarteiraPorId(id) {
       this.loading = true
       this.error = null
       try {
-        const response = await api.get(`/carteira/${id}`, {
-          headers: this.getAuthHeaders()
-        })
-        return response.data
+        const res = await apiPhp.get(`/financeiro/carteiras-cobranca/${id}`)
+        return res.data?.data ?? res.data
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
@@ -2532,7 +2175,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Criar nova carteira (POST /carteira)
+    // Criar nova carteira
     async criarCarteira(carteiraData) {
       this.loading = true
       this.error = null
@@ -2540,11 +2183,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
         const dadosSemId = { ...carteiraData }
         delete dadosSemId.id
 
-        const response = await api.post('/carteiracob', { data: [dadosSemId] }, {
-          headers: this.getAuthHeaders()
-        })
-
-        return response.data
+        const res = await apiPhp.post('/financeiro/carteiras-cobranca', dadosSemId)
+        return res.data?.data ?? res.data
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
@@ -2553,7 +2193,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Atualizar carteira existente (PUT /carteira/:id)
+    // Atualizar carteira existente
     async atualizarCarteira(id, carteiraData) {
       this.loading = true
       this.error = null
@@ -2561,11 +2201,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
         const dadosParaUpdate = { ...carteiraData }
         delete dadosParaUpdate.id
 
-        const response = await api.put(`/carteiracob/${id}`, { data: [dadosParaUpdate] }, {
-          headers: this.getAuthHeaders()
-        })
-
-        return response.data
+        const res = await apiPhp.put(`/financeiro/carteiras-cobranca/${id}`, dadosParaUpdate)
+        return res.data?.data ?? res.data
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
@@ -2574,15 +2211,12 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Deletar carteira (DELETE /carteira/:id)
+    // Deletar carteira
     async deletarCarteira(id) {
       this.loading = true
       this.error = null
       try {
-        await api.delete(`/carteiracob/${id}`, {
-          headers: this.getAuthHeaders()
-        })
-
+        await apiPhp.delete(`/financeiro/carteiras-cobranca/${id}`)
         return true
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'

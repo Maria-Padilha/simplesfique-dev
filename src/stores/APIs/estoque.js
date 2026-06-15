@@ -317,7 +317,7 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get(`/api/v1/manutencao/ncms`, {
+                const res = await apiPhp.get(`/manutencao/ncms`, {
                     params: { find, per_page: limit }
                 });
 
@@ -343,7 +343,7 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get(`/api/v1/manutencao/cests`, {
+                const res = await apiPhp.get(`/manutencao/cests`, {
                     params: { per_page: limit }
                 });
 
@@ -428,7 +428,7 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get(`/api/v1/manutencao/nbs`, {
+                const res = await apiPhp.get(`/manutencao/nbs`, {
                     params: { per_page: limit }
                 });
 
@@ -595,7 +595,7 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get(`/api/v1/manutencao/cfops`, {
+                const res = await apiPhp.get(`/manutencao/cfops`, {
                     params: { find, per_page: limit }
                 });
 
@@ -620,7 +620,7 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get(`/api/v1/manutencao/cfops/${id}`);
+                const res = await apiPhp.get(`/manutencao/cfops/${id}`);
 
                 this.cfop = res.data?.data ?? res.data;
                 this.errorMessage = '';
