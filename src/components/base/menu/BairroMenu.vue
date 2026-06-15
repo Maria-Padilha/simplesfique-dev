@@ -86,8 +86,7 @@ const bairroStore = useLocalizacaoStore();
 const bairros = computed(() => bairroStore.bairros);
 
 watch( () => termoPesquisa.value, async (pesquisa) => {
-  if (!pesquisa || pesquisa.lenght < 2) {
-    bairros.value = [];
+  if (!pesquisa || pesquisa.length < 2) {
     return;
   }
   console.log("Pesquisando bairro: ", pesquisa);

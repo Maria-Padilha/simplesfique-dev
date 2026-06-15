@@ -17,7 +17,7 @@ Revise código do SimplesFique ERP.
 
 ## Contexto do projeto
 
-Leia `@projeto/PROJECT_OVERVIEW.md` e `@projeto/ARCHITECTURE.md` antes de revisar para entender módulos, padrões e problemas conhecidos.
+Leia `@@projeto/PROJECT_OVERVIEW.md` e `@@projeto/ARCHITECTURE.md` antes de revisar para entender módulos, padrões e problemas conhecidos.
 
 ## Regras de review
 

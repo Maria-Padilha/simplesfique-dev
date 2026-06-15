@@ -102,6 +102,6 @@ response.data?.data ?? response.data // data[]. Paginação: response.data.total
 - Skill: `.skills/api-migration.md`
 - Plano completo: `projeto/API_MIGRATION_PLAN.md`
 - Documentação da API: `http://192.168.10.40:8000/docs`
-- Plano de arquitetura: `@projeto/ARCHITECTURE.md`
+- Plano de arquitetura: `@@projeto/ARCHITECTURE.md`
 - Regras do projeto: `.skills/rules.md`
 - Padrão de stores: `.skills/pinia-store.md`

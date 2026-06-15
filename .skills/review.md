@@ -4,8 +4,8 @@ Checklist de revisão de código para o SimplesFique ERP.
 
 ## Antes de revisar
 
-1. Leia `@projeto/PROJECT_OVERVIEW.md` — contexto do projeto
-2. Leia `@projeto/ARCHITECTURE.md` — padrões e decisões técnicas
+1. Leia `@@projeto/PROJECT_OVERVIEW.md` — contexto do projeto
+2. Leia `@@projeto/ARCHITECTURE.md` — padrões e decisões técnicas
 3. Identifique qual módulo a alteração afeta
 
 ## Checklist

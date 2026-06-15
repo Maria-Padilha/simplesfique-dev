@@ -52,9 +52,9 @@ Leia a requisição e identifique:
 
 Antes de delegar, sempre leia:
 
-1. `@projeto/PROJECT_OVERVIEW.md` — visão geral do projeto
-2. `@projeto/ARCHITECTURE.md` — padrões e decisões técnicas
-3. `@projeto/ADR.md` — decisões arquiteturais (prioridade ao criar **nova funcionalidade**)
+1. `@@projeto/PROJECT_OVERVIEW.md` — visão geral do projeto
+2. `@@projeto/ARCHITECTURE.md` — padrões e decisões técnicas
+3. `@@projeto/ADR.md` — decisões arquiteturais (prioridade ao criar **nova funcionalidade**)
 4. Arquivos relevantes do módulo afetado
 5. Se aplicável, busque memórias no MCP RAG (`search_memories`) com query sobre o domínio para ver se já existe histórico de implementações ou correções similares
 

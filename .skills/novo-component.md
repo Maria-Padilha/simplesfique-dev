@@ -6,7 +6,7 @@ Fluxo para criar um novo componente ou view no SimplesFique ERP.
 
 ### 0. Consultar decisões arquiteturais
 
-Antes de criar qualquer coisa nova, leia `@projeto/ADR.md` para entender as decisões arquiteturais já tomadas (ex: Composition API, Pinia, padrões de store, etc.) e não repetir erros passados.
+Antes de criar qualquer coisa nova, leia `@@projeto/ADR.md` para entender as decisões arquiteturais já tomadas (ex: Composition API, Pinia, padrões de store, etc.) e não repetir erros passados.
 
 ### 1. Verificar se já existe
 

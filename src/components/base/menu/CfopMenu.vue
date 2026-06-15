@@ -52,11 +52,9 @@ watchEffect(() => {
 
 watch( () => termoPesquisa.value, async (pesquisa) => {
   if (!pesquisa || pesquisa.length < 2) {
-    cfops.value = [];
     return;
   }
-  console.log("Pesquisando CFOP: ", pesquisa);
-  await estoqueStore.buscarCfops(pesquisa, '');
+  await estoqueStore.buscarCfops(pesquisa, 15);
 })
 
 const selecionarCfop = (cfopSelecionado) => {

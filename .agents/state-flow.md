@@ -99,4 +99,4 @@ export const useModuloStore = defineStore('modulo', {
 
 ## Contexto
 
-Leia `@projeto/PROJECT_OVERVIEW.md` e `@projeto/ARCHITECTURE.md` antes de criar ou modificar stores para entender a arquitetura de dados e módulos.
+Leia `@@projeto/PROJECT_OVERVIEW.md` e `@@projeto/ARCHITECTURE.md` antes de criar ou modificar stores para entender a arquitetura de dados e módulos.

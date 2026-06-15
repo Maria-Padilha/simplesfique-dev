@@ -1,5 +1,6 @@
 import {defineStore} from "pinia"
 import api from "@/services/api";
+import apiPhp from "@/services/apiPhp";
 import {useApiStore} from "@/stores/APIs/api";
 import {toast} from "vue3-toastify";
 
@@ -316,21 +317,16 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/ncm?find=${find}&limit=${limit}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
+                const res = await apiPhp.get(`/api/v1/manutencao/ncms`, {
+                    params: { find, per_page: limit }
                 });
 
-                this.ncms = response.data.data;
-                this.recordsNcm = response.data.records;
+                this.ncms = res.data?.data ?? res.data;
+                this.recordsNcm = res.data?.total ?? 0;
                 this.errorMessage = '';
-
-                console.log('NCMs encontrados:', this.grupos);
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-                console.error('Erro ao buscar NCMs:', error);
             } finally {
                 this.loading = false;
             }
@@ -343,24 +339,19 @@ export const useEstoqueStore = defineStore('estoque', {
          * @return {Promise<void>}
          */
 
-        async buscarCests(limit = 10, offset = 0) {
+        async buscarCests(limit = 10) {
             this.loading = true;
 
             try {
-                const response = await api.get(`/cest?limit=${limit}&offset=${offset}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
+                const res = await apiPhp.get(`/api/v1/manutencao/cests`, {
+                    params: { per_page: limit }
                 });
 
-                this.cests = response.data.data;
+                this.cests = res.data?.data ?? res.data;
                 this.errorMessage = '';
-
-                console.log('CESTs encontrados:', this.cests);
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-                console.error('Erro ao buscar CESTs:', error);
             } finally {
                 this.loading = false;
             }
@@ -433,24 +424,19 @@ export const useEstoqueStore = defineStore('estoque', {
          * @return {Promise<void>}
          */
 
-        async buscarNbs(limit = 10, offset = 0) {
+        async buscarNbs(limit = 10) {
             this.loading = true;
 
             try {
-                const response = await api.get(`/nbs?limit=${limit}&offset=${offset}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
+                const res = await apiPhp.get(`/api/v1/manutencao/nbs`, {
+                    params: { per_page: limit }
                 });
 
-                this.nbs = response.data.data;
+                this.nbs = res.data?.data ?? res.data;
                 this.errorMessage = '';
-
-                console.log('NBS encontrados:', this.nbs);
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-                console.error('Erro ao buscar NBS:', error);
             } finally {
                 this.loading = false;
             }
@@ -609,21 +595,16 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/cfop?find=${find}&limit=${limit}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
+                const res = await apiPhp.get(`/api/v1/manutencao/cfops`, {
+                    params: { find, per_page: limit }
                 });
 
-                this.cfops = response.data.data;
-                this.recordsCfop = response.data.records;
+                this.cfops = res.data?.data ?? res.data;
+                this.recordsCfop = res.data?.total ?? 0;
                 this.errorMessage = '';
-
-                console.log('CFOPs encontrados:', this.cfops);
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-                console.error('Erro ao buscar CFOPs:', error);
             } finally {
                 this.loading = false;
             }
@@ -639,20 +620,13 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/cfop/${id}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
-                });
+                const res = await apiPhp.get(`/api/v1/manutencao/cfops/${id}`);
 
-                this.cfop = response.data;
+                this.cfop = res.data?.data ?? res.data;
                 this.errorMessage = '';
-
-                console.log('CFOP encontrado:', this.cfop);
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-                console.error('Erro ao buscar CFOP por ID:', error);
             } finally {
                 this.loading = false;
             }

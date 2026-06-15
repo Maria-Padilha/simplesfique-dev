@@ -70,4 +70,4 @@ Cria e modifica componentes Vue do SimplesFique ERP.
 
 ## Contexto
 
-Leia `@projeto/PROJECT_OVERVIEW.md` e `@projeto/ARCHITECTURE.md` antes de criar ou modificar componentes para entender os módulos e padrões existentes.
+Leia `@@projeto/PROJECT_OVERVIEW.md` e `@@projeto/ARCHITECTURE.md` antes de criar ou modificar componentes para entender os módulos e padrões existentes.

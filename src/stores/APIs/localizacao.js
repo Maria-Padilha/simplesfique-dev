@@ -1,11 +1,10 @@
 import {defineStore} from "pinia"
-import api from "@/services/api";
+import apiPhp from "@/services/apiPhp";
 import {toast} from "vue3-toastify";
 
 export const useLocalizacaoStore = defineStore('localizacao', {
     state: () => ({
         loading: false,
-        token: localStorage.getItem('token'),
         errorMessage: '',
         successMessage: '',
 
@@ -35,16 +34,13 @@ export const useLocalizacaoStore = defineStore('localizacao', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/cep/${cep}`,);
+                const res = await apiPhp.get(`/api/v1/cep/${cep}`);
 
-                this.cep = response.data;
+                this.cep = res.data;
                 this.errorMessage = '';
-
-                console.log('CEP encontrado:', this.cep);
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-                console.error('Erro ao buscar CEP:', error);
             } finally {
                 this.loading = false;
             }
@@ -60,14 +56,13 @@ export const useLocalizacaoStore = defineStore('localizacao', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/cnpj/${cnpj}`,);
+                const res = await apiPhp.get(`/api/v1/cnpj/${cnpj}`);
 
-                this.cnpj = response.data;
+                this.cnpj = res.data;
                 this.errorMessage = '';
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-                console.error('Erro ao buscar CNPJ:', error);
             } finally {
                 this.loading = false;
             }
@@ -75,34 +70,22 @@ export const useLocalizacaoStore = defineStore('localizacao', {
 
         /**
          * BUSCAR BAIRROS
-         *  @param {number} limit - Número máximo de bairros a serem retornados.
-         *  @param {number} offset - Número de bairros a serem ignorados antes de começar a retornar os resultados.
-         *  @param {boolean} ignorarPaginacao - Se verdadeiro, busca todos os bairros sem aplicar paginação.
-         *  @return {Promise<void>}
+         * @param {string} find - Termo de busca.
+         * @return {Promise<void>}
          */
 
-        async buscarTodosBairros(find, limit = 50, offset = 0, ignorarPaginacao = true) {
+        async buscarTodosBairros(find) {
             this.loading = true;
 
             try {
-                const url = ignorarPaginacao
-                    ? `/bairro?find=${find}`
-                    : `/bairro?find=${find}&limit=${limit}&offset=${offset}`;
+                const res = await apiPhp.get('/api/v1/manutencao/bairros', { params: { find } });
 
-                const response = await api.get(url);
-
-                this.bairros = response.data.data;
-                this.recordsBairros = response.data.records;
+                this.bairros = res.data?.data ?? res.data;
+                this.recordsBairros = res.data?.total ?? 0;
                 this.errorMessage = '';
-
-                console.log('bairros encontrados:', this.bairros);
-                console.log('Total de registros:', this.recordsBairros);
-
-                console.log(response.data);
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-                console.error('Erro ao buscar bairros:', error);
             } finally {
                 this.loading = false;
             }
@@ -115,41 +98,37 @@ export const useLocalizacaoStore = defineStore('localizacao', {
          */
 
         async cadastrarBairro(bairroData) {
-            const { useApiStore } = await import('@/stores/APIs/api');
-            const apiStore = useApiStore();
-            this.loading = apiStore.loading;
-            await apiStore.executarAcao('bairro', 'post', bairroData);
+            this.loading = true;
+
+            try {
+                await apiPhp.post('/api/v1/manutencao/bairros', bairroData);
+                this.errorMessage = '';
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
+            } finally {
+                this.loading = false;
+            }
         },
 
 
         /**
          * BUSCAR CIDADES
-         * @param {number} limit - Número máximo de cidades a serem retornadas.
-         * @param {number} offset - Número de cidades a serem ignoradas antes de começar a retornar os resultados.
-         * @param {boolean} ignorarPaginacao - Se verdadeiro, busca todas as cidades sem aplicar paginação.
+         * @param {string} find - Termo de busca.
          * @return {Promise<void>}
          */
 
-        async buscarTodasCidades(find, limit = 50, offset = 0, ignorarPaginacao = true) {
+        async buscarTodasCidades(find) {
             this.loading = true;
 
             try {
-                const url = ignorarPaginacao
-                    ? `/cidade?find=${find}`
-                    : `/cidade?find=${find}&limit=${limit}&offset=${offset}`;
+                const res = await apiPhp.get('/api/v1/manutencao/cidades', { params: { find } });
 
-                const response = await api.get(url);
-
-                this.cidades = response.data.data;
-                this.recordsCidades = response.data.records;
+                this.cidades = res.data?.data ?? res.data;
+                this.recordsCidades = res.data?.total ?? 0;
                 this.errorMessage = '';
-
-                console.log('Cidades encontrada:', this.cidades);
-                console.log('Total de registros:', this.recordsCidades);
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-                console.error('Erro ao buscar cidades:', error);
             } finally {
                 this.loading = false;
             }
@@ -163,7 +142,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
          * @param idBairro
          * @returns {Promise<void>}
          */
-        async verificandoExistenciaCidade(nomeCidade, idCidade, bairro, idBairro) {
+        async verificandoExistenciaCidade(nomeCidade, idCidade, bairro) {
             await this.buscarTodasCidades(nomeCidade);
 
             if (!this.cidades || this.cidades.length === 0) {
@@ -182,15 +161,9 @@ export const useLocalizacaoStore = defineStore('localizacao', {
                 idCidade = this.cidades[0]?.ID;
 
                 await this.buscarTodosBairros(bairro);
-                console.log('Bairro encontrado: ', this.bairros);
 
                 if (!this.bairros || this.bairros.length === 0) {
-                    console.log('Bairro não cadastrado: ', {
-                        bairro: bairro,
-                        id_bairro: idBairro
-                    });
-
-                    await this.cadastrarBairro({data: [{descbairro: bairro, id_cidade: idCidade}]});
+                    await this.cadastrarBairro({ descbairro: bairro, id_cidade: idCidade });
                     this.errorMessage = '';
                 }
 
@@ -198,7 +171,6 @@ export const useLocalizacaoStore = defineStore('localizacao', {
                 this.cidades = [];
                 nomeCidade = '';
                 bairro = '';
-                idBairro = null;
                 idCidade = null;
             }
         },
@@ -211,16 +183,13 @@ export const useLocalizacaoStore = defineStore('localizacao', {
             this.loading = true;
 
             try {
-                const response = await api.get('/uf');
+                const res = await apiPhp.get('/api/v1/manutencao/ufs');
 
-                this.ufs = response.data.data;
+                this.ufs = res.data?.data ?? res.data;
                 this.errorMessage = '';
-
-                console.log('UFs encontradas:', this.ufs);
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-                console.error('Erro ao buscar UFs:', error);
             } finally {
                 this.loading = false;
             }
