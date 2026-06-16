@@ -1,3 +1,5 @@
+/* global vi */
+
 import { setActivePinia, createPinia } from 'pinia'
 import { useEmpresaStore } from '@/stores/APIs/empresa'
 

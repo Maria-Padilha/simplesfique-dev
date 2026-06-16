@@ -1,3 +1,5 @@
+/* global vi */
+
 import { setActivePinia, createPinia } from 'pinia'
 import { useCaixaStore } from '@/stores/APIs/caixa'
 
@@ -352,7 +354,7 @@ describe('useCaixaStore', () => {
       const promise = store.atualizarLancamentoCaixa(1, 5, 10, payload)
       expect(store.loading).toBe(true)
 
-      const result = await promise
+      await promise
 
       expect(mockApiPhp.put).toHaveBeenCalledWith('/financeiro/caixa-movimentos/10', {
         valor: 300,
