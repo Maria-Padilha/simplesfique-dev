@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiPhp = axios.create({
-    baseURL: process.env.VUE_APP_PHP_API_URL || 'http://localhost:8000/api/v1'
+    baseURL: process.env.VUE_APP_PHP_API_URL || 'http://192.168.10.51:8000/api/v1'
 });
 
 // Injeta Bearer token em todas as requisições
@@ -13,9 +13,23 @@ apiPhp.interceptors.request.use(config => {
     return config;
 });
 
-// Trata respostas de erro globalmente
+// Normaliza respostas de sucesso — extrai array de respostas paginadas do Laravel
+// Laravel retorna: { current_page: 1, data: [...], total: N, ... }
+// O interceptor substitui response.data pelo array real, eliminando a necessidade
+// de stores fazerem response.data?.data ?? response.data para esse caso.
 apiPhp.interceptors.response.use(
-    response => response,
+    response => {
+        if (
+            response.data &&
+            typeof response.data === 'object' &&
+            !Array.isArray(response.data) &&
+            Array.isArray(response.data.data) &&
+            typeof response.data.current_page === 'number'
+        ) {
+            response.data = response.data.data;
+        }
+        return response;
+    },
     error => {
         // 401 — sessão expirada, redireciona para login
         if (error.response?.status === 401) {

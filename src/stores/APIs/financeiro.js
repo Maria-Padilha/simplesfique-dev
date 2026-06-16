@@ -55,7 +55,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const res = await apiPhp.get('/financeiro/contas-correntes');
+        const res = await apiPhp.get('/financeiro/conta-correntes');
         this.contas = res.data?.data ?? res.data ?? [];
         return this.contas;
       } catch (error) {
@@ -72,7 +72,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const res = await apiPhp.get('/financeiro/contas-correntes');
+        const res = await apiPhp.get('/financeiro/conta-correntes');
         this.contas = res.data?.data ?? res.data ?? [];
         return this.contas;
       } catch (error) {
@@ -109,7 +109,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const res = await apiPhp.get('/financeiro/contas-correntes/ativas');
+        const res = await apiPhp.get('/financeiro/conta-correntes/ativas');
         return res.data?.data ?? res.data ?? [];
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
@@ -124,7 +124,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const res = await apiPhp.get(`/financeiro/contas-correntes/${id}`);
+        const res = await apiPhp.get(`/financeiro/conta-correntes/${id}`);
         return res.data?.data ?? res.data;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
@@ -139,7 +139,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const res = await apiPhp.post('/financeiro/contas-correntes', contaData);
+        const res = await apiPhp.post('/financeiro/conta-correntes', contaData);
         const created = res.data?.data ?? res.data;
         if (created) this.contas.push(created);
         return created;
@@ -156,7 +156,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        const res = await apiPhp.put(`/financeiro/contas-correntes/${id}`, contaData);
+        const res = await apiPhp.put(`/financeiro/conta-correntes/${id}`, contaData);
         const updated = res.data?.data ?? res.data;
         const index = this.contas.findIndex(conta => conta.id_ccorrente === id);
         if (index !== -1) {
@@ -176,7 +176,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true;
       this.error = null;
       try {
-        await apiPhp.delete(`/financeiro/contas-correntes/${id}`);
+        await apiPhp.delete(`/financeiro/conta-correntes/${id}`);
         this.contas = this.contas.filter(conta => conta.id_ccorrente !== id);
         return true;
       } catch (error) {
@@ -372,7 +372,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         this.loading = true
         this.error = null
         try {
-          const res = await apiPhp.get(`/financeiro/contas-correntes/${contaId}/usuarios`)
+          const res = await apiPhp.get(`/financeiro/conta-correntes/${contaId}/usuarios`)
           return res.data?.data ?? res.data ?? []
         } catch (error) {
           this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
@@ -392,7 +392,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
           const users = Array.isArray(payload.users) ? payload.users : []
           const dataArray = users.map(u => ({ id_usuario: u.id, ativo: u.acesso ? 'S' : 'N' }))
 
-          const res = await apiPhp.post(`/financeiro/contas-correntes/${contaId}/usuarios`, dataArray)
+          const res = await apiPhp.post(`/financeiro/conta-correntes/${contaId}/usuarios`, dataArray)
           return res.data?.data ?? res.data
         } catch (error) {
           this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
@@ -520,7 +520,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
     async buscarChavesAPI(idConta) {
       this.loading = true
       try {
-        const res = await apiPhp.get(`/financeiro/contas-correntes/${idConta}/chaves-api`)
+        const res = await apiPhp.get(`/financeiro/conta-correntes/${idConta}/chaves-api`)
         return res.data?.data ?? res.data
       } catch (error) {
         if (error.response?.status === 404) {
@@ -543,14 +543,14 @@ export const useFinanceiroStore = defineStore('financeiro', {
       try {
         const payload = {
           id_ccorrente: idConta,
-          clid_api_pix: dados.data[0].clid_api_pix || '',
-          clsecret_api_pix: dados.data[0].clsecret_api_pix || '',
-          clid_api_cob: dados.data[0].clid_api_cob || '',
-          clsecret_api_cob: dados.data[0].clsecret_api_cob || '',
-          tpambiente: dados.data[0].tpambiente || 'P'
+          clid_api_pix: dados.clid_api_pix || '',
+          clsecret_api_pix: dados.clsecret_api_pix || '',
+          clid_api_cob: dados.clid_api_cob || '',
+          clsecret_api_cob: dados.clsecret_api_cob || '',
+          tpambiente: dados.tpambiente || 'P'
         }
 
-        const res = await apiPhp.put(`/financeiro/contas-correntes/${idConta}/chaves-api`, payload)
+        const res = await apiPhp.put(`/financeiro/conta-correntes/${idConta}/chaves-api`, payload)
         toast.success('Chaves de API salvas com sucesso!')
         return res.data?.data ?? res.data
       } catch (error) {
@@ -570,7 +570,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.loading = true
       this.error = null
       try {
-        await apiPhp.delete(`/financeiro/contas-correntes/${idConta}/chaves-api`)
+        await apiPhp.delete(`/financeiro/conta-correntes/${idConta}/chaves-api`)
         toast.success('Chaves de API removidas com sucesso!')
         return true
       } catch (error) {
@@ -1133,7 +1133,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
     // ========== PLANO CONTA ==========
 
-    // Buscar planos de conta (GET /financeiro/planos-conta)
+    // Buscar planos de conta (GET /financeiro/plano-contas)
     async buscarPlanosConta(filtros = {}) {
       this.loading = true
       this.error = null
@@ -1155,7 +1155,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar plano de conta por ID (GET /financeiro/planos-conta/:id)
+    // Buscar plano de conta por ID (GET /financeiro/plano-contas/:id)
     async buscarPlanoContaPorId(id) {
       this.loading = true
       this.error = null
@@ -1170,7 +1170,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Criar novo plano de conta (POST /financeiro/planos-conta)
+    // Criar novo plano de conta (POST /financeiro/plano-contas)
     async criarPlanoConta(planoData) {
       this.loading = true
       this.error = null
@@ -1188,7 +1188,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Atualizar plano de conta (PUT /financeiro/planos-conta/:id)
+    // Atualizar plano de conta (PUT /financeiro/plano-contas/:id)
     async atualizarPlanoConta(id, planoData) {
       this.loading = true
       this.error = null
@@ -1206,7 +1206,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Deletar plano de conta (DELETE /financeiro/planos-conta/:id)
+    // Deletar plano de conta (DELETE /financeiro/plano-contas/:id)
     async deletarPlanoConta(id) {
       this.loading = true
       this.error = null

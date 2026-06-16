@@ -31,7 +31,7 @@ export const useDreStore = defineStore('dre', () => {
 
     loading.value = true
     try {
-      const response = await apiPhp.get(`/financeiro/dre-detalhes/${id}/${id}`, {
+      const response = await apiPhp.get(`/financeiro/dre-detalhes/${id}`, {
         params: {
           id_ano: idAno,
           id_mes: idMes,
@@ -39,7 +39,7 @@ export const useDreStore = defineStore('dre', () => {
         }
       })
       
-      dreData.value = response.data?.data ?? response.data ?? []
+      dreData.value = response.data ?? []
       return dreData.value
     } catch (error) {
       toast.error('Erro ao buscar movimentações de DRE')

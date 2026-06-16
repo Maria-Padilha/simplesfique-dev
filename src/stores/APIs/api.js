@@ -103,7 +103,7 @@ export const useApiStore = defineStore('api', {
                     this.item = response.data.data;
                 } else {
                     this[`${entidade}s`] = response.data.data;
-                    this.records = response.data.records;
+                    this.records = response.data.total ?? response.data.records ?? 0;
                 }
 
             } catch (error) {

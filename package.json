@@ -15,7 +15,10 @@
     "prepare": "husky",
     "pendencias": "node scripts/pendencias-php.js gerar",
     "pendencias:add": "node scripts/pendencias-php.js add",
-    "pendencias:status": "node scripts/pendencias-php.js status"
+    "pendencias:status": "node scripts/pendencias-php.js status",
+    "test:api": "node scripts/api-smoke-test.js",
+    "test:api:php": "node scripts/api-smoke-test.js --php-only",
+    "test:api:thorse": "node scripts/api-smoke-test.js --thorse-only"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1043.0",
