@@ -34,7 +34,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get(`/cep/${cep}`);
+                const res = await apiPhp.get(`/manutencao/ceps/${cep}`);
 
                 this.cep = res.data;
                 this.errorMessage = '';
@@ -56,7 +56,7 @@ export const useLocalizacaoStore = defineStore('localizacao', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get(`/cnpj/${cnpj}`);
+                const res = await apiPhp.get(`/manutencao/ws-cnpj/${cnpj}`);
 
                 this.cnpj = res.data;
                 this.errorMessage = '';

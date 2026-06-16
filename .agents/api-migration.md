@@ -78,7 +78,7 @@ response.data?.data ?? response.data // data[]. Paginação: response.data.total
 ## Regras
 
 1. **Nunca quebre stores não migradas** — a store base já tem fallback `limit/offset` → `page/perPage`
-2. **Sempre verificar se o endpoint existe na OpenAPI** antes de migrar (`http://192.168.10.40:8000/docs`)
+2. **Sempre verificar se o endpoint existe na OpenAPI** antes de migrar (`http://192.168.10.51:8000/docs`)
 3. **Payload sempre direto** na API PHP — sem `{ data: [{}] }`
 4. **Headers de auth não precisam ser passados** — o interceptor do `apiPhp` já injeta
 5. **`id_empresa` e `id_saas` não vão mais na URL/body** — vêm do JWT
@@ -101,7 +101,7 @@ response.data?.data ?? response.data // data[]. Paginação: response.data.total
 
 - Skill: `.skills/api-migration.md`
 - Plano completo: `projeto/API_MIGRATION_PLAN.md`
-- Documentação da API: `http://192.168.10.40:8000/docs`
+- Documentação da API: `http://192.168.10.51:8000/docs`
 - Plano de arquitetura: `@@projeto/ARCHITECTURE.md`
 - Regras do projeto: `.skills/rules.md`
 - Padrão de stores: `.skills/pinia-store.md`

@@ -1,11 +1,10 @@
 import { defineStore } from "pinia"
-import api from "@/services/api"
+import apiPhp from "@/services/apiPhp"
 import { toast } from "vue3-toastify"
 
 export const useCCustoStore = defineStore('ccusto', {
   state: () => ({
     loading: false,
-    token: localStorage.getItem('token'),
     errorMessage: '',
     successMessage: '',
     centrosCusto: [],
@@ -42,19 +41,13 @@ export const useCCustoStore = defineStore('ccusto', {
       this.loading = true
 
       try {
-        const response = await api.get('/ccusto', {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const res = await apiPhp.get('/financeiro/centro-custos')
 
-        // Extrair o array 'data' da resposta
-        const dados = response.data.data || response.data
+        const dados = res.data?.data ?? res.data
         this.centrosCusto = this.normalizarDados(dados)
         this.errorMessage = ''
-
-        console.log('Centros de custo encontrados:', this.centrosCusto)
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao buscar centros de custo'
-        console.error('Erro ao listar centros de custo:', error)
       } finally {
         this.loading = false
       }
@@ -70,15 +63,12 @@ export const useCCustoStore = defineStore('ccusto', {
       this.loading = true
 
       try {
-        const response = await api.get(`/ccusto/${id}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const res = await apiPhp.get(`/financeiro/centro-custos/${id}`)
 
         this.errorMessage = ''
-        return response.data
+        return res.data?.data ?? res.data
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao obter centro de custo'
-        console.error('Erro ao obter centro de custo:', error)
       } finally {
         this.loading = false
       }
@@ -93,15 +83,12 @@ export const useCCustoStore = defineStore('ccusto', {
      */
     async verificarClassificador(idClassificador) {
       try {
-        const response = await api.get(`/ccustoclas/${idClassificador}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const res = await apiPhp.get(`/financeiro/centro-custos/classificadores/${idClassificador}`)
 
         this.errorMessage = ''
-        return response.data
+        return res.data?.data ?? res.data
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Classificação inválida'
-        console.error('Erro ao verificar classificador:', error)
         throw error
       }
     },
@@ -116,19 +103,16 @@ export const useCCustoStore = defineStore('ccusto', {
       this.loading = true
 
       try {
-        const response = await api.post('/ccusto', { data: [ccustoData] }, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const res = await apiPhp.post('/financeiro/centro-custos', ccustoData)
 
         this.successMessage = 'Centro de custo cadastrado com sucesso!'
         this.errorMessage = ''
         toast.success('Centro de custo cadastrado com sucesso!')
 
         await this.listarCCusto()
-        return response.data
+        return res.data?.data ?? res.data
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao cadastrar centro de custo'
-        console.error('Erro ao cadastrar centro de custo:', error)
         toast.error(this.errorMessage)
       } finally {
         this.loading = false
@@ -146,19 +130,16 @@ export const useCCustoStore = defineStore('ccusto', {
       this.loading = true
 
       try {
-        const response = await api.put(`/ccusto/${id}`, { data: [ccustoData] }, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const res = await apiPhp.put(`/financeiro/centro-custos/${id}`, ccustoData)
 
         this.successMessage = 'Centro de custo alterado com sucesso!'
         this.errorMessage = ''
         toast.success('Centro de custo alterado com sucesso!')
 
         await this.listarCCusto()
-        return response.data
+        return res.data?.data ?? res.data
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao alterar centro de custo'
-        console.error('Erro ao alterar centro de custo:', error)
         toast.error(this.errorMessage)
       } finally {
         this.loading = false
@@ -175,9 +156,7 @@ export const useCCustoStore = defineStore('ccusto', {
       this.loading = true
 
       try {
-        await api.delete(`/ccusto/${id}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        await apiPhp.delete(`/financeiro/centro-custos/${id}`)
 
         this.successMessage = 'Centro de custo deletado com sucesso!'
         this.errorMessage = ''
@@ -186,7 +165,6 @@ export const useCCustoStore = defineStore('ccusto', {
         await this.listarCCusto()
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao deletar centro de custo'
-        console.error('Erro ao deletar centro de custo:', error)
         toast.error(this.errorMessage)
       } finally {
         this.loading = false
@@ -195,40 +173,30 @@ export const useCCustoStore = defineStore('ccusto', {
 
     /**
      * BUSCAR PREVISÃO DE DÉBITOS
-     * GET /ccustoprev/:idempresa?dtini=YYYY-MM-DD&dtfim=YYYY-MM-DD&id_ccusto=X
+     * GET /financeiro/centro-custos/previsao?dtini=...&dtfim=...&id_ccusto=...
      *
      * @param {Object} params - { idEmpresa, dtini, dtfim, id_ccusto (opcional) }
      * @return {Promise<Array>}
      */
-    async buscarPrevisaoDebitos({ idEmpresa, dtini, dtfim, id_ccusto }) {
+    async buscarPrevisaoDebitos({ dtini, dtfim, id_ccusto }) {
       this.loading = true
 
       try {
-        // Construir URL com parâmetros
-        let url = `/ccustoprev/${idEmpresa}?dtini=${dtini}&dtfim=${dtfim}`
-        
-        // Adicionar id_ccusto se for diferente de 'todos'
+        const params = { dtini, dtfim }
+
         if (id_ccusto && id_ccusto !== 'todos') {
-          url += `&id_ccusto=${id_ccusto}`
+          params.id_ccusto = id_ccusto
         }
 
-        console.log('🔍 Buscando previsão de débitos:', url)
+        const res = await apiPhp.get('/financeiro/centro-custos/previsao', { params })
 
-        const response = await api.get(url, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
-
-        // Extrair dados da resposta
-        const dados = response.data.data || response.data
+        const dados = res.data?.data ?? res.data
         const previsoes = this.normalizarDados(dados)
-        
-        console.log('✅ Previsões encontradas:', previsoes?.length || 0)
-        
+
         this.errorMessage = ''
         return previsoes
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao buscar previsão de débitos'
-        console.error('❌ Erro ao buscar previsão:', error)
         toast.error(this.errorMessage)
         throw error
       } finally {
@@ -240,22 +208,18 @@ export const useCCustoStore = defineStore('ccusto', {
      * BUSCAR PARÂMETROS DE CENTRO DE CUSTO
      * Verifica se a empresa utiliza centro de custo (utiliza_ccusto)
      *
-     * @param {number} idEmpresa
      * @return {Promise<Object>}
      */
     async buscarParametrosCCusto() {
       this.loading = true
 
       try {
-        const response = await api.get(`/ccustoparametro`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const res = await apiPhp.get('/financeiro/centro-custo-parametros/parametro')
 
         this.errorMessage = ''
-        return response.data
+        return res.data?.data ?? res.data
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao buscar parâmetros de centro de custo'
-        console.error('Erro ao buscar parâmetros de centro de custo:', error)
         return null
       } finally {
         this.loading = false
@@ -275,15 +239,14 @@ export const useCCustoStore = defineStore('ccusto', {
       this.loading = true
 
       try {
-        const response = await api.get(`/ccustoreal/${idEmpresa}?dtini=${dtini}&dtfim=${dtfim}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
+        const res = await apiPhp.get('/financeiro/centro-custos/realizado', {
+          params: { dtini, dtfim }
         })
 
         this.errorMessage = ''
-        return response.data
+        return res.data?.data ?? res.data
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao buscar débitos realizados'
-        console.error('Erro ao buscar débitos realizados:', error)
         toast.error(this.errorMessage)
         return []
       } finally {

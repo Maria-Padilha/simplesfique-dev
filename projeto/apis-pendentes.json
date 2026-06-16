@@ -1,0 +1,220 @@
+{
+  "modulos": {
+    "Financeiro/Caixas": [
+      {
+        "endpoint": "GET /caixahistmov/{idEmpresa}",
+        "observacao": "Histórico de movimentação do caixa",
+        "status": "aguardando",
+        "etapa": "3.3",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "GET /caixausu/{idEmpresa}/id/{idCaixa}",
+        "observacao": "Usuários vinculados ao caixa",
+        "status": "aguardando",
+        "etapa": "3.3",
+        "data": "2026-06-16"
+      }
+    ],
+    "Financeiro/Contas a Pagar": [
+      {
+        "endpoint": "POST /contaspagar/autorizar",
+        "observacao": "Autorização de pagamento",
+        "status": "aguardando",
+        "etapa": "3.4",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "POST /contaspagarcalcparc",
+        "observacao": "Cálculo de parcelas — automático no CRUD PHP, remover da view futuramente",
+        "status": "automatico",
+        "etapa": "3.4",
+        "data": "2026-06-16"
+      }
+    ],
+    "Financeiro/Contas a Receber": [
+      {
+        "endpoint": "POST /contasrecebercalcparc",
+        "observacao": "Cálculo de parcelas — automático no CRUD PHP, remover da view futuramente",
+        "status": "automatico",
+        "etapa": "3.5",
+        "data": "2026-06-16"
+      }
+    ],
+    "Financeiro/Parâmetros": [
+      {
+        "endpoint": "GET /parfinbxa/{idEmpresa}",
+        "observacao": "Parâmetros financeiros de baixas",
+        "status": "aguardando",
+        "etapa": "3.8",
+        "data": "2026-06-16"
+      }
+    ],
+    "Financeiro/Transferências": [
+      {
+        "endpoint": "POST /ccorrentetransf",
+        "observacao": "Transferência entre contas correntes",
+        "status": "aguardando",
+        "etapa": "3.9",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "GET /transffinanceiras/{...}",
+        "observacao": "Listagem de transferências financeiras",
+        "status": "aguardando",
+        "etapa": "3.9",
+        "data": "2026-06-16"
+      }
+    ],
+    "Adiantamentos": [
+      {
+        "endpoint": "POST /adtfornecedorpagto/{id}",
+        "observacao": "Pagamento de adiantamento fornecedor",
+        "status": "aguardando",
+        "etapa": "3.7",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "PUT /adtfornecedoraprova/{id}",
+        "observacao": "Aprovação de adiantamento fornecedor",
+        "status": "aguardando",
+        "etapa": "3.7",
+        "data": "2026-06-16"
+      }
+    ],
+    "Estoque/Produtos": [
+      {
+        "endpoint": "GET /medida",
+        "observacao": "Unidades de medida",
+        "status": "aguardando",
+        "etapa": "4.2",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "GET /proalmox/{...}",
+        "observacao": "Produto por almoxarifado",
+        "status": "aguardando",
+        "etapa": "4.3",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "GET /profoto/{idProduto}",
+        "observacao": "Fotos do produto",
+        "status": "aguardando",
+        "etapa": "4.3",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "GET /aliquotauf/{emp}",
+        "observacao": "Alíquotas por UF",
+        "status": "aguardando",
+        "etapa": "4.7",
+        "data": "2026-06-16"
+      }
+    ],
+    "Estoque/Transferência Almoxarifado": [
+      {
+        "endpoint": "GET /transfalmox/{idemp}",
+        "observacao": "Listar transferências almoxarifado",
+        "status": "aguardando",
+        "etapa": "4.6",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "POST /transfalmox/env",
+        "observacao": "Enviar transferência almoxarifado",
+        "status": "aguardando",
+        "etapa": "4.6",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "POST /transfalmox/rec",
+        "observacao": "Receber transferência almoxarifado",
+        "status": "aguardando",
+        "etapa": "4.6",
+        "data": "2026-06-16"
+      }
+    ],
+    "Vendas/PDV": [
+      {
+        "endpoint": "GET /mpo",
+        "observacao": "Motivos de perda",
+        "status": "aguardando",
+        "etapa": "6.1",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "POST /mpo",
+        "observacao": "Criar motivo de perda",
+        "status": "aguardando",
+        "etapa": "6.1",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "GET /terminalven/{idEmpresa}",
+        "observacao": "Terminais de venda",
+        "status": "aguardando",
+        "etapa": "6.1",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "POST /terminalven/{idEmpresa}",
+        "observacao": "Criar terminal de venda",
+        "status": "aguardando",
+        "etapa": "6.1",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "GET /ambiente/{idEmpresa}",
+        "observacao": "Ambientes PDV",
+        "status": "aguardando",
+        "etapa": "6.1",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "POST /ambiente/{idEmpresa}",
+        "observacao": "Criar ambiente PDV",
+        "status": "aguardando",
+        "etapa": "6.1",
+        "data": "2026-06-16"
+      }
+    ],
+    "Dashboard": [
+      {
+        "endpoint": "GET /pagarreceber/{idempresa}",
+        "observacao": "Resumo pagar/receber",
+        "status": "aguardando",
+        "etapa": "8",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "GET /saldosbancario/{idempresa}",
+        "observacao": "Saldos bancários",
+        "status": "aguardando",
+        "etapa": "8",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "GET /fluxocaixamensal/{idempresa}",
+        "observacao": "Fluxo de caixa mensal",
+        "status": "aguardando",
+        "etapa": "8",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "GET /fluxocaixadiario/{idempresa}",
+        "observacao": "Fluxo de caixa diário",
+        "status": "aguardando",
+        "etapa": "8",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "GET /pagrecdocloc/{idempresa}",
+        "observacao": "Pagar/receber por local de cobrança",
+        "status": "aguardando",
+        "etapa": "8",
+        "data": "2026-06-16"
+      }
+    ]
+  }
+}
