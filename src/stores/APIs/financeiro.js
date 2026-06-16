@@ -1274,55 +1274,30 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar pessoas/fornecedores (GET /pessoafor/:idempresa)
-      // Buscar pessoas/fornecedores (GET /pessoafor/:idempresa?find=term)
-      async buscarPessoasFornecedores(findTerm = '', idEmpresa) {
-        this.loading = true
-        this.error = null
-        try {
-          const empresaId = idEmpresa || ''
-          const url = empresaId ? `/pessoafor/${empresaId}?find=${encodeURIComponent(findTerm)}` : `/pessoafor?find=${encodeURIComponent(findTerm)}`
-          const response = await api.get(url, {
-            headers: this.getAuthHeaders()
-          })
-          const resp = response.data
-          let dados = []
-          if (resp && resp.data && Array.isArray(resp.data)) {
-            dados = resp.data
-          } else if (Array.isArray(resp)) {
-            dados = resp
-          } else if (resp && typeof resp === 'object') {
-            dados = [resp]
-          }
+    // Buscar pessoas/fornecedores via PHP (GET /manutencao/pessoas?find=)
+    async buscarPessoasFornecedores(findTerm = '', idEmpresa) {
+      this.loading = true
+      this.error = null
+      try {
+        const params = { find: findTerm }
+        if (idEmpresa) params.id_empresa = idEmpresa
+        const response = await apiPhp.get('/manutencao/pessoas', { params })
+        return response.data?.data ?? response.data ?? []
+      } catch (error) {
+        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
 
-          return dados
-        } catch (error) {
-          this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
-          throw error
-        } finally {
-          this.loading = false
-        }
-      },
-
-    // Buscar pessoas/fornecedores (GET /pessoa)
+    // Buscar pessoas via PHP (GET /manutencao/pessoas)
     async buscarPessoas() {
       this.loading = true
       this.error = null
       try {
-        const response = await api.get('/pessoa', {
-          headers: this.getAuthHeaders()
-        })
-        const resp = response.data
-        let dados = []
-        if (resp && resp.data && Array.isArray(resp.data)) {
-          dados = resp.data
-        } else if (Array.isArray(resp)) {
-          dados = resp
-        } else if (resp && typeof resp === 'object') {
-          dados = [resp]
-        }
-
-        return dados
+        const response = await apiPhp.get('/manutencao/pessoas')
+        return response.data?.data ?? response.data ?? []
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
@@ -1349,7 +1324,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Cadastrar fornecedor (POST /pessoa)
+    // Cadastrar fornecedor via PHP (POST /manutencao/pessoas)
     async cadastrarFornecedor(fornecedorData = {}) {
       this.loading = true
       this.error = null
@@ -1386,33 +1361,11 @@ export const useFinanceiroStore = defineStore('financeiro', {
         delete dados.id
         delete dados.ID
 
-        // Payload no padrão THorse
-        const payload = { data: [dados] }
+        // Payload direto no padrão PHP
+        const response = await apiPhp.post('/manutencao/pessoas', dados)
 
-        const response = await api.post('/pessoa', payload, {
-          headers: this.getAuthHeaders()
-        })
-
-        // Normalizar retorno: pode vir { data: [...] } ou objeto direto ou apenas { id_pessoa: X }
-        const resp = response.data
-        let created = null
-
-        if (resp && resp.data && Array.isArray(resp.data)) {
-          // Formato: { data: [{...}] }
-          created = resp.data[0]
-        } else if (resp && resp.id_pessoa) {
-          // Formato: { id_pessoa: 20 } - apenas ID retornado
-          // Aceitar apenas o ID por enquanto
-          created = {
-            id_pessoa: resp.id_pessoa,
-            id: resp.id_pessoa
-          }
-        } else if (resp && typeof resp === 'object') {
-          // Formato: objeto direto
-          created = resp
-        }
-
-        // Garantir que temos um ID (normalizar id_pessoa para id se necessário)
+        // Normalizar retorno
+        const created = response.data?.data ?? response.data
         if (created && created.id_pessoa && !created.id) {
           created.id = created.id_pessoa
         }
@@ -1546,28 +1499,15 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar pessoas/clientes (GET /pessoafor/:idempresa?find=term)
-    // Reutiliza o mesmo endpoint que fornecedores, pois a API usa /pessoafor para ambos
+    // Buscar pessoas/clientes via PHP (GET /manutencao/pessoas?find=&tipo=cliente)
     async buscarPessoasClientes(findTerm = '', idEmpresa) {
       this.loading = true
       this.error = null
       try {
-        const empresaId = idEmpresa || ''
-        const url = empresaId ? `/pessoacli/${empresaId}?find=${encodeURIComponent(findTerm)}` : `/pessoacli?find=${encodeURIComponent(findTerm)}`
-        const response = await api.get(url, {
-          headers: this.getAuthHeaders()
-        })
-        const resp = response.data
-        let dados = []
-        if (resp && resp.data && Array.isArray(resp.data)) {
-          dados = resp.data
-        } else if (Array.isArray(resp)) {
-          dados = resp
-        } else if (resp && typeof resp === 'object') {
-          dados = [resp]
-        }
-
-        return dados
+        const params = { find: findTerm, tipo: 'cliente' }
+        if (idEmpresa) params.id_empresa = idEmpresa
+        const response = await apiPhp.get('/manutencao/pessoas', { params })
+        return response.data?.data ?? response.data ?? []
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
