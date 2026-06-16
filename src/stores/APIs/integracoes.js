@@ -1,33 +1,23 @@
 import { defineStore } from 'pinia'
-import api from '@/services/api'
+import apiPhp from '@/services/apiPhp'
 import { toast } from 'vue3-toastify'
 
 export const useIntegracoesStore = defineStore('integracoes', {
     state: () => ({
         loading: false,
-        token: localStorage.getItem('token'),
 
         apisExternas: [],
         integracoesLoja: [],
     }),
 
     actions: {
-        getAuthHeaders() {
-            return {
-                Authorization: `Bearer ${this.token}`,
-                'Content-Type': 'application/json',
-            }
-        },
-
         /**
          * Listar todas as APIs externas cadastradas pela empresa
          */
         async listarApisExternas() {
             this.loading = true
             try {
-                const response = await api.get('/integracoes/api-externa', {
-                    headers: this.getAuthHeaders(),
-                })
+                const response = await apiPhp.get('/integracoes/api-externa')
                 this.apisExternas = response.data?.data ?? response.data ?? []
             } catch (error) {
                 toast.error(error.response?.data?.message || 'Erro ao buscar APIs externas.')
@@ -43,9 +33,7 @@ export const useIntegracoesStore = defineStore('integracoes', {
         async cadastrarApiExterna(payload) {
             this.loading = true
             try {
-                const response = await api.post('/integracoes/api-externa', payload, {
-                    headers: this.getAuthHeaders(),
-                })
+                const response = await apiPhp.post('/integracoes/api-externa', payload)
                 toast.success('API externa cadastrada com sucesso!')
                 await this.listarApisExternas()
                 return response.data
@@ -65,9 +53,7 @@ export const useIntegracoesStore = defineStore('integracoes', {
         async alterarApiExterna(id, payload) {
             this.loading = true
             try {
-                const response = await api.put(`/integracoes/api-externa/${id}`, payload, {
-                    headers: this.getAuthHeaders(),
-                })
+                const response = await apiPhp.put(`/integracoes/api-externa/${id}`, payload)
                 toast.success('API externa atualizada com sucesso!')
                 await this.listarApisExternas()
                 return response.data
@@ -86,9 +72,7 @@ export const useIntegracoesStore = defineStore('integracoes', {
         async deletarApiExterna(id) {
             this.loading = true
             try {
-                await api.delete(`/integracoes/api-externa/${id}`, {
-                    headers: this.getAuthHeaders(),
-                })
+                await apiPhp.delete(`/integracoes/api-externa/${id}`)
                 toast.success('API externa excluída com sucesso!')
                 await this.listarApisExternas()
             } catch (error) {
@@ -106,9 +90,7 @@ export const useIntegracoesStore = defineStore('integracoes', {
         async alterarStatusApiExterna(id, ativo) {
             this.loading = true
             try {
-                await api.patch(`/integracoes/api-externa/${id}/status`, { ativo }, {
-                    headers: this.getAuthHeaders(),
-                })
+                await apiPhp.put(`/integracoes/api-externa/${id}`, { ativo })
                 toast.success(`API externa ${ativo ? 'ativada' : 'desativada'} com sucesso!`)
                 await this.listarApisExternas()
             } catch (error) {
@@ -126,9 +108,7 @@ export const useIntegracoesStore = defineStore('integracoes', {
         async listarIntegracoesLoja() {
             this.loading = true
             try {
-                const response = await api.get('/integracoes/loja', {
-                    headers: this.getAuthHeaders(),
-                })
+                const response = await apiPhp.get('/integracoes/loja')
                 this.integracoesLoja = response.data?.data ?? response.data ?? []
             } catch (error) {
                 toast.error(error.response?.data?.message || 'Erro ao buscar integrações.')
@@ -146,13 +126,9 @@ export const useIntegracoesStore = defineStore('integracoes', {
             try {
                 const existente = this.integracoesLoja.find(i => i.plataforma === payload.plataforma)
                 if (existente) {
-                    await api.put(`/integracoes/loja/${existente.id}`, payload, {
-                        headers: this.getAuthHeaders(),
-                    })
+                    await apiPhp.put(`/integracoes/loja/${existente.id}`, payload)
                 } else {
-                    await api.post('/integracoes/loja', payload, {
-                        headers: this.getAuthHeaders(),
-                    })
+                    await apiPhp.post('/integracoes/loja', payload)
                 }
                 toast.success(`${payload.nome} configurada com sucesso!`)
                 await this.listarIntegracoesLoja()
@@ -172,9 +148,7 @@ export const useIntegracoesStore = defineStore('integracoes', {
             try {
                 const item = this.integracoesLoja.find(i => i.plataforma === plataformaId)
                 if (!item) return
-                await api.delete(`/integracoes/loja/${item.id}`, {
-                    headers: this.getAuthHeaders(),
-                })
+                await apiPhp.delete(`/integracoes/loja/${item.id}`)
                 toast.success('Integração desconectada com sucesso!')
                 await this.listarIntegracoesLoja()
             } catch (error) {

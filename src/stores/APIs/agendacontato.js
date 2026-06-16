@@ -1,11 +1,10 @@
 import { defineStore } from "pinia"
-import api from "@/services/api"
+import apiPhp from "@/services/apiPhp"
 import { toast } from "vue3-toastify"
 
 export const useAgendaContatoStore = defineStore('agendacontato', {
   state: () => ({
     loading: false,
-    token: localStorage.getItem('token'),
     contatos: [],
   }),
 
@@ -24,23 +23,16 @@ export const useAgendaContatoStore = defineStore('agendacontato', {
 
     /**
      * Listar contatos
-     * GET /agendacontato?nome=**&telefone=*
+     * GET /manutencao/agendas?nome=**&telefone=*
      */
     async listarContatos(params = {}) {
       this.loading = true
       try {
-        const query = new URLSearchParams()
-        if (params.nome) query.append('nome', params.nome)
-        if (params.telefone) query.append('telefone', params.telefone)
-        const qs = query.toString()
-        const url = `/agendacontato${qs ? '?' + qs : ''}`
-        const response = await api.get(url, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
-        const dados = response.data.data || response.data
+        const response = await apiPhp.get('/manutencao/agendas', { params })
+        const dados = response.data?.data ?? response.data ?? []
         this.contatos = this.normalizarDados(Array.isArray(dados) ? dados : [])
       } catch (error) {
-        console.error('Erro ao listar contatos da agenda:', error)
+        // silent — não exibe erro em listagem
       } finally {
         this.loading = false
       }
@@ -48,15 +40,13 @@ export const useAgendaContatoStore = defineStore('agendacontato', {
 
     /**
      * Cadastrar contato
-     * POST /agendacontato
+     * POST /manutencao/agendas
      * Payload: { nome, telefone, tipo }
      */
     async cadastrarContato(dados) {
       this.loading = true
       try {
-        const response = await api.post('/agendacontato', { data: [dados] }, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.post('/manutencao/agendas', dados)
         toast.success('Contato salvo com sucesso!')
         await this.listarContatos()
         return response.data
@@ -71,15 +61,13 @@ export const useAgendaContatoStore = defineStore('agendacontato', {
 
     /**
      * Editar contato
-     * PUT /agendacontato/:id
-     * Payload: { data: [{ nome, telefone, tipo }] }
+     * PUT /manutencao/agendas/:id
+     * Payload: { nome, telefone, tipo }
      */
     async editarContato(id, dados) {
       this.loading = true
       try {
-        const response = await api.put(`/agendacontato/${id}`, { data: [dados] }, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.put(`/manutencao/agendas/${id}`, dados)
         toast.success('Contato atualizado com sucesso!')
         await this.listarContatos()
         return response.data
@@ -94,14 +82,12 @@ export const useAgendaContatoStore = defineStore('agendacontato', {
 
     /**
      * Excluir contato
-     * DELETE /agendacontato/:id
+     * DELETE /manutencao/agendas/:id
      */
     async excluirContato(id) {
       this.loading = true
       try {
-        await api.delete(`/agendacontato/${id}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        await apiPhp.delete(`/manutencao/agendas/${id}`)
         toast.success('Contato excluído!')
         this.contatos = this.contatos.filter(c => c.id !== id)
       } catch (error) {

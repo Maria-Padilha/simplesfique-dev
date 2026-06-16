@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import api from "@/services/api";
+import apiPhp from "@/services/apiPhp";
 
 const errorMessages = {
     "The name field is required.": "O campo nome é obrigatório!",
@@ -18,41 +18,28 @@ export const useGrupoUsuarioStore = defineStore('grupousuario', {
     }),
 
     actions: {
-        // Função auxiliar para obter headers com token
-        getAuthHeaders() {
-            const token = localStorage.getItem('token')
-            return {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        },
-
         async buscarTodosGruposUsuario() {
             this.loading = true;
 
             try {
-                const response = await api.get(`/grupousuario`, {
-                    headers: this.getAuthHeaders()
-                });
+                const response = await apiPhp.get('/manutencao/grupo-usuarios');
 
                 // Mapear os dados da API para o formato esperado
-                this.gruposUsuario = (response.data?.data || []).map(item => ({
+                const data = response.data?.data ?? response.data ?? [];
+                this.gruposUsuario = data.map(item => ({
                     id: item.id,
-                    nome: item.descgrupousuario,
-                    descricao: item.descgrupousuario,
+                    nome: item.nome || item.descgrupousuario,
+                    descricao: item.descricao || item.descgrupousuario,
                     usuario: item.usuario,
-                    data_criacao: item.dhinc,
-                    dhinc: item.dhinc
+                    data_criacao: item.created_at || item.dhinc,
+                    dhinc: item.dhinc || item.created_at
                 }));
 
                 this.errorMessage = '';
-                this.records = response.data?.records || 0;
-
-                console.log('Grupos de usuário buscados com sucesso:', this.gruposUsuario);
+                this.records = response.data?.total || 0;
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-                console.log(this.errorMessage)
             } finally {
                 this.loading = false;
             }
@@ -62,14 +49,12 @@ export const useGrupoUsuarioStore = defineStore('grupousuario', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/grupousuario/${id}`, {
-                    headers: this.getAuthHeaders()
-                });
+                const response = await apiPhp.get(`/manutencao/grupo-usuarios/${id}`);
 
-                this.grupoUsuario = response.data;
+                this.grupoUsuario = response.data?.data ?? response.data;
                 this.errorMessage = '';
 
-                this.records = response.data.records;
+                this.records = response.data?.total || 0;
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
@@ -81,11 +66,7 @@ export const useGrupoUsuarioStore = defineStore('grupousuario', {
         async cadastrarGrupoUsuario(id, nome, descricao) {
             this.loading = true;
             try {
-                await api.post('/grupousuario',
-                    { id, nome, descricao },
-                    {
-                        headers: this.getAuthHeaders()
-                    })
+                await apiPhp.post('/manutencao/grupo-usuarios', { nome, descricao });
 
                 await this.buscarTodosGruposUsuario();
                 this.errorMessage = '';
@@ -102,7 +83,6 @@ export const useGrupoUsuarioStore = defineStore('grupousuario', {
                         });
                     });
                 } else {
-                    console.log(error)
                     this.errorMessage = 'Desculpe, ocorreu um erro ao cadastrar o Grupo de usuário. Entre em contato com nosso suporte.';
                 }
 
@@ -114,11 +94,7 @@ export const useGrupoUsuarioStore = defineStore('grupousuario', {
         async alterarGrupoUsuario(id, nome, descricao) {
             this.loading = true;
             try {
-                await api.put(`/grupousuario/${id}`,
-                    { id, nome, descricao },
-                    {
-                        headers: this.getAuthHeaders()
-                    })
+                await apiPhp.put(`/manutencao/grupo-usuarios/${id}`, { nome, descricao });
 
                 await this.buscarTodosGruposUsuario();
                 this.errorMessage = '';
@@ -135,7 +111,6 @@ export const useGrupoUsuarioStore = defineStore('grupousuario', {
                         });
                     });
                 } else {
-                    console.log(error)
                     this.errorMessage = 'Desculpe, ocorreu um erro ao atualizar o Grupo de usuário. Entre em contato com nosso suporte.';
                 }
 
@@ -147,16 +122,13 @@ export const useGrupoUsuarioStore = defineStore('grupousuario', {
         async deleteGrupoUsuario(id) {
             this.loading = true;
             try {
-                await api.delete(`/grupousuario/${id}`, {
-                    headers: this.getAuthHeaders()
-                });
+                await apiPhp.delete(`/manutencao/grupo-usuarios/${id}`);
 
                 await this.buscarTodosGruposUsuario();
                 this.errorMessage = '';
                 this.successMessage = 'Grupo de usuário deletado com sucesso!';
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-                console.log(this.errorMessage)
             } finally {
                 this.loading = false;
             }
