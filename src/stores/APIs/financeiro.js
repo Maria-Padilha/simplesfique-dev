@@ -1914,21 +1914,14 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
     // ========== DRE (DEMONSTRATIVO DE RESULTADO) ==========
 
-    // Salvar modelo de DRE (POST /dre)
+    // Salvar modelo de DRE (POST /api/v1/financeiro/dres)
     async salvarModeloDRE(payload) {
       this.loading = true
       this.error = null
       try {
-        console.log('[Store] Salvando modelo DRE:', payload)
-        
-        const response = await api.post('/dre', payload, {
-          headers: this.getAuthHeaders()
-        })
-        
-        console.log('[Store] Resposta do servidor:', response.data)
+        const response = await apiPhp.post('/financeiro/dres', payload)
         return response.data
       } catch (error) {
-        console.error('[Store] Erro ao salvar modelo DRE:', error)
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
@@ -1936,21 +1929,14 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Atualizar modelo de DRE (PUT /dre/:id)
+    // Atualizar modelo de DRE (PUT /api/v1/financeiro/dres/:id)
     async atualizarModeloDRE(id, payload) {
       this.loading = true
       this.error = null
       try {
-        console.log('[Store] Atualizando modelo DRE:', id, payload)
-        
-        const response = await api.put(`/dre/${id}`, payload, {
-          headers: this.getAuthHeaders()
-        })
-        
-        console.log('[Store] Resposta do servidor:', response.data)
+        const response = await apiPhp.put(`/financeiro/dres/${id}`, payload)
         return response.data
       } catch (error) {
-        console.error('[Store] Erro ao atualizar modelo DRE:', error)
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
@@ -1958,23 +1944,14 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar modelos de DRE (GET /dre)
+    // Buscar modelos de DRE (GET /api/v1/financeiro/dres)
     async buscarModelosDRE() {
       this.loading = true
       this.error = null
       try {
-        const response = await api.get('/dre', {
-          headers: this.getAuthHeaders()
-        })
+        const response = await apiPhp.get('/financeiro/dres')
         
-        const resposta = response.data
-        let dados = []
-        
-        if (resposta && resposta.data && Array.isArray(resposta.data)) {
-          dados = resposta.data
-        } else if (Array.isArray(resposta)) {
-          dados = resposta
-        }
+        const dados = response.data?.data ?? response.data ?? []
         
         // Formatar para o v-select (precisa de title e value)
         return dados.map(modelo => ({
@@ -1983,7 +1960,6 @@ export const useFinanceiroStore = defineStore('financeiro', {
           ...modelo
         }))
       } catch (error) {
-        console.error('[Store] Erro ao buscar modelos DRE:', error)
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         return []
       } finally {
@@ -1991,23 +1967,19 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar modelo de DRE por ID (GET /dre/:id)
+    // Buscar modelo de DRE por ID (GET /api/v1/financeiro/dres/:id)
     async buscarModeloDRE(id) {
       this.loading = true
       this.error = null
       try {
-        const response = await api.get(`/dre/${id}`, {
-          headers: this.getAuthHeaders()
-        })
+        const response = await apiPhp.get(`/financeiro/dres/${id}`)
         
-        const modelo = response.data.data || response.data
-        console.log('[Store] Modelo DRE retornado da API:', JSON.stringify(modelo, null, 2))
+        const modelo = response.data?.data ?? response.data
         
         // Converter de volta para o formato da tela
         if (modelo) {
           // O ID pode vir de diferentes lugares na resposta
           const idModelo = modelo.id || modelo.id_dre || id
-          console.log('[Store] ID do modelo identificado:', idModelo)
           
           // Criar mapa de ID para nome de grupo (para converter fórmulas)
           const gruposMap = new Map()
@@ -2017,7 +1989,6 @@ export const useFinanceiroStore = defineStore('financeiro', {
           
           // O nome pode vir em diferentes locais dependendo da estrutura da resposta
           const nomeDre = modelo.descdre || modelo.nome || 'Modelo DRE'
-          console.log('[Store] Nome do DRE identificado:', nomeDre)
           
           return {
             id: idModelo,
@@ -2078,7 +2049,6 @@ export const useFinanceiroStore = defineStore('financeiro', {
         
         return null
       } catch (error) {
-        console.error('[Store] Erro ao buscar modelo DRE:', error)
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {
@@ -2086,18 +2056,15 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Deletar modelo de DRE (DELETE /dre/:id)
+    // Deletar modelo de DRE (DELETE /api/v1/financeiro/dres/:id)
     async deletarModeloDRE(id) {
       this.loading = true
       this.error = null
       try {
-        await api.delete(`/dre/${id}`, {
-          headers: this.getAuthHeaders()
-        })
+        await apiPhp.delete(`/financeiro/dres/${id}`)
         
         return true
       } catch (error) {
-        console.error('[Store] Erro ao deletar modelo DRE:', error)
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
       } finally {

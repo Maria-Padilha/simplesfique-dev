@@ -100,7 +100,7 @@
 
 ---
 
-### Etapa 3 — Módulo Financeiro (5-7 dias) ⚠️ CRÍTICO
+### Etapa 3 — Módulo Financeiro (5-7 dias) ⚠️ CRÍTICO (3.1-3.6 ✅, 3.7-3.9 ⏳)
 
 **3.1** Bancos, Agências, Conta Corrente ✅ PARCIALMENTE CONCLUÍDA
 | THorse | PHP |
@@ -235,48 +235,58 @@
 | _Novo_ | `PUT /api/v1/financeiro/dre-detalhe-contas/{idDre}/{idDreDetalhe}/{id}` |
 | _Novo_ | `DELETE /api/v1/financeiro/dre-detalhe-contas/{idDre}/{idDreDetalhe}/{id}` |
 
-**3.7** Adiantamentos (Clientes, Colaboradores, Fornecedores) ❌ NÃO INICIADA
-| THorse | PHP |
-|--------|-----|
-| `GET /adtcliente/{...}` | `GET /api/v1/financeiro/adiantamento-clientes` |
-| `POST /adtcliente` | `POST /api/v1/financeiro/adiantamento-clientes` |
-| `GET /adtcliente/{id}` | `GET /api/v1/financeiro/adiantamento-clientes/{id}` |
-| `PUT /adtcliente/{id}` | `PUT /api/v1/financeiro/adiantamento-clientes/{id}` |
-| `DELETE /adtcliente/{id}` | `DELETE /api/v1/financeiro/adiantamento-clientes/{id}` |
-| `GET /adtcolabo/{...}` | `GET /api/v1/financeiro/adiantamento-colaboradors` |
-| `POST /adtcolabo` | `POST /api/v1/financeiro/adiantamento-colaboradors` |
-| `GET /adtcolabo/{id}` | `GET /api/v1/financeiro/adiantamento-colaboradors/{id}` |
-| `PUT /adtcolabo/{id}` | `PUT /api/v1/financeiro/adiantamento-colaboradors/{id}` |
-| `DELETE /adtcolabo/{id}` | `DELETE /api/v1/financeiro/adiantamento-colaboradors/{id}` |
-| `GET /adtfornecedor/{...}` | `GET /api/v1/financeiro/adiantamento-fornecedors` |
-| `POST /adtfornecedor` | `POST /api/v1/financeiro/adiantamento-fornecedors` |
-| `GET /adtfornecedor/{id}` | `GET /api/v1/financeiro/adiantamento-fornecedors/{id}` |
-| `PUT /adtfornecedor/{id}` | `PUT /api/v1/financeiro/adiantamento-fornecedors/{id}` |
-| `DELETE /adtfornecedor/{id}` | `DELETE /api/v1/financeiro/adiantamento-fornecedors/{id}` |
-| `POST /adtfornecedorpagto/{id}` | _(não documentado — verificar com backend)_ |
-| `PUT /adtfornecedoraprova/{id}` | _(não documentado — verificar com backend)_ |
+**3.7** Adiantamentos (Clientes, Colaboradores, Fornecedores) #288 ⏳ PENDENTE
 
-**3.8** Parâmetros Financeiros ❌ NÃO INICIADA
+> ⚠️ **Issues:** #288 (Etapa 3.7)
 
+| THorse | PHP | Status |
+|--------|-----|--------|
+| `GET /adtcliente/{...}` | `GET /api/v1/financeiro/adiantamento-clientes` | ❌ THorse |
+| `POST /adtcliente` | `POST /api/v1/financeiro/adiantamento-clientes` | ❌ THorse |
+| `GET /adtcliente/{id}` | `GET /api/v1/financeiro/adiantamento-clientes/{id}` | ❌ THorse |
+| `PUT /adtcliente/{id}` | `PUT /api/v1/financeiro/adiantamento-clientes/{id}` | ❌ THorse |
+| `DELETE /adtcliente/{id}` | `DELETE /api/v1/financeiro/adiantamento-clientes/{id}` | ❌ THorse |
+| `GET /adtcolabo/{...}` | `GET /api/v1/financeiro/adiantamento-colaboradors` | ❌ THorse |
+| `POST /adtcolabo` | `POST /api/v1/financeiro/adiantamento-colaboradors` | ❌ THorse |
+| `GET /adtcolabo/{id}` | `GET /api/v1/financeiro/adiantamento-colaboradors/{id}` | ❌ THorse |
+| `PUT /adtcolabo/{id}` | `PUT /api/v1/financeiro/adiantamento-colaboradors/{id}` | ❌ THorse |
+| `DELETE /adtcolabo/{id}` | `DELETE /api/v1/financeiro/adiantamento-colaboradors/{id}` | ❌ THorse |
+| `GET /adtfornecedor/{...}` | `GET /api/v1/financeiro/adiantamento-fornecedors` | ❌ THorse |
+| `POST /adtfornecedor` | `POST /api/v1/financeiro/adiantamento-fornecedors` | ❌ THorse |
+| `GET /adtfornecedor/{id}` | `GET /api/v1/financeiro/adiantamento-fornecedors/{id}` | ❌ THorse |
+| `PUT /adtfornecedor/{id}` | `PUT /api/v1/financeiro/adiantamento-fornecedors/{id}` | ❌ THorse |
+| `DELETE /adtfornecedor/{id}` | `DELETE /api/v1/financeiro/adiantamento-fornecedors/{id}` | ❌ THorse |
+| `POST /adtfornecedorpagto/{id}` | ⛔ **BLOQUEADO** — não documentado na API PHP | 🔴 Bloqueado |
+| `PUT /adtfornecedoraprova/{id}` | ⛔ **BLOQUEADO** — não documentado na API PHP | 🔴 Bloqueado |
+| `PUT /adtfornecedornega/{id}` | ⛔ **BLOQUEADO** — não documentado na API PHP | 🔴 Bloqueado |
+| `POST /adtcolabocalcparc` | 🔄 Automático no CRUD — remover do frontend | 🗑️ Remover |
+
+**3.8** Parâmetros Financeiros #289 ⏳ PENDENTE
+
+> ⚠️ **Issues:** #289 (Etapa 3.8)
 > ⚠️ Os nomes mudaram na nova API — use os nomes abaixo, não os do THorse.
 
-| THorse | PHP |
-|--------|-----|
-| `GET /parfinpag/{idEmpresa}` | `GET /api/v1/financeiro/parametros-financeiros-pagars/{idEmpresa}` |
-| `PUT /parfinpag/{idEmpresa}` | `PUT /api/v1/financeiro/parametros-financeiros-pagars/{idEmpresa}` |
-| `GET /parfinrec/{idEmpresa}` | `GET /api/v1/financeiro/parametros-financeiros-recebers/{idEmpresa}` |
-| `PUT /parfinrec/{idEmpresa}` | `PUT /api/v1/financeiro/parametros-financeiros-recebers/{idEmpresa}` |
-| `GET /parfincxa/{idEmpresa}` | `GET /api/v1/financeiro/parametros-financeiros-caixas/{idEmpresa}` |
-| `PUT /parfincxa/{idEmpresa}` | `PUT /api/v1/financeiro/parametros-financeiros-caixas/{idEmpresa}` |
-| `GET /parfinbxa/{idEmpresa}` | _(não documentado na nova API — verificar com backend)_ |
+| THorse | PHP | Status |
+|--------|-----|--------|
+| `GET /parfinpag/{idEmpresa}` | `GET /api/v1/financeiro/parametros-financeiros-pagars/{idEmpresa}` | ❌ THorse |
+| `PUT /parfinpag/{idEmpresa}` | `PUT /api/v1/financeiro/parametros-financeiros-pagars/{idEmpresa}` | ❌ THorse |
+| `GET /parfinrec/{idEmpresa}` | `GET /api/v1/financeiro/parametros-financeiros-recebers/{idEmpresa}` | ❌ THorse |
+| `PUT /parfinrec/{idEmpresa}` | `PUT /api/v1/financeiro/parametros-financeiros-recebers/{idEmpresa}` | ❌ THorse |
+| `GET /parfincxa/{idEmpresa}` | `GET /api/v1/financeiro/parametros-financeiros-caixas/{idEmpresa}` | ❌ THorse |
+| `PUT /parfincxa/{idEmpresa}` | `PUT /api/v1/financeiro/parametros-financeiros-caixas/{idEmpresa}` | ❌ THorse |
+| `GET /parfinbxa/{idEmpresa}` | ⛔ **BLOQUEADO** — não documentado na API PHP | 🔴 Bloqueado |
 
-**3.9** Transferências e Boletos
-| THorse | PHP |
-|--------|-----|
-| `POST /ccorrentetransf` | _(não documentado na nova API — verificar com backend)_ |
-| `GET /transffinanceiras/{...}` | _(não documentado na nova API — verificar com backend)_ |
-| `POST /bolregistro/{...}` | `POST /api/v1/financeiro/boletos/registrar` ✅ |
-| `POST /bolnossonumero/{...}` | `POST /api/v1/financeiro/boletos/nosso-numero` ✅ |
+**3.9** Transferências e Boletos #290 ⏳ PENDENTE
+
+> ⚠️ **Issues:** #290 (Etapa 3.9)
+> ⚠️ Transferências financeiras **não têm equivalência na API PHP** — aguardar backend.
+
+| THorse | PHP | Status |
+|--------|-----|--------|
+| `POST /ccorrentetransf` | ⛔ **BLOQUEADO** — não documentado na API PHP | 🔴 Bloqueado |
+| `GET /transffinanceiras/{...}` | ⛔ **BLOQUEADO** — não documentado na API PHP | 🔴 Bloqueado |
+| `POST /bolregistro/{...}` | `POST /api/v1/financeiro/boletos/registrar` | ✅ Migrado |
+| `POST /bolnossonumero/{...}` | `POST /api/v1/financeiro/boletos/nosso-numero` | ✅ Migrado |
 
 **Arquivos afetados:** `src/stores/APIs/financeiro.js`, `src/stores/APIs/caixa.js`, `src/stores/APIs/ccusto.js`, `src/stores/APIs/config.js`, `src/stores/APIs/dre.js`, `src/stores/APIs/dashboard.js`, `src/stores/APIs/adiantamento.js`
 

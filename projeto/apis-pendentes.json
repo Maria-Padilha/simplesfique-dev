@@ -6,6 +6,7 @@
         "observacao": "Histórico de movimentação do caixa",
         "status": "aguardando",
         "etapa": "3.3",
+        "issue": "#274",
         "data": "2026-06-16"
       },
       {
@@ -13,15 +14,17 @@
         "observacao": "Usuários vinculados ao caixa",
         "status": "aguardando",
         "etapa": "3.3",
+        "issue": "#274",
         "data": "2026-06-16"
       }
     ],
     "Financeiro/Contas a Pagar": [
       {
         "endpoint": "POST /contaspagar/autorizar",
-        "observacao": "Autorização de pagamento",
-        "status": "aguardando",
+        "observacao": "Autorização de pagamento — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "3.4",
+        "issue": "#275",
         "data": "2026-06-16"
       },
       {
@@ -29,6 +32,7 @@
         "observacao": "Cálculo de parcelas — automático no CRUD PHP, remover da view futuramente",
         "status": "automatico",
         "etapa": "3.4",
+        "issue": "#275",
         "data": "2026-06-16"
       }
     ],
@@ -38,181 +42,221 @@
         "observacao": "Cálculo de parcelas — automático no CRUD PHP, remover da view futuramente",
         "status": "automatico",
         "etapa": "3.5",
+        "issue": "#276",
+        "data": "2026-06-16"
+      }
+    ],
+    "Financeiro/Adiantamentos": [
+      {
+        "endpoint": "POST /adtfornecedorpagto/{id}",
+        "observacao": "Pagamento de adiantamento fornecedor — não documentado na API PHP",
+        "status": "bloqueado",
+        "etapa": "3.7",
+        "issue": "#288",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "PUT /adtfornecedoraprova/{id}",
+        "observacao": "Aprovação de adiantamento fornecedor — não documentado na API PHP",
+        "status": "bloqueado",
+        "etapa": "3.7",
+        "issue": "#288",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "PUT /adtfornecedornega/{id}",
+        "observacao": "Recusar adiantamento fornecedor — não documentado na API PHP",
+        "status": "bloqueado",
+        "etapa": "3.7",
+        "issue": "#288",
+        "data": "2026-06-16"
+      },
+      {
+        "endpoint": "POST /adtcolabocalcparc",
+        "observacao": "Cálculo de parcelas — automático no CRUD PHP, remover da view futuramente",
+        "status": "automatico",
+        "etapa": "3.7",
+        "issue": "#288",
         "data": "2026-06-16"
       }
     ],
     "Financeiro/Parâmetros": [
       {
         "endpoint": "GET /parfinbxa/{idEmpresa}",
-        "observacao": "Parâmetros financeiros de baixas",
-        "status": "aguardando",
+        "observacao": "Parâmetros financeiros de baixas — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "3.8",
+        "issue": "#289",
         "data": "2026-06-16"
       }
     ],
     "Financeiro/Transferências": [
       {
         "endpoint": "POST /ccorrentetransf",
-        "observacao": "Transferência entre contas correntes",
-        "status": "aguardando",
+        "observacao": "Transferência entre contas correntes — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "3.9",
+        "issue": "#290",
         "data": "2026-06-16"
       },
       {
         "endpoint": "GET /transffinanceiras/{...}",
-        "observacao": "Listagem de transferências financeiras",
-        "status": "aguardando",
+        "observacao": "Listagem de transferências financeiras — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "3.9",
-        "data": "2026-06-16"
-      }
-    ],
-    "Adiantamentos": [
-      {
-        "endpoint": "POST /adtfornecedorpagto/{id}",
-        "observacao": "Pagamento de adiantamento fornecedor",
-        "status": "aguardando",
-        "etapa": "3.7",
-        "data": "2026-06-16"
-      },
-      {
-        "endpoint": "PUT /adtfornecedoraprova/{id}",
-        "observacao": "Aprovação de adiantamento fornecedor",
-        "status": "aguardando",
-        "etapa": "3.7",
+        "issue": "#290",
         "data": "2026-06-16"
       }
     ],
     "Estoque/Produtos": [
       {
         "endpoint": "GET /medida",
-        "observacao": "Unidades de medida",
-        "status": "aguardando",
+        "observacao": "Unidades de medida — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "4.2",
+        "issue": "#279",
         "data": "2026-06-16"
       },
       {
         "endpoint": "GET /proalmox/{...}",
-        "observacao": "Produto por almoxarifado",
-        "status": "aguardando",
+        "observacao": "Produto por almoxarifado — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "4.3",
+        "issue": "#280",
         "data": "2026-06-16"
       },
       {
         "endpoint": "GET /profoto/{idProduto}",
-        "observacao": "Fotos do produto",
-        "status": "aguardando",
+        "observacao": "Fotos do produto — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "4.3",
+        "issue": "#280",
         "data": "2026-06-16"
       },
       {
         "endpoint": "GET /aliquotauf/{emp}",
-        "observacao": "Alíquotas por UF",
-        "status": "aguardando",
+        "observacao": "Alíquotas por UF — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "4.7",
+        "issue": "#282",
         "data": "2026-06-16"
       }
     ],
     "Estoque/Transferência Almoxarifado": [
       {
         "endpoint": "GET /transfalmox/{idemp}",
-        "observacao": "Listar transferências almoxarifado",
-        "status": "aguardando",
+        "observacao": "Listar transferências almoxarifado — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "4.6",
+        "issue": "#281",
         "data": "2026-06-16"
       },
       {
         "endpoint": "POST /transfalmox/env",
-        "observacao": "Enviar transferência almoxarifado",
-        "status": "aguardando",
+        "observacao": "Enviar transferência almoxarifado — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "4.6",
+        "issue": "#281",
         "data": "2026-06-16"
       },
       {
         "endpoint": "POST /transfalmox/rec",
-        "observacao": "Receber transferência almoxarifado",
-        "status": "aguardando",
+        "observacao": "Receber transferência almoxarifado — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "4.6",
+        "issue": "#281",
         "data": "2026-06-16"
       }
     ],
     "Vendas/PDV": [
       {
         "endpoint": "GET /mpo",
-        "observacao": "Motivos de perda",
-        "status": "aguardando",
+        "observacao": "Motivos de perda — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "6.1",
+        "issue": "#285",
         "data": "2026-06-16"
       },
       {
         "endpoint": "POST /mpo",
-        "observacao": "Criar motivo de perda",
-        "status": "aguardando",
+        "observacao": "Criar motivo de perda — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "6.1",
+        "issue": "#285",
         "data": "2026-06-16"
       },
       {
         "endpoint": "GET /terminalven/{idEmpresa}",
-        "observacao": "Terminais de venda",
-        "status": "aguardando",
+        "observacao": "Terminais de venda — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "6.1",
+        "issue": "#285",
         "data": "2026-06-16"
       },
       {
         "endpoint": "POST /terminalven/{idEmpresa}",
-        "observacao": "Criar terminal de venda",
-        "status": "aguardando",
+        "observacao": "Criar terminal de venda — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "6.1",
+        "issue": "#285",
         "data": "2026-06-16"
       },
       {
         "endpoint": "GET /ambiente/{idEmpresa}",
-        "observacao": "Ambientes PDV",
-        "status": "aguardando",
+        "observacao": "Ambientes PDV — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "6.1",
+        "issue": "#285",
         "data": "2026-06-16"
       },
       {
         "endpoint": "POST /ambiente/{idEmpresa}",
-        "observacao": "Criar ambiente PDV",
-        "status": "aguardando",
+        "observacao": "Criar ambiente PDV — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "6.1",
+        "issue": "#285",
         "data": "2026-06-16"
       }
     ],
     "Dashboard": [
       {
         "endpoint": "GET /pagarreceber/{idempresa}",
-        "observacao": "Resumo pagar/receber",
-        "status": "aguardando",
+        "observacao": "Resumo pagar/receber — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "8",
+        "issue": "#287",
         "data": "2026-06-16"
       },
       {
         "endpoint": "GET /saldosbancario/{idempresa}",
-        "observacao": "Saldos bancários",
-        "status": "aguardando",
+        "observacao": "Saldos bancários — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "8",
+        "issue": "#287",
         "data": "2026-06-16"
       },
       {
         "endpoint": "GET /fluxocaixamensal/{idempresa}",
-        "observacao": "Fluxo de caixa mensal",
-        "status": "aguardando",
+        "observacao": "Fluxo de caixa mensal — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "8",
+        "issue": "#287",
         "data": "2026-06-16"
       },
       {
         "endpoint": "GET /fluxocaixadiario/{idempresa}",
-        "observacao": "Fluxo de caixa diário",
-        "status": "aguardando",
+        "observacao": "Fluxo de caixa diário — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "8",
+        "issue": "#287",
         "data": "2026-06-16"
       },
       {
         "endpoint": "GET /pagrecdocloc/{idempresa}",
-        "observacao": "Pagar/receber por local de cobrança",
-        "status": "aguardando",
+        "observacao": "Pagar/receber por local de cobrança — não documentado na API PHP",
+        "status": "bloqueado",
         "etapa": "8",
+        "issue": "#287",
         "data": "2026-06-16"
       }
     ]
