@@ -25,17 +25,17 @@ export const useFuncoesStore = defineStore("funcoes", {
                 : num.toFixed(casas);
         },
 
-        normalizarQuantidade(valor, casas = 4) {
-            if (valor === null || valor === undefined || valor === "") {
-                return "0." + "0".repeat(casas);
-            }
-
-            const num = Number(String(valor).replace(",", ".").trim());
-
-            return isNaN(num)
-                ? "0." + "0".repeat(casas)
-                : num.toFixed(casas);
-        },
+        // normalizarQuantidade(valor, casas = 4) {
+        //     if (valor === null || valor === undefined || valor === "") {
+        //         return "0." + "0".repeat(casas);
+        //     }
+        //
+        //     const num = Number(String(valor).replace(",", ".").trim());
+        //
+        //     return isNaN(num)
+        //         ? "0." + "0".repeat(casas)
+        //         : num.toFixed(casas);
+        // },
 
         /**
          * PREENCHER FORMS DE ENTRADA DFE
@@ -66,8 +66,9 @@ export const useFuncoesStore = defineStore("funcoes", {
             forms.dtemissao = ide?.dhEmi || null;
             forms.dtentrada = ide?.dhSaiEnt || null;
 
+            forms.numero_nf = ide?.nNF || null;
             forms.nfe_numero = ide?.nNF || null;
-            forms.id_serie = ide?.serie || null;
+            forms.serie_nf = ide?.serie || null;
             forms.nfe_modelo = ide?.mod || null;
             forms.nfe_chavedeacesso = chave || null;
 

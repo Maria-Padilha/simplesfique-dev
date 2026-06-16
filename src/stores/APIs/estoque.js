@@ -862,14 +862,14 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                await api.post(`/formula/valida/${emp}`, formulaData, {
+                await api.post(`/formula/valida`, formulaData, {
                     headers: {
                         Authorization: `Bearer ${this.token}`
                     }
                 });
 
                 this.errorMessage = '';
-
+                this.successMessage = 'Fórmula valida com sucesso!';
                 await this.buscarTodasFormulas(emp);
 
             } catch (error) {

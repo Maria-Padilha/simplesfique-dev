@@ -2,7 +2,7 @@
   <top-all-pages icon="mdi-file-document-outline">
     <template #titulo>Visualizar Nota Fiscal</template>
     <template #section>
-      <v-form ref="formsNf" @submit="salvarFormulario">
+      <v-form ref="formsNf">
 
         <v-expansion-panels :theme="themeStore.darkMode ? 'dark' : 'light'" color="var(--bg-card)">
           <v-expansion-panel elevation="1" class="mb-5" title="Entrada de Nota" color="var(--bg-card)">
@@ -327,10 +327,177 @@
               </v-row>
             </template>
           </v-expansion-panel>
+
+          <v-expansion-panel elevation="1" class="mb-5" title="Cálculo Tributário" color="var(--bg-card)">
+            <template #text>
+              <v-row dense>
+                <!-- ICMS -->
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Base ICMS" hide-details="auto" type="number"
+                      v-model="forms.base_icms" readonly
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Alíquota ICMS" hide-details="auto" type="number"
+                      v-model="forms.aliquota_icms" readonly
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Valor ICMS" hide-details="auto" type="number"
+                      v-model="forms.vlr_icms" readonly
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Isento ICMS" hide-details="auto" type="number"
+                      v-model="forms.isento_icms" readonly
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Outras Despesas" hide-details="auto" type="number"
+                      v-model="forms.outras_despesas" readonly
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Desp. Fora NF" hide-details="auto" type="number"
+                      v-model="forms.outras_despesas_foranf" readonly
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Base ICMS ST" hide-details="auto" type="number"
+                      v-model="forms.base_icms_subst" readonly
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Valor ICMS ST" hide-details="auto" type="number"
+                      v-model="forms.vlr_icms_subst" readonly
+                  />
+                </v-col>
+
+                <!-- IPI -->
+                <v-col cols="12" md="2">
+                  <v-text-field density="compact" variant="outlined" label="Base IPI" hide-details="auto" type="number"
+                                v-model="forms.base_ipi" readonly />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field density="compact" variant="outlined" label="Valor IPI" hide-details="auto" type="number"
+                                v-model="forms.vlr_ipi" readonly />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field density="compact" variant="outlined" label="Isento IPI" hide-details="auto"
+                                type="number" v-model="forms.isento_ipi" readonly />
+                </v-col>
+
+                <!-- Impostos diversos -->
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Base II" hide-details="auto" type="number"
+                      v-model="forms.base_ii" readonly
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Valor II" hide-details="auto" type="number"
+                      v-model="forms.vlr_ii" readonly
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Base ISS" hide-details="auto" type="number"
+                      v-model="forms.base_iss" readonly
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Valor ISS" hide-details="auto" type="number"
+                      v-model="forms.vlr_iss" readonly
+                  />
+                </v-col>
+
+                <!-- PIS/COFINS -->
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="PIS Produto" hide-details="auto" type="number"
+                      v-model="forms.vlr_pis_produto" readonly
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Cofins Produto" hide-details="auto" type="number"
+                      v-model="forms.vlr_cofins_produto" readonly
+                  />
+                </v-col>
+
+                <!-- Plano Pagamento -->
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Plano Pagamento" hide-details="auto"
+                      v-model="forms.id_planopagto" readonly
+                  />
+                </v-col>
+
+                <!-- Seguro / desconto / frete -->
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Valor Seguro" hide-details="auto" type="number"
+                      v-model="forms.vlr_seguro" readonly
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Valor Desconto" hide-details="auto" type="number"
+                      v-model="forms.vlr_desconto" readonly
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Tipo Frete" hide-details="auto"
+                      v-model="forms.tipo_frete" readonly
+                  />
+                </v-col>
+
+                <v-col cols="12" md="4">
+                  <v-autocomplete
+                      density="compact" variant="outlined" label="Transportadora" hide-details="auto"
+                      v-model="forms.id_transportadora" readonly
+                      :items="pessoas" item-title="nome_razao" item-value="id"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="2">
+                  <v-text-field
+                      density="compact" variant="outlined" label="Valor Frete" hide-details="auto" type="number"
+                      v-model="forms.vlr_frete" readonly
+                  />
+                </v-col>
+              </v-row>
+            </template>
+          </v-expansion-panel>
         </v-expansion-panels>
 
         <tabela-padrao
-            :formulario-aberto="formularioAberto"
             :headers="headers"
             :items="produtos"
             :loading="produtosStore.loading"
@@ -339,171 +506,27 @@
             no-data-icon="mdi-database-off"
             :item-por-pag="5"
             no-data-text="Nenhum item encontrado"
-        />
+        >
+          <template v-slot:[`item.vlr_unitario`]="{ item }">
+            {{ formatarMoeda(item.vlr_unitario) }}
+          </template>
 
-        <v-row class="mt-5" dense>
-          <!-- ICMS -->
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Base ICMS" hide-details="auto" type="number"
-                v-model="forms.base_icms" readonly
-            />
-          </v-col>
+          <template v-slot:[`item.vlr_ipi_item`]="{ item }">
+            {{ formatarMoeda(item.vlr_ipi_item) }}
+          </template>
 
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Alíquota ICMS" hide-details="auto" type="number"
-                v-model="forms.aliquota_icms" readonly
-            />
-          </v-col>
+          <template v-slot:[`item.vlr_icms_item`]="{ item }">
+            {{ formatarMoeda(item.vlr_icms_item) }}
+          </template>
 
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Valor ICMS" hide-details="auto" type="number"
-                v-model="forms.vlr_icms" readonly
-            />
-          </v-col>
+          <template v-slot:[`item.vlr_total_item`]="{ item }">
+            {{ formatarMoeda(item.vlr_total_item) }}
+          </template>
 
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Isento ICMS" hide-details="auto" type="number"
-                v-model="forms.isento_icms" readonly
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Outras Despesas" hide-details="auto" type="number"
-                v-model="forms.outras_despesas" readonly
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Desp. Fora NF" hide-details="auto" type="number"
-                v-model="forms.outras_despesas_foranf" readonly
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Base ICMS ST" hide-details="auto" type="number"
-                v-model="forms.base_icms_subst" readonly
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Valor ICMS ST" hide-details="auto" type="number"
-                v-model="forms.vlr_icms_subst" readonly
-            />
-          </v-col>
-
-          <!-- IPI -->
-          <v-col cols="12" md="2">
-            <v-text-field density="compact" variant="outlined" label="Base IPI" hide-details="auto" type="number"
-                          v-model="forms.base_ipi" readonly />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field density="compact" variant="outlined" label="Valor IPI" hide-details="auto" type="number"
-                          v-model="forms.vlr_ipi" readonly />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field density="compact" variant="outlined" label="Isento IPI" hide-details="auto"
-                          type="number" v-model="forms.isento_ipi" readonly />
-          </v-col>
-
-          <!-- Impostos diversos -->
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Base II" hide-details="auto" type="number"
-                v-model="forms.base_ii" readonly
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Valor II" hide-details="auto" type="number"
-                v-model="forms.vlr_ii" readonly
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Base ISS" hide-details="auto" type="number"
-                v-model="forms.base_iss" readonly
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Valor ISS" hide-details="auto" type="number"
-                v-model="forms.vlr_iss" readonly
-            />
-          </v-col>
-
-          <!-- PIS/COFINS -->
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="PIS Produto" hide-details="auto" type="number"
-                v-model="forms.vlr_pis_produto" readonly
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Cofins Produto" hide-details="auto" type="number"
-                v-model="forms.vlr_cofins_produto" readonly
-            />
-          </v-col>
-
-          <!-- Plano Pagamento -->
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Plano Pagamento" hide-details="auto"
-                v-model="forms.id_planopagto" readonly
-            />
-          </v-col>
-
-          <!-- Seguro / desconto / frete -->
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Valor Seguro" hide-details="auto" type="number"
-                v-model="forms.vlr_seguro" readonly
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Valor Desconto" hide-details="auto" type="number"
-                v-model="forms.vlr_desconto" readonly
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Tipo Frete" hide-details="auto"
-                v-model="forms.tipo_frete" readonly
-            />
-          </v-col>
-
-          <v-col cols="12" md="4">
-            <v-autocomplete
-                density="compact" variant="outlined" label="Transportadora" hide-details="auto"
-                v-model="forms.id_transportadora" readonly
-                :items="pessoas" item-title="nome_razao" item-value="id"
-            />
-          </v-col>
-
-          <v-col cols="12" md="2">
-            <v-text-field
-                density="compact" variant="outlined" label="Valor Frete" hide-details="auto" type="number"
-                v-model="forms.vlr_frete" readonly
-            />
-          </v-col>
-        </v-row>
+          <template v-slot:[`item.base_icms_item`]="{ item }">
+            {{ formatarMoeda(item.base_icms_item) }}
+          </template>
+        </tabela-padrao>
       </v-form>
     </template>
   </top-all-pages>
@@ -528,27 +551,41 @@ const pessoas = computed(() => pessoasStore.pessoas);
 const id = route.params.id;
 
 const forms = reactive({});
+const produtos = ref([]);
 
 const headers = ref([
-  {title: 'Cod. Ref', key: 'id'},
-  {title: 'Descrição do Produto', key: 'descproduto'},
+  {title: 'Cod. Ref', key: 'id_seq'},
+  {title: 'Descrição do Produto', key: 'descprodutoxml'},
   {title: 'Unidade', key: 'und'},
   {title: 'Vlr. Unitário', key: 'vlr_unitario'},
-  {title: 'IPI', key: 'ipi'},
-  {title: 'ICMS ST', key: 'icms'},
-  {title: 'Quantidade', key: 'qtd'},
-  {title: 'Total', key: 'vlr_total'},
-  {title: 'Cor', key: 'cor'},
-  {title: 'Tamanho', key: 'tamanho'},
-  {title: 'BC ICMS', key: 'bc_icms'},
-  {title: 'Vlr ICMS', key: 'vlr_icms'},
-  {title: 'BC II', key: 'bc_ii'},
+  {title: 'Valor IPI', key: 'vlr_ipi_item'},
+  {title: 'Valor ICMS', key: 'vlr_icms_item'},
+  {title: 'Quantidade', key: 'quantidade'},
+  {title: 'Total', key: 'vlr_total_item'},
+  {title: 'Cor', key: 'id_cor'},
+  {title: 'Tamanho', key: 'id_tamanho'},
+  {title: 'Base ICMS', key: 'base_icms_item'},
 ]);
+
+const formatarMoeda = (valor) => {
+  const numero = Number(valor ?? 0);
+
+  return numero.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
+};
 
 watchEffect(async () => {
   if (id) {
     await produtosStore.buscarEntradaDfePorId(idEmpresa?.id ?? 1, id);
-    Object.assign(forms, produtosStore.entradadfeItem);
+
+    console.log('verificando a entrada de nota: ', produtosStore.entradadfeItem);
+
+    Object.assign(forms, produtosStore.entradadfeItem?.data[0]);
+    produtos.value = produtosStore.entradadfeItem?.item ?? [];
+
+
     if (pessoas.value.length === 0) {
       await pessoasStore.buscarTodasPessoas();
     }

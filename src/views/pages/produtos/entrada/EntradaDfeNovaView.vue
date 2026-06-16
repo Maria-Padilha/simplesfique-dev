@@ -207,8 +207,8 @@ const validacao = [
 const forms = reactive({
   "id_empresa": idEmpresa?.id ?? null,
   "id_fornecedor": null,
-  "id_nota": null,
-  "id_serie": null,
+  "numero_nf": null,
+  "serie_nf": null,
   "id_almoxarifado": null,
   "id_cfop": null,
   "id_uf": null,
@@ -288,6 +288,17 @@ const forms = reactive({
   "vlr_ibsmun": null,
   "vlr_outras_item": null,
   "vlr_outras_item_foranf": null,
+
+  "aliquota_cbs": null,
+  "aliquota_ibsuf": null,
+  "aliquota_ibsmun": null,
+  "aliquota_ipi": null,
+  "aliquota_pis": null,
+  "aliquota_cofins": null,
+  "aliquota_ir": null,
+  "aliquota_csll": null,
+  "aliquota_ii": null,
+  "aliquota_icms_importacao": null,
 });
 
 const cancelarFormulario = () => {
@@ -353,6 +364,8 @@ watch(
 
 const formsNf = ref(null);
 
+const aliquotasInfos = computed(() => produtosStore.aliquotaInfos);
+
 const salvarFormulario = async () => {
   if (formsNf.value && !(await formsNf.value.validate())) {
     toast.error("Por favor, preencha os campos obrigatórios.");
@@ -364,6 +377,26 @@ const salvarFormulario = async () => {
   forms.importacaoxml = forms.importacaoxml ? 'S' : 'N';
   forms.nf_origem = forms.nf_origem ? 'S' : 'N';
   forms.arquivoxml = forms.arquivoxml ? forms.arquivoxml.name : null;
+
+  if (forms.id_cfop && forms.id_uf) {
+    await produtosStore.buscarAliquotasInfos(idEmpresa?.id ?? 1, forms.id_uf, forms.id_cfop);
+
+    if (produtosStore.errorMessage) {
+      toast.error(produtosStore.errorMessage);
+      return;
+    }
+
+    forms.aliquota_cbs = aliquotasInfos.value?.aliquota_cbs;
+    forms.aliquota_ibsuf = aliquotasInfos.value?.aliquota_ibsuf;
+    forms.aliquota_ibsmun = aliquotasInfos.value?.aliquota_ibsmun;
+    forms.aliquota_ipi = aliquotasInfos.value?.aliquota_ipi;
+    forms.aliquota_pis = aliquotasInfos.value?.aliquota_pis;
+    forms.aliquota_cofins = aliquotasInfos.value?.aliquota_cofins;
+    forms.aliquota_ir = aliquotasInfos.value?.aliquota_ir;
+    forms.aliquota_csll = aliquotasInfos.value?.aliquota_csll;
+    forms.aliquota_ii = aliquotasInfos.value?.aliquota_ii;
+    forms.aliquota_icms_importacao = aliquotasInfos.value?.aliquota_icms_importacao;
+  }
 
   await produtosStore.cadastrarEntradaDfe(
       {
@@ -391,11 +424,16 @@ const camposFloat = [
   "perc_icmsimp", "vlr_siscomex", "vlr_afrmm",
   "reducao_base_calc", "base_cbsibs", "vlr_cbs",
   "vlr_ibsuf", "vlr_ibsmun", "vlr_outras_item",
-  "vlr_outras_item_foranf"
+  "vlr_outras_item_foranf",
+  "aliquota_cbs", "aliquota_ibsuf",
+  "aliquota_ibsmun", "aliquota_ipi",
+  "aliquota_pis", "aliquota_cofins",
+  "aliquota_ir", "aliquota_csll",
+  "aliquota_ii", "aliquota_icms_importacao",
 ];
 
 const camposInteiros = [
-  "id_fornecedor", "id_nota", "id_serie",
+  "id_fornecedor", "numero_nf", "serie_nf",
   "id_almoxarifado",
   "id_transportadora", "qtd_volume",
   "id_planopagto",

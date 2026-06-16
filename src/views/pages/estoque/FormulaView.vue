@@ -50,7 +50,7 @@
                             color="var(--text-color-laranja)"
                             variant="flat"
                             class="text-none text-white"
-                            @click="compilarFormula"
+                            @click="compilarFormula('edicao')"
                         >
                           Compilar/Testar Fórmula
                         </v-btn>
@@ -66,7 +66,7 @@
               wordWrap: 'on',
               automaticLayout: true
             }"
-                          height="420px"
+                          height="480px"
                       />
                     </v-col>
 
@@ -86,7 +86,7 @@
                   <v-card elevation="2" class="pa-4 h-100">
                     <p class="font-weight-medium mb-3">Variáveis</p>
 
-                    <v-divider class="mb-3" />
+                    <v-divider class="mb-3"/>
 
                     <!-- cadastro único -->
                     <v-text-field
@@ -119,38 +119,45 @@
                       Adicionar variável
                     </v-btn>
 
-                    <!-- tabela -->
-                    <v-table density="compact" class="variaveis-table">
-                      <thead>
-                      <tr>
-                        <th>Nome</th>
-                        <th>Tipo</th>
-                        <th class="text-center">Ação</th>
-                      </tr>
-                      </thead>
+                    <v-text-field
+                        v-model="searchVar"
+                        label="Pesquisar variáveis..."
+                        prepend-inner-icon="mdi-magnify"
+                        variant="outlined"
+                        hide-details
+                        density="compact"
+                        single-line
+                    />
 
-                      <tbody>
-                      <tr v-if="!variaveis.length">
+                    <!-- tabela -->
+                    <v-data-table
+                        density="compact"
+                        class="variaveis-table mt-2"
+                        :items="variaveis"
+                        :items-per-page="5"
+                        :search="searchVar"
+                        :headers="[
+                            {title: 'Nome', key: 'varnome'},
+                            {title: 'Tipo', key: 'vartype'},
+                            {title: 'Ação', key: 'actions', align: 'center', sortable: false}
+                        ]"
+                    >
+                      <template #no-data>
                         <td colspan="3" class="text-center opacity-60 py-4">
                           Nenhuma variável cadastrada
                         </td>
-                      </tr>
+                      </template>
 
-                      <tr v-for="(v, i) in variaveis" :key="i">
-                        <td>{{ v.varnome }}</td>
-                        <td>{{ v.vartype }}</td>
-                        <td class="text-center">
-                          <v-btn
-                              icon="mdi-delete"
-                              size="x-small"
-                              color="red"
-                              variant="text"
-                              @click="removeVariavel(i)"
-                          />
-                        </td>
-                      </tr>
-                      </tbody>
-                    </v-table>
+                      <template #[`item.actions`]="{ item }">
+                        <v-btn
+                            icon="mdi-delete"
+                            size="x-small"
+                            color="red"
+                            variant="text"
+                            @click="removeVariavel(item)"
+                        />
+                      </template>
+                    </v-data-table>
                   </v-card>
                 </v-col>
               </v-row>
@@ -207,7 +214,7 @@
                 size="small"
                 color="error"
                 variant="text"
-                @click="compilarFormula"
+                @click="compilarFormula('acao', item.id)"
             />
           </template>
         </tabela-padrao>
@@ -232,9 +239,10 @@ import BotaoExpandTransition from "@/components/base/padrao-paginas/BotaoExpandT
 import TabelaPadrao from "@/components/base/padrao-paginas/TabelaPadrao.vue";
 import FormsExpandTransition from "@/components/base/padrao-paginas/FormsExpandTransition.vue";
 import ExcluirModal from "@/components/base/modais/ExcluirModal.vue";
-import { useThemeStore } from "@/stores/config-temas/theme";
-import { useEstoqueStore } from "@/stores/APIs/estoque";
+import {useThemeStore} from "@/stores/config-temas/theme";
+import {useEstoqueStore} from "@/stores/APIs/estoque";
 import MonacoEditor from "@guolao/vue-monaco-editor";
+import {toast} from "vue3-toastify";
 
 const estoqueStore = useEstoqueStore();
 const themeStore = useThemeStore();
@@ -246,6 +254,8 @@ const formulas = computed(() => estoqueStore.formulas ?? []); // garanta que exi
 watchEffect(() => {
   estoqueStore.buscarTodasFormulas(idEmpresa?.id); // ajuste o nome caso seja diferente
 });
+
+const searchVar = ref('');
 
 // Estado UI
 const exibirFormulas = ref(false);
@@ -266,11 +276,11 @@ const toggleFormulario = () => {
 
 // Tabela
 const headers = [
-  { title: "ID", key: "id" },
-  { title: "Descrição", key: "descformula" },
-  { title: "Fórmula", key: "formula" },
-  { title: "Ativo", key: "ativo", align: "center" },
-  { title: "Ações", key: "acoes", align: "center", sortable: false },
+  {title: "ID", key: "id"},
+  {title: "Descrição", key: "descformula"},
+  {title: "Fórmula", key: "formula"},
+  {title: "Ativo", key: "ativo", align: "center"},
+  {title: "Ações", key: "acoes", align: "center", sortable: false},
 ];
 
 const search = ref("");
@@ -301,43 +311,43 @@ const novaVariavel = reactive({
 
 const tiposVariaveis = [
   // 🔢 Inteiros
-  { title: "Integer", value: "Integer" },
-  { title: "Shortint", value: "Shortint" },
-  { title: "Smallint", value: "Smallint" },
-  { title: "Longint", value: "Longint" },
-  { title: "Int64", value: "Int64" },
-  { title: "Byte", value: "Byte" },
-  { title: "Word", value: "Word" },
-  { title: "Cardinal", value: "Cardinal" },
+  {title: "Integer", value: "Integer"},
+  {title: "Shortint", value: "Shortint"},
+  {title: "Smallint", value: "Smallint"},
+  {title: "Longint", value: "Longint"},
+  {title: "Int64", value: "Int64"},
+  {title: "Byte", value: "Byte"},
+  {title: "Word", value: "Word"},
+  {title: "Cardinal", value: "Cardinal"},
 
   // 🔢 Decimais
-  { title: "Double", value: "Double" },
-  { title: "Real", value: "Real" },
-  { title: "Extended", value: "Extended" },
-  { title: "Currency", value: "Currency" },
+  {title: "Double", value: "Double"},
+  {title: "Real", value: "Real"},
+  {title: "Extended", value: "Extended"},
+  {title: "Currency", value: "Currency"},
 
   // 🔘 Booleano
-  { title: "Boolean", value: "Boolean" },
+  {title: "Boolean", value: "Boolean"},
 
   // 🔤 Texto
-  { title: "Char", value: "Char" },
-  { title: "AnsiChar", value: "AnsiChar" },
-  { title: "String", value: "String" },
-  { title: "AnsiString", value: "AnsiString" },
-  { title: "WideString", value: "WideString" },
+  {title: "Char", value: "Char"},
+  {title: "AnsiChar", value: "AnsiChar"},
+  {title: "String", value: "String"},
+  {title: "AnsiString", value: "AnsiString"},
+  {title: "WideString", value: "WideString"},
 
   // 📅 Datas
-  { title: "TDateTime", value: "TDateTime" },
-  { title: "TDate", value: "TDate" },
-  { title: "TTime", value: "TTime" },
+  {title: "TDateTime", value: "TDateTime"},
+  {title: "TDate", value: "TDate"},
+  {title: "TTime", value: "TTime"},
 
   // 🔀 Genéricos
-  { title: "Variant", value: "Variant" },
+  {title: "Variant", value: "Variant"},
 
   // 📦 Estruturas
-  { title: "Array", value: "Array" },
-  { title: "Record", value: "Record" },
-  { title: "Set", value: "Set" },
+  {title: "Array", value: "Array"},
+  {title: "Record", value: "Record"},
+  {title: "Set", value: "Set"},
 ];
 
 const addVariavel = () => {
@@ -381,7 +391,7 @@ const cancelarFormulario = () => {
 // Salvar
 const salvarFormulario = async () => {
   if (formRef.value) {
-    const { valid } = await formRef.value.validate();
+    const {valid} = await formRef.value.validate();
     if (!valid) return;
   }
 
@@ -439,7 +449,9 @@ const editarItem = async (item) => {
   formularioAberto.value = true;
 };
 
-const compilarFormula = async () => {
+const compilarFormula = async (local, id) => {
+  if (local === 'acao') await estoqueStore.buscarFormulaId(idEmpresa?.id, id);
+
   const item = formulaId.value;
 
   const dataFormula = item?.data?.[0];
@@ -466,6 +478,7 @@ const compilarFormula = async () => {
   };
 
   await estoqueStore.compilarFormula(payload, idEmpresa?.id);
+  toast.success(estoqueStore.successMessage || 'Fórmula compilada com sucesso!');
 
   if (estoqueStore.errorMessage) return
 
