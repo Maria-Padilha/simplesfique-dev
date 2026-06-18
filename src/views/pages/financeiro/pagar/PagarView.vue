@@ -1451,6 +1451,7 @@ import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
 import CadastrarModal from '@/components/base/modais/CadastrarModal.vue'
 // eslint-disable-next-line no-unused-vars
 import numeric from 'numeric'
+import apiPhp from '@/services/apiPhp'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 // ID do programa desta tela
@@ -1948,26 +1949,17 @@ const carregarContasPagar = async (filtrosApi = null) => {
 const carregarCCustoParametro = async () => {
   try {
     console.log('Iniciando carregamento de ccustoparametro...')
-    const token = localStorage.getItem('token')
 
-    // Importar api para fazer a requisição diretamente
-    const api = (await import('@/services/api')).default
-
-    const response = await api.get('/ccustoparametro', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
+    const response = await apiPhp.get('/financeiro/centro-custo-parametros/parametro')
 
     console.log('Resposta de ccustoparametro:', response)
 
-    if (response && response.data && response.data.data && response.data.data.length > 0) {
-      ccustoParametro.value = response.data.data[0]
+    if (Array.isArray(response.data) && response.data.length > 0) {
+      ccustoParametro.value = response.data[0]
       console.log('Centro de custo parâmetro carregado com sucesso:', ccustoParametro.value)
       console.log('utiliza_ccusto value:', ccustoParametro.value.utiliza_ccusto)
-    } else if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
-      ccustoParametro.value = response.data[0]
+    } else if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+      ccustoParametro.value = response.data
       console.log('Centro de custo parâmetro carregado com sucesso:', ccustoParametro.value)
       console.log('utiliza_ccusto value:', ccustoParametro.value.utiliza_ccusto)
     } else {
@@ -2526,9 +2518,9 @@ const salvarContaPagar = async () => {
       }
     }
 
-    // Montar payload no formato solicitado: data, parcela, media, ccusto (top-level)
+    // Montar payload no formato flat (Laravel): campos principais + arrays relacionados
     const payloadCompleto = {
-      data: [dadosPrincipais],
+      ...dadosPrincipais,
       parcela: parcelasFormatadas,
       media: [{ id_media: mediaValue }],
       ccusto: ccustoArray

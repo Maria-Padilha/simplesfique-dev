@@ -1,5 +1,4 @@
 import { defineStore } from "pinia"
-import api from "@/services/api"
 import apiPhp from "@/services/apiPhp"
 
 export const useCaixaStore = defineStore('caixa', {
@@ -12,27 +11,11 @@ export const useCaixaStore = defineStore('caixa', {
     }),
 
     actions: {
-        // Buscar histórico de movimentação do caixa (endpoint não mapeado no PHP ainda)
-        async buscarHistoricoMovimentacao(idEmpresa) {
+        // Buscar histórico de movimentação do caixa (endpoint PHP)
+        async buscarHistoricoMovimentacao() {
             this.loading = true;
-            const token = localStorage.getItem('token');
-
-            if (!token) {
-                this.errorMessage = 'Token não encontrado!';
-                this.loading = false;
-                return null;
-            }
-
-            if (!idEmpresa) {
-                this.errorMessage = 'ID da empresa não encontrado!';
-                this.loading = false;
-                return null;
-            }
-
             try {
-                const response = await api.get(`caixahistmov/${idEmpresa}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const response = await apiPhp.get('/financeiro/caixa-movimentos');
                 this.historicoMovimentacao = response.data?.data || response.data || [];
                 this.errorMessage = '';
                 return response.data;
@@ -89,14 +72,11 @@ export const useCaixaStore = defineStore('caixa', {
             }
         },
 
-        // Buscar usuários vinculados a um caixa (endpoint não mapeado no PHP ainda)
-        async buscarUsuariosPorCaixa(idEmpresa, idCaixa) {
+        // Buscar usuários vinculados a um caixa (endpoint PHP)
+        async buscarUsuariosPorCaixa(idCaixa) {
             this.loading = true;
-            const token = localStorage.getItem('token');
             try {
-                const response = await api.get(`caixausu/${idEmpresa}/id/${idCaixa}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const response = await apiPhp.get(`/financeiro/caixas/${idCaixa}/usuarios`);
                 return response.data;
             } catch (error) {
                 return null;

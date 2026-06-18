@@ -1807,9 +1807,9 @@ const salvarContaReceber = async () => {
     // Usar key do Pinia para o payload
     const mediaValue = financeiroStore.getMediaKeyTemporaria() || null
 
-    // Montar payload no formato solicitado: data, parcela, media (sem ccusto)
+    // Montar payload no formato flat (Laravel): campos principais + arrays relacionados
     const payloadCompleto = {
-      data: [dadosPrincipais],
+      ...dadosPrincipais,
       parcela: parcelasFormatadas,
       media: [{ id_media: mediaValue }]
     }

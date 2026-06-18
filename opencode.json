@@ -34,7 +34,7 @@
   "mcp": {
     "simplesfique-memoria": {
       "type": "local",
-      "command": ["node", "mcp-rag/index.js"],
+      "command": ["node", "/Users/kaioba/Documents/GitHub/simplesfique-dev/mcp-rag/index.js"],
       "enabled": true
     }
   },

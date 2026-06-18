@@ -812,54 +812,50 @@ const salvarFormulario = async () => {
   if (formRef.value && !(await formRef.value.validate())) return;
 
   const payload = {
-    data: [
-      {
-        id_uf: forms.id_uf,
-        id_cfop: forms.id_cfop,
+    id_uf: forms.id_uf,
+    id_cfop: forms.id_cfop,
 
-        // regras novas
-        aplicacao_cfop: forms.aplicacao_cfop?.trim()?.slice(0, 2) || "",
-        assume_preco: Number(forms.assume_preco),
-        gera_imposto_federal: forms.gera_imposto_federal, // "S" | "N"
-        altera_custo_compra_entrada: Number(forms.altera_custo_compra_entrada), // 1..3
-        altera_custo_aquisicao_entrada: Number(forms.altera_custo_aquisicao_entrada), // 1..3
-        altera_custo_medio_entrada: Number(forms.altera_custo_medio_entrada), // 1..3
+    // regras novas
+    aplicacao_cfop: forms.aplicacao_cfop?.trim()?.slice(0, 2) || "",
+    assume_preco: Number(forms.assume_preco),
+    gera_imposto_federal: forms.gera_imposto_federal, // "S" | "N"
+    altera_custo_compra_entrada: Number(forms.altera_custo_compra_entrada), // 1..3
+    altera_custo_aquisicao_entrada: Number(forms.altera_custo_aquisicao_entrada), // 1..3
+    altera_custo_medio_entrada: Number(forms.altera_custo_medio_entrada), // 1..3
 
-        // restante
-        tipo: forms.tipo,
-        gera_comissao: forms.gera_comissao,
-        gera_financeiro: forms.gera_financeiro,
-        gera_estoque: forms.gera_estoque,
+    // restante
+    tipo: forms.tipo,
+    gera_comissao: forms.gera_comissao,
+    gera_financeiro: forms.gera_financeiro,
+    gera_estoque: forms.gera_estoque,
 
-        cst_icms: forms.cst_icms,
-        csosn: forms.csosn,
-        aliquota_icms: forms.aliquota_icms,
-        reducao_base_calc: forms.reducao_base_calc,
+    cst_icms: forms.cst_icms,
+    csosn: forms.csosn,
+    aliquota_icms: forms.aliquota_icms,
+    reducao_base_calc: forms.reducao_base_calc,
 
-        cst_cbsibs: forms.cst_cbsibs,
-        aliquota_cbs: forms.aliquota_cbs,
-        aliquota_ibsuf: forms.aliquota_ibsuf,
-        aliquota_ibsmun: forms.aliquota_ibsmun,
+    cst_cbsibs: forms.cst_cbsibs,
+    aliquota_cbs: forms.aliquota_cbs,
+    aliquota_ibsuf: forms.aliquota_ibsuf,
+    aliquota_ibsmun: forms.aliquota_ibsmun,
 
-        cst_ipi: forms.cst_ipi,
-        aliquota_ipi: forms.aliquota_ipi,
-        cenqipi: forms.cenqipi,
+    cst_ipi: forms.cst_ipi,
+    aliquota_ipi: forms.aliquota_ipi,
+    cenqipi: forms.cenqipi,
 
-        cst_pis: forms.cst_pis,
-        aliquota_pis: forms.aliquota_pis,
+    cst_pis: forms.cst_pis,
+    aliquota_pis: forms.aliquota_pis,
 
-        cst_cofins: forms.cst_cofins,
-        aliquota_cofins: forms.aliquota_cofins,
+    cst_cofins: forms.cst_cofins,
+    aliquota_cofins: forms.aliquota_cofins,
 
-        aliquota_ir: forms.aliquota_ir,
-        aliquota_csll: forms.aliquota_csll,
-        aliquota_ii: forms.aliquota_ii,
-        aliquota_icms_importacao: forms.aliquota_icms_importacao,
+    aliquota_ir: forms.aliquota_ir,
+    aliquota_csll: forms.aliquota_csll,
+    aliquota_ii: forms.aliquota_ii,
+    aliquota_icms_importacao: forms.aliquota_icms_importacao,
 
-        id_formula_imposto: forms.id_formula_imposto,
-        exibir_msg_ibpt: forms.exibir_msg_ibpt,
-      },
-    ],
+    id_formula_imposto: forms.id_formula_imposto,
+    exibir_msg_ibpt: forms.exibir_msg_ibpt,
   };
 
   if (editando.value) {

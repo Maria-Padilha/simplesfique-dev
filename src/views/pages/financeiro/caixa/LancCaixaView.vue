@@ -1324,19 +1324,17 @@ const salvarLancamento = async () => {
     }
 
     const payload = {
-      data: [{
-        tipo: formData.tipo,
-        dtlancamento: formData.dtlancamento,
-        valor: parseFloat(formData.valor),
-        origem: formData.origem,
-        observacao: formData.observacao || null,
-        id_tipopagrec: formData.id_tipopagrec,
-        id_tipodocumento: formData.id_tipodocumento,
-        id_caixahist: formData.id_caixahist,
-        id_hist_contabil: formData.id_hist_contabil || null,
-        id_planoconta: formData.id_planoconta,
-        nrdocumento: formData.nrdocumento || null
-      }],
+      tipo: formData.tipo,
+      dtlancamento: formData.dtlancamento,
+      valor: parseFloat(formData.valor),
+      origem: formData.origem,
+      observacao: formData.observacao || null,
+      id_tipopagrec: formData.id_tipopagrec,
+      id_tipodocumento: formData.id_tipodocumento,
+      id_caixahist: formData.id_caixahist,
+      id_hist_contabil: formData.id_hist_contabil || null,
+      id_planoconta: formData.id_planoconta,
+      nrdocumento: formData.nrdocumento || null,
       ccusto: ccustoArray
     }
 

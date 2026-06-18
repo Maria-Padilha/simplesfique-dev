@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import api from '@/services/api'
+import apiPhp from '@/services/apiPhp'
 import { toast } from 'vue3-toastify'
 
 export const useVendasStore = defineStore('vendas', {
@@ -14,6 +15,10 @@ export const useVendasStore = defineStore('vendas', {
   }),
 
   actions: {
+    getAuthHeaders() {
+      const token = localStorage.getItem('token')
+      return { Authorization: `Bearer ${token}` }
+    },
 
     // ========== MOTIVO DE PERDA DE ORÇAMENTO ==========
 
@@ -26,11 +31,9 @@ export const useVendasStore = defineStore('vendas', {
       this.loading = true
 
       try {
-        const response = await api.get('/mpo', {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.get('/vendas/mpos')
 
-        this.motivosPerda = response.data?.data || response.data || []
+        this.motivosPerda = response.data || []
         this.errorMessage = ''
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao buscar motivos de perda'
@@ -51,9 +54,7 @@ export const useVendasStore = defineStore('vendas', {
       this.loading = true
 
       try {
-        const response = await api.post('/mpo', { data: [data] }, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.post('/vendas/mpos', data)
 
         this.successMessage = 'Motivo de perda cadastrado com sucesso!'
         this.errorMessage = ''
@@ -81,9 +82,7 @@ export const useVendasStore = defineStore('vendas', {
       this.loading = true
 
       try {
-        const response = await api.put(`/mpo/${id}`, { data: [data] }, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.put(`/vendas/mpos/${id}`, data)
 
         this.successMessage = 'Motivo de perda atualizado com sucesso!'
         this.errorMessage = ''
@@ -110,9 +109,7 @@ export const useVendasStore = defineStore('vendas', {
       this.loading = true
 
       try {
-        await api.delete(`/mpo/${id}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        await apiPhp.delete(`/vendas/mpos/${id}`)
 
         this.successMessage = 'Motivo de perda excluído com sucesso!'
         this.errorMessage = ''
@@ -135,21 +132,11 @@ export const useVendasStore = defineStore('vendas', {
      */
     async listarTerminais() {
       this.loading = true
-      const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
-      const idEmpresa = empresaSelecionada?.id
-
-      if (!idEmpresa) {
-        toast.error('Empresa não selecionada')
-        this.loading = false
-        return
-      }
 
       try {
-        const response = await api.get(`/terminalven/${idEmpresa}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.get('/admin/terminais-venda')
 
-        this.terminais = response.data?.data || response.data || []
+        this.terminais = response.data || []
         this.errorMessage = ''
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao buscar terminais'
@@ -168,13 +155,9 @@ export const useVendasStore = defineStore('vendas', {
      */
     async obterTerminal(id) {
       this.loading = true
-      const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
-      const idEmpresa = empresaSelecionada?.id
 
       try {
-        const response = await api.get(`/terminalven/${idEmpresa}/id/${id}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.get(`/admin/terminais-venda/${id}`)
 
         this.errorMessage = ''
         return response.data
@@ -196,15 +179,9 @@ export const useVendasStore = defineStore('vendas', {
      */
     async cadastrarTerminal(data) {
       this.loading = true
-      const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
-      const idEmpresa = empresaSelecionada?.id
 
       try {
-        const response = await api.post(`/terminalven/${idEmpresa}`, { 
-          data: [{ idempresa: idEmpresa, ...data }] 
-        }, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.post('/admin/terminais-venda', data)
 
         this.successMessage = 'Terminal cadastrado com sucesso!'
         this.errorMessage = ''
@@ -230,15 +207,9 @@ export const useVendasStore = defineStore('vendas', {
      */
     async alterarTerminal(id, data) {
       this.loading = true
-      const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
-      const idEmpresa = empresaSelecionada?.id
 
       try {
-        const response = await api.put(`/terminalven/${idEmpresa}/id/${id}`, { 
-          data: [{ idempresa: idEmpresa, ...data }] 
-        }, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.put(`/admin/terminais-venda/${id}`, data)
 
         this.successMessage = 'Terminal atualizado com sucesso!'
         this.errorMessage = ''
@@ -263,13 +234,9 @@ export const useVendasStore = defineStore('vendas', {
      */
     async deletarTerminal(id) {
       this.loading = true
-      const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
-      const idEmpresa = empresaSelecionada?.id
 
       try {
-        await api.delete(`/terminalven/${idEmpresa}/id/${id}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        await apiPhp.delete(`/admin/terminais-venda/${id}`)
 
         this.successMessage = 'Terminal deletado com sucesso!'
         this.errorMessage = ''
@@ -290,23 +257,17 @@ export const useVendasStore = defineStore('vendas', {
 
     /**
      * LISTAR AMBIENTES
+     * @blocked: THorse offline e PHP tem API diferente (per-terminal)
+     * Pendente de adaptação da view para PHP
      *
      * @return {Promise<void>}
      */
     async listarAmbientes() {
       this.loading = true
-      const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
-      const idEmpresa = empresaSelecionada?.id
-
-      if (!idEmpresa) {
-        toast.error('Empresa não selecionada')
-        this.loading = false
-        return
-      }
 
       try {
-        const response = await api.get(`/ambiente/${idEmpresa}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
+        const response = await api.get('/ambientes', {
+          headers: this.getAuthHeaders()
         })
 
         this.ambientes = response.data?.data || response.data || []
@@ -322,18 +283,24 @@ export const useVendasStore = defineStore('vendas', {
 
     /**
      * CADASTRAR AMBIENTE
+     * @blocked: THorse offline e PHP tem API diferente (per-terminal)
+     * Pendente de adaptação da view para PHP
      *
-     * @param {Object} payload - { data: [{...}], terminal: [{id_terminal}], grupo: [{id_grupo}] }
+     * @param {Object} payload - { descambiente, imp_rede, imp_nome, imp_ipc, terminal: [...], grupo: [...] }
      * @return {Promise<Object|null>}
      */
     async cadastrarAmbiente(payload) {
       this.loading = true
-      const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
-      const idEmpresa = empresaSelecionada?.id
 
       try {
-        const response = await api.post(`/ambiente/${idEmpresa}`, payload, {
-          headers: { Authorization: `Bearer ${this.token}` }
+        const terminal = payload.terminal || []
+        const grupo = payload.grupo || []
+        const flatPayload = { ...payload, terminal, grupo }
+        delete flatPayload.idempresa
+
+        // THorse espera wrapper Delphi { data: [{ ... }] }
+        const response = await api.post('/ambientes', { data: [flatPayload] }, {
+          headers: this.getAuthHeaders()
         })
 
         this.successMessage = 'Ambiente cadastrado com sucesso!'
@@ -353,19 +320,25 @@ export const useVendasStore = defineStore('vendas', {
 
     /**
      * ALTERAR AMBIENTE
+     * @blocked: THorse offline e PHP tem API diferente (per-terminal)
+     * Pendente de adaptação da view para PHP
      *
      * @param {number} id
-     * @param {Object} payload - { data: [{...}], terminal: [{id_terminal}], grupo: [{id_grupo}] }
+     * @param {Object} payload - { descambiente, imp_rede, imp_nome, imp_ipc, terminal: [...], grupo: [...] }
      * @return {Promise<Object|null>}
      */
     async alterarAmbiente(id, payload) {
       this.loading = true
-      const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
-      const idEmpresa = empresaSelecionada?.id
 
       try {
-        const response = await api.put(`/ambiente/${idEmpresa}/id/${id}`, payload, {
-          headers: { Authorization: `Bearer ${this.token}` }
+        const terminal = payload.terminal || []
+        const grupo = payload.grupo || []
+        const flatPayload = { ...payload, terminal, grupo }
+        delete flatPayload.idempresa
+
+        // THorse espera wrapper Delphi { data: [{ ... }] }
+        const response = await api.put(`/ambientes/${id}`, { data: [flatPayload] }, {
+          headers: this.getAuthHeaders()
         })
 
         this.successMessage = 'Ambiente atualizado com sucesso!'
@@ -385,18 +358,18 @@ export const useVendasStore = defineStore('vendas', {
 
     /**
      * DELETAR AMBIENTE
+     * @blocked: THorse offline e PHP tem API diferente (per-terminal)
+     * Pendente de adaptação da view para PHP
      *
      * @param {number} id
      * @return {Promise<boolean>}
      */
     async deletarAmbiente(id) {
       this.loading = true
-      const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
-      const idEmpresa = empresaSelecionada?.id
 
       try {
-        await api.delete(`/ambiente/${idEmpresa}/id/${id}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
+        await api.delete(`/ambientes/${id}`, {
+          headers: this.getAuthHeaders()
         })
 
         this.successMessage = 'Ambiente deletado com sucesso!'
@@ -409,6 +382,130 @@ export const useVendasStore = defineStore('vendas', {
         console.error('Erro ao deletar ambiente:', error)
         toast.error(this.errorMessage)
         return false
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // ========== CUPOM FISCAL (PHP) ==========
+
+    /**
+     * Listar cupons fiscais
+     * GET /vendas/cupom-fiscal
+     */
+    async listarCuponsFiscais(params = {}) {
+      this.loading = true
+      try {
+        const res = await apiPhp.get('/vendas/cupom-fiscal', { params })
+        return res.data?.data ?? res.data ?? []
+      } catch (error) {
+        this.errorMessage = error?.response?.data?.message || 'Erro ao listar cupons fiscais'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Obter cupom fiscal por ID
+     * GET /vendas/cupom-fiscal/{id}
+     */
+    async obterCupomFiscal(id) {
+      this.loading = true
+      try {
+        const res = await apiPhp.get(`/vendas/cupom-fiscal/${id}`)
+        return res.data?.data ?? res.data
+      } catch (error) {
+        this.errorMessage = error?.response?.data?.message || 'Erro ao obter cupom fiscal'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Criar cupom fiscal
+     * POST /vendas/cupom-fiscal
+     */
+    async criarCupomFiscal(dados) {
+      this.loading = true
+      try {
+        const res = await apiPhp.post('/vendas/cupom-fiscal', dados)
+        this.successMessage = 'Cupom fiscal criado com sucesso!'
+        return res.data?.data ?? res.data
+      } catch (error) {
+        this.errorMessage = error?.response?.data?.message || 'Erro ao criar cupom fiscal'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Calcular cupom fiscal (pré-visualização)
+     * POST /vendas/cupom-fiscal/calcular
+     */
+    async calcularCupomFiscal(dados) {
+      this.loading = true
+      try {
+        const res = await apiPhp.post('/vendas/cupom-fiscal/calcular', dados)
+        return res.data?.data ?? res.data
+      } catch (error) {
+        this.errorMessage = error?.response?.data?.message || 'Erro ao calcular cupom fiscal'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Emitir cupom fiscal (persiste + salva XML no R2)
+     * POST /vendas/cupom-fiscal/emitir
+     */
+    async emitirCupomFiscal(dados) {
+      this.loading = true
+      try {
+        const res = await apiPhp.post('/vendas/cupom-fiscal/emitir', dados)
+        this.successMessage = 'Cupom fiscal emitido com sucesso!'
+        return res.data?.data ?? res.data
+      } catch (error) {
+        this.errorMessage = error?.response?.data?.message || 'Erro ao emitir cupom fiscal'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Cancelar cupom fiscal
+     * POST /vendas/cupom-fiscal/{id}/cancelar
+     */
+    async cancelarCupomFiscal(id) {
+      this.loading = true
+      try {
+        const res = await apiPhp.post(`/vendas/cupom-fiscal/${id}/cancelar`, {})
+        this.successMessage = 'Cupom fiscal cancelado com sucesso!'
+        return res.data?.data ?? res.data
+      } catch (error) {
+        this.errorMessage = error?.response?.data?.message || 'Erro ao cancelar cupom fiscal'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Obter XML do cupom fiscal
+     * GET /vendas/cupom-fiscal/{id}/xml
+     */
+    async obterXmlCupomFiscal(id) {
+      this.loading = true
+      try {
+        const res = await apiPhp.get(`/vendas/cupom-fiscal/${id}/xml`)
+        return res.data?.data ?? res.data
+      } catch (error) {
+        this.errorMessage = error?.response?.data?.message || 'Erro ao obter XML do cupom fiscal'
+        throw error
       } finally {
         this.loading = false
       }

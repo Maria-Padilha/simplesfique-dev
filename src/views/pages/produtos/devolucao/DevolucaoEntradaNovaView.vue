@@ -323,12 +323,8 @@ const salvarFormulario = async () => {
 
   await produtosStore.cadastrarDevEntrada(
       {
-        data: [
-          {
-            ...normalizarForm(forms),
-            valor_total_devolver: Number(valorTotalDevolver.value.toFixed(2)),
-          }
-        ],
+        ...normalizarForm(forms),
+        valor_total_devolver: Number(valorTotalDevolver.value.toFixed(2)),
         item: itensParaEnviar,
       },
       idEmpresa?.id ?? 1

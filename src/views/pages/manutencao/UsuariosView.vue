@@ -191,7 +191,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import api from '@/services/api'
+import apiPhp from '@/services/apiPhp'
 import { useThemeStore } from '@/stores/config-temas/theme'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
@@ -246,8 +246,8 @@ const rules = {
 const buscarUsuarios = async () => {
   loading.value = true
   try {
-    const resp = await api.get('/usuario', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-    usuarios.value = resp.data && resp.data.data ? resp.data.data : Array.isArray(resp.data) ? resp.data : []
+    const resp = await apiPhp.get('/manutencao/usuarios')
+    usuarios.value = Array.isArray(resp.data) ? resp.data : resp.data?.data || []
   } catch (e) {
     console.error(e)
     usuarios.value = []
@@ -292,12 +292,12 @@ const salvarUsuario = async () => {
   if (!formRef.value?.validate()) return
   loading.value = true
   try {
-    const payload = { data: [ { ...form } ] }
+    const payload = { ...form }
     if (editando.value) {
-      await api.put(`/usuario/${form.id}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+      await apiPhp.put(`/manutencao/usuarios/${form.id}`, payload)
       snackbar.message = 'Usuário atualizado com sucesso!'
     } else {
-      await api.post('/usuario', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+      await apiPhp.post('/manutencao/usuarios', payload)
       snackbar.message = 'Usuário criado com sucesso!'
     }
     snackbar.color = 'success'
@@ -318,7 +318,7 @@ const deletarUsuario = async (usuario) => {
   loading.value = true
   try {
     const id = usuario?.id || usuario
-    await api.delete(`/usuario/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+    await apiPhp.delete(`/manutencao/usuarios/${id}`)
     snackbar.message = 'Usuário excluído com sucesso!'
     snackbar.color = 'success'
     snackbar.show = true
@@ -340,13 +340,11 @@ const abrirModalEmpresaGrupo = async (usuario) => {
   empresasGrupos.value = {}
 
   try {
-    const token = localStorage.getItem('token')
-
     // Buscar empresas disponíveis e grupos do usuário
     const [empresasResp, gruposResp, usuarioEmpresaResp] = await Promise.all([
-      api.get('/empresa', { headers: { Authorization: `Bearer ${token}` } }),
-      api.get('/grupousuario', { headers: { Authorization: `Bearer ${token}` } }),
-      api.get(`/empresa/`, { headers: { Authorization: `Bearer ${token}` } })
+      apiPhp.get('/manutencao/empresas'),
+      apiPhp.get('/manutencao/grupo-usuarios'),
+      apiPhp.get('/manutencao/usuario-empresa')
     ])
 
     // Mapear empresas com razao_social
@@ -393,21 +391,15 @@ const atualizarGrupoEmpresa = async (empresa, idGrupo) => {
   }
 
   try {
-    const token = localStorage.getItem('token')
-
     const payload = {
-      data: [{
-        id_empresa: empresa.id,
-        id_usuario: usuarioSelecionado.value.id,
-        id_grupousuario: idGrupo
-      }]
+      id_empresa: empresa.id,
+      id_usuario: usuarioSelecionado.value.id,
+      id_grupousuario: idGrupo
     }
 
     console.log('Enviando payload:', payload)
 
-    await api.post('/usuarioemp', payload, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+    await apiPhp.post('/usuario-empresa', payload)
 
     // Atualizar o mapa local após sucesso
     empresasGrupos.value[empresa.id] = idGrupo

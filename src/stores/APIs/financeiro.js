@@ -328,29 +328,17 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar usuários (GET /usuario) - normalize THorse style { data: [...] }
+    // Buscar usuários (GET /manutencao/usuarios)
     async buscarUsuarios() {
       this.loading = true
       this.error = null
       try {
-        const response = await api.get('/usuario', {
-          headers: this.getAuthHeaders()
-        })
-        const resp = response.data
-        let dados = []
-        if (resp && resp.data && Array.isArray(resp.data)) {
-          dados = resp.data
-        } else if (Array.isArray(resp)) {
-          dados = resp
-        } else if (resp && typeof resp === 'object') {
-          dados = [resp]
-        } else {
-          dados = []
-        }
+        const res = await apiPhp.get('/manutencao/usuarios')
+        const dados = res.data?.data ?? res.data ?? []
 
         // Normalizar campos mais usados pela UI
         this.usuarios = dados.map(u => ({
-          ID: u.ID ?? u.id ?? u.id_saas ?? '',
+          ID: u.id ?? u.ID ?? u.id_saas ?? '',
           nome: u.nome ?? u.NOME ?? u.name ?? '',
           email: u.email ?? u.EMAIL ?? '',
           ativo: u.ativo ?? 'S',
@@ -661,25 +649,14 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
     // ========== CAIXA USUÁRIOS ==========
     
-    // Buscar usuários vinculados a um caixa (GET /caixausu/:idempresa/id/:id)
-    async buscarUsuariosPorCaixa(idEmpresa, caixaId) {
+    // Buscar usuários vinculados a um caixa (GET /financeiro/caixas/:id/usuarios)
+    // @todo: idEmpresa removido da assinatura (vem do JWT) — atualizar chamadas na view
+    async buscarUsuariosPorCaixa(_idEmpresa, caixaId) {
       this.loading = true
       this.error = null
       try {
-        const response = await api.get(`/caixausu/${idEmpresa}/id/${caixaId}`, {
-          headers: this.getAuthHeaders()
-        })
-        const resp = response.data
-        let dados = []
-        if (resp && resp.data && Array.isArray(resp.data)) {
-          dados = resp.data
-        } else if (Array.isArray(resp)) {
-          dados = resp
-        } else if (resp && typeof resp === 'object') {
-          dados = [resp]
-        } else {
-          dados = []
-        }
+        const res = await apiPhp.get(`/financeiro/caixas/${caixaId}/usuarios`)
+        const dados = res.data?.data ?? res.data ?? []
 
         // retorno: array de objetos que representam vínculo (esperado campos como id_usuario, ativo, nome, email)
         return dados
@@ -691,29 +668,20 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Atualizar acessos de usuários para um caixa (POST /caixausu/:idempresa/id/:id)
-    // payload: { idEmpresa, caixaId, users: [{ id: <usuarioId>, acesso: true|false }, ...] }
+    // Atualizar acessos de usuários para um caixa (POST /financeiro/caixas/:id/usuarios)
+    // payload: { caixaId, users: [{ id: <usuarioId>, acesso: true|false }, ...] }
     async atualizarAcessoCaixa(payload) {
       this.loading = true
       this.error = null
       try {
-        const idEmpresa = payload.idEmpresa
         const caixaId = payload.caixaId
         const users = Array.isArray(payload.users) ? payload.users : []
 
-        // Enviar as atualizações; o backend pode aceitar múltiplos registros em data array
         // Construir array de objetos com { id_usuario, ativo }
         const dataArray = users.map(u => ({ id_usuario: u.id, ativo: u.acesso ? 'S' : 'N' }))
 
-        // Enviar em um único POST encapsulado em { data: [...] }
-        const response = await api.post(`/caixausu/${idEmpresa}/id/${caixaId}`, { data: dataArray }, {
-          headers: this.getAuthHeaders()
-        })
-
-        // Opcional: retornar o body normalizado
-        const resp = response.data
-        if (resp && resp.data && Array.isArray(resp.data)) return resp.data
-        return resp
+        const res = await apiPhp.post(`/financeiro/caixas/${caixaId}/usuarios`, dataArray)
+        return res.data?.data ?? res.data
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
@@ -803,82 +771,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Calcular parcelas para conta a pagar (POST /contaspagarcalcparc)
-    async calcularParcelasContaPagar(dadosCalculo) {
-      this.loading = true
-      this.error = null
-      try {
-        // Payload esperado pelo backend no formato THorse
-        const dadosParcela = {
-          vlrdocumento: dadosCalculo.vlrdocumento,
-          vlrprimeiraparcela: dadosCalculo.vlrprimeiraparcela || 0,
-          qtdparcelas: dadosCalculo.qtdparcelas,
-          primeirovencimento: dadosCalculo.primeirovencimento,
-          intervalo: dadosCalculo.intervalo || 30 // Default 30 dias se não informado
-        }
-
-        // THorse expects payload wrapped in { data: [ ... ] }
-        const payload = { data: [dadosParcela] }
-
-        const response = await api.post('/contaspagarcalcparc', payload, {
-          headers: this.getAuthHeaders()
-        })
-
-        // Normalizar retorno: pode retornar { data: [...] } ou array direto
-        const resp = response.data
-        let parcelas = []
-        if (resp && resp.data && Array.isArray(resp.data)) {
-          parcelas = resp.data
-        } else if (Array.isArray(resp)) {
-          parcelas = resp
-        } else if (resp && typeof resp === 'object') {
-          parcelas = [resp]
-        }
-
-        return parcelas
-      } catch (error) {
-        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async calcularParcelasColab(dadosCalculo) {
-      this.loading = true
-      this.error = null
-      try {
-        const dadosParcela = {
-          vlrtotal: dadosCalculo.vlrtotal,
-          qtdparcelas: dadosCalculo.qtdparcelas,
-          intervalo: dadosCalculo.intervalo || 30,
-          primeirovencimento: dadosCalculo.primeirovencimento,
-        }
-
-        const payload = { data: [dadosParcela] }
-
-        const response = await api.post('/adtcolabocalcparc', payload, {
-          headers: this.getAuthHeaders()
-        })
-
-        const resp = response.data
-        let parcelas = []
-        if (resp && resp.data && Array.isArray(resp.data)) {
-          parcelas = resp.data
-        } else if (Array.isArray(resp)) {
-          parcelas = resp
-        } else if (resp && typeof resp === 'object') {
-          parcelas = [resp]
-        }
-
-        return parcelas
-      } catch (error) {
-        this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
+    // @deprecated — Cálculo de parcelas é automático no CRUD PHP (conta-pagars cria parcels)
 
     // ========== HISTÓRICO CONTABIL ==========
 
@@ -1051,7 +944,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Autorizar contas a pagar (não documentado no PHP — mantém no THorse)
+    // @deprecated — CRUD PHP já cria aprovado. Mantido apenas para compatibilidade com views antigas.
     async autorizarContasPagar(payload) {
       this.loading = true
       this.error = null
@@ -1656,22 +1549,15 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
     // ========== TRANSFERÊNCIAS ==========
 
-    // Realizar transferência entre contas/caixas (POST /ccorrentetransf)
+    // Realizar transferência entre contas/caixas (PHP)
     async realizarTransferencia(payload) {
       this.loading = true;
       this.error = null;
 
       try {
-        console.log('Realizando transferência - payload:', payload);
-        
-        const response = await api.post('/ccorrentetransf', payload, {
-          headers: this.getAuthHeaders()
-        });
-        
-        console.log('✅ Transferência realizada com sucesso:', response.data);
+        const response = await apiPhp.post('/financeiro/conta-corrente-caixa-transfs', payload);
         return response.data;
       } catch (error) {
-        console.error('❌ Erro ao realizar transferência:', error.response?.data);
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
@@ -1679,7 +1565,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar histórico de transferências financeiras (GET /transffinanceiras/:idempresa/dtini/:dtini/dtfim/:dtfim)
+    // Buscar histórico de transferências financeiras (THorse)
+    // @todo: #290 — aguardando endpoint PHP
     async buscarTransferenciasFinanceiras(idEmpresa, dtini, dtfim, tipoTransf = null) {
       this.loading = true;
       this.error = null;
@@ -1687,18 +1574,14 @@ export const useFinanceiroStore = defineStore('financeiro', {
       try {
         let url = `/transffinanceiras/${idEmpresa}/dtini/${dtini}/dtfim/${dtfim}`;
         
-        // Adicionar filtro de tipo se especificado
         if (tipoTransf !== null && tipoTransf !== undefined) {
           url += `?tipo_transf=${tipoTransf}`;
         }
 
-        console.log('🔍 Buscando transferências financeiras:', url);
-        
         const response = await api.get(url, {
           headers: this.getAuthHeaders()
         });
 
-        // Normalizar resposta
         const resp = response.data;
         let dados = [];
         if (resp && resp.data && Array.isArray(resp.data)) {
@@ -1709,10 +1592,8 @@ export const useFinanceiroStore = defineStore('financeiro', {
           dados = [resp];
         }
 
-        console.log('✅ Transferências encontradas:', dados.length);
         return dados;
       } catch (error) {
-        console.error('❌ Erro ao buscar transferências:', error.response?.data);
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
       } finally {
@@ -2014,22 +1895,17 @@ export const useFinanceiroStore = defineStore('financeiro', {
 
     // ========== LANÇAMENTO COLABORADOR ==========
 
-    // Buscar lançamentos de colaborador (GET /adtcolabo)
+    // Buscar lançamentos de colaborador (GET /financeiro/adiantamento-colaboradors)
+    // idEmpresa opcional — se informado, enviado como query param
     async buscarLancamentosColab(idEmpresa, params = {}) {
       this.loading = true
       this.error = null
       try {
-        const response = await api.get(`/adtcolabo/${idEmpresa}`, {
-          headers: this.getAuthHeaders(),
-          params,
-        })
-        const resp = response.data
-        let dados
-        if (resp && resp.data && Array.isArray(resp.data)) dados = resp.data
-        else if (Array.isArray(resp)) dados = resp
-        else if (resp && typeof resp === 'object') dados = [resp]
-        else dados = []
-        return dados
+        const queryParams = { ...params }
+        if (idEmpresa) queryParams.id_empresa = idEmpresa
+
+        const res = await apiPhp.get('/financeiro/adiantamento-colaboradors', { params: queryParams })
+        return res.data?.data ?? res.data ?? []
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
@@ -2038,17 +1914,15 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Criar lançamento de colaborador (POST /adtcolabo)
-    // payload: { data: [{ ...campos }], parcela: [{ valor, dtvencimento }] }
+    // Criar lançamento de colaborador (POST /financeiro/adiantamento-colaboradors)
+    // payload direto (sem wrapper { data: [...] })
     async criarLancamentoColab(payload) {
       this.loading = true
       this.error = null
       try {
-        const response = await api.post('/adtcolabo', payload, { headers: this.getAuthHeaders() })
+        const res = await apiPhp.post('/financeiro/adiantamento-colaboradors', payload)
         toast.success('Lançamento salvo com sucesso!')
-        const resp = response.data
-        if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0]
-        return resp
+        return res.data?.data ?? res.data
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         toast.error(this.error)
@@ -2058,16 +1932,14 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Atualizar lançamento de colaborador (PUT /adtcolabo/:id)
+    // Atualizar lançamento de colaborador (PUT /financeiro/adiantamento-colaboradors/:id)
     async atualizarLancamentoColab(id, payload) {
       this.loading = true
       this.error = null
       try {
-        const response = await api.put(`/adtcolabo/${id}`, payload, { headers: this.getAuthHeaders() })
+        const res = await apiPhp.put(`/financeiro/adiantamento-colaboradors/${id}`, payload)
         toast.success('Lançamento atualizado com sucesso!')
-        const resp = response.data
-        if (resp && resp.data && Array.isArray(resp.data)) return resp.data[0]
-        return resp
+        return res.data?.data ?? res.data
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         toast.error(this.error)
@@ -2077,12 +1949,12 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Deletar lançamento de colaborador (DELETE /adtcolabo/:id)
+    // Deletar lançamento de colaborador (DELETE /financeiro/adiantamento-colaboradors/:id)
     async deletarLancamentoColab(id) {
       this.loading = true
       this.error = null
       try {
-        await api.delete(`/adtcolabo/${id}`, { headers: this.getAuthHeaders() })
+        await apiPhp.delete(`/financeiro/adiantamento-colaboradors/${id}`)
         toast.success('Lançamento excluído com sucesso!')
         return true
       } catch (error) {

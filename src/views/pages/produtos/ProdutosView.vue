@@ -802,30 +802,26 @@ const salvarFormulario = async () => {
   forms.em_promocao = forms.em_promocao ? 'S' : 'N';
 
   await produtosStore.cadastrarProduto({
-    data: [
-      {
-        "descproduto": forms.descproduto,
-        "aplicacao": forms.aplicacao,
-        "tipo": forms.tipo,
-        "codigo_gtin": forms.codigo_gtin,
-        "codigo_sku": forms.codigo_sku,
-        "codigo_fab": forms.codigo_fab,
-        "codigo_ref": forms.codigo_ref,
-        "id_grupo": forms.id_grupo,
-        "id_subgrupo": forms.id_subgrupo,
-        "id_marca": forms.id_marca,
-        "id_medida": forms.id_medida,
-        "id_classe": forms.id_classe,
-        "id_garantia": forms.id_garantia,
-        "utiliza_balanca": forms.utiliza_balanca,
-        "utiliza_grade": forms.utiliza_grade,
-        "utiliza_nrserie": forms.utiliza_nrserie,
-        "utiliza_lote": forms.utiliza_lote,
-        "id_ncm": forms.id_ncm,
-        "em_promocao": forms.em_promocao,
-        "observacao": forms.observacao,
-      }
-    ]
+    "descproduto": forms.descproduto,
+    "aplicacao": forms.aplicacao,
+    "tipo": forms.tipo,
+    "codigo_gtin": forms.codigo_gtin,
+    "codigo_sku": forms.codigo_sku,
+    "codigo_fab": forms.codigo_fab,
+    "codigo_ref": forms.codigo_ref,
+    "id_grupo": forms.id_grupo,
+    "id_subgrupo": forms.id_subgrupo,
+    "id_marca": forms.id_marca,
+    "id_medida": forms.id_medida,
+    "id_classe": forms.id_classe,
+    "id_garantia": forms.id_garantia,
+    "utiliza_balanca": forms.utiliza_balanca,
+    "utiliza_grade": forms.utiliza_grade,
+    "utiliza_nrserie": forms.utiliza_nrserie,
+    "utiliza_lote": forms.utiliza_lote,
+    "id_ncm": forms.id_ncm,
+    "em_promocao": forms.em_promocao,
+    "observacao": forms.observacao,
   });
   cancelarFormulario();
   formularioAberto.value = false;
@@ -946,15 +942,11 @@ async function salvarOuEditarCor() {
   }
 
   if (modoCor.value === "edit") {
-    await produtosStore.atualizarCor(editandoCorId.value?.id, {
-      data: [payload]
-    });
+    await produtosStore.atualizarCor(editandoCorId.value?.id, payload);
   }
 
   else {
-    await produtosStore.cadastrarCor({
-      data: [payload]
-    });
+    await produtosStore.cadastrarCor(payload);
   }
 
   if (!produtosStore.errorMessage) {

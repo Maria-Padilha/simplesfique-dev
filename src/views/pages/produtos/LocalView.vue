@@ -251,34 +251,26 @@ const salvarFormulario = async () => {
 
   if (editando.value) {
     await localizacoesStore.atualizarLocalizacao(idEmpresa?.id, itemSelecionado.value, {
-      data: [
-        {
-          id_almoxarifado: forms.id_almoxarifado,
-          descricao: forms.descricao,
-          id_empresa: idEmpresa?.id,
-          rua: forms.rua,
-          bloco: forms.bloco,
-          prateleira: forms.prateleira,
-          coluna: forms.coluna
-        }
-      ]
+      id_almoxarifado: forms.id_almoxarifado,
+      descricao: forms.descricao,
+      id_empresa: idEmpresa?.id,
+      rua: forms.rua,
+      bloco: forms.bloco,
+      prateleira: forms.prateleira,
+      coluna: forms.coluna
     });
     cancelarFormulario();
     return;
   }
 
   await localizacoesStore.cadastrarLocalizacao({
-    data: [
-      {
-        id_almoxarifado: forms.id_almoxarifado,
-        descricao: forms.descricao,
-        id_empresa: idEmpresa?.id,
-        rua: forms.rua,
-        bloco: forms.bloco,
-        prateleira: forms.prateleira,
-        coluna: forms.coluna
-      }
-    ]
+    id_almoxarifado: forms.id_almoxarifado,
+    descricao: forms.descricao,
+    id_empresa: idEmpresa?.id,
+    rua: forms.rua,
+    bloco: forms.bloco,
+    prateleira: forms.prateleira,
+    coluna: forms.coluna
   }, idEmpresa?.id)
   cancelarFormulario();
 };

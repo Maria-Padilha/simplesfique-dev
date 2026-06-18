@@ -1,8 +1,36 @@
 import axios from 'axios';
 
 const apiPhp = axios.create({
-    baseURL: process.env.VUE_APP_PHP_API_URL || 'http://192.168.10.51:8000/api/v1'
+    baseURL: process.env.VUE_APP_PHP_API_URL || 'http://192.168.10.67:8000/api/v1'
 });
+
+// Gera um ID único para debug
+const requestId = () => Math.random().toString(36).substring(2, 8);
+
+// Log de requisições em desenvolvimento
+apiPhp.interceptors.request.use(config => {
+    config._reqId = requestId();
+    if (process.env.NODE_ENV === 'development') {
+        console.debug(`[PHP API →] ${config._reqId} ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, config.params || '');
+    }
+    return config;
+});
+
+// Log de respostas em desenvolvimento
+apiPhp.interceptors.response.use(
+    response => {
+        if (process.env.NODE_ENV === 'development') {
+            console.debug(`[PHP API ←] ${response.config._reqId} ${response.status} ${response.config.url}`);
+        }
+        return response;
+    },
+    error => {
+        if (process.env.NODE_ENV === 'development') {
+            console.debug(`[PHP API ✗] ${error.config?._reqId || '?'} ${error.response?.status || 'ERR'} ${error.config?.url}`, error.response?.data || error.message);
+        }
+        return Promise.reject(error);
+    }
+);
 
 // Injeta Bearer token em todas as requisições
 apiPhp.interceptors.request.use(config => {

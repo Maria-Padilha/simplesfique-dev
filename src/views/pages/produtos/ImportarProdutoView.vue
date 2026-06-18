@@ -519,7 +519,8 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
-import api from '@/services/api'
+import apiPhp from '@/services/apiPhp'
+import api from '@/services/api' // @blocked: mantido para /medida (sem endpoint PHP)
 import apiLocal from '@/services/apiLocal'
 import { toast } from 'vue3-toastify'
 
@@ -682,37 +683,28 @@ const carregarDadosSelects = async () => {
   loadingSelects.value = true
   try {
     const token = localStorage.getItem('token')
-    const idempresa = localStorage.getItem('id_empresa') || '1'
 
     // Carregar Grupos
-    const resGrupos = await api.get('/grupo', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    grupos.value = resGrupos.data.data || []
+    const resGrupos = await apiPhp.get('/estoque/grupos')
+    grupos.value = Array.isArray(resGrupos.data) ? resGrupos.data : []
 
     // Carregar Marcas
-    const resMarcas = await api.get('/marca', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    marcas.value = resMarcas.data.data || []
+    const resMarcas = await apiPhp.get('/estoque/marcas')
+    marcas.value = Array.isArray(resMarcas.data) ? resMarcas.data : []
 
-    // Carregar Medidas
+    // Carregar Medidas — @blocked: sem endpoint PHP
     const resMedidas = await api.get('/medida', {
       headers: { Authorization: `Bearer ${token}` }
     })
     medidas.value = resMedidas.data.data || []
 
     // Carregar Localizações
-    const resLocalizacoes = await api.get(`/localizacao/${idempresa}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    localizacoes.value = resLocalizacoes.data.data || []
+    const resLocalizacoes = await apiPhp.get('/estoque/localizacoes')
+    localizacoes.value = Array.isArray(resLocalizacoes.data) ? resLocalizacoes.data : []
 
     // Carregar Classes
-    const resClasses = await api.get('/classe', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    classes.value = resClasses.data.data || []
+    const resClasses = await apiPhp.get('/estoque/classes')
+    classes.value = Array.isArray(resClasses.data) ? resClasses.data : []
   } catch (error) {
     toast.error('Erro ao carregar opções de filtro')
   } finally {
@@ -727,11 +719,8 @@ const carregarSubgrupos = async (idGrupo) => {
     return
   }
   try {
-    const token = localStorage.getItem('token')
-    const response = await api.get(`/subgrupo/${idGrupo}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    subgrupos.value = response.data.data || []
+    const response = await apiPhp.get(`/estoque/subgrupos/${idGrupo}`)
+    subgrupos.value = Array.isArray(response.data) ? response.data : []
   } catch (error) {
     subgrupos.value = []
   }
@@ -900,11 +889,6 @@ const importarProdutos = async () => {
       custo_aquisicao: parseFloat(p.custo_aquisicao) || 0
     }))
 
-    // Encapsular o payload com data: []
-    const payload = {
-      data: produtosParaImportar
-    }
-
     let resposta
 
     // Verificar se é uma continuação (tem _idImportacao)
@@ -913,7 +897,7 @@ const importarProdutos = async () => {
     if (idImportacao) {
       // PUT para continuação
       resposta = await apiLocal.put(`/produtoreftemp/${idImportacao}`,
-        payload,
+        produtosParaImportar,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -923,7 +907,7 @@ const importarProdutos = async () => {
     } else {
       // POST para novo
       resposta = await apiLocal.post('/produtoreftemp',
-        payload,
+        produtosParaImportar,
         {
           headers: {
             Authorization: `Bearer ${token}`

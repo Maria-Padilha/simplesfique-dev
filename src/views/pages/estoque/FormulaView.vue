@@ -386,13 +386,9 @@ const salvarFormulario = async () => {
   }
 
   const payload = {
-    data: [
-      {
-        id_empresa: forms.id_empresa,
-        descformula: forms.descformula,
-        formula: forms.formula,
-      }
-    ],
+    id_empresa: forms.id_empresa,
+    descformula: forms.descformula,
+    formula: forms.formula,
     var: variaveis.value
         .filter(v => v.varnome && v.vartype)
         .map(v => ({
@@ -448,13 +444,9 @@ const compilarFormula = async () => {
   }
 
   const payload = {
-    data: [
-      {
-        formula: dataFormula.formula,
-        id_empresa: forms.id_empresa,
-        descformula: dataFormula.descformula,
-      }
-    ],
+    formula: dataFormula.formula,
+    id_empresa: forms.id_empresa,
+    descformula: dataFormula.descformula,
     var: item?.var
         ?.filter(v => v.varnome && v.vartype)
         ?.map(v => ({

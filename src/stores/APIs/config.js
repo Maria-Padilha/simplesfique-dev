@@ -1,12 +1,9 @@
 import {defineStore} from "pinia"
-import api from "@/services/api";
-import {useApiStore} from "@/stores/APIs/api";
-// import {toast} from "vue3-toastify";
+import apiPhp from "@/services/apiPhp"
 
-export const useConfigParfinStore = defineStore('config-parfin', {
+export const useConfigParfinStore = defineStore('configParfin', {
     state: () => ({
         loading: false,
-        token: localStorage.getItem('token'),
         errorMessage: '',
         successMessage: '',
 
@@ -19,23 +16,20 @@ export const useConfigParfinStore = defineStore('config-parfin', {
     actions: {
 
         /**
-         * BUSCAR PARFIN
+         * BUSCAR PARFIN — Parâmetros de centro de custo
          *
-         * @return {Promise<void>}
+         * @return {Promise<{data: *}|null>}
          */
 
         async buscarparfin() {
             this.loading = true;
 
             try {
-                const response = await api.get(`ccustoparametro`, {
-                    headers: {Authorization: `Bearer ${this.token}`}
-                });
+                const response = await apiPhp.get(`/centro-custo-parametros/parametro`);
 
-                this.config = response.data;
+                this.config = response.data?.data ?? response.data;
                 this.errorMessage = '';
 
-                console.log('config encontrado:', this.config);
                 
                 return response.data;
 
@@ -47,27 +41,41 @@ export const useConfigParfinStore = defineStore('config-parfin', {
                 this.loading = false;
             }
         },
+
+        /**
+         * CADASTRAR PARFIN — Criar parâmetros de centro de custo
+         */
         async cadastrarParfin(parfinData) {
-            const apiStore = useApiStore();
-            this.loading = apiStore.loading;
-            const result = await apiStore.executarAcao('ccustoparametro', 'post', parfinData);
-
-            // If the POST succeeded, refresh the stored config so the UI switches to PUT mode
-            if (result) {
+            this.loading = true;
+            try {
+                // Normalizar payload do formato THorse { data: [{}] } para direto
+                const dados = Array.isArray(parfinData.data) ? parfinData.data[0] : parfinData;
+                await apiPhp.post('/centro-custo-parametros', dados);
+                this.successMessage = 'Configurações salvas com sucesso!';
                 await this.buscarparfin();
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro ao cadastrar configurações';
+                console.error('Erro ao cadastrar parfin:', error);
+            } finally {
+                this.loading = false;
             }
-
         },
 
-
+        /**
+         * ALTERAR PARFIN — Atualizar parâmetros de centro de custo
+         */
         async alterarParfin(parfinData) {
-            const apiStore = useApiStore();
-            this.loading = apiStore.loading;
-            const result = await apiStore.executarAcao('ccustoparametro', 'put', parfinData);
-
-            // If the PUT succeeded, refresh the stored config
-            if (result) {
+            this.loading = true;
+            try {
+                const dados = Array.isArray(parfinData.data) ? parfinData.data[0] : parfinData;
+                await apiPhp.put('/centro-custo-parametros', dados);
+                this.successMessage = 'Configurações atualizadas com sucesso!';
                 await this.buscarparfin();
+            } catch (error) {
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro ao alterar configurações';
+                console.error('Erro ao alterar parfin:', error);
+            } finally {
+                this.loading = false;
             }
         },
 
@@ -77,24 +85,8 @@ export const useConfigParfinStore = defineStore('config-parfin', {
         async buscarParametrosFinanceirosPagar(idEmpresa) {
             this.loading = true;
             
-            if (!this.token) {
-                console.error('Token não encontrado!');
-                this.errorMessage = 'Token não encontrado!';
-                this.loading = false;
-                return null;
-            }
-            
-            if (!idEmpresa) {
-                console.error('ID da empresa não encontrado!');
-                this.errorMessage = 'ID da empresa não encontrado!';
-                this.loading = false;
-                return null;
-            }
-            
             try {
-                const response = await api.get(`parfinpag/${idEmpresa}`, {
-                    headers: {Authorization: `Bearer ${this.token}`}
-                });
+                const response = await apiPhp.get(`/parametros-financeiros-pagars/${idEmpresa}`);
                 
                 this.errorMessage = '';
                 return response.data;
@@ -114,16 +106,10 @@ export const useConfigParfinStore = defineStore('config-parfin', {
         async cadastrarParametrosFinanceirosPagar(idEmpresa, dados) {
             this.loading = true;
             
-            if (!this.token || !idEmpresa) {
-                console.error('Token ou ID da empresa não encontrado!');
-                this.loading = false;
-                return false;
-            }
-            
             try {
-                const response = await api.post(`parfinpag/${idEmpresa}`, dados, {
-                    headers: {Authorization: `Bearer ${this.token}`}
-                });
+                // Normalizar payload do formato THorse { data: [{}] } para direto
+                const dadosBase = Array.isArray(dados.data) ? dados.data[0] : dados;
+                const response = await apiPhp.post('/parametros-financeiros-pagars', dadosBase);
                 
                 this.successMessage = 'Configurações salvas com sucesso!';
                 return response.data;
@@ -143,16 +129,9 @@ export const useConfigParfinStore = defineStore('config-parfin', {
         async alterarParametrosFinanceirosPagar(idEmpresa, dados) {
             this.loading = true;
             
-            if (!this.token || !idEmpresa) {
-                console.error('Token ou ID da empresa não encontrado!');
-                this.loading = false;
-                return false;
-            }
-            
             try {
-                const response = await api.put(`parfinpag/${idEmpresa}`, dados, {
-                    headers: {Authorization: `Bearer ${this.token}`}
-                });
+                const dadosBase = Array.isArray(dados.data) ? dados.data[0] : dados;
+                const response = await apiPhp.put(`/parametros-financeiros-pagars/${idEmpresa}`, dadosBase);
                 
                 this.successMessage = 'Configurações atualizadas com sucesso!';
                 return response.data;
@@ -172,24 +151,8 @@ export const useConfigParfinStore = defineStore('config-parfin', {
         async buscarParametrosFinanceirosReceber(idEmpresa) {
             this.loading = true;
             
-            if (!this.token) {
-                console.error('Token não encontrado!');
-                this.errorMessage = 'Token não encontrado!';
-                this.loading = false;
-                return null;
-            }
-            
-            if (!idEmpresa) {
-                console.error('ID da empresa não encontrado!');
-                this.errorMessage = 'ID da empresa não encontrado!';
-                this.loading = false;
-                return null;
-            }
-            
             try {
-                const response = await api.get(`parfinrec/${idEmpresa}`, {
-                    headers: {Authorization: `Bearer ${this.token}`}
-                });
+                const response = await apiPhp.get(`/parametros-financeiros-recebers/${idEmpresa}`);
                 
                 this.errorMessage = '';
                 return response.data;
@@ -209,16 +172,9 @@ export const useConfigParfinStore = defineStore('config-parfin', {
         async cadastrarParametrosFinanceirosReceber(idEmpresa, dados) {
             this.loading = true;
             
-            if (!this.token || !idEmpresa) {
-                console.error('Token ou ID da empresa não encontrado!');
-                this.loading = false;
-                return false;
-            }
-            
             try {
-                const response = await api.post(`parfinrec/${idEmpresa}`, dados, {
-                    headers: {Authorization: `Bearer ${this.token}`}
-                });
+                const dadosBase = Array.isArray(dados.data) ? dados.data[0] : dados;
+                const response = await apiPhp.post('/parametros-financeiros-recebers', dadosBase);
                 
                 this.successMessage = 'Configurações salvas com sucesso!';
                 return response.data;
@@ -238,16 +194,9 @@ export const useConfigParfinStore = defineStore('config-parfin', {
         async alterarParametrosFinanceirosReceber(idEmpresa, dados) {
             this.loading = true;
             
-            if (!this.token || !idEmpresa) {
-                console.error('Token ou ID da empresa não encontrado!');
-                this.loading = false;
-                return false;
-            }
-            
             try {
-                const response = await api.put(`parfinrec/${idEmpresa}`, dados, {
-                    headers: {Authorization: `Bearer ${this.token}`}
-                });
+                const dadosBase = Array.isArray(dados.data) ? dados.data[0] : dados;
+                const response = await apiPhp.put(`/parametros-financeiros-recebers/${idEmpresa}`, dadosBase);
                 
                 this.successMessage = 'Configurações atualizadas com sucesso!';
                 return response.data;
@@ -262,29 +211,13 @@ export const useConfigParfinStore = defineStore('config-parfin', {
         },
 
         /**
-         * BUSCAR PARÂMETROS FINANCEIROS - BAIXA
+         * BUSCAR PARÂMETROS FINANCEIROS - CAIXA (baixa)
          */
         async buscarParametrosBaixa(idEmpresa) {
             this.loading = true;
             
-            if (!this.token) {
-                console.error('Token não encontrado!');
-                this.errorMessage = 'Token não encontrado!';
-                this.loading = false;
-                return null;
-            }
-            
-            if (!idEmpresa) {
-                console.error('ID da empresa não encontrado!');
-                this.errorMessage = 'ID da empresa não encontrado!';
-                this.loading = false;
-                return null;
-            }
-            
             try {
-                const response = await api.get(`parfinbxa/${idEmpresa}`, {
-                    headers: {Authorization: `Bearer ${this.token}`}
-                });
+                const response = await apiPhp.get(`/parametros-financeiros-caixas/${idEmpresa}`);
                 
                 this.errorMessage = '';
                 return response.data;
@@ -305,10 +238,9 @@ export const useConfigParfinStore = defineStore('config-parfin', {
             this.loading = true;
 
             try {
-                const response = await api.get(`histcaixa`, {
-                    headers: {Authorization: `Bearer ${this.token}`}
-                });
+                const response = await apiPhp.get('/historico-caixas');
 
+                this.historicoCaixa = response.data?.data ?? response.data ?? [];
                 return response.data;
 
             } catch (error) {
@@ -326,10 +258,9 @@ export const useConfigParfinStore = defineStore('config-parfin', {
             this.loading = true;
 
             try {
-                const response = await api.get(`histbancario`, {
-                    headers: {Authorization: `Bearer ${this.token}`}
-                });
+                const response = await apiPhp.get('/historico-bancarios');
 
+                this.historicoBancario = response.data?.data ?? response.data ?? [];
                 return response.data;
 
             } catch (error) {
@@ -346,24 +277,8 @@ export const useConfigParfinStore = defineStore('config-parfin', {
         async buscarParametrosCaixa(idEmpresa) {
             this.loading = true;
             
-            if (!this.token) {
-                console.error('Token não encontrado!');
-                this.errorMessage = 'Token não encontrado!';
-                this.loading = false;
-                return null;
-            }
-            
-            if (!idEmpresa) {
-                console.error('ID da empresa não encontrado!');
-                this.errorMessage = 'ID da empresa não encontrado!';
-                this.loading = false;
-                return null;
-            }
-            
             try {
-                const response = await api.get(`parfincxa/${idEmpresa}`, {
-                    headers: {Authorization: `Bearer ${this.token}`}
-                });
+                const response = await apiPhp.get(`/parametros-financeiros-caixas/${idEmpresa}`);
                 
                 this.errorMessage = '';
                 return response.data;
@@ -383,16 +298,9 @@ export const useConfigParfinStore = defineStore('config-parfin', {
         async alterarParametrosCaixa(idEmpresa, dados) {
             this.loading = true;
             
-            if (!this.token || !idEmpresa) {
-                console.error('Token ou ID da empresa não encontrado!');
-                this.loading = false;
-                return false;
-            }
-            
             try {
-                const response = await api.put(`parfincxa/${idEmpresa}`, dados, {
-                    headers: {Authorization: `Bearer ${this.token}`}
-                });
+                const dadosBase = Array.isArray(dados.data) ? dados.data[0] : dados;
+                const response = await apiPhp.put(`/parametros-financeiros-caixas/${idEmpresa}`, dadosBase);
                 
                 this.successMessage = 'Configurações do caixa atualizadas com sucesso!';
                 return response.data;

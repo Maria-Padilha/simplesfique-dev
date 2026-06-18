@@ -438,11 +438,9 @@ const carregarDadosAuxiliares = async () => {
     }
 
     // Carregar histórico de movimentação (aberturas de caixa)
-    const response = await caixaStore.buscarHistoricoMovimentacao(idEmpresa)
+    const response = await caixaStore.buscarHistoricoMovimentacao()
     const dadosHistorico = response?.data || []
     historicoMovimentacao.value = Array.isArray(dadosHistorico) ? dadosHistorico : []
-    
-    console.log('Histórico de movimentação carregado:', historicoMovimentacao.value)
 
     // Carregar caixas ativos do usuário
     const dadosCaixas = await caixaStore.buscarCaixasUsuarioAtivo(idEmpresa)
@@ -495,13 +493,11 @@ const abrirCaixa = async () => {
       return
     }
 
-    // Montar payload
+    // Montar payload (formato flat Laravel)
     const payload = {
-      data: [{
-        dtabertura: formData.dtabertura,
-        horaabertura: formData.hrabertura,
-        saldoinicial: parseFloat(formData.vlrabertura)
-      }]
+      dtabertura: formData.dtabertura,
+      horaabertura: formData.hrabertura,
+      saldoinicial: parseFloat(formData.vlrabertura)
     }
 
     const resultado = await caixaStore.abrirCaixa(idEmpresa, formData.id_caixa, payload)

@@ -1262,19 +1262,17 @@ const salvarMovimentacao = async () => {
     }
 
     const payload = {
-      data: [{
-        id_ccorrente: formData.id_ccorrente,
-        id_empresa: idEmpresa,
-        id_historico: formData.id_historico,
-        id_hist_contabil: formData.id_hist_contabil || null,
-        id_planoconta: formData.id_planoconta,
-        nrdocumento: formData.nrdocumento || null,
-        observacao: formData.observacao || null,
-        valor: parseFloat(formData.valor),
-        dtlancamento: formData.dtlancamento,
-        origem: 'BAN',
-        tipo: formData.tipo
-      }],
+      id_ccorrente: formData.id_ccorrente,
+      id_empresa: idEmpresa,
+      id_historico: formData.id_historico,
+      id_hist_contabil: formData.id_hist_contabil || null,
+      id_planoconta: formData.id_planoconta,
+      nrdocumento: formData.nrdocumento || null,
+      observacao: formData.observacao || null,
+      valor: parseFloat(formData.valor),
+      dtlancamento: formData.dtlancamento,
+      origem: 'BAN',
+      tipo: formData.tipo,
       ccusto: ccustosRateio.value.map(c => ({
         id_ccusto: c.id_ccusto,
         valor: parseFloat(c.valor) || 0,

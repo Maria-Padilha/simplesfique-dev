@@ -336,25 +336,22 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
-import { useApiStore } from '@/stores/APIs/api'
-import api from '@/services/api'
+import apiPhp from '@/services/apiPhp'
 import TopAllPages from '@/components/base/padrao-paginas/TopAllPages.vue'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 
 const themeStore = useThemeStore()
-const apiStore = useApiStore()
 
 const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
 const idEmp = empresaSelecionada?.id ?? null
-const token = localStorage.getItem('token')
 
 const formularioAberto = ref(false)
 const editando = ref(false)
 const formValido = ref(false)
 const formRef = ref(null)
 const search = ref('')
-const loading = computed(() => apiStore.loading)
+const loading = ref(false)
 const grupos = ref([])
 const mensagens = ref([])
 
@@ -474,10 +471,8 @@ function resetarForm() {
 
 async function editarGrupo(item) {
   try {
-    const response = await api.get(`/gptrib/${idEmp}/${item.id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const dados = response.data?.data?.[0] || response.data?.[0] || response.data || item
+    const response = await apiPhp.get(`/manutencao/base-grupo-tributos/${idEmp}/${item.id}`)
+    const dados = Array.isArray(response.data) ? response.data[0] : response.data || item
     Object.assign(form, dados)
   } catch (error) {
     console.error('Erro ao buscar grupo de tributação:', error)
@@ -489,10 +484,8 @@ async function editarGrupo(item) {
 
 async function carregarGrupos() {
   try {
-    const response = await api.get(`/gptrib/${idEmp}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    grupos.value = response.data?.data || response.data || []
+    const response = await apiPhp.get('/manutencao/base-grupo-tributos')
+    grupos.value = Array.isArray(response.data) ? response.data : []
   } catch (error) {
     console.error('Erro ao carregar grupos de tributação:', error)
   }
@@ -500,10 +493,8 @@ async function carregarGrupos() {
 
 async function carregarMensagens() {
   try {
-    const response = await api.get(`/msg/${idEmp}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    mensagens.value = response.data?.data || response.data || []
+    const response = await apiPhp.get(`/manutencao/mensagens/${idEmp}`)
+    mensagens.value = Array.isArray(response.data) ? response.data : []
   } catch (error) {
     console.error('Erro ao carregar mensagens:', error)
   }
@@ -511,22 +502,34 @@ async function carregarMensagens() {
 
 async function salvarGrupo() {
   const { id, ...payload } = form
+  loading.value = true
 
-  if (editando.value) {
-    await apiStore.executarAcao('gptrib', 'put', { data: [payload] }, `${idEmp}/${id}`)
-  } else {
-    await apiStore.executarAcao('gptrib', 'post', { data: [{ id_empresa: idEmp, ...payload }] })
-  }
+  try {
+    if (editando.value) {
+      await apiPhp.put(`/manutencao/base-grupo-tributos/${idEmp}/${id}`, payload)
+    } else {
+      await apiPhp.post('/manutencao/base-grupo-tributos', payload)
+    }
 
-  if (!apiStore.errorMessage) {
     cancelarFormulario()
     await carregarGrupos()
+  } catch (error) {
+    console.error('Erro ao salvar grupo de tributação:', error)
+  } finally {
+    loading.value = false
   }
 }
 
 async function excluirGrupo(item) {
-  await apiStore.executarAcao('gptrib', 'delete', null, `${idEmp}/${item.id}`)
-  await carregarGrupos()
+  loading.value = true
+  try {
+    await apiPhp.delete(`/manutencao/base-grupo-tributos/${idEmp}/${item.id}`)
+    await carregarGrupos()
+  } catch (error) {
+    console.error('Erro ao excluir grupo de tributação:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
 onMounted(async () => {

@@ -1,14 +1,14 @@
 {
-  "gerado_em": "2026-06-16",
-  "fonte": "http://192.168.10.51:8000/docs/openapi.yaml (180 rotas mapeadas)",
+  "gerado_em": "2026-06-18",
+  "fonte": "http://192.168.10.67:8000/docs/openapi.yaml (180+ rotas mapeadas, IP atualizado)",
   "resumo": {
     "total_endpoints_thorse_no_sistema": 323,
     "total_rotas_php_documentadas": 180,
-    "ja_migrados": 155,
-    "disponiveis_para_migrar": 68,
-    "bloqueados_sem_php": 24,
-    "automaticos_remover_view": 4,
-    "percentual_migrado": "~72%"
+    "ja_migrados": 210,
+    "disponiveis_para_migrar": 28,
+    "bloqueados_sem_php": 18,
+    "automaticos_remover_view": 2,
+    "percentual_migrado": "~93%"
   },
   "modulos": {
     "Auth/Login": {
@@ -164,49 +164,49 @@
           "thorse": "GET /parcelapagar/{id}",
           "php": "GET /parcela-pagars",
           "descricao": "Listar parcelas a pagar",
-          "store_metodo": "buscarParcelasContaPagar (THorse)",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "buscarParcelasPagar (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "PUT /parcelapagar/{id}",
           "php": "PUT /parcela-pagars/{idEmpresa}/{id}",
           "descricao": "Atualizar parcela a pagar",
-          "store_metodo": "atualizarParcelaPagar (THorse)",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "atualizarParcelaPagar (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "GET /parcelareceber/{id}",
           "php": "GET /parcela-recebers",
           "descricao": "Listar parcelas a receber",
-          "store_metodo": "buscarParcelasContaReceber (THorse)",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "buscarParcelasReceber (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "PUT /parcelareceber/{id}",
           "php": "PUT /parcela-recebers/{idEmpresa}/{id}",
           "descricao": "Atualizar parcela a receber",
-          "store_metodo": "atualizarParcelaReceber (THorse)",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "atualizarParcelaReceber (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "POST /cancelaparcelapagar/{id}",
           "php": "POST /parcela-pagars/{idEmpresa}/{id}/cancelar",
           "descricao": "Cancelar parcela a pagar",
-          "store_metodo": "cancelarParcelaPagar (THorse)",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "cancelarParcelaPagar (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "POST /cancelaparcelareceber/{id}",
           "php": "POST /parcela-recebers/{idEmpresa}/{id}/cancelar",
           "descricao": "Cancelar parcela a receber",
-          "store_metodo": "cancelarParcelaReceber (THorse)",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "cancelarParcelaReceber (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         }
       ]
     },
@@ -217,49 +217,49 @@
           "thorse": "POST /baixapagar",
           "php": "POST /baixa-pagars",
           "descricao": "Registrar baixa de pagamento",
-          "store_metodo": "baixarContaPagar (THorse)",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "buscarBaixasPagar (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "GET /baixapagar/{id}",
           "php": "GET /baixa-pagars/{id}",
           "descricao": "Obter baixa de pagamento",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "buscarBaixaPagarPorId (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "POST /estornapagar/{id}",
           "php": "POST /baixa-pagars/{id}/estornar",
           "descricao": "Estornar baixa de pagamento",
-          "store_metodo": "estornarBaixaPagar (THorse)",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "estornarBaixaPagar (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "POST /baixareceber",
           "php": "POST /baixa-recebers",
           "descricao": "Registrar baixa de recebimento",
-          "store_metodo": "baixarContaReceber (THorse)",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "buscarBaixasReceber (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "GET /baixareceber/{id}",
           "php": "GET /baixa-recebers/{id}",
           "descricao": "Obter baixa de recebimento",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "PHP",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "POST /estornareceber/{id}",
           "php": "POST /baixa-recebers/{id}/estornar",
           "descricao": "Estornar baixa de recebimento",
-          "store_metodo": "estornarBaixaReceber (THorse)",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "estornarBaixaReceber (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         }
       ]
     },
@@ -355,21 +355,19 @@
         },
         {
           "thorse": "GET /caixahistmov/{idEmpresa}",
-          "php": "GET /caixa-movimentos (GET /historico-caixas)",
+          "php": "GET /caixa-movimentos",
           "descricao": "Movimentações/histórico do caixa",
-          "store_metodo": "buscarHistoricoCaixa (THorse)",
-          "status": "disponivel",
-          "prioridade": "alta",
-          "observacao": "PHP tem dois endpoints similares: /caixa-movimentos e /historico-caixas — verificar qual mapeia corretamente"
+          "store_metodo": "buscarHistoricoMovimentacao (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "GET /caixausu/{idEmpresa}/id/{idCaixa}",
-          "php": "GET /caixas/usuario/aberto (GET /caixas/usuario/ativo)",
-          "descricao": "Usuários vinculados ao caixa / caixa aberto do usuário",
-          "store_metodo": "buscarUsuarioCaixa (THorse)",
-          "status": "disponivel",
-          "prioridade": "alta",
-          "observacao": "PHP tem /caixas/usuario/aberto e /caixas/usuario/ativo — verificar mapeamento"
+          "php": "GET /caixas/{idCaixa}/usuarios",
+          "descricao": "Usuários vinculados ao caixa",
+          "store_metodo": "buscarUsuariosPorCaixa (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "POST /abrecxa/{id}",
@@ -451,103 +449,127 @@
       ]
     },
     "Financeiro/Adiantamentos": {
-      "store": "adiantamento.js",
+      "store": "adiantamento.js (+ colaborador em financeiro.js)",
       "itens": [
         {
           "thorse": "GET /adtcliente",
-          "php": "GET|POST /adiantamento-clientes",
-          "descricao": "CRUD adiantamento cliente",
-          "store_metodo": "THorse (todo o store)",
-          "status": "disponivel",
-          "prioridade": "alta",
-          "observacao": "Store inteira pode ser migrada agora — tem PHP para todos os 3 tipos de adiantamento"
+          "php": "GET /adiantamento-clientes",
+          "descricao": "Listar adiantamentos cliente",
+          "store_metodo": "buscarAdiantamentos (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
+        },
+        {
+          "thorse": "POST /adtcliente",
+          "php": "POST /adiantamento-clientes",
+          "descricao": "Criar adiantamento cliente",
+          "store_metodo": "criarAdiantamento (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "PUT /adtcliente/{id}",
           "php": "PUT /adiantamento-clientes/{id}",
           "descricao": "Atualizar adiantamento cliente",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "atualizarAdiantamento (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "DELETE /adtcliente/{id}",
           "php": "DELETE /adiantamento-clientes/{id}",
           "descricao": "Remover adiantamento cliente",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "excluirAdiantamento (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "GET /adtfornecedor",
-          "php": "GET|POST /adiantamento-fornecedors",
-          "descricao": "CRUD adiantamento fornecedor",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "php": "GET /adiantamento-fornecedors",
+          "descricao": "Listar adiantamentos fornecedor",
+          "store_metodo": "buscarAdiantamentosFornecedores (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
+        },
+        {
+          "thorse": "POST /adtfornecedor",
+          "php": "POST /adiantamento-fornecedors",
+          "descricao": "Criar adiantamento fornecedor",
+          "store_metodo": "criarAdiantamentoFornecedor (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "PUT /adtfornecedor/{id}",
           "php": "PUT /adiantamento-fornecedors/{id}",
           "descricao": "Atualizar adiantamento fornecedor",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "atualizarAdiantamentoFornecedor (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "DELETE /adtfornecedor/{id}",
           "php": "DELETE /adiantamento-fornecedors/{id}",
           "descricao": "Remover adiantamento fornecedor",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "excluirAdiantamentoFornecedor (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "GET /adtcolaborador",
-          "php": "GET|POST /adiantamento-colaboradors",
-          "descricao": "CRUD adiantamento colaborador",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "php": "GET /adiantamento-colaboradors",
+          "descricao": "Listar adiantamentos colaborador",
+          "store_metodo": "buscarLancamentosColab (PHP em financeiro.js)",
+          "status": "migrado",
+          "prioridade": "-"
+        },
+        {
+          "thorse": "POST /adtcolaborador",
+          "php": "POST /adiantamento-colaboradors",
+          "descricao": "Criar adiantamento colaborador",
+          "store_metodo": "criarLancamentoColab (PHP em financeiro.js)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "PUT /adtcolaborador/{id}",
           "php": "PUT /adiantamento-colaboradors/{id}",
           "descricao": "Atualizar adiantamento colaborador",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "atualizarLancamentoColab (PHP em financeiro.js)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "DELETE /adtcolaborador/{id}",
           "php": "DELETE /adiantamento-colaboradors/{id}",
           "descricao": "Remover adiantamento colaborador",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "deletarLancamentoColab (PHP em financeiro.js)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "PUT /adtfornecedoraprova/{id}",
-          "php": "-",
+          "php": "POST /financeiro/adiantamento-fornecedors/{id}/aprovar",
           "descricao": "Aprovar adiantamento fornecedor",
-          "store_metodo": "THorse",
-          "status": "bloqueado",
-          "prioridade": "média",
-          "observacao": "Verificar se CRUD do PHP substitui esta ação específica"
+          "store_metodo": "aprovarAdiantamentoFornecedorPhp (PHP)",
+          "status": "migrado",
+          "prioridade": "-",
+          "observacao": "PHP: POST (não PUT) + opcional valor_autorizado"
         },
         {
           "thorse": "PUT /adtfornecedornega/{id}",
-          "php": "-",
+          "php": "POST /financeiro/adiantamento-fornecedors/{id}/recusar",
           "descricao": "Recusar adiantamento fornecedor",
-          "store_metodo": "THorse",
-          "status": "bloqueado",
-          "prioridade": "média"
+          "store_metodo": "recusarAdiantamentoFornecedorPhp (PHP)",
+          "status": "migrado",
+          "prioridade": "-",
+          "observacao": "PHP: POST (não PUT), sem corpo"
         },
         {
           "thorse": "POST /adtcolabocalcparc",
           "php": "-",
-          "descricao": "Cálculo parcelas — automático no CRUD PHP",
-          "store_metodo": "remover da view futuramente",
+          "descricao": "Cálculo parcelas — automático no CRUD PHP (removido da store)",
+          "store_metodo": "removido da store",
           "status": "automatico",
           "prioridade": "futuro"
         }
@@ -631,29 +653,92 @@
       "store": "config.js",
       "itens": [
         {
-          "thorse": "GET /parfinbxa/{idEmpresa}",
+          "thorse": "GET /parfinpag/{idEmpresa}",
           "php": "GET /parametros-financeiros-pagars/{idEmpresa}",
           "descricao": "Parâmetros contas a pagar",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "alta",
-          "observacao": "PHP tem GET/PUT /parametros-financeiros-pagars, recebers e caixas — provavelmente substitui parfinbxa"
+          "store_metodo": "buscarParametrosFinanceirosPagar (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
+        },
+        {
+          "thorse": "POST /parfinpag/{idEmpresa}",
+          "php": "POST /parametros-financeiros-pagars",
+          "descricao": "Cadastrar parâmetros pagar",
+          "store_metodo": "cadastrarParametrosFinanceirosPagar (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
+        },
+        {
+          "thorse": "PUT /parfinpag/{idEmpresa}",
+          "php": "PUT /parametros-financeiros-pagars/{idEmpresa}",
+          "descricao": "Alterar parâmetros pagar",
+          "store_metodo": "alterarParametrosFinanceirosPagar (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "GET /parfinrec/{idEmpresa}",
           "php": "GET /parametros-financeiros-recebers/{idEmpresa}",
           "descricao": "Parâmetros contas a receber",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "buscarParametrosFinanceirosReceber (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
+        },
+        {
+          "thorse": "POST /parfinrec/{idEmpresa}",
+          "php": "POST /parametros-financeiros-recebers",
+          "descricao": "Cadastrar parâmetros receber",
+          "store_metodo": "cadastrarParametrosFinanceirosReceber (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
+        },
+        {
+          "thorse": "PUT /parfinrec/{idEmpresa}",
+          "php": "PUT /parametros-financeiros-recebers/{idEmpresa}",
+          "descricao": "Alterar parâmetros receber",
+          "store_metodo": "alterarParametrosFinanceirosReceber (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
+        },
+        {
+          "thorse": "GET /parfinbxa/{idEmpresa}",
+          "php": "GET /parametros-financeiros-caixas/{idEmpresa}",
+          "descricao": "Parâmetros baixa/caixa",
+          "store_metodo": "buscarParametrosBaixa (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "GET /parfincxa/{idEmpresa}",
           "php": "GET /parametros-financeiros-caixas/{idEmpresa}",
           "descricao": "Parâmetros financeiros caixa",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "alta"
+          "store_metodo": "buscarParametrosCaixa (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
+        },
+        {
+          "thorse": "PUT /parfincxa/{idEmpresa}",
+          "php": "PUT /parametros-financeiros-caixas/{idEmpresa}",
+          "descricao": "Alterar parâmetros caixa",
+          "store_metodo": "alterarParametrosCaixa (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
+        },
+        {
+          "thorse": "GET /histcaixa",
+          "php": "GET /historico-caixas",
+          "descricao": "Histórico caixa",
+          "store_metodo": "buscarHistoricoCaixa (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
+        },
+        {
+          "thorse": "GET /histbancario",
+          "php": "GET /historico-bancarios",
+          "descricao": "Histórico bancário",
+          "store_metodo": "buscarHistoricoBancario (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         }
       ]
     },
@@ -974,12 +1059,11 @@
         },
         {
           "thorse": "GET /inventarioitem",
-          "php": "GET|POST /inventario-itens",
-          "descricao": "Itens do inventário",
-          "store_metodo": "buscarGridInventario (THorse)",
-          "status": "disponivel",
-          "prioridade": "alta",
-          "observacao": "Store já usa apiPhp para cadastrar/deletar itens, mas busca ainda usa THorse"
+          "php": "GET /inventario-itens",
+          "descricao": "Itens do inventário (grade de produtos)",
+          "store_metodo": "buscarGridInventario (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         }
       ]
     },
@@ -1051,30 +1135,20 @@
       "itens": [
         {
           "thorse": "GET /transfalmox/{idemp}",
-          "php": "-",
-          "descricao": "Listar transferências — sem PHP",
-          "store_metodo": "THorse (store inteira)",
-          "status": "bloqueado",
-          "prioridade": "média",
-          "issue": "#281"
-        },
-        {
-          "thorse": "POST /transfalmox/env",
-          "php": "-",
-          "descricao": "Enviar transferência — sem PHP",
-          "store_metodo": "THorse",
-          "status": "bloqueado",
-          "prioridade": "média",
-          "issue": "#281"
+          "php": "GET|POST /estoque/transferencia-almoxarifados",
+          "descricao": "Listar/criar transferências",
+          "store_metodo": "listarTransferencias / cadastrarTransferencia (PHP)",
+          "status": "migrado",
+          "prioridade": "-",
+          "observacao": "Store reescrita, THorse removido"
         },
         {
           "thorse": "POST /transfalmox/rec",
-          "php": "-",
-          "descricao": "Receber transferência — sem PHP",
-          "store_metodo": "THorse",
-          "status": "bloqueado",
-          "prioridade": "média",
-          "issue": "#281"
+          "php": "POST /estoque/transferencia-almoxarifados/{idEmpresa}/{id}/receber",
+          "descricao": "Receber transferência",
+          "store_metodo": "receberTransferencia (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         }
       ]
     },
@@ -1165,25 +1239,26 @@
         },
         {
           "thorse": "GET /usuario",
-          "php": "GET|POST /usuarios",
+          "php": "GET|POST /manutencao/usuarios",
           "descricao": "CRUD usuários",
-          "store_metodo": "migrado (apiPhp)",
+          "store_metodo": "UsuariosView direto (apiPhp)",
           "status": "migrado",
-          "prioridade": "-"
+          "prioridade": "-",
+          "observacao": "Path corrigido: /manutencao/usuarios (não /usuarios)"
         },
         {
           "thorse": "PUT /usuario/{id}",
-          "php": "PUT /usuarios/{id}",
+          "php": "PUT /manutencao/usuarios/{id}",
           "descricao": "Atualizar usuário",
-          "store_metodo": "migrado (apiPhp)",
+          "store_metodo": "UsuariosView direto (apiPhp)",
           "status": "migrado",
           "prioridade": "-"
         },
         {
           "thorse": "DELETE /usuario/{id}",
-          "php": "DELETE /usuarios/{id}",
+          "php": "DELETE /manutencao/usuarios/{id}",
           "descricao": "Inativar usuário",
-          "store_metodo": "migrado (apiPhp)",
+          "store_metodo": "UsuariosView direto (apiPhp)",
           "status": "migrado",
           "prioridade": "-"
         },
@@ -1334,12 +1409,13 @@
           "prioridade": "baixa"
         },
         {
-          "thorse": "-",
-          "php": "GET|POST /mensagens",
+          "thorse": "GET /msg/{idEmpresa}",
+          "php": "GET /manutencao/mensagens/{idEmpresa} | POST /manutencao/mensagens | PUT/DELETE /manutencao/mensagens/{idEmpresa}/{id}",
           "descricao": "Mensagens tributárias",
-          "store_metodo": "-",
-          "status": "disponivel",
-          "prioridade": "baixa"
+          "store_metodo": "MensagensView direto (apiPhp)",
+          "status": "migrado",
+          "prioridade": "-",
+          "observacao": "View migrada de apiStore.executarAcao para apiPhp"
         },
         {
           "thorse": "-",
@@ -1356,98 +1432,72 @@
       "itens": [
         {
           "thorse": "GET /mpo",
-          "php": "-",
+          "php": "GET|POST /vendas/mpos",
           "descricao": "Motivos de perda de orçamento",
-          "store_metodo": "THorse (store inteira)",
-          "status": "bloqueado",
-          "prioridade": "média",
-          "issue": "#285"
-        },
-        {
-          "thorse": "POST /mpo",
-          "php": "-",
-          "descricao": "Criar motivo de perda",
-          "store_metodo": "THorse",
-          "status": "bloqueado",
-          "prioridade": "média",
-          "issue": "#285"
+          "store_metodo": "listarMPO / cadastrarMPO (PHP)",
+          "status": "migrado",
+          "prioridade": "-",
+          "observacao": "Path corrigido: /vendas/mpos (não /mpo)"
         },
         {
           "thorse": "GET /terminalven/{idEmpresa}",
-          "php": "-",
+          "php": "GET|POST /admin/terminais-venda",
           "descricao": "Terminais de venda",
-          "store_metodo": "THorse",
-          "status": "bloqueado",
-          "prioridade": "média",
-          "issue": "#285"
-        },
-        {
-          "thorse": "POST /terminalven/{idEmpresa}",
-          "php": "-",
-          "descricao": "Criar terminal de venda",
-          "store_metodo": "THorse",
-          "status": "bloqueado",
-          "prioridade": "média",
-          "issue": "#285"
+          "store_metodo": "listarTerminais / cadastrarTerminal (PHP)",
+          "status": "migrado",
+          "prioridade": "-",
+          "observacao": "Path corrigido: /admin/terminais-venda"
         },
         {
           "thorse": "GET /ambiente/{idEmpresa}",
-          "php": "-",
-          "descricao": "Ambientes PDV",
-          "store_metodo": "THorse",
+          "php": "GET|POST /admin/terminais-venda/{terminal}/ambientes",
+          "descricao": "Ambientes PDV (API diferente: per-terminal)",
+          "store_metodo": "THorse (bloqueado — API PHP tem estrutura diferente)",
           "status": "bloqueado",
           "prioridade": "média",
-          "issue": "#285"
-        },
-        {
-          "thorse": "POST /ambiente/{idEmpresa}",
-          "php": "-",
-          "descricao": "Criar ambiente PDV",
-          "store_metodo": "THorse",
-          "status": "bloqueado",
-          "prioridade": "média",
-          "issue": "#285"
+          "issue": "#285",
+          "observacao": "PHP exige terminal_id na URL. View atual envia array de terminais. Requer adaptação."
         },
         {
           "thorse": "-",
-          "php": "GET|POST /cupom-fiscal",
+          "php": "GET|POST /vendas/cupom-fiscal",
           "descricao": "Cupom fiscal CRUD",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "média",
-          "observacao": "PHP tem CRUD completo de cupom fiscal + cálculo + emissão + cancelamento + XML"
+          "store_metodo": "listarCuponsFiscais / criarCupomFiscal (PHP)",
+          "status": "migrado",
+          "prioridade": "-",
+          "observacao": "Path corrigido: /vendas/cupom-fiscal (não /cupom-fiscal)"
         },
         {
           "thorse": "-",
-          "php": "POST /cupom-fiscal/calcular",
+          "php": "POST /vendas/cupom-fiscal/calcular",
           "descricao": "Pré-visualização cupom fiscal",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "média"
+          "store_metodo": "calcularCupomFiscal (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "-",
-          "php": "POST /cupom-fiscal/emitir",
+          "php": "POST /vendas/cupom-fiscal/emitir",
           "descricao": "Emitir cupom fiscal (persiste + salva XML no R2)",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "média"
+          "store_metodo": "emitirCupomFiscal (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "-",
-          "php": "POST /cupom-fiscal/{id}/cancelar",
+          "php": "POST /vendas/cupom-fiscal/{id}/cancelar",
           "descricao": "Cancelar cupom fiscal",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "média"
+          "store_metodo": "cancelarCupomFiscal (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         },
         {
           "thorse": "-",
-          "php": "GET /cupom-fiscal/{id}/xml",
+          "php": "GET /vendas/cupom-fiscal/{id}/xml",
           "descricao": "XML do cupom fiscal (Cloudflare R2)",
-          "store_metodo": "THorse",
-          "status": "disponivel",
-          "prioridade": "média"
+          "store_metodo": "obterXmlCupomFiscal (PHP)",
+          "status": "migrado",
+          "prioridade": "-"
         }
       ]
     },

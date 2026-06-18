@@ -367,7 +367,7 @@ const salvarFormulario = async () => {
 
   await produtosStore.cadastrarEntradaDfe(
       {
-        data: [normalizarForm(forms)],
+        ...normalizarForm(forms),
         item: produtos.value
       },
       idEmpresa?.id ?? 1
@@ -560,7 +560,7 @@ const lerXML = (file) => {
 
       // aguarda cadastro (tornar async para usar await)
       try {
-        await pessoasStore.cadastrarPessoa({ data: [{ ...payloadPessoa.value }] });
+        await pessoasStore.cadastrarPessoa({ ...payloadPessoa.value });
         // tentar recuperar o recém-criado no store
         const novo = pessoasStore.pessoas.find(p =>
             (payloadPessoa.value.cpf_cnpj && p.cpf_cnpj === payloadPessoa.value.cpf_cnpj) ||
@@ -599,7 +599,7 @@ const lerXML = (file) => {
 
         // aguarda cadastro (tornar async para usar await)
         try {
-          await pessoasStore.cadastrarPessoa({ data: [{ ...payloadPessoa.value }] });
+          await pessoasStore.cadastrarPessoa({ ...payloadPessoa.value });
           // tentar recuperar o recém-criado no store
           const novo = pessoasStore.pessoas.find(p =>
               (payloadPessoa.value.cpf_cnpj && p.cpf_cnpj === payloadPessoa.value.cpf_cnpj) ||

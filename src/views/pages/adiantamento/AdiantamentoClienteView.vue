@@ -955,25 +955,22 @@ const salvarLancamento = async () => {
     }
 
     const payload = {
-      data: [{
-        id_cliente: formData.id_pessoa,
-        id_empresa: idEmpresa,
-        id_caixahist: formData.local_lct === 'CAI' ? formData.id_hist_contabil_caixa : null,
-        id_caixa: formData.local_lct === 'CAI' ? formData.id_caixa : null,
-        id_ccorrente: formData.local_lct === 'BAN' ? formData.id_ccorrente : null,
-        id_historico: formData.local_lct === 'BAN' ? formData.id_historico : null,      
-        local_lct: formData.local_lct,
-        tipo: formData.tipo,
-        dtlancamento: formData.dtlancamento,
-        valor: parseFloat(formData.valor),
-        origem: 'ADT',
-        observacao: formData.observacao || null,
-        id_tipopagrec: formData.id_tipopagrec,
-        id_hist_contabil: formData.id_hist_contabil || null,
-        id_planoconta: formData.id_planoconta,
-        id_tipodocumento: formData.local_lct !== 'BAN' ? formData.id_tipodocumento : null,
-        nrdocumento: formData.nrdocumento || null
-      }]
+      id_cliente: formData.id_pessoa,
+      id_caixahist: formData.local_lct === 'CAI' ? formData.id_hist_contabil_caixa : null,
+      id_caixa: formData.local_lct === 'CAI' ? formData.id_caixa : null,
+      id_ccorrente: formData.local_lct === 'BAN' ? formData.id_ccorrente : null,
+      id_historico: formData.local_lct === 'BAN' ? formData.id_historico : null,      
+      local_lct: formData.local_lct,
+      tipo: formData.tipo,
+      dtlancamento: formData.dtlancamento,
+      valor: parseFloat(formData.valor),
+      origem: 'ADT',
+      observacao: formData.observacao || null,
+      id_tipopagrec: formData.id_tipopagrec,
+      id_hist_contabil: formData.id_hist_contabil || null,
+      id_planoconta: formData.id_planoconta,
+      id_tipodocumento: formData.local_lct !== 'BAN' ? formData.id_tipodocumento : null,
+      nrdocumento: formData.nrdocumento || null
     }
 
     console.log('Payload a ser enviado:', payload)

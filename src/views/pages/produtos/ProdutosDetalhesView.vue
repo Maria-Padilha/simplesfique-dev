@@ -1082,11 +1082,7 @@ const excluirProduto = async () => {
  */
 
 const atualizarProduto = async () => {
-  await produtosStore.atualizarProduto(id, {
-    data: [
-      forms.value
-    ]
-  });
+  await produtosStore.atualizarProduto(id, forms.value);
 };
 
 /** ================== EMBALAGENS ================== **/
@@ -1166,17 +1162,9 @@ const salvarFormulario = async () => {
   }
 
   if (editandoEmb.value) {
-    await produtosStore.atualizarEmbalagem(id, itemSelecionado.value.id, {
-      data: [
-        formsEmbalagem
-      ]
-    });
+    await produtosStore.atualizarEmbalagem(id, itemSelecionado.value.id, formsEmbalagem);
   } else {
-    await produtosStore.cadastrarEmbalagem({
-      data: [
-        formsEmbalagem
-      ]
-    }, id);
+    await produtosStore.cadastrarEmbalagem(formsEmbalagem, id);
   }
 
   cancelarFormulario();
@@ -1259,17 +1247,9 @@ const salvarFormularioFor = async () => {
   }
 
   if (editandoFor.value) {
-    await produtosStore.atualizarFornecedor(id, itemSelecionadoFor.value.id_pessoa, {
-      data: [
-        formsFornecedor
-      ]
-    });
+    await produtosStore.atualizarFornecedor(id, itemSelecionadoFor.value.id_pessoa, formsFornecedor);
   } else {
-    await produtosStore.cadastrarFornecedor({
-      data: [
-        formsFornecedor
-      ]
-    }, id);
+    await produtosStore.cadastrarFornecedor(formsFornecedor, id);
   }
 
   cancelarFormularioFor();
@@ -1354,17 +1334,9 @@ const salvarFormularioSimilar = async () => {
   }
 
   if (editandoSimilar.value) {
-    await produtosStore.atualizarProdutoSimilar(id, itemSelecionadoSimilar.value.id_similar, {
-      data: [
-        formsSimilar
-      ]
-    });
+    await produtosStore.atualizarProdutoSimilar(id, itemSelecionadoSimilar.value.id_similar, formsSimilar);
   } else {
-    await produtosStore.cadastrarProdutoSimilar({
-      data: [
-        formsSimilar
-      ]
-    }, id);
+    await produtosStore.cadastrarProdutoSimilar(formsSimilar, id);
   }
 
   cancelarFormularioSimilar();
@@ -1422,17 +1394,9 @@ const salvarFormularioTributo = async () => {
   }
 
   if (editandoTributo.value) {
-    await produtosStore.atualizarTributo(idEmpresa?.id, id, {
-      data: [
-        formsTributo
-      ]
-    });
+    await produtosStore.atualizarTributo(idEmpresa?.id, id, formsTributo);
   } else {
-    await produtosStore.cadastrarTributo({
-      data: [
-        formsTributo
-      ]
-    }, idEmpresa?.id, id);
+    await produtosStore.cadastrarTributo(formsTributo, idEmpresa?.id, id);
   }
 
   cancelarFormularioTributo();

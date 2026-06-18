@@ -21,7 +21,7 @@ const https = require('https');
 // ============================================================
 // CONFIGURAÇÃO
 // ============================================================
-const PHP_API = process.env.PHP_API || 'http://192.168.10.51:8000/api/v1';
+const PHP_API = process.env.PHP_API || 'http://192.168.10.67:8000/api/v1';
 const THORSE_API = process.env.THORSE_API || 'http://192.168.10.100:9005';
 const TOKEN = process.env.TOKEN || '';
 const USUARIO = process.env.USUARIO || '';

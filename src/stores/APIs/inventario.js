@@ -316,7 +316,6 @@ export const useInventarioStore = defineStore('inventario', {
 
     /**
      * Busca a grade de produtos de um almoxarifado para o inventário
-     * ⚠️ BLOQUEADO — sem endpoint PHP documentado, mantido THorse
      * @param {number} idEmpresa - ID da empresa
      * @param {number} idAlmoxarifado - ID do almoxarifado
      * @param {object} [filtros] - Filtros opcionais
@@ -333,21 +332,21 @@ export const useInventarioStore = defineStore('inventario', {
       }
 
       // Montar query params ignorando valores nulos/undefined
-      const params = {}
-      if (filtros.idpro) params.idpro = filtros.idpro
-      if (filtros.idgrp) params.idgrp = filtros.idgrp
-      if (filtros.idsbg) params.idsbg = filtros.idsbg
-      if (filtros.idmar) params.idmar = filtros.idmar
-      if (filtros.idloc) params.idloc = filtros.idloc
+      const params = {
+        id_empresa: idEmpresa,
+        id_almoxarifado: idAlmoxarifado
+      }
+      if (filtros.idpro) params.id_produto = filtros.idpro
+      if (filtros.idgrp) params.id_grupo = filtros.idgrp
+      if (filtros.idsbg) params.id_subgrupo = filtros.idsbg
+      if (filtros.idmar) params.id_marca = filtros.idmar
+      if (filtros.idloc) params.id_localizacao = filtros.idloc
 
       this.loading = true
       try {
-        const response = await api.get(`/inventarioitem/${idEmpresa}/${idAlmoxarifado}`, {
-          headers: { Authorization: `Bearer ${this.token}` },
-          params
-        })
+        const response = await apiPhp.get('/estoque/inventario-itens', { params })
 
-        this.gridProdutos = response.data.data || response.data || []
+        this.gridProdutos = response.data?.data ?? response.data ?? []
         return response.data
       } catch (error) {
         toast.error('Erro ao carregar produtos do almoxarifado')

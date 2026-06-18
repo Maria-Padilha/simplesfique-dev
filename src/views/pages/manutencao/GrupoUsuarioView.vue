@@ -353,7 +353,7 @@ import { useGrupoUsuarioStore } from '@/stores/APIs/grupousuario'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 import { toast } from 'vue3-toastify'
-import api from '@/services/api'
+import apiPhp from '@/services/apiPhp'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 const themeStore = useThemeStore()
@@ -525,23 +525,15 @@ const carregarPermissoesDoModulo = async (codigoModulo) => {
   carregandoPermissoesPorModulo.value[codigoModulo] = true
 
   try {
-    const token = localStorage.getItem('token')
-    console.log('Token:', token ? 'Presente' : 'Não encontrado')
-
-    const url = `/grupousuarioprog/${idGrupo}/modulovst/${codigoModulo}`
+    const url = `/manutencao/grupo-usuario-programas/${idGrupo}/modulo/${codigoModulo}`
     console.log('URL da requisição:', url)
 
-    const response = await api.get(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
+    const response = await apiPhp.get(url)
 
     console.log('Resposta recebida:', response.data)
 
     if (response.data) {
-      const dados = Array.isArray(response.data.data) ? response.data.data : (Array.isArray(response.data) ? response.data : [])
+      const dados = Array.isArray(response.data) ? response.data : []
       permissoesPorModuloData.value[codigoModulo] = dados
       console.log(`Permissões carregadas para ${codigoModulo}:`, dados)
 
@@ -575,7 +567,6 @@ const atualizarPermissao = async (permissao, campo, valor) => {
 
 const salvarTodasPermissoesDoModulo = async (codigoModulo) => {
   try {
-    const token = localStorage.getItem('token')
     const permissoes = permissoesPorModulo(codigoModulo)
 
     // Construir payload com todos os programas do módulo
@@ -591,18 +582,12 @@ const salvarTodasPermissoesDoModulo = async (codigoModulo) => {
 
     console.log('Enviando payload com', payload.length, 'programas:', payload)
 
-    const response = await api.post(
-      `/grupousuarioprog/${grupoSelecionado.value.id}`,
-      { data: payload },
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      }
+    await apiPhp.post(
+      `/manutencao/grupo-usuario-programas/${grupoSelecionado.value.id}`,
+      payload
     )
 
-    console.log('Permissões salvas com sucesso:', response.data)
+    console.log('Permissões salvas com sucesso')
     toast.success('Permissões atualizadas com sucesso')
   } catch (error) {
     console.error('Erro ao salvar permissões:', error)

@@ -316,17 +316,11 @@ const removerGrupo = (id) => {
 }
 
 const montarPayload = () => {
-  const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
-  const idEmpresa = empresaSelecionada?.id
-
   return {
-    data: [{
-      idempresa: idEmpresa,
-      descambiente: formData.descambiente,
-      imp_rede: formData.imp_rede || null,
-      imp_nome: formData.imp_nome || null,
-      imp_ipc: formData.imp_ipc || null
-    }],
+    descambiente: formData.descambiente,
+    imp_rede: formData.imp_rede || null,
+    imp_nome: formData.imp_nome || null,
+    imp_ipc: formData.imp_ipc || null,
     terminal: formData.terminais.map(id => ({ id_terminal: id })),
     grupo: formData.grupos.map(g => ({ id_grupo: g.id }))
   }
