@@ -413,78 +413,49 @@ describe('useCaixaStore', () => {
     })
   })
 
-  describe('buscarHistoricoMovimentacao (THorse API)', () => {
-    beforeEach(() => {
-      localStorage.setItem('token', 'fake-token')
-    })
-
+  describe('buscarHistoricoMovimentacao (apiPhp)', () => {
     it('busca histórico com sucesso', async () => {
       const historicoMock = [{ id: 1, tipo: 'entrada', valor: 500 }]
-      mockApi.get.mockResolvedValueOnce({ data: { data: historicoMock } })
+      mockApiPhp.get.mockResolvedValueOnce({ data: { data: historicoMock } })
 
       const store = useCaixaStore()
-      const result = await store.buscarHistoricoMovimentacao(1)
+      const result = await store.buscarHistoricoMovimentacao()
 
-      expect(mockApi.get).toHaveBeenCalledWith('caixahistmov/1', {
-        headers: { Authorization: 'Bearer fake-token' },
-      })
+      expect(mockApiPhp.get).toHaveBeenCalledWith('/financeiro/caixa-movimentos')
       expect(store.historicoMovimentacao).toEqual(historicoMock)
       expect(store.errorMessage).toBe('')
       expect(result).toEqual({ data: historicoMock })
     })
 
-    it('retorna null se não há token', async () => {
-      localStorage.removeItem('token')
+    it('retorna array vazio em caso de erro', async () => {
+      mockApiPhp.get.mockRejectedValueOnce(new Error('Erro'))
 
       const store = useCaixaStore()
-      const result = await store.buscarHistoricoMovimentacao(1)
-
-      expect(result).toBeNull()
-      expect(store.errorMessage).toBe('Token não encontrado!')
-      expect(store.loading).toBe(false)
-    })
-
-    it('retorna null se não há idEmpresa', async () => {
-      localStorage.setItem('token', 'fake-token')
-
-      const store = useCaixaStore()
-      const result = await store.buscarHistoricoMovimentacao(null)
-
-      expect(result).toBeNull()
-      expect(store.errorMessage).toBe('ID da empresa não encontrado!')
-    })
-
-    it('trata erro na busca', async () => {
-      localStorage.setItem('token', 'fake-token')
-      mockApi.get.mockRejectedValueOnce(new Error('Erro'))
-
-      const store = useCaixaStore()
-      const result = await store.buscarHistoricoMovimentacao(1)
+      const result = await store.buscarHistoricoMovimentacao()
 
       expect(result).toBeNull()
       expect(store.errorMessage).toBe('Erro')
+      expect(store.loading).toBe(false)
     })
   })
 
-  describe('buscarUsuariosPorCaixa (THorse API)', () => {
+  describe('buscarUsuariosPorCaixa (apiPhp)', () => {
     it('busca usuários do caixa', async () => {
-      localStorage.setItem('token', 'token123')
-      mockApi.get.mockResolvedValueOnce({ data: { data: [{ id: 1, nome: 'Usuário' }] } })
+      const usuariosMock = [{ id: 1, nome: 'Usuário' }]
+      mockApiPhp.get.mockResolvedValueOnce({ data: { data: usuariosMock } })
 
       const store = useCaixaStore()
-      const result = await store.buscarUsuariosPorCaixa(1, 5)
+      const result = await store.buscarUsuariosPorCaixa(1)
 
-      expect(mockApi.get).toHaveBeenCalledWith('caixausu/1/id/5', {
-        headers: { Authorization: 'Bearer token123' },
-      })
-      expect(result).toEqual({ data: [{ id: 1, nome: 'Usuário' }] })
+      expect(mockApiPhp.get).toHaveBeenCalledWith('/financeiro/caixas/1/usuarios')
+      expect(result).toEqual({ data: usuariosMock })
     })
 
     it('retorna null em caso de erro', async () => {
-      mockApi.get.mockRejectedValueOnce(new Error('Erro'))
+      mockApiPhp.get.mockRejectedValueOnce(new Error('Erro'))
 
       const store = useCaixaStore()
-      const result = await store.buscarUsuariosPorCaixa(1, 5)
+      const result = await store.buscarUsuariosPorCaixa(1)
 
       expect(result).toBeNull()
     })
