@@ -599,14 +599,25 @@ export const useEstoqueStore = defineStore('estoque', {
          * @return {Promise<void>}
          */
 
+        /**
+         * CADASTRAR CFOP
+         * @deprecated THorse offline - sem endpoint PHP de escrita
+         * @param {Object} cfopData - Dados do CFOP a ser cadastrado.
+         * @return {Promise<void>}
+         */
         async cadastrarCfop(cfopData) {
             this.loading = true;
             try {
                 const apiStore = useApiStore();
                 await apiStore.executarAcao('cfop', 'post', cfopData);
                 await this.buscarCfops();
+                toast.success('CFOP cadastrado com sucesso!');
             } catch (error) {
-                console.error('Erro ao cadastrar CFOP:', error);
+                const msg = error?.response?.data?.message
+                    || error?.validationMessage
+                    || 'Operação de CFOP temporariamente indisponível. Tente novamente mais tarde.';
+                toast.error(msg);
+                console.error('[CFOP] Erro ao cadastrar:', error);
             } finally {
                 this.loading = false;
             }
@@ -614,19 +625,24 @@ export const useEstoqueStore = defineStore('estoque', {
 
         /**
          * EDITAR CFOP
+         * @deprecated THorse offline - sem endpoint PHP de escrita
          * @param {number} id - ID do CFOP a ser editado.
          * @param {Object} cfopData - Dados do CFOP a ser editado.
          * @return {Promise<void>}
          */
-
         async editarCfop(id, cfopData) {
             this.loading = true;
             try {
                 const apiStore = useApiStore();
                 await apiStore.executarAcao(`cfop/${id}`, 'put', cfopData);
                 await this.buscarCfops();
+                toast.success('CFOP atualizado com sucesso!');
             } catch (error) {
-                console.error('Erro ao editar CFOP:', error);
+                const msg = error?.response?.data?.message
+                    || error?.validationMessage
+                    || 'Operação de CFOP temporariamente indisponível. Tente novamente mais tarde.';
+                toast.error(msg);
+                console.error('[CFOP] Erro ao editar:', error);
             } finally {
                 this.loading = false;
             }
@@ -634,18 +650,23 @@ export const useEstoqueStore = defineStore('estoque', {
 
         /**
          * DELETAR CFOP
+         * @deprecated THorse offline - sem endpoint PHP de escrita
          * @param {number} id - ID do CFOP a ser deletado.
          * @return {Promise<void>}
          */
-
         async deletarCfop(id) {
             this.loading = true;
             try {
                 const apiStore = useApiStore();
                 await apiStore.executarAcao(`cfop/${id}`, 'delete');
                 await this.buscarCfops();
+                toast.success('CFOP excluído com sucesso!');
             } catch (error) {
-                console.error('Erro ao deletar CFOP:', error);
+                const msg = error?.response?.data?.message
+                    || error?.validationMessage
+                    || 'Operação de CFOP temporariamente indisponível. Tente novamente mais tarde.';
+                toast.error(msg);
+                console.error('[CFOP] Erro ao deletar:', error);
             } finally {
                 this.loading = false;
             }
