@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import api from '@/services/api'
 import apiPhp from '@/services/apiPhp'
 import { toast } from 'vue3-toastify'
 
