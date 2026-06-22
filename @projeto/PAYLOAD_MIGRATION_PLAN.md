@@ -1,6 +1,6 @@
 # Plano de Migração — Payloads Delphi/THorse → Laravel
 
-> **Problema:** O frontend envia payloads no formato Delphi/THorse `{ data: [ {...} ] }`, mas o backend Laravel espera objetos **flat** (diretos). Isso impede que POST/PUT funcionem: os `Form Request` do Laravel não encontram os campos dentro de `data[0]`.
+> **Problema:** Algumas views ainda enviam payloads no formato Delphi/THorse `{ data: [ {...} ] }`, mas o backend Laravel espera objetos **flat** (diretos). A maioria das views já foi corrigida durante a migração das stores. Restam apenas casos pontuais.
 
 ---
 
@@ -73,94 +73,35 @@ curl -X POST /api/v1/financeiro/conta-correntes \
 
 ---
 
-## 3. Stores Que Já Estão Corretas (Flat — NÃO PRECISAM DE ALTERAÇÃO)
+## 3. Situação Atual (pós-migração)
 
-Estas stores já enviam payload flat diretamente via `apiPhp.post()`:
+A maioria das views e stores já foi corrigida. As stores de `financeiro.js`, `caixa.js` e `config.js` têm camada de compatibilidade (normalizam `payload.data[0]` → flat).
 
-| Store | Status | Observação |
-|-------|--------|------------|
-| `caixa.js` | ✅ OK | Já envia flat |
-| `config.js` | ✅ OK | Já normaliza do Delphi para flat |
-| `pessoas.js` | ✅ OK | Já envia flat |
-| `produtos.js` | ✅ OK | Maioria flat |
-| `estoque.js` | ✅ OK | Todos flat |
-| `empresa.js` | ✅ OK | Flat |
-| `ccusto.js` | ✅ OK | Flat |
-| `inventario.js` | ✅ OK | Flat |
-| `agenda.js` | ✅ OK | Flat |
-| `financeiro.js` | ✅ OK | Métodos migrados já são flat |
-| `integracoes.js` | ✅ OK | Flat |
-| `grupousuario.js` | ✅ OK | Flat |
-| `acesso.js` | ✅ OK | Flat |
-| `localizacao.js` | ✅ OK | Flat |
+### ✅ Já corrigidas
+- **FASE 1 completa:** ContaCorrente, Pagar, Receber, Movimentação, LancCaixa, AberCaixa, LancamentoColab — todas enviam flat
+- **FASE 2 completa:** ProdutosDetalhes, Produtos, ProdutoGrade, EntradaDfe, Devolução, Importar, Local — todas flat
+- **FASE 3 completa:** Grupos, Classes, Aliquotauf, Formula, Cest, TransfAlmox, Inventário, GrupoTributação — todas flat
+- **FASE 4 completa:** AdiantamentoCliente, AdiantamentoFornecedor — stores migradas para `apiPhp`
+- **FASE 5 completa:** Usuários, Mensagens, DRE — todas corrigidas
 
----
+### ❌ Remanescentes (5 ocorrências em 4 views)
 
-## 4. Stores Que Ainda Usam THorse `api` (Wrapper Delphi)
+| View | Store | Payload Atual | Corrigido? |
+|------|-------|--------------|------------|
+| `EmpresaView.vue:489` | `empresaStore.cadastrarEmpresa` | `{ data: [data.value] }` → PHP rejeita | ✅ **CORRIGIDO** |
+| `ProdutosDetalhesView.vue:1564` | `produtosStore.salvarFotoBanco` | `{ data: [{ id_produto, r2key }] }` → THorse | 🔴 Bloqueado (#293) |
+| `ProdutosDetalhesView.vue:1604` | `produtosStore.deletarFotoBanco` | `{ data: [{ r2key }] }` → THorse | 🔴 Bloqueado (#293) |
+| `FormulaView 2.vue:200` | `estoqueStore.cadastrarFormula` | `{ data: [{ ... }] }` | 🔴 Arquivo duplicado (não usado pelo router) |
+| `AliquotaUfView 2.vue:815` | `estoqueStore.cadastrarAliquota` | `{ data: [{ ... }] }` | 🔴 Arquivo duplicado (não usado pelo router) |
 
-| Store | Métodos | Payload | Destino |
-|-------|---------|---------|---------|
-| `vendas.js` | `criarMpo`, `atualizarMpo`, `criarTerminal`, `atualizarTerminal`, `criarAmbiente`, `atualizarAmbiente` | `{ data: [data] }` | Migrar para `apiPhp` + flat |
-| `adiantamento.js` | Métodos que usam `api` (THorse) | `{ data: [data] }` | Migrar para `apiPhp` + flat |
-| `transfalmox.js` | `criarEnvio`, `criarRec` | `{ data: [data] }` | Migrar para `apiPhp` + flat |
+### Store methods com normalização (compatibilidade)
+| Store | Métodos |
+|-------|---------|
+| `financeiro.js` | `criarContaPagar`, `atualizarContaPagar`, `criarContaReceber`, `atualizarContaReceber`, `baixarPagamentos`, `baixarContasReceber` |
+| `caixa.js` | Vários métodos |
+| `config.js` | `cadastrarParfin`, `alterarParfin`, `cadastrarParametrosFinanceiros*` |
 
----
-
-## 5. Views Que Precisam Ser Modificadas
-
-### FASE 1 — Financeiro Core (7 views, PRIORIDADE MÁXIMA)
-
-| View | Linhas | O que mudar |
-|------|--------|-------------|
-| `ContaCorrenteView.vue` | 1080, 1483 | Remover `{ data: [data], chavepix: [...] }` → enviar `data` direto |
-| `PagarView.vue` | 2531 | Remover `{ data: [dadosPrincipais], ... }` → flat |
-| `ReceberView.vue` | 1812 | Remover `{ data: [dadosPrincipais], ... }` → flat |
-| `MovimentacaoView.vue` | 1265 | Remover `{ data: [{...}] }` → flat |
-| `LancCaixaView.vue` | 1327 | Remover `{ data: [{...}] }` → flat |
-| `AberCaixaView.vue` | 498 | Remover `{ data: [{...}] }` → flat |
-| `LancamentoColabView.vue` | 942 | Remover `{ data: [{...}] }` → flat |
-
-### FASE 2 — Produtos (10 views)
-
-| View | Ocorrências | Complexidade |
-|------|-------------|-------------|
-| `ProdutosDetalhesView.vue` | ~10 | Alta (muitos subarrays) |
-| `ProdutosView.vue` | 3 | Média |
-| `ProdutoGradeView.vue` | 3 | Média |
-| `EntradaDfeNovaView.vue` | 3 | Alta (payloads aninhados) |
-| `DevolucaoEntradaNovaView.vue` | 1 | Média |
-| `ImportarProdutoView.vue` | 1 | Média |
-| `ProdutosLocalView.vue` | 2 | Baixa |
-
-### FASE 3 — Estoque (9 views)
-
-| View | Ocorrências | Complexidade |
-|------|-------------|-------------|
-| `GruposView.vue` | 4 | Média |
-| `ClassesView.vue` | 2 | Baixa |
-| `AliquotaUfView.vue` | 1 | Média |
-| `FormulaView.vue` | 2 | Baixa |
-| `CestView.vue` | 2 | Média |
-| `TransfAlmoxView.vue` | 2 | Alta |
-| `InventarioView.vue` | 1 | Baixa |
-| `GrupoTributacaoView.vue` | 2 | Baixa |
-
-### FASE 4 — Adiantamento + Vendas
-
-| View | Ocorrências | Observação |
-|------|-------------|------------|
-| `AdiantamentoClienteView.vue` | 1 | Store ainda usa THorse |
-| `AdiantamentoFornecedorView.vue` | 1 | Store ainda usa THorse |
-| `AmbienteView.vue` | 1 | Store ainda usa THorse |
-
-### FASE 5 — Manutenção/Config
-
-| View | Ocorrências | Observação |
-|------|-------------|------------|
-| `UsuariosView.vue` | 2 | Baixa complexidade |
-| `MensagensView.vue` | 2 | Baixa complexidade |
-| `DreView.vue` | 1 | Média complexidade |
-| `DreView 2.vue` | 1 | Média (arquivo duplicado, verificar) |
+> **Nota:** Métodos de `financeiro.js`, `caixa.js` e `config.js` normalizam automaticamente `payload.data[0]` para flat, mantendo compatibilidade com ambas as chamadas. Views que chamam esses stores não precisam de alteração.
 
 ---
 
@@ -278,45 +219,17 @@ ParametrosFinanceirosPagarRequest, ParametrosFinanceirosReceberRequest
 
 ---
 
-## 10. Priorização e Próximos Passos
+## 10. Status Atual
 
-### FASE 1 (IMEDIATO) — Financeiro Core
-1. `ContaCorrenteView.vue` ← já temos o diagnóstico completo
-2. `MovimentacaoView.vue`
-3. `LancCaixaView.vue`
-4. `AberCaixaView.vue`
-5. `LancamentoColabView.vue`
-6. `PagarView.vue`
-7. `ReceberView.vue`
-
-### FASE 2 — Produtos (após Financeiro)
-8-17: Views de produtos (ver tabela Fase 2)
-
-### FASE 3 — Estoque (após Produtos)
-18-26: Views de estoque (ver tabela Fase 3)
-
-### FASE 4 — Stores THorse (paralelo com Fase 1-3)
-- `vendas.js` → migrar para `apiPhp` + flat
-- `adiantamento.js` → migrar para `apiPhp` + flat
-- `transfalmox.js` → migrar para `apiPhp` + flat
-
-### FASE 5 — Views de Vendas/Adiantamento (após Fase 4)
-- `AdiantamentoClienteView.vue`, `AdiantamentoFornecedorView.vue`, `AmbienteView.vue`
-
-### FASE 6 — Views de Manutenção (baixa prioridade)
-- `UsuariosView.vue`, `MensagensView.vue`, `DreView.vue`
+- ✅ **FASE 1-6 concluídas** — praticamente todas as views já enviam payload flat
+- ✅ **Normalização** — stores core (financeiro, caixa, config) têm compatibilidade bidirecional
+- 🔴 **2 views bloqueadas** — `ProdutosDetalhesView.vue` (profoto) depende do backend criar endpoints PHP (issue #293)
+- 🔴 **2 views duplicadas** — `FormulaView 2.vue`, `AliquotaUfView 2.vue` (não usadas pelo router)
 
 ---
 
-## 11. Estimativa de Esforço
+## 11. O Que Falta
 
-| Fase | Views | Esforço estimado | Depende de |
-|------|-------|------------------|------------|
-| Fase 1 | 7 | 3-4 dias | Nada |
-| Fase 2 | 10 | 4-5 dias | Nada |
-| Fase 3 | 9 | 2-3 dias | Nada |
-| Fase 4 | 3 stores | 1-2 dias | Nada |
-| Fase 5 | 3 views | 1 dia | Fase 4 |
-| Fase 6 | 4 views | 1 dia | Nada |
-
-**Total estimado:** 12-16 dias de trabalho, podendo ser paralelizado.
+1. **Desbloquear #293** — criar endpoints PHP para `/profoto`, `/medida`, etc.
+2. **Corrigir views bloqueadas** em `ProdutosDetalhesView.vue` (após #293)
+3. **Cleanup opcional** — remover camada de normalização nas stores quando não for mais necessária

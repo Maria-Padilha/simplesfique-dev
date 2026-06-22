@@ -1,5 +1,4 @@
 import {defineStore} from "pinia"
-import api from "@/services/api";
 import apiPhp from "@/services/apiPhp";
 import {useApiStore} from "@/stores/APIs/api";
 import {toast} from "vue3-toastify";
@@ -680,16 +679,13 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/aliquotauf/${emp}?find=${uf}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
+                const response = await apiPhp.get('/estoque/aliquota-ufs', {
+                    params: { id_empresa: emp, find: uf }
                 });
 
-                this.aliquotas = response.data.data;
+                const data = Array.isArray(response.data) ? response.data : response.data?.data ?? [];
+                this.aliquotas = data;
                 this.errorMessage = '';
-
-                console.log('Alíquotas encontradas:', this.aliquotas);
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';

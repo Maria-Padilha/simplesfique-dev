@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import api from '@/services/api'
 import apiPhp from '@/services/apiPhp'
 import { toast } from 'vue3-toastify'
 
@@ -232,12 +231,13 @@ export const useInventarioStore = defineStore('inventario', {
 
       this.loading = true
       try {
-        const response = await api.get(`/proalmox/${idEmpresa}/${idAlmoxarifado}/${idProduto}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.get(`/estoque/produto-almoxarifados/${idEmpresa}/${idAlmoxarifado}/${idProduto}`)
 
-        return response.data.data || response.data || null
+        return response.data?.data ?? response.data ?? null
       } catch (error) {
+        if (error.response?.status === 404) {
+          return null
+        }
         toast.error('Erro ao consultar saldo do produto')
         throw error
       } finally {

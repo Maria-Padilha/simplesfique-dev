@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import api from '@/services/api'
 import apiPhp from '@/services/apiPhp'
 import { toast } from 'vue3-toastify'
 
@@ -15,10 +14,6 @@ export const useVendasStore = defineStore('vendas', {
   }),
 
   actions: {
-    getAuthHeaders() {
-      const token = localStorage.getItem('token')
-      return { Authorization: `Bearer ${token}` }
-    },
 
     // ========== MOTIVO DE PERDA DE ORÇAMENTO ==========
 
@@ -257,8 +252,7 @@ export const useVendasStore = defineStore('vendas', {
 
     /**
      * LISTAR AMBIENTES
-     * @blocked: THorse offline e PHP tem API diferente (per-terminal)
-     * Pendente de adaptação da view para PHP
+     * GET /api/v1/vendas/ambientes
      *
      * @return {Promise<void>}
      */
@@ -266,11 +260,9 @@ export const useVendasStore = defineStore('vendas', {
       this.loading = true
 
       try {
-        const response = await api.get('/ambientes', {
-          headers: this.getAuthHeaders()
-        })
+        const response = await apiPhp.get('/vendas/ambientes')
 
-        this.ambientes = response.data?.data || response.data || []
+        this.ambientes = Array.isArray(response.data) ? response.data : response.data?.data ?? []
         this.errorMessage = ''
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao buscar ambientes'
@@ -283,8 +275,7 @@ export const useVendasStore = defineStore('vendas', {
 
     /**
      * CADASTRAR AMBIENTE
-     * @blocked: THorse offline e PHP tem API diferente (per-terminal)
-     * Pendente de adaptação da view para PHP
+     * POST /api/v1/admin/terminais-venda/{terminalId}/ambientes
      *
      * @param {Object} payload - { descambiente, imp_rede, imp_nome, imp_ipc, terminal: [...], grupo: [...] }
      * @return {Promise<Object|null>}
@@ -293,15 +284,25 @@ export const useVendasStore = defineStore('vendas', {
       this.loading = true
 
       try {
-        const terminal = payload.terminal || []
         const grupo = payload.grupo || []
-        const flatPayload = { ...payload, terminal, grupo }
-        delete flatPayload.idempresa
+        const terminalId = Array.isArray(payload.terminal) && payload.terminal.length > 0
+          ? payload.terminal[0].id_terminal
+          : null
 
-        // THorse espera wrapper Delphi { data: [{ ... }] }
-        const response = await api.post('/ambientes', { data: [flatPayload] }, {
-          headers: this.getAuthHeaders()
-        })
+        if (!terminalId) {
+          toast.error('Selecione ao menos um terminal')
+          return null
+        }
+
+        const body = {
+          descambiente: payload.descambiente,
+          imp_rede: payload.imp_rede || null,
+          imp_nome: payload.imp_nome || null,
+          imp_ipc: payload.imp_ipc || null,
+          grupo: grupo.map(g => ({ id_grupo: g.id_grupo }))
+        }
+
+        const response = await apiPhp.post(`/admin/terminais-venda/${terminalId}/ambientes`, body)
 
         this.successMessage = 'Ambiente cadastrado com sucesso!'
         this.errorMessage = ''
@@ -320,8 +321,7 @@ export const useVendasStore = defineStore('vendas', {
 
     /**
      * ALTERAR AMBIENTE
-     * @blocked: THorse offline e PHP tem API diferente (per-terminal)
-     * Pendente de adaptação da view para PHP
+     * PUT /api/v1/admin/terminais-venda-ambientes/{id}
      *
      * @param {number} id
      * @param {Object} payload - { descambiente, imp_rede, imp_nome, imp_ipc, terminal: [...], grupo: [...] }
@@ -331,15 +331,16 @@ export const useVendasStore = defineStore('vendas', {
       this.loading = true
 
       try {
-        const terminal = payload.terminal || []
         const grupo = payload.grupo || []
-        const flatPayload = { ...payload, terminal, grupo }
-        delete flatPayload.idempresa
+        const body = {
+          descambiente: payload.descambiente,
+          imp_rede: payload.imp_rede || null,
+          imp_nome: payload.imp_nome || null,
+          imp_ipc: payload.imp_ipc || null,
+          grupo: grupo.map(g => ({ id_grupo: g.id_grupo }))
+        }
 
-        // THorse espera wrapper Delphi { data: [{ ... }] }
-        const response = await api.put(`/ambientes/${id}`, { data: [flatPayload] }, {
-          headers: this.getAuthHeaders()
-        })
+        const response = await apiPhp.put(`/admin/terminais-venda-ambientes/${id}`, body)
 
         this.successMessage = 'Ambiente atualizado com sucesso!'
         this.errorMessage = ''
@@ -358,8 +359,7 @@ export const useVendasStore = defineStore('vendas', {
 
     /**
      * DELETAR AMBIENTE
-     * @blocked: THorse offline e PHP tem API diferente (per-terminal)
-     * Pendente de adaptação da view para PHP
+     * DELETE /api/v1/admin/terminais-venda-ambientes/{id}
      *
      * @param {number} id
      * @return {Promise<boolean>}
@@ -368,9 +368,7 @@ export const useVendasStore = defineStore('vendas', {
       this.loading = true
 
       try {
-        await api.delete(`/ambientes/${id}`, {
-          headers: this.getAuthHeaders()
-        })
+        await apiPhp.delete(`/admin/terminais-venda-ambientes/${id}`)
 
         this.successMessage = 'Ambiente deletado com sucesso!'
         this.errorMessage = ''

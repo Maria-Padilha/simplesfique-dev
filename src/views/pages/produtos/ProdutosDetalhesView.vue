@@ -1505,6 +1505,7 @@ const carregarFotosR2 = async () => {
             const presigned = await getPresignedUrl(key);
 
             return {
+              id: foto.id,
               id_produto: foto.id_produto,
               descproduto: foto.descproduto,
               key,
@@ -1534,6 +1535,7 @@ const carregarFotosR2 = async () => {
 const selecionarFotoR2 = (foto) => {
   form.value.foto_key = foto.key;
   form.value.foto_url = foto.url;
+  form.value.foto_id = foto.id;
   previewImagem.value = foto.url;
 };
 
@@ -1561,12 +1563,8 @@ const uploadFotoProduto = async () => {
     }
 
     await produtosStore.salvarFotoBanco({
-      data: [
-        {
-          id_produto: Number(id),
-          r2key: key,
-        },
-      ],
+      id_produto: Number(id),
+      r2key: key,
     });
 
     form.value.foto_key = key;
@@ -1600,13 +1598,8 @@ const removerFotoProduto = async () => {
     await produtosStore.deleteFile(key);
 
     // 2. Se deu certo, apaga no banco
-    await produtosStore.deletarFotoBanco(Number(id), {
-      data: [
-        {
-          r2key: normalizarKey(key),
-        },
-      ],
-    });
+    await produtosStore.deletarFotoBanco(Number(id), form.value.foto_id);
+    form.value.foto_id = null;
 
     // 3. Limpa tela
     form.value.foto_key = null;

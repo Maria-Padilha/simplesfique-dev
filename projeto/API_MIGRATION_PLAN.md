@@ -10,23 +10,28 @@
 | Métrica | Total |
 |---------|-------|
 | Stores existentes | 23 |
-| 100% migradas (só `apiPhp`) | 16 (70%) |
-| Parcialmente migradas (`api` + `apiPhp`) | 5 (22%) |
+| 100% migradas (só `apiPhp`) | 20 (87%) |
+| Parcialmente migradas (`api` + `apiPhp`) | 1 (4%) |
 | 100% THorse | 0 |
-| Bloqueios (sem endpoint PHP) | 5 áreas |
+| `import api` removido | dashboard, vendas, produtos, inventario, estoque, adiantamento, financeiro |
 
-### ✅ 100% Migradas (16 stores)
-`acesso`, `adiantamento`, `agenda`, `agendacontato`, `caixa`, `ccusto`, `config`, `dre`, `empresa`, `financeiro`, `grupousuario`, `integracoes`, `localizacao`, `pais`, `pessoas`, `transfalmox`
+### ✅ 100% Migradas (20 stores)
+`acesso`, `adiantamento`, `agenda`, `agendacontato`, `caixa`, `ccusto`, `config`, `dashboard`, `dre`, `empresa`, `financeiro`, `grupousuario`, `integracoes`, `inventario`, `localizacao`, `pais`, `pessoas`, `produtos`, `transfalmox`, `vendas`
 
-### ⚠️ Parcialmente Migradas — THorse calls restantes (5 stores)
+### ✅ 100% Migradas — Nova adição (4 stores)
+
+| Store | Calls migradas | Endpoints PHP |
+|-------|----------------|---------------|
+| `dashboard.js` | 5 calls THorse → removidas (dead code) | `/financeiro/dashboard-financeiro` já existia |
+| `vendas.js` | 4 calls → `apiPhp` | `/vendas/ambientes`, `/admin/terminais-venda/{id}/ambientes`, `/admin/terminais-venda-ambientes/{id}` |
+| `produtos.js` | 3 calls → `apiPhp` | `/estoque/medidas`, `/estoque/produto-fotos/{id}` |
+| `inventario.js` | 1 call → `apiPhp` | `/estoque/produto-almoxarifados/{emp}/{almox}/{prod}` |
+
+### ⚠️ Parcialmente Migradas — THorse calls restantes (1 store)
 
 | Store | Calls THorse | O que falta |
 |-------|-------------|-------------|
-| `dashboard.js` | 5 | Deprecated — PHP endpoint já existe (`/financeiro/dashboard-financeiro`) e é usado pela HomeView |
-| `produtos.js` | 3 | `/medida` (search, sem GET list no PHP), `/profoto` (get + delete, sem list endpoint) |
-| `vendas.js` | 4 | CRUD de `/ambientes` — estrutura diferente no PHP (per-terminal) |
-| `estoque.js` | 1 | `/aliquotauf/{emp}` — PHP precisa de CFOP (estrutura diferente) |
-| `inventario.js` | 1 | `/proalmox/{emp}/{almox}/{prod}` — não existe no PHP |
+| `estoque.js` | CRUD via `executarAcao` (cest, nbs, cfop, aliquotauf) | Ainda usa THorse — endpoints PHP não mapeados |
 
 ### 🔴 Bloqueios (sem equivalente PHP)
 - **Medidas** — PHP só tem POST (criação), sem GET para listagem/busca

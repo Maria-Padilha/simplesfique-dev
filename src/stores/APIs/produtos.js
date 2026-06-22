@@ -1,5 +1,4 @@
 import {defineStore} from "pinia"
-import api from "@/services/api";
 import apiPhp from "@/services/apiPhp";
 import {useApiStore} from "@/stores/APIs/api";
 
@@ -230,17 +229,14 @@ export const useProdutosStore = defineStore('produtos', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/medida?find=${find}&limit=${limit}`, {
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`
-                    }
+                const response = await apiPhp.get('/estoque/medidas', {
+                    params: { find, limit }
                 });
 
-                this.medidas = response.data.data;
-                this.recordsMedidas = response.data.records;
+                const data = Array.isArray(response.data) ? response.data : response.data?.data ?? [];
+                this.medidas = data;
+                this.recordsMedidas = data.length;
                 this.errorMessage = '';
-
-                console.log('medidas encontradas:', this.medidas);
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
@@ -1027,9 +1023,9 @@ export const useProdutosStore = defineStore('produtos', {
 
         async salvarFotoBanco(dataFoto) {
             this.loading = true;
-            const apiStore = useApiStore();
             try {
-                await apiStore.executarAcao('profoto', 'post', dataFoto);
+                const payload = Array.isArray(dataFoto?.data) ? dataFoto.data[0] : dataFoto
+                await apiPhp.post('/estoque/produto-fotos', payload);
             } catch (error) {
                 console.error('Erro ao cadastrar foto no banco de dados:', error);
             } finally {
@@ -1041,16 +1037,11 @@ export const useProdutosStore = defineStore('produtos', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/profoto/${idProduto}`, {
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`
-                    }
-                });
+                const response = await apiPhp.get(`/estoque/produto-fotos/${idProduto}`);
 
-                this.fotosBanco = response.data;
+                const data = Array.isArray(response.data) ? response.data : response.data?.data ?? [];
+                this.fotosBanco = data;
                 this.errorMessage = '';
-
-                console.log('fotos do banco encontradas:', this.fotosBanco);
 
             } catch (error) {
                 this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
@@ -1061,16 +1052,11 @@ export const useProdutosStore = defineStore('produtos', {
             }
         },
 
-        async deletarFotoBanco(idProduto, payload) {
+        async deletarFotoBanco(idProduto, idFoto) {
             this.loading = true;
 
             try {
-                await api.delete(`/profoto/${idProduto}`, {
-                    data: payload,
-                    headers: {
-                        Authorization: `Bearer ${this.token}`,
-                    },
-                });
+                await apiPhp.delete(`/estoque/produto-fotos/${idProduto}/${idFoto}`);
 
                 this.errorMessage = '';
             } catch (error) {
