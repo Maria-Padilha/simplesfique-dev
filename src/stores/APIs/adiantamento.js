@@ -258,24 +258,14 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
     // ==================== AÇÕES BLOQUEADAS (THorse offline) ====================
 
     /**
-     * Pagar adiantamento de fornecedor completo (THorse — offline)
-     * @param {number} id - ID do adiantamento 
-     * @param {Object} payload - Dados completos do pagamento
-     * @returns {Promise}
-     * @blocked: THorse offline — sem endpoint PHP equivalente
+     * Pagar adiantamento de fornecedor completo
+     * POST /api/v1/financeiro/adiantamento-fornecedors/{id}/pagar
      */
     async pagarAdiantamentoFornecedorCompleto(id, payload) {
-      // @blocked: THorse offline — sem endpoint PHP equivalente
       this.loading = true
-      const token = localStorage.getItem('token')
-
       try {
-        // THorse espera { data: [{ ... }] }
-        const thorsePayload = { data: [payload] }
-        const response = await api.put(`/adtfornecedorpagto/${id}`, thorsePayload, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        return response.data
+        const response = await apiPhp.post(`/financeiro/adiantamento-fornecedors/${id}/pagar`, payload)
+        return response.data?.data ?? response.data
       } catch (error) {
         console.error('Erro ao processar pagamento:', error)
         throw error
@@ -285,24 +275,16 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
     },
 
     /**
-     * Aprovar adiantamento de fornecedor (THorse — offline)
-     * @param {number} id - ID do adiantamento
-     * @param {number} valorSolicitado - Valor solicitado para aprovação
-     * @returns {Promise}
-     * @blocked: THorse offline — use aprovarAdiantamentoFornecedorPhp() quando disponível
+     * Aprovar adiantamento de fornecedor
+     * POST /api/v1/financeiro/adiantamento-fornecedors/{id}/aprovar
      */
     async aprovarAdiantamentoFornecedor(id, valorSolicitado) {
-      // @blocked: THorse offline — use aprovarAdiantamentoFornecedorPhp()
       this.loading = true
-      const token = localStorage.getItem('token')
-
       try {
-        const response = await api.put(`/adtfornecedoraprova/${id}`, {
-          data: [{ valor_solicitado: valorSolicitado }]
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
+        const response = await apiPhp.post(`/financeiro/adiantamento-fornecedors/${id}/aprovar`, {
+          valor_solicitado: valorSolicitado
         })
-        return response.data
+        return response.data?.data ?? response.data
       } catch (error) {
         console.error('Erro ao aprovar adiantamento de fornecedor:', error)
         throw error
@@ -312,21 +294,14 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
     },
 
     /**
-     * Pagar adiantamento de fornecedor (THorse — offline)
-     * @param {number} id - ID do adiantamento
-     * @returns {Promise}
-     * @blocked: THorse offline — sem endpoint PHP equivalente
+     * Pagar adiantamento de fornecedor
+     * POST /api/v1/financeiro/adiantamento-fornecedors/{id}/pagar
      */
     async pagarAdiantamentoFornecedor(id) {
-      // @blocked: THorse offline — sem endpoint PHP equivalente
       this.loading = true
-      const token = localStorage.getItem('token')
-
       try {
-        const response = await api.put(`/adtfornecedorpagto/${id}`, {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        return response.data
+        const response = await apiPhp.post(`/financeiro/adiantamento-fornecedors/${id}/pagar`)
+        return response.data?.data ?? response.data
       } catch (error) {
         console.error('Erro ao pagar adiantamento de fornecedor:', error)
         throw error
@@ -336,21 +311,14 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
     },
 
     /**
-     * Recusar/Negar adiantamento de fornecedor (THorse — offline)
-     * @param {number} id - ID do adiantamento
-     * @returns {Promise}
-     * @blocked: THorse offline — use recusarAdiantamentoFornecedorPhp() quando disponível
+     * Recusar/Negar adiantamento de fornecedor
+     * POST /api/v1/financeiro/adiantamento-fornecedors/{id}/recusar
      */
     async recusarAdiantamentoFornecedor(id) {
-      // @blocked: THorse offline — use recusarAdiantamentoFornecedorPhp()
       this.loading = true
-      const token = localStorage.getItem('token')
-
       try {
-        const response = await api.put(`/adtfornecedornega/${id}`, {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        return response.data
+        const response = await apiPhp.post(`/financeiro/adiantamento-fornecedors/${id}/recusar`)
+        return response.data?.data ?? response.data
       } catch (error) {
         console.error('Erro ao recusar adiantamento de fornecedor:', error)
         throw error

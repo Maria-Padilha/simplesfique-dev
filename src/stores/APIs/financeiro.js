@@ -944,16 +944,16 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // @deprecated — CRUD PHP já cria aprovado. Mantido apenas para compatibilidade com views antigas.
+    /**
+     * Autorizar contas a pagar em lote
+     * POST /api/v1/financeiro/conta-pagars/autorizar
+     */
     async autorizarContasPagar(payload) {
       this.loading = true
       this.error = null
       try {
-        const payloadFinal = Array.isArray(payload) ? { data: payload } : payload
-        const response = await api.post('/contaspagarautorizar', payloadFinal, {
-          headers: this.getAuthHeaders()
-        })
-        return response.data
+        const response = await apiPhp.post('/financeiro/conta-pagars/autorizar', payload)
+        return response.data?.data ?? response.data
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
         throw error
@@ -1565,34 +1565,27 @@ export const useFinanceiroStore = defineStore('financeiro', {
       }
     },
 
-    // Buscar histórico de transferências financeiras (THorse)
-    // @todo: #290 — aguardando endpoint PHP
+    /**
+     * Buscar histórico de transferências financeiras
+     * GET /api/v1/financeiro/conta-corrente-caixa-transfs/{idEmpresa}/dtini/{dtIni}/dtfim/{dtFim}
+     */
     async buscarTransferenciasFinanceiras(idEmpresa, dtini, dtfim, tipoTransf = null) {
       this.loading = true;
       this.error = null;
 
       try {
-        let url = `/transffinanceiras/${idEmpresa}/dtini/${dtini}/dtfim/${dtfim}`;
-        
+        const params = {}
         if (tipoTransf !== null && tipoTransf !== undefined) {
-          url += `?tipo_transf=${tipoTransf}`;
+          params.tipo_transf = tipoTransf
         }
 
-        const response = await api.get(url, {
-          headers: this.getAuthHeaders()
-        });
+        const response = await apiPhp.get(
+          `/financeiro/conta-corrente-caixa-transfs/${idEmpresa}/dtini/${dtini}/dtfim/${dtfim}`,
+          { params }
+        )
 
-        const resp = response.data;
-        let dados = [];
-        if (resp && resp.data && Array.isArray(resp.data)) {
-          dados = resp.data;
-        } else if (Array.isArray(resp)) {
-          dados = resp;
-        } else if (resp && typeof resp === 'object') {
-          dados = [resp];
-        }
-
-        return dados;
+        const dados = response.data?.data ?? response.data ?? []
+        return Array.isArray(dados) ? dados : []
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';
         throw error;
