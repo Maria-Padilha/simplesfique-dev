@@ -105,7 +105,10 @@ const loginApi = async () => {
   loading.value = true;
   try {
     // POST vazio via axios - usando service API
-    const response = await api.post('vstsaaslogin');
+    const response = await api.post('/api/v1/auth/login', {
+      email: usuario.value,
+      senha: senha.value
+    });
 
     const data = response.data;
 

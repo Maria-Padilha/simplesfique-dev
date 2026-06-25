@@ -254,9 +254,9 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     route: '/paginas/pdv/operacao'
                 },
                 {
-                    text: 'Totem',
+                    text: 'Terminais de Venda',
                     icon: 'mdi-monitor-multiple',
-                    route: '/paginas/pdv/totem'
+                    route: '/paginas/pdv/terminais-vendas'
                 },
             ]
         },

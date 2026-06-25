@@ -5,6 +5,7 @@
 
     <nav-bar
         v-if="!$route.path.startsWith('/paginas/')
+        && !$route.path.startsWith('/terminais-venda')
         && !$route.path.startsWith('/login')
         && !$route.path.startsWith('/resetar-senha')
         && !$route.path.startsWith('/paginas/pdv/caixa')
@@ -19,6 +20,7 @@
     <footer-bar
         class="relative z-10"
         v-if="!$route.path.startsWith('/paginas/')
+        && !$route.path.startsWith('/terminais-venda')
         && !$route.path.startsWith('/login')
         && !$route.path.startsWith('/resetar-senha')
         && !$route.path.startsWith('/manutencao')

@@ -418,10 +418,11 @@ const routes = [
         component: PdvCaixaView
     },
     {
-        path: '/paginas/pdv/totem',
+        path: '/paginas/pdv/terminais-vendas',
         name: 'pdv_totem',
         component: TotemView
     },
+
     // páginas do pdv
     {
         path: '/paginas/fiscal/notadeservico',
