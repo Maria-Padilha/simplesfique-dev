@@ -1238,7 +1238,7 @@ const carregarMovimentacoes = async () => {
 
     // API retorna saldoant_conciliado e saldoant_naoconciliado
     saldoAnterior.value = resultado.saldoant_conciliado || 0
-    movimentacoes.value = Array.isArray(resultado.data) ? resultado.data : []
+    movimentacoes.value = Array.isArray(resultado) ? resultado : (Array.isArray(resultado.data) ? resultado.data : [])
   } catch (error) {
     console.error('Erro ao carregar movimentações:', error)
     movimentacoes.value = []
