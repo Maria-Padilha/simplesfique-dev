@@ -1076,7 +1076,7 @@ export const useProdutosStore = defineStore('produtos', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/aliquotauf/${emp}/${uf}/${cfop}`, {
+                const response = await apiPhp.get(`/aliquotauf/${emp}/${uf}/${cfop}`, {
                     headers: {
                         'Authorization': `Bearer ${this.token}`
                     }

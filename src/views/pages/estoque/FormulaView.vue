@@ -446,10 +446,7 @@ const editarItem = async (item) => {
 const compilarFormula = async (local, id) => {
   if (local === 'acao') await estoqueStore.buscarFormulaId(idEmpresa?.id, id);
 
-  const item = formulaId.value;
-const compilarFormula = async () => {
   const item = estoqueStore.formula;
-
   const dataFormula = item?.data?.[0];
 
   if (!dataFormula?.formula) {
@@ -472,7 +469,7 @@ const compilarFormula = async () => {
   await estoqueStore.compilarFormula(payload, idEmpresa?.id);
   toast.success(estoqueStore.successMessage || 'Fórmula compilada com sucesso!');
 
-  if (estoqueStore.errorMessage) return
+  if (estoqueStore.errorMessage) return;
 
   cancelarFormulario();
 };
