@@ -1236,9 +1236,12 @@ const carregarMovimentacoes = async () => {
         filtros.dataFim
     )
 
-    // API retorna saldoant_conciliado e saldoant_naoconciliado
-    saldoAnterior.value = resultado.saldoant_conciliado || 0
-    movimentacoes.value = Array.isArray(resultado) ? resultado : (Array.isArray(resultado.data) ? resultado.data : [])
+    saldoAnterior.value = resultado.saldoant_conciliado || resultado.saldo_anterior || 0
+    const itens = Array.isArray(resultado) ? resultado : (Array.isArray(resultado.data) ? resultado.data : [])
+    movimentacoes.value = itens.map(item => ({
+      ...item,
+      deschistorico: historicos.value.find(h => h.id === item.id_historico)?.deschistorico || item.deschistorico || '--'
+    }))
   } catch (error) {
     console.error('Erro ao carregar movimentações:', error)
     movimentacoes.value = []

@@ -39,11 +39,11 @@
                 <v-card-text class="pa-4">
                   <v-form ref="formRef" v-model="formValido">
                     <v-row dense>
-                      <!-- Código da Carteira (Obrigatório) -->
-                      <v-col cols="12" md="4">
+                      <!-- Código da Carteira -->
+                      <v-col cols="6" md="2">
                         <v-text-field
                             v-model="formData.id_carteira"
-                            label="Código da Carteira *"
+                            label="Código *"
                             :rules="[rules.required]"
                             type="number"
                             variant="outlined"
@@ -53,8 +53,8 @@
                         ></v-text-field>
                       </v-col>
 
-                      <!-- Conta Corrente (Obrigatório) -->
-                      <v-col cols="12" md="4">
+                      <!-- Conta Corrente -->
+                      <v-col cols="12" md="5">
                         <v-autocomplete
                             v-model="formData.id_ccorrente"
                             :items="financeiroStore.contas"
@@ -74,9 +74,7 @@
                               <template #prepend>
                                 <v-icon icon="mdi-bank" color="var(--text-color-laranja)"></v-icon>
                               </template>
-                              <template #title>
-                                {{ item.raw.titular }}
-                              </template>
+                              <template #title>{{ item.raw.titular }}</template>
                               <template #subtitle>
                                 <span class="text-caption opacity-70">
                                   Ag: {{ item.raw.id_agencia }} | CC: {{ item.raw.numero_ccorrente }}-{{ item.raw.digito_cc }}
@@ -85,7 +83,7 @@
                             </v-list-item>
                           </template>
                           <template #selection="{ item }">
-                            {{ item.raw.titular }} - Ag: {{ item.raw.id_agencia }} | CC: {{ item.raw.numero_ccorrente }}-{{ item.raw.digito_cc }}
+                            {{ item.raw.titular }} — CC: {{ item.raw.numero_ccorrente }}-{{ item.raw.digito_cc }}
                           </template>
                           <template #no-data>
                             <v-list-item>
@@ -95,22 +93,21 @@
                         </v-autocomplete>
                       </v-col>
 
-                      <!-- API Token -->
-                      <v-col cols="12" md="4">
+                      <!-- API Token (obrigatório) -->
+                      <v-col cols="12" md="5">
                         <v-text-field
                             v-model="formData.apitoken"
-                            label="API Token"
+                            label="API Token *"
+                            :rules="[rules.required]"
                             variant="outlined"
                             density="compact"
-                            class="custom-text-field"
+                            class="custom-text-field required-left-border"
                             prepend-inner-icon="mdi-key-variant"
-                            hint="Token de autenticação da API bancária"
-                            persistent-hint
                         ></v-text-field>
                       </v-col>
 
                       <!-- Usuário -->
-                      <v-col cols="12" md="4">
+                      <v-col cols="12" md="3">
                         <v-text-field
                             v-model="formData.username"
                             label="Usuário"
@@ -122,7 +119,7 @@
                       </v-col>
 
                       <!-- Senha -->
-                      <v-col cols="12" md="4">
+                      <v-col cols="12" md="3">
                         <v-text-field
                             v-model="formData.pass"
                             label="Senha"
@@ -135,7 +132,7 @@
                       </v-col>
 
                       <!-- Nosso Número -->
-                      <v-col cols="12" md="4">
+                      <v-col cols="6" md="2">
                         <v-text-field
                             v-model="formData.nosso_numero"
                             label="Nosso Número"
@@ -148,7 +145,7 @@
                       </v-col>
 
                       <!-- Convênio -->
-                      <v-col cols="12" md="4">
+                      <v-col cols="6" md="4">
                         <v-text-field
                             v-model="formData.convenio"
                             label="Convênio"
@@ -157,55 +154,52 @@
                             class="custom-text-field"
                             prepend-inner-icon="mdi-handshake-outline"
                             maxlength="20"
-                            counter="20"
                         ></v-text-field>
                       </v-col>
 
-                      <!-- Divider para separar seções -->
+                      <!-- Divider Cobrança -->
                       <v-col cols="12">
-                        <v-divider class="my-2"></v-divider>
+                        <v-divider class="mb-3 mt-1"></v-divider>
                         <div class="text-subtitle-2 text-grey mb-2">
-                          <v-icon icon="mdi-cog" size="small" class="mr-2"></v-icon>
-                          Configurações de Cobrança
+                          <v-icon icon="mdi-cog" size="small" class="mr-1"></v-icon>
+                          Cobrança e Alertas
                         </div>
                       </v-col>
 
                       <!-- Dias para Devolução -->
-                      <v-col cols="12" md="4">
+                      <v-col cols="6" md="2">
                         <v-text-field
                             v-model.number="formData.dias_canc_dev"
-                            label="Dias para Devolução"
+                            label="Dias Devolução"
                             type="number"
                             min="0"
                             variant="outlined"
                             density="compact"
                             class="custom-text-field"
                             prepend-inner-icon="mdi-backup-restore"
-                            persistent-hint
                         ></v-text-field>
                       </v-col>
 
                       <!-- Dias para Protesto -->
-                      <v-col cols="12" md="4">
+                      <v-col cols="6" md="2">
                         <v-text-field
                             v-model.number="formData.dias_protesto_negativar"
-                            label="Dias para Protesto/Negativação"
+                            label="Dias Protesto"
                             type="number"
                             min="0"
                             variant="outlined"
                             density="compact"
                             class="custom-text-field"
                             prepend-inner-icon="mdi-alert-circle"
-                            persistent-hint
                         ></v-text-field>
                       </v-col>
 
                       <!-- Tipo de Dia para Protesto -->
-                      <v-col cols="12" md="4">
+                      <v-col cols="12" md="3">
                         <v-select
                             v-model="formData.tipo_dia_protesto"
                             :items="tiposDiaProtesto"
-                            label="Tipo de Dia para Protesto"
+                            label="Tipo de Dia"
                             variant="outlined"
                             density="compact"
                             class="custom-text-field"
@@ -214,8 +208,8 @@
                           <template #item="{ props, item }">
                             <v-list-item v-bind="props">
                               <template #prepend>
-                                <v-icon 
-                                    :icon="item.value === 'U' ? 'mdi-briefcase' : 'mdi-calendar'" 
+                                <v-icon
+                                    :icon="item.value === 'U' ? 'mdi-briefcase' : 'mdi-calendar'"
                                     color="var(--text-color-laranja)"
                                 ></v-icon>
                               </template>
@@ -224,58 +218,45 @@
                         </v-select>
                       </v-col>
 
-                      <!-- Divider para alertas -->
-                      <v-col cols="12">
-                        <v-divider class="my-2"></v-divider>
-                        <div class="text-subtitle-2 text-grey mb-2">
-                          <v-icon icon="mdi-bell" size="small" class="mr-2"></v-icon>
-                          Alertas de Vencimento
-                        </div>
-                      </v-col>
-
-                      <!-- Primeiro Alerta Vencimento -->
-                      <v-col cols="12" md="6">
+                      <!-- Primeiro Alerta -->
+                      <v-col cols="6" md="2">
                         <v-text-field
                             v-model.number="formData.primeiro_alerta_vencto"
-                            label="Primeiro Alerta (dias antes)"
+                            label="1º Alerta (dias)"
                             type="number"
                             min="0"
                             variant="outlined"
                             density="compact"
                             class="custom-text-field"
                             prepend-inner-icon="mdi-bell-ring"
-                            hint="Quantos dias antes do vencimento enviar alerta"
-                            persistent-hint
                         ></v-text-field>
                       </v-col>
 
-                      <!-- Segundo Alerta Vencimento -->
-                      <v-col cols="12" md="6">
+                      <!-- Segundo Alerta -->
+                      <v-col cols="6" md="2">
                         <v-text-field
                             v-model.number="formData.segundo_alerta_vencto"
-                            label="Segundo Alerta (dias antes)"
+                            label="2º Alerta (dias)"
                             type="number"
                             min="0"
                             variant="outlined"
                             density="compact"
                             class="custom-text-field"
                             prepend-inner-icon="mdi-bell-alert"
-                            hint="Quantos dias antes do vencimento enviar segundo alerta"
-                            persistent-hint
                         ></v-text-field>
                       </v-col>
 
-                      <!-- Divider para senha -->
+                      <!-- Divider Boleto -->
                       <v-col cols="12">
-                        <v-divider class="my-2"></v-divider>
+                        <v-divider class="mb-3 mt-1"></v-divider>
                         <div class="text-subtitle-2 text-grey mb-2">
-                          <v-icon icon="mdi-lock" size="small" class="mr-2"></v-icon>
-                          Segurança do Boleto
+                          <v-icon icon="mdi-file-document" size="small" class="mr-1"></v-icon>
+                          Boleto
                         </div>
                       </v-col>
 
                       <!-- Senha do Boleto -->
-                      <v-col cols="12" md="6">
+                      <v-col cols="12" md="3">
                         <v-select
                             v-model="formData.senha_boleto"
                             :items="tiposSenhaBoleto"
@@ -288,8 +269,8 @@
                           <template #item="{ props, item }">
                             <v-list-item v-bind="props">
                               <template #prepend>
-                                <v-icon 
-                                    :icon="item.value === 0 ? 'mdi-lock-open' : 'mdi-lock'" 
+                                <v-icon
+                                    :icon="item.value === 0 ? 'mdi-lock-open' : 'mdi-lock'"
                                     :color="item.value === 0 ? 'grey' : 'var(--text-color-laranja)'"
                                 ></v-icon>
                               </template>
@@ -299,7 +280,7 @@
                       </v-col>
 
                       <!-- Modelo de Boleto -->
-                      <v-col cols="12" md="6">
+                      <v-col cols="12" md="3">
                         <v-select
                             v-model="formData.modelo_boleto"
                             :items="modelosBoleto"
@@ -320,7 +301,7 @@
                       </v-col>
 
                       <!-- Local de Pagamento -->
-                      <v-col cols="12">
+                      <v-col cols="12" md="6">
                         <v-text-field
                             v-model="localPagamentoLabel"
                             label="Local de Pagamento"
@@ -344,11 +325,10 @@
                             label="Instruções"
                             variant="outlined"
                             density="compact"
-                            rows="4"
+                            rows="3"
                             class="custom-text-field"
                             prepend-inner-icon="mdi-text"
-                            hint="Instruções que aparecerão no boleto (máx. 4 linhas)"
-                            persistent-hint
+                            placeholder="Instruções que aparecerão no boleto"
                         ></v-textarea>
                       </v-col>
                     </v-row>
@@ -601,7 +581,7 @@ const editarCarteira = async (carteira) => {
   
   try {
     // Buscar dados completos da carteira via API
-    const carteiraId = carteira?.id ?? carteira?.ID
+    const carteiraId = carteira?.id_carteira ?? carteira?.id ?? carteira?.ID
     const carteiraCompleta = await financeiroStore.buscarCarteiraPorId(carteiraId)
     
     // Se retornou dados, usar eles; senão, usar os dados da tabela
@@ -682,7 +662,7 @@ const excluirCarteira = async (carteira) => {
 
   try {
     loading.value = true
-    const carteiraId = carteira?.id ?? carteira?.ID
+    const carteiraId = carteira?.id_carteira ?? carteira?.id ?? carteira?.ID
     await financeiroStore.deletarCarteira(carteiraId)
     mostrarSnackbar('Carteira excluída com sucesso!', 'success')
     await carregarCarteiras()
