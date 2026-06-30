@@ -105,11 +105,6 @@ const routes = [
         component: GrupoUsuarioView
     },
     {
-        path: '/paginas/manutencao/formulas',
-        name: 'manutencao_formulas',
-        component: () => import('@/views/pages/manutencao/FormulasView.vue')
-    },
-    {
         path: '/paginas/manutencao/mensagens-tributos',
         name: 'manutencao_mensagens',
         component: () => import('@/views/pages/manutencao/MensagensView.vue')
@@ -394,7 +389,7 @@ const routes = [
     {
         path: '/paginas/entradadfe/visualizar/:id',
         name: 'visualizar-entradadfe',
-        component: () => import('@/views/pages/produtos/VisualizarNotaView.vue')
+        component: () => import('@/views/pages/produtos/entrada/VisualizarNotaView.vue')
     },
     {
         path: '/paginas/certificados',
@@ -424,10 +419,11 @@ const routes = [
         component: PdvCaixaView
     },
     {
-        path: '/paginas/pdv/totem',
+        path: '/paginas/pdv/terminais-vendas',
         name: 'pdv_totem',
         component: TotemView
     },
+
     // páginas do pdv
     {
         path: '/paginas/fiscal/notadeservico',

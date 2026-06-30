@@ -76,6 +76,8 @@ export const useProdutosStore = defineStore('produtos', {
 
         tributos: [],
         tributo: null,
+
+        aliquotaInfos: []
     }),
 
     actions: {
@@ -1066,6 +1068,31 @@ export const useProdutosStore = defineStore('produtos', {
             } finally {
                 this.loading = false;
             }
-        }
+        },
+
+        // ALIQUOTAS INFOS
+
+        async buscarAliquotasInfos(emp, uf, cfop) {
+            this.loading = true;
+
+            try {
+                const response = await apiPhp.get(`/aliquotauf/${emp}/${uf}/${cfop}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                this.aliquotaInfos = response.data;
+                this.errorMessage = '';
+
+                console.log('Aliquotas infos encontrados:', this.aliquotaInfos);
+
+            } catch (error) {
+                this.errorMessage = error.response;
+                console.error('Erro ao buscar aliquitas infos:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
     }
 })

@@ -24,20 +24,20 @@
             />
           </v-col>
 
-          <!-- id_nota -->
+          <!-- numero_nf -->
           <v-col cols="12" md="2">
             <v-text-field
                 density="compact" variant="outlined" label="Nota" hide-details="auto"
-                v-model="forms.id_nota" :rules="validacao" @input="Number(forms.id_nota)"
+                v-model="forms.numero_nf" :rules="validacao" @input="Number(forms.numero_nf)"
                 class="required-left-border"
             />
           </v-col>
 
-          <!-- id_serie -->
+          <!-- serie_nf -->
           <v-col cols="12" md="2">
             <v-text-field
                 density="compact" variant="outlined" label="Série" hide-details="auto"
-                v-model="forms.id_serie" :rules="validacao" class="required-left-border"
+                v-model="forms.serie_nf" :rules="validacao" class="required-left-border"
             />
           </v-col>
 

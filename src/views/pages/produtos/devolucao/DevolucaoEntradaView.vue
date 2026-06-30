@@ -1,6 +1,6 @@
 <template>
   <top-all-pages icon="mdi-file-document-outline">
-    <template #titulo>Devolução de Entrada (DFe)</template>
+    <template #titulo>Devolução de Compra</template>
 
     <template #section>
       <v-card elevation="0" class="background-secondary pa-4">

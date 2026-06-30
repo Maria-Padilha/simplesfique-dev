@@ -32,6 +32,7 @@
           @preencher-itens="(itens) => preencherItensDevolucao(itens)"
           :entradas="entradasFormatadas"
           :cfops="aliquotasFormatadas"
+          :almoxarifados="almoxarifados"
           forms-nf="formsNf"
       />
 
@@ -196,10 +197,29 @@ const forms = reactive({
   vlr_total_produto: null,
   observacao: null,
   id_transportadora: null,
-  tipo_frete: null,
-  vlr_frete: null,
   id_cfop: null,
-  id_uf: null, // só pra ajudar a filtrar os CFOPs/aliquotas (não é enviado para backend)
+  id_uf: null,
+
+  // frete
+  usa_frete: false,
+  tipo_frete: '9',
+  vlr_frete: '0,00',
+  qtd_volume: 0,
+  peso_bruto: '0,075',
+  peso_liquido: '0,075',
+  placa_veiculo: '',
+  especie_volume: '',
+  vlr_seguro: '0,000',
+  vlr_outras: '0,000',
+
+  // campos faltando
+  id_sass: null,
+  numero_nf: 0,
+  serie_nf: 0,
+  id_almoxarifado: null,
+  vlr_nf: 0,
+  nf_exportada: false,
+  tipo_origem: null
 });
 
 // ======================= ALIQUOTAS/CFOPS (para selecionar no autocomplete) =======================
@@ -219,6 +239,13 @@ const aliquotasFormatadas = computed(() => {
         value: a.id_cfop
       }));
 });
+
+// ========================== ALMOXARIFADOS ========================
+const almoxarifados = computed(() => estoqueStore.almoxarifados ?? []);
+
+onMounted(async () => {
+  await estoqueStore.buscarAlmoxarifados(idEmpresa?.id)
+})
 
 // ======================= RESET =======================
 const cancelarFormulario = () => {
@@ -310,13 +337,78 @@ const salvarFormulario = async () => {
     const vlrUnitario = Number(item.vlr_unitario || 0);
 
     return {
-      ...item,
+      id_produto: item.id_produto,
+      id_cor: item.id_cor,
+      id_tamanho: item.id_tamanho,
+      quantidade: item.quantidade,
+      vlr_unitario: item.vlr_unitario,
+      desconto_total_item: item.desconto_total_item,
+      vlr_total_item: item.vlr_total_item,
+      vlr_seguro_item: item.vlr_seguro_item,
+      vlr_frete_item: item.vlr_frete_item,
+      vlr_outras_item: item.vlr_outras_item,
+      custo_medio: item.custo_medio,
       qtd_devolver: qtd,
       vlr_devolver: Number((qtd * vlrUnitario).toFixed(2)),
+      id_evento: item.id_evento,
+      id: item.id,
+      id_empresa: item.id_empresa,
+      id_seq: item.id_seq,
+      id_cfop_item: item.id_cfop_item,
+      cst_item: item.cst_item,
+      csosn_item: item.csosn_item,
+      cest_item: item.cest_item,
+      aliquota_icms_item: item.aliquota_icms_item,
+      base_icms_item: item.base_icms_item,
+      vlr_icms_item: item.vlr_icms_item,
+      aliquota_subst_item: item.aliquota_subst_item,
+      base_icms_subst_item: item.base_icms_subst_item,
+      vlr_icms_subst_item: item.vlr_icms_subst_item,
+      cst_ipi: item.cst_ipi,
+      aliquota_ipi_item: item.aliquota_ipi_item,
+      cenqipi: item.cenqipi,
+      base_ipi_item: item.base_ipi_item,
+      vlr_ipi_item: item.vlr_ipi_item,
+      cst_pis: item.cst_pis,
+      aliquota_pis_item: item.aliquota_pis_item,
+      base_pis_item: item.base_pis_item,
+      cst_cofins: item.cst_cofins,
+      aliquota_cofins_item: item.aliquota_cofins_item,
+      base_cofins_item: item.base_cofins_item,
+      reducao_base_calc: item.reducao_base_calc,
+      aliq_mva: item.aliq_mva,
+      pmva_item: item.pmva_item,
+      mod_bc: item.mod_bc,
+      mod_bcst: item.mod_bcst,
+      predbc: item.predbc,
+      predbcst: item.predbcst,
+      id_ncm_item: item.id_ncm_item,
+      incidenciafiscal_item: item.incidenciafiscal_item,
+      vlr_iss_item: item.vlr_iss_item,
+      vlr_ir_item: item.vlr_ir_item,
+      vlr_csll_item: item.vlr_csll_item,
+      classctrib_item: item.classctrib_item,
+      cst_cbsibs_item: item.cst_cbsibs_item,
+      base_cbsibs_item: item.base_cbsibs_item,
+      perc_cbs_item: item.perc_cbs_item,
+      vlr_cbs_item: item.vlr_cbs_item,
+      perc_ibsuf_item: item.perc_ibsuf_item,
+      vlr_ibsuf_item: item.vlr_ibsuf_item,
+      perc_ibsmu_item: item.perc_ibsmu_item,
+      vlr_ibsmu_item: item.vlr_ibsmu_item,
     };
   });
 
-  if (itensTabela.value.map(item => Number(item.qtd_devolver || 0)) > itensTabela.value.map(item => Number(item.quantidade || 0))) {
+  const itemInvalido = itensTabela.value.find(item => {
+    const qtdDevolver = Number(item.qtd_devolver || 0);
+    const quantidade = Number(item.quantidade || 0);
+
+    return qtdDevolver > quantidade;
+  });
+
+  if (itemInvalido) {
+    console.log('Item inválido:', itemInvalido);
+
     toast.error("Quantidade a devolver não pode ser maior que a quantidade da entrada original.");
     return;
   }

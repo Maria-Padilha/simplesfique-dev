@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiLocal = axios.create({
-    baseURL: process.env.VUE_APP_API_LOCAL_URL || "http://192.168.10.100:9010"
+    baseURL: process.env.VUE_APP_API_LOCAL_URL || "http://192.168.10.20:8000"
 });
 
 apiLocal.interceptors.request.use(config => {

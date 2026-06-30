@@ -27,7 +27,6 @@
             item-key="id"
             no-data-icon="mdi-database-off"
             no-data-text="Nenhum item encontrado"
-
         >
           <template v-slot:[`item.acoes`]='{ item }'>
             <v-btn
@@ -55,7 +54,6 @@
       </excluir-modal>
     </template>
   </top-all-pages>
-
 </template>
 
 <script setup>

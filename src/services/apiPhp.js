@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiPhp = axios.create({
-    baseURL: process.env.VUE_APP_PHP_API_URL || 'http://192.168.10.67:8000/api/v1'
+    baseURL: process.env.VUE_APP_PHP_API_URL || 'http://192.168.10.20:8000/api/v1'
 });
 
 // Gera um ID único para debug
