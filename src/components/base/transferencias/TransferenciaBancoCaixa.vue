@@ -663,25 +663,23 @@ const executarTransferencia = async () => {
     const idEmpresa = empresaSelecionada?.id || localStorage.getItem('empresa')
     
     const payload = {
-      data: [{
-        id_empresa: idEmpresa,
-        id_ccorrente_origem: formData.id_conta_corrente,
-        id_caixa_destino: formData.id_caixa,
-        id_historico_banco: formData.id_historico_banco,
-        id_historico_caixa: formData.id_historico_caixa,
-        id_hist_contabil_banco: formData.id_hist_contabil_banco,
-        id_hist_contabil_caixa: formData.id_hist_contabil_caixa,
-        id_reduzido_ctb_banco_origem: formData.id_reduzido_ctb_banco_origem,
-        id_reduzido_ctb_caixa_destino: formData.id_reduzido_ctb_caixa_destino,
-        tipo_transf: 2, // Banco/Caixa
-        tipo_documento: formData.tipo_documento,
-        id_tipopagrec: formData.id_tipopagrec,
-        nrdocumento: formData.numero_documento,
-        dtlancamento: formData.data_movimento,
-        valor: formData.valor,
-        observacao: formData.observacoes || '',
-        origem: 'M'
-      }]
+      id_empresa: idEmpresa,
+      id_ccorrente_origem: formData.id_conta_corrente,
+      id_caixa_destino: formData.id_caixa,
+      id_historico_banco: formData.id_historico_banco,
+      id_historico_caixa: formData.id_historico_caixa,
+      id_hist_contabil_banco: formData.id_hist_contabil_banco,
+      id_hist_contabil_caixa: formData.id_hist_contabil_caixa,
+      id_reduzido_ctb_banco_origem: formData.id_reduzido_ctb_banco_origem,
+      id_reduzido_ctb_caixa_destino: formData.id_reduzido_ctb_caixa_destino,
+      tipo_transf: 2,
+      tipo_documento: formData.tipo_documento,
+      id_tipopagrec: formData.id_tipopagrec,
+      nrdocumento: formData.numero_documento,
+      dtlancamento: formData.data_movimento,
+      valor: formData.valor,
+      observacao: formData.observacoes || '',
+      origem: 'M'
     }
 
     await financeiroStore.realizarTransferencia(payload)

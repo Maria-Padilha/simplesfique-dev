@@ -515,23 +515,21 @@ const executarTransferencia = async () => {
     const idEmpresa = empresaSelecionada?.id || localStorage.getItem('empresa')
     
     const payload = {
-      data: [{
-        id_empresa: idEmpresa,
-        id_caixa_origem: formData.id_caixa_origem,
-        id_caixa_destino: formData.id_caixa_destino,
-        id_historico_caixa: formData.id_historico,
-        id_hist_contabil_caixa: formData.id_hist_contabil_caixa,
-        id_reduzido_ctb_caixa_origem: formData.id_reduzido_ctb_caixa_origem,
-        id_reduzido_ctb_caixa_destino: formData.id_reduzido_ctb_caixa_destino,
-        tipo_transf: 3, // Intercaixa
-        tipo_documento: formData.tipo_documento,
-        nrdocumento: formData.numero_documento,
-        id_tipopagrec: formData.id_tipopagrec,
-        dtlancamento: formData.data_movimento,
-        valor: formData.valor,
-        observacao: formData.observacoes || '',
-        origem: 'M'
-      }]
+      id_empresa: idEmpresa,
+      id_caixa_origem: formData.id_caixa_origem,
+      id_caixa_destino: formData.id_caixa_destino,
+      id_historico_caixa: formData.id_historico,
+      id_hist_contabil_caixa: formData.id_hist_contabil_caixa,
+      id_reduzido_ctb_caixa_origem: formData.id_reduzido_ctb_caixa_origem,
+      id_reduzido_ctb_caixa_destino: formData.id_reduzido_ctb_caixa_destino,
+      tipo_transf: 3,
+      tipo_documento: formData.tipo_documento,
+      nrdocumento: formData.numero_documento,
+      id_tipopagrec: formData.id_tipopagrec,
+      dtlancamento: formData.data_movimento,
+      valor: formData.valor,
+      observacao: formData.observacoes || '',
+      origem: 'M'
     }
 
     await financeiroStore.realizarTransferencia(payload)

@@ -510,22 +510,20 @@ const executarTransferencia = async () => {
     const idEmpresa = empresaSelecionada?.id || localStorage.getItem('empresa')
     
     const payload = {
-      data: [{
-        id_empresa: idEmpresa,
-        id_ccorrente_origem: formData.id_conta_origem,
-        id_ccorrente_destino: formData.id_conta_destino,
-        id_historico_banco: formData.id_historico_origem,
-        id_hist_contabil_banco: formData.id_hist_contabil_banco,
-        id_reduzido_ctb_banco_origem: formData.id_reduzido_ctb_banco_origem,
-        id_reduzido_ctb_banco_destino: formData.id_reduzido_ctb_banco_destino,
-        tipo_transf: 1, // Interbancária
-        tipo_documento: formData.tipo_documento,
-        nrdocumento: formData.numero_documento,
-        dtlancamento: formData.data_movimento,
-        valor: formData.valor,
-        observacao: formData.observacoes || '',
-        origem: 'M' // M = Manual
-      }]
+      id_empresa: idEmpresa,
+      id_ccorrente_origem: formData.id_conta_origem,
+      id_ccorrente_destino: formData.id_conta_destino,
+      id_historico_banco: formData.id_historico_origem,
+      id_hist_contabil_banco: formData.id_hist_contabil_banco,
+      id_reduzido_ctb_banco_origem: formData.id_reduzido_ctb_banco_origem,
+      id_reduzido_ctb_banco_destino: formData.id_reduzido_ctb_banco_destino,
+      tipo_transf: 1,
+      tipo_documento: formData.tipo_documento,
+      nrdocumento: formData.numero_documento,
+      dtlancamento: formData.data_movimento,
+      valor: formData.valor,
+      observacao: formData.observacoes || '',
+      origem: 'M'
     }
 
     await financeiroStore.realizarTransferencia(payload)
