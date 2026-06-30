@@ -25,17 +25,17 @@ export const useFuncoesStore = defineStore("funcoes", {
                 : num.toFixed(casas);
         },
 
-        // normalizarQuantidade(valor, casas = 4) {
-        //     if (valor === null || valor === undefined || valor === "") {
-        //         return "0." + "0".repeat(casas);
-        //     }
-        //
-        //     const num = Number(String(valor).replace(",", ".").trim());
-        //
-        //     return isNaN(num)
-        //         ? "0." + "0".repeat(casas)
-        //         : num.toFixed(casas);
-        // },
+        normalizarQuantidade(valor, casas = 4) {
+            if (valor === null || valor === undefined || valor === "") {
+                return "0." + "0".repeat(casas);
+            }
+
+            const num = Number(String(valor).replace(",", ".").trim());
+
+            return isNaN(num)
+                ? "0." + "0".repeat(casas)
+                : num.toFixed(casas);
+        },
 
         /**
          * PREENCHER FORMS DE ENTRADA DFE
