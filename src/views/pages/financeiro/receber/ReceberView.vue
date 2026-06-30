@@ -771,7 +771,7 @@
               <!-- Formatação para Data de Emissão -->
               <template v-slot:[`item.dtemissao`]="{ item }">
             <span v-if="item.dtemissao">
-              {{ new Date(item.dtemissao).toLocaleDateString('pt-BR') }}
+              {{ new Date(item.dtemissao + 'T00:00:00').toLocaleDateString('pt-BR') }}
             </span>
                 <span v-else class="text-grey">-</span>
               </template>
@@ -779,7 +779,7 @@
               <!-- Formatação para Data de Vencimento -->
               <template v-slot:[`item.dtvencimento`]="{ item }">
             <span v-if="item.dtvencimento">
-              {{ new Date(item.dtvencimento).toLocaleDateString('pt-BR') }}
+              {{ new Date(item.dtvencimento + 'T00:00:00').toLocaleDateString('pt-BR') }}
             </span>
                 <span v-else class="text-grey">-</span>
               </template>
@@ -1080,11 +1080,18 @@ const confirmarGerarBoleto = async () => {
   const ids = parcelasSelecionadas.value
   try {
     loadingBoleto.value = true
+
+    // 1ª etapa: gerar nosso número
     await financeiroStore.gerarNossoNumero(idCarteira, idCcorrente, ids, idEmpresa.value)
-    toast.success(`Nosso número gerado para ${ids.length} ${ids.length === 1 ? 'parcela' : 'parcelas'}!`)
+
+    // 2ª etapa: registrar boleto (somente se a primeira retornou 201)
+    await financeiroStore.registrarBoleto(idEmpresa.value, idCarteira, idCcorrente, ids)
+
+    toast.success(`Boleto registrado com sucesso para ${ids.length} ${ids.length === 1 ? 'parcela' : 'parcelas'}!`)
     cancelarModoGerarBoleto()
+    await carregarContasReceber(filtrosAvancados.value)
   } catch (e) {
-    toast.error('Erro ao gerar nosso número: ' + (e?.response?.data?.message || e.message))
+    toast.error('Erro ao gerar boleto: ' + (e?.response?.data?.message || e.message))
   } finally {
     loadingBoleto.value = false
   }
@@ -1397,6 +1404,7 @@ const carregarContasReceber = async (filtrosApi = null) => {
       user_inc: item.user_inc || '',
       abreviatura: item.abreviatura || '',
       desclocalcobranca: item.desclocalcobranca || '',
+      nosso_numero: item.nosso_numero ?? null,
       id_media: item.id_media || ''
     })) || []
 
@@ -1799,9 +1807,9 @@ const salvarContaReceber = async () => {
     // Usar key do Pinia para o payload
     const mediaValue = financeiroStore.getMediaKeyTemporaria() || null
 
-    // Montar payload no formato solicitado: data, parcela, media (sem ccusto)
+    // Montar payload no formato flat (Laravel): campos principais + arrays relacionados
     const payloadCompleto = {
-      data: [dadosPrincipais],
+      ...dadosPrincipais,
       parcela: parcelasFormatadas,
       media: [{ id_media: mediaValue }]
     }
@@ -2260,8 +2268,8 @@ const handleExportarCSV = ({ dados, nomeRelatorio }) => {
         `"${item.serie || ''}"`,
         `"${item.especie || ''}"`,
         `"${item.cliente || ''}"`,
-        `"${item.dtemissao ? new Date(item.dtemissao).toLocaleDateString('pt-BR') : ''}"`,
-        `"${item.dtvencimento ? new Date(item.dtvencimento).toLocaleDateString('pt-BR') : ''}"`,
+        `"${item.dtemissao ? new Date(item.dtemissao + 'T00:00:00').toLocaleDateString('pt-BR') : ''}"`,
+        `"${item.dtvencimento ? new Date(item.dtvencimento + 'T00:00:00').toLocaleDateString('pt-BR') : ''}"`,
         `"${formatarMoeda(item.vlrparcela) || '0,00'}"`,
         `"${formatarMoeda(item.vlrquitado) || '0,00'}"`,
         `"${formatarMoeda(item.saldo_devedor) || '0,00'}"`
@@ -2323,8 +2331,8 @@ const handleExportarExcel = ({ dados, nomeRelatorio }) => {
         item.serie || '',
         item.especie || '',
         item.cliente || '',
-        item.dtemissao ? new Date(item.dtemissao).toLocaleDateString('pt-BR') : '',
-        item.dtvencimento ? new Date(item.dtvencimento).toLocaleDateString('pt-BR') : '',
+        item.dtemissao ? new Date(item.dtemissao + 'T00:00:00').toLocaleDateString('pt-BR') : '',
+        item.dtvencimento ? new Date(item.dtvencimento + 'T00:00:00').toLocaleDateString('pt-BR') : '',
         formatarMoeda(item.vlrparcela) || '0,00',
         formatarMoeda(item.vlrquitado) || '0,00',
         formatarMoeda(item.saldo_devedor) || '0,00'

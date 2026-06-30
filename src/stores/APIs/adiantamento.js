@@ -1,53 +1,37 @@
 import { defineStore } from 'pinia'
-import api from '@/services/api'
+import apiPhp from '@/services/apiPhp'
+import { toast } from 'vue3-toastify'
 
 export const useAdiantamentoStore = defineStore('adiantamento', {
   state: () => ({
     adiantamentos: [],
-    loading: false
+    loading: false,
+    errorMessage: '',
+    successMessage: ''
   }),
 
   actions: {
     /**
      * Buscar adiantamentos de clientes com filtros
-     * @param {number} idEmpresa - ID da empresa
+     * @param {number} idEmpresa - ID da empresa (vem do JWT, mantido para compatibilidade)
      * @param {string} dtini - Data inicial (YYYY-MM-DD)
      * @param {string} dtfim - Data final (YYYY-MM-DD)
      * @param {number|null} idCliente - ID do cliente (opcional)
-     * @returns {Promise<Array>}
+     * @returns {Promise<Object>}
      */
     async buscarAdiantamentos(idEmpresa, dtini, dtfim, idCliente = null) {
       this.loading = true
 
       try {
-        const token = localStorage.getItem('token')
-        
-        // Construir URL
-        let url = `/adtcliente/${idEmpresa}/dtini/${dtini}/dtfim/${dtfim}`
-        
-        // Adicionar query param se idCliente for informado
-        if (idCliente) {
-          url += `?idcliente=${idCliente}`
-        }
+        const params = { data_ini: dtini, data_fim: dtfim }
+        if (idCliente) params.cliente = idCliente
 
-        console.log('Chamando API:', url)
+        const res = await apiPhp.get('/adiantamento-clientes', { params })
 
-        const response = await api.get(url, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        const dados = res.data?.data ?? res.data ?? []
+        this.adiantamentos = Array.isArray(dados) ? dados : []
 
-        // Retornar resposta completa { saldoanterior: [...], data: [...], records: N }
-        const resultado = response.data || response
-        
-        // Atualizar state com os dados
-        if (resultado.data && Array.isArray(resultado.data)) {
-          this.adiantamentos = resultado.data
-        } else {
-          this.adiantamentos = []
-        }
-        
-        console.log('Adiantamentos carregados:', this.adiantamentos.length)
-        return resultado
+        return { data: this.adiantamentos }
       } catch (error) {
         console.error('Erro ao buscar adiantamentos:', error)
         this.adiantamentos = []
@@ -64,13 +48,10 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
      */
     async criarAdiantamento(payload) {
       this.loading = true
-      const token = localStorage.getItem('token')
 
       try {
-        const response = await api.post('/adtcliente', payload, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        return response.data
+        const res = await apiPhp.post('/adiantamento-clientes', payload)
+        return res.data?.data ?? res.data
       } catch (error) {
         console.error('Erro ao criar adiantamento:', error)
         throw error
@@ -87,13 +68,10 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
      */
     async atualizarAdiantamento(id, payload) {
       this.loading = true
-      const token = localStorage.getItem('token')
 
       try {
-        const response = await api.put(`/adtcliente/${id}`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        return response.data
+        const res = await apiPhp.put(`/adiantamento-clientes/${id}`, payload)
+        return res.data?.data ?? res.data
       } catch (error) {
         console.error('Erro ao atualizar adiantamento:', error)
         throw error
@@ -104,19 +82,16 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
 
     /**
      * Excluir adiantamento
-     * @param {number} idEmpresa - ID da empresa
+     * @param {number} idEmpresa - ID da empresa (mantido para compatibilidade de assinatura)
      * @param {number} id - ID do adiantamento
      * @returns {Promise}
      */
     async excluirAdiantamento(idEmpresa, id) {
       this.loading = true
-      const token = localStorage.getItem('token')
 
       try {
-        const response = await api.delete(`/adtcliente/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        return response.data
+        const res = await apiPhp.delete(`/adiantamento-clientes/${id}`)
+        return res.data?.data ?? res.data
       } catch (error) {
         console.error('Erro ao excluir adiantamento:', error)
         throw error
@@ -129,44 +104,25 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
 
     /**
      * Buscar adiantamentos de fornecedores com filtros
-     * @param {number} idEmpresa - ID da empresa
+     * @param {number} idEmpresa - ID da empresa (vem do JWT, mantido para compatibilidade)
      * @param {string} dtini - Data inicial (YYYY-MM-DD)
      * @param {string} dtfim - Data final (YYYY-MM-DD)
      * @param {number|null} idFornecedor - ID do fornecedor (opcional)
-     * @returns {Promise<Array>}
+     * @returns {Promise<Object>}
      */
     async buscarAdiantamentosFornecedores(idEmpresa, dtini, dtfim, idFornecedor = null) {
       this.loading = true
 
       try {
-        const token = localStorage.getItem('token')
-        
-        // Construir URL
-        let url = `/adtfornecedor/${idEmpresa}/dtini/${dtini}/dtfim/${dtfim}`
-        
-        // Adicionar query param se idFornecedor for informado
-        if (idFornecedor) {
-          url += `?idfornecedor=${idFornecedor}`
-        }
+        const params = { data_ini: dtini, data_fim: dtfim }
+        if (idFornecedor) params.fornecedor = idFornecedor
 
-        console.log('Chamando API de fornecedores:', url)
+        const res = await apiPhp.get('/adiantamento-fornecedors', { params })
 
-        const response = await api.get(url, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        const dados = res.data?.data ?? res.data ?? []
+        this.adiantamentos = Array.isArray(dados) ? dados : []
 
-        // Retornar resposta completa { saldoanterior: [...], data: [...], records: N }
-        const resultado = response.data || response
-        
-        // Atualizar state com os dados
-        if (resultado.data && Array.isArray(resultado.data)) {
-          this.adiantamentos = resultado.data
-        } else {
-          this.adiantamentos = []
-        }
-        
-        console.log('Adiantamentos de fornecedores carregados:', this.adiantamentos.length)
-        return resultado
+        return { data: this.adiantamentos }
       } catch (error) {
         console.error('Erro ao buscar adiantamentos de fornecedores:', error)
         this.adiantamentos = []
@@ -183,13 +139,10 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
      */
     async criarAdiantamentoFornecedor(payload) {
       this.loading = true
-      const token = localStorage.getItem('token')
 
       try {
-        const response = await api.post('/adtfornecedor', payload, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        return response.data
+        const res = await apiPhp.post('/adiantamento-fornecedors', payload)
+        return res.data?.data ?? res.data
       } catch (error) {
         console.error('Erro ao criar adiantamento de fornecedor:', error)
         throw error
@@ -206,13 +159,10 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
      */
     async atualizarAdiantamentoFornecedor(id, payload) {
       this.loading = true
-      const token = localStorage.getItem('token')
 
       try {
-        const response = await api.put(`/adtfornecedor/${id}`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        return response.data
+        const res = await apiPhp.put(`/adiantamento-fornecedors/${id}`, payload)
+        return res.data?.data ?? res.data
       } catch (error) {
         console.error('Erro ao atualizar adiantamento de fornecedor:', error)
         throw error
@@ -223,19 +173,16 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
 
     /**
      * Excluir adiantamento de fornecedor
-     * @param {number} idEmpresa - ID da empresa
+     * @param {number} idEmpresa - ID da empresa (mantido para compatibilidade de assinatura)
      * @param {number} id - ID do adiantamento
      * @returns {Promise}
      */
     async excluirAdiantamentoFornecedor(idEmpresa, id) {
       this.loading = true
-      const token = localStorage.getItem('token')
 
       try {
-        const response = await api.delete(`/adtfornecedor/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        return response.data
+        const res = await apiPhp.delete(`/adiantamento-fornecedors/${id}`)
+        return res.data?.data ?? res.data
       } catch (error) {
         console.error('Erro ao excluir adiantamento de fornecedor:', error)
         throw error
@@ -251,13 +198,10 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
      */
     async buscarAdiantamentoFornecedorPorId(id) {
       this.loading = true
-      const token = localStorage.getItem('token')
 
       try {
-        const response = await api.get(`/adtfornecedor/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        return response.data
+        const res = await apiPhp.get(`/adiantamento-fornecedors/${id}`)
+        return res.data?.data ?? res.data
       } catch (error) {
         console.error('Erro ao buscar adiantamento de fornecedor:', error)
         throw error
@@ -266,21 +210,61 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
       }
     },
 
+    // ==================== AÇÕES PHP (aprovado/recusar) ====================
+
+    /**
+     * Aprovar adiantamento fornecedor (PHP)
+     * POST /financeiro/adiantamento-fornecedors/{id}/aprovar
+     */
+    async aprovarAdiantamentoFornecedorPhp(id, valor_autorizado = 0) {
+      this.loading = true
+      try {
+        const response = await apiPhp.post(`/financeiro/adiantamento-fornecedors/${id}/aprovar`, {
+          valor_autorizado
+        })
+        this.successMessage = 'Adiantamento aprovado com sucesso!'
+        toast.success(this.successMessage)
+        return response.data
+      } catch (error) {
+        this.errorMessage = error.response?.data?.erro || error.response?.data?.message || 'Erro ao aprovar adiantamento'
+        toast.error(this.errorMessage)
+        return null
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Recusar adiantamento fornecedor (PHP)
+     * POST /financeiro/adiantamento-fornecedors/{id}/recusar
+     */
+    async recusarAdiantamentoFornecedorPhp(id) {
+      this.loading = true
+      try {
+        const response = await apiPhp.post(`/financeiro/adiantamento-fornecedors/${id}/recusar`)
+        this.successMessage = 'Adiantamento recusado com sucesso!'
+        toast.success(this.successMessage)
+        return response.data
+      } catch (error) {
+        this.errorMessage = error.response?.data?.erro || error.response?.data?.message || 'Erro ao recusar adiantamento'
+        toast.error(this.errorMessage)
+        return null
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // ==================== AÇÕES BLOQUEADAS (THorse offline) ====================
+
     /**
      * Pagar adiantamento de fornecedor completo
-     * @param {number} id - ID do adiantamento 
-     * @param {Object} payload - Dados completos do pagamento
-     * @returns {Promise}
+     * POST /api/v1/financeiro/adiantamento-fornecedors/{id}/pagar
      */
     async pagarAdiantamentoFornecedorCompleto(id, payload) {
       this.loading = true
-      const token = localStorage.getItem('token')
-
       try {
-        const response = await api.put(`/adtfornecedorpagto/${id}`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        return response.data
+        const response = await apiPhp.post(`/financeiro/adiantamento-fornecedors/${id}/pagar`, payload)
+        return response.data?.data ?? response.data
       } catch (error) {
         console.error('Erro ao processar pagamento:', error)
         throw error
@@ -291,21 +275,15 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
 
     /**
      * Aprovar adiantamento de fornecedor
-     * @param {number} id - ID do adiantamento
-     * @param {number} valorSolicitado - Valor solicitado para aprovação
-     * @returns {Promise}
+     * POST /api/v1/financeiro/adiantamento-fornecedors/{id}/aprovar
      */
     async aprovarAdiantamentoFornecedor(id, valorSolicitado) {
       this.loading = true
-      const token = localStorage.getItem('token')
-
       try {
-        const response = await api.put(`/adtfornecedoraprova/${id}`, {
-          data: [{ valor_solicitado: valorSolicitado }]
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
+        const response = await apiPhp.post(`/financeiro/adiantamento-fornecedors/${id}/aprovar`, {
+          valor_solicitado: valorSolicitado
         })
-        return response.data
+        return response.data?.data ?? response.data
       } catch (error) {
         console.error('Erro ao aprovar adiantamento de fornecedor:', error)
         throw error
@@ -316,18 +294,13 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
 
     /**
      * Pagar adiantamento de fornecedor
-     * @param {number} id - ID do adiantamento
-     * @returns {Promise}
+     * POST /api/v1/financeiro/adiantamento-fornecedors/{id}/pagar
      */
     async pagarAdiantamentoFornecedor(id) {
       this.loading = true
-      const token = localStorage.getItem('token')
-
       try {
-        const response = await api.put(`/adtfornecedorpagto/${id}`, {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        return response.data
+        const response = await apiPhp.post(`/financeiro/adiantamento-fornecedors/${id}/pagar`)
+        return response.data?.data ?? response.data
       } catch (error) {
         console.error('Erro ao pagar adiantamento de fornecedor:', error)
         throw error
@@ -338,18 +311,13 @@ export const useAdiantamentoStore = defineStore('adiantamento', {
 
     /**
      * Recusar/Negar adiantamento de fornecedor
-     * @param {number} id - ID do adiantamento
-     * @returns {Promise}
+     * POST /api/v1/financeiro/adiantamento-fornecedors/{id}/recusar
      */
     async recusarAdiantamentoFornecedor(id) {
       this.loading = true
-      const token = localStorage.getItem('token')
-
       try {
-        const response = await api.put(`/adtfornecedornega/${id}`, {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        return response.data
+        const response = await apiPhp.post(`/financeiro/adiantamento-fornecedors/${id}/recusar`)
+        return response.data?.data ?? response.data
       } catch (error) {
         console.error('Erro ao recusar adiantamento de fornecedor:', error)
         throw error

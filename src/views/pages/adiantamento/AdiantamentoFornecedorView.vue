@@ -933,7 +933,10 @@ const formatarMoeda = (valor) => {
 const formatarData = (data) => {
   if (!data) return '--'
   try {
-    return new Date(data).toLocaleDateString('pt-BR')
+    const d = typeof data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(data)
+      ? new Date(data + 'T00:00:00')
+      : new Date(data)
+    return d.toLocaleDateString('pt-BR')
   } catch {
     return '--'
   }
@@ -1338,27 +1341,24 @@ const salvarAdiantamento = async () => {
     }
 
     const payload = {
-      data: [{
-        id_fornecedor: formData.id_pessoa,
-        id_empresa: idEmpresa,
-        id_caixahist: formData.local_lct === 'CAI' ? formData.id_hist_contabil_caixa : null,
-        id_caixa: formData.local_lct === 'CAI' ? formData.id_caixa : null,
-        id_ccorrente: formData.local_lct === 'BAN' ? formData.id_ccorrente : null,
-        id_historico: formData.local_lct === 'BAN' ? formData.id_historico : null,      
-        local_lct: formData.local_lct,
-        tipo: formData.tipo,
-        origem: formData.origem,
-        dtlancamento: formData.dtlancamento,
-        dtprevisao_pagto: formData.dtprevisao_pagto || null,
-        nrdocumento: formData.nrdocumento || null,
-        vlr_documento: parseFloat(formData.valor_documento) || 0,
-        vlr_solicitado: parseFloat(formData.valor_solicitado) || 0,
-        observacao: formData.observacao || null,
-        id_tipopagrec: formData.id_tipopagrec,
-        id_hist_contabil: formData.id_hist_contabil || null,
-        id_planoconta: formData.id_planoconta,
-        id_tipodocumento: formData.local_lct !== 'BAN' ? formData.id_tipodocumento : null
-      }]
+      id_fornecedor: formData.id_pessoa,
+      id_caixahist: formData.local_lct === 'CAI' ? formData.id_hist_contabil_caixa : null,
+      id_caixa: formData.local_lct === 'CAI' ? formData.id_caixa : null,
+      id_ccorrente: formData.local_lct === 'BAN' ? formData.id_ccorrente : null,
+      id_historico: formData.local_lct === 'BAN' ? formData.id_historico : null,      
+      local_lct: formData.local_lct,
+      tipo: formData.tipo,
+      origem: formData.origem,
+      dtlancamento: formData.dtlancamento,
+      dtprevisao_pagto: formData.dtprevisao_pagto || null,
+      nrdocumento: formData.nrdocumento || null,
+      vlr_documento: parseFloat(formData.valor_documento) || 0,
+      vlr_solicitado: parseFloat(formData.valor_solicitado) || 0,
+      observacao: formData.observacao || null,
+      id_tipopagrec: formData.id_tipopagrec,
+      id_hist_contabil: formData.id_hist_contabil || null,
+      id_planoconta: formData.id_planoconta,
+      id_tipodocumento: formData.local_lct !== 'BAN' ? formData.id_tipodocumento : null
     }
 
     console.log('Payload a ser enviado:', payload)

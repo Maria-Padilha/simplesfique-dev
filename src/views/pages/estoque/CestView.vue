@@ -261,15 +261,11 @@ const salvarFormulario = async () => {
 
   if (!editando.value) {
     await estoqueStore.cadastrarCest({
-      data: [
-        {
-          id_uf: forms.id_uf,
-          id_ncm: forms.id_ncm,
-          descricao: forms.descricao,
-          pmva: forms.pmva,
-          id: forms.id
-        }
-      ]
+      id_uf: forms.id_uf,
+      id_ncm: forms.id_ncm,
+      descricao: forms.descricao,
+      pmva: forms.pmva,
+      id: forms.id
     });
   }
   else {
@@ -278,12 +274,8 @@ const salvarFormulario = async () => {
         itemSelecionado.value.id_ncm,
         itemSelecionado.value.id_uf,
         {
-          data: [
-            {
-              descricao: forms.descricao,
-              pmva: forms.pmva,
-            }
-          ]
+          descricao: forms.descricao,
+          pmva: forms.pmva,
     });
   }
   cancelarFormulario();

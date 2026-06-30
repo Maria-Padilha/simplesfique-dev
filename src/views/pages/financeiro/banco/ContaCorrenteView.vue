@@ -142,7 +142,7 @@
                             class="custom-text-field required-left-border"
                             prepend-inner-icon="mdi-file-tree"
                             :loading="loadingPlanosConta"
-                            hide-no-data
+                            @focus="carregarPlanosConta"
                         >
                           <template v-slot:item="{ props, item }">
                             <v-list-item v-bind="props">
@@ -164,7 +164,15 @@
                           </template>
                           <template v-slot:no-data>
                             <v-list-item>
-                              <v-list-item-title>Nenhum plano de conta encontrado</v-list-item-title>
+                              <v-list-item-title>
+                                <v-icon icon="mdi-alert-circle-outline" class="mr-2" color="warning"></v-icon>
+                                Nenhum plano de conta cadastrado
+                              </v-list-item-title>
+                              <v-list-item-subtitle class="mt-1">
+                                Crie um plano de conta em
+                                <v-icon icon="mdi-file-tree" size="14"></v-icon>
+                                Financeiro &gt; Plano de Conta
+                              </v-list-item-subtitle>
                             </v-list-item>
                           </template>
                         </v-autocomplete>
@@ -1069,14 +1077,11 @@ const salvarChavesAPI = async () => {
     console.log('tpambiente:', chavesAPIForm.tpambiente)
     
     const payload = {
-      data: [{
-        id_ccorrente: contaId,
-        clid_api_pix: chavesAPIForm.clid_api_pix,
-        clsecret_api_pix: chavesAPIForm.clsecret_api_pix,
-        clid_api_cob: chavesAPIForm.clid_api_cob,
-        clsecret_api_cob: chavesAPIForm.clsecret_api_cob,
-        tpambiente: chavesAPIForm.tpambiente
-      }]
+      clid_api_pix: chavesAPIForm.clid_api_pix,
+      clsecret_api_pix: chavesAPIForm.clsecret_api_pix,
+      clid_api_cob: chavesAPIForm.clid_api_cob,
+      clsecret_api_cob: chavesAPIForm.clsecret_api_cob,
+      tpambiente: chavesAPIForm.tpambiente
     }
     
     console.log('PAYLOAD FINAL:', JSON.stringify(payload, null, 2))
@@ -1462,19 +1467,14 @@ const resetarForm = () => {
 
 const salvarConta = async () => {
   try {
-    const { tipochavepix, chavepix, ...contaFields } = formData
-
     // Normalizar id_banco e id_agencia caso estejam como objetos
     const data = {
-      ...contaFields,
-      id_banco: normalizeId(contaFields.id_banco),
-      id_agencia: normalizeId(contaFields.id_agencia)
+      ...formData,
+      id_banco: normalizeId(formData.id_banco),
+      id_agencia: normalizeId(formData.id_agencia)
     }
 
-    const payload = {
-      data: [data],
-      chavepix: [{ tipochavepix, chavepix }]
-    }
+    const payload = { ...data }
 
     if (editando.value) {
       const recordId = data.id ?? data.id_ccorrente ?? data.numero_ccorrente
@@ -1533,7 +1533,11 @@ const formatarMoeda = (valor) => {
 }
 
 const formatarData = (data) => {
-  return new Date(data).toLocaleDateString('pt-BR')
+  if (!data) return '-'
+  const d = typeof data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(data)
+    ? new Date(data + 'T00:00:00')
+    : new Date(data)
+  return d.toLocaleDateString('pt-BR')
 }
 
 const formatarDataHora = (data) => {

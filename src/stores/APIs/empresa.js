@@ -1,11 +1,10 @@
 import {defineStore} from "pinia"
-import api from "@/services/api";
+import apiPhp from "@/services/apiPhp";
 import {toast} from "vue3-toastify";
 
 export const useEmpresaStore = defineStore('empresa', {
     state: () => ({
         loading: false,
-        token: localStorage.getItem('token'),
 
         errorMessage: '',
         successMessage: '',
@@ -20,16 +19,13 @@ export const useEmpresaStore = defineStore('empresa', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/empresa`, {
-                    headers: { Authorization: `Bearer ${this.token}` }
-                });
+                const response = await apiPhp.get('/manutencao/empresas');
 
-                this.empresas = response.data?.data || response.data || [];
+                this.empresas = response.data?.data ?? response.data ?? [];
                 this.errorMessage = '';
 
             } catch (error) {
                 this.errorMessage = error.response?.data?.message || 'Erro ao buscar empresas';
-                console.error('Erro ao buscar empresas:', error);
                 toast.error(this.errorMessage);
             } finally {
                 this.loading = false;
@@ -40,9 +36,7 @@ export const useEmpresaStore = defineStore('empresa', {
             this.loading = true;
 
             try {
-                const response = await api.post('/empresa', { data: [data] }, {
-                    headers: { Authorization: `Bearer ${this.token}` }
-                });
+                const response = await apiPhp.post('/manutencao/empresas', data);
 
                 this.successMessage = 'Empresa cadastrada com sucesso!';
                 this.errorMessage = '';
@@ -51,7 +45,6 @@ export const useEmpresaStore = defineStore('empresa', {
                 return response.data;
             } catch (error) {
                 this.errorMessage = error.response?.data?.message || 'Erro ao cadastrar empresa';
-                console.error('Erro ao cadastrar empresa:', error);
                 toast.error(this.errorMessage);
                 return null;
             } finally {
@@ -63,9 +56,7 @@ export const useEmpresaStore = defineStore('empresa', {
             this.loading = true;
 
             try {
-                const response = await api.put(`/empresa/${id}`, { data: [data] }, {
-                    headers: { Authorization: `Bearer ${this.token}` }
-                });
+                const response = await apiPhp.put(`/manutencao/empresas/${id}`, data);
 
                 this.successMessage = 'Empresa atualizada com sucesso!';
                 this.errorMessage = '';
@@ -74,7 +65,6 @@ export const useEmpresaStore = defineStore('empresa', {
                 return response.data;
             } catch (error) {
                 this.errorMessage = error.response?.data?.message || 'Erro ao alterar empresa';
-                console.error('Erro ao alterar empresa:', error);
                 toast.error(this.errorMessage);
                 return null;
             } finally {
@@ -86,9 +76,7 @@ export const useEmpresaStore = defineStore('empresa', {
             this.loading = true;
 
             try {
-                await api.delete(`/empresa/${id}`, {
-                    headers: { Authorization: `Bearer ${this.token}` }
-                });
+                await apiPhp.delete(`/manutencao/empresas/${id}`);
 
                 this.successMessage = 'Empresa excluída com sucesso!';
                 this.errorMessage = '';
@@ -96,7 +84,6 @@ export const useEmpresaStore = defineStore('empresa', {
 
             } catch (error) {
                 this.errorMessage = error.response?.data?.message || 'Erro ao excluir empresa';
-                console.error('Erro ao excluir empresa:', error);
                 toast.error(this.errorMessage);
             } finally {
                 this.loading = false;
@@ -107,23 +94,18 @@ export const useEmpresaStore = defineStore('empresa', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/empresa/${id}`, {
-                    headers: { Authorization: `Bearer ${this.token}` }
-                });
+                const response = await apiPhp.get(`/manutencao/empresas/${id}`);
 
-                this.empresa = response.data?.data || response.data;
+                this.empresa = response.data?.data ?? response.data;
                 this.errorMessage = '';
 
                 return this.empresa;
             } catch (error) {
                 this.errorMessage = error.response?.data?.message || 'Erro ao buscar empresa';
-                console.error('Erro ao buscar empresa:', error);
             } finally {
                 this.loading = false;
             }
         },
-
-
 
         selecionarEmpresa(empresa) {
             if (!empresa || !empresa.id) {
@@ -146,19 +128,15 @@ export const useEmpresaStore = defineStore('empresa', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/useraccess/${idEmpresa}`, {
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`
-                    }
+                const response = await apiPhp.get('/manutencao/grupo-usuario-programas', {
+                    params: { id_empresa: idEmpresa }
                 });
 
                 this.errorMessage = '';
-                console.log('Acesso do usuário carregado:', response.data);
-                return response.data;
+                return response.data?.data ?? response.data;
 
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar acesso do usuário:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }

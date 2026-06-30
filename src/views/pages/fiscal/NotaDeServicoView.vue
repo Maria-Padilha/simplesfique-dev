@@ -472,6 +472,11 @@ const formatarCEP = (cep) => {
   return limpo.replace(/^(\d{5})(\d{3})$/, '$1-$2')
 }
 
+const escapeHtml = (text) => {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }
+  return String(text).replace(/[&<>"']/g, c => map[c])
+}
+
 // Visualizar nota da lista
 const visualizarNota = (nota) => {
   notaFiscal.value = nota
@@ -614,17 +619,18 @@ const imprimirNota = () => {
   `
 
   const nota = notaFiscal.value
+  const e = escapeHtml
   const html = `
     <!DOCTYPE html>
     <html>
     <head>
-      <title>NFSe ${nota.numero}</title>
+      <title>NFSe ${e(nota.numero)}</title>
       ${styles}
     </head>
     <body>
       <div class="nota-header">
         <h1>NOTA FISCAL DE SERVIÇO ELETRÔNICA</h1>
-        <div class="numero">NFSe Nº ${nota.numero} | ${nota.status === '100' ? 'AUTORIZADA' : 'PROCESSANDO'}</div>
+        <div class="numero">NFSe Nº ${e(nota.numero)} | ${nota.status === '100' ? 'AUTORIZADA' : 'PROCESSANDO'}</div>
       </div>
 
       <div class="section">
@@ -633,11 +639,11 @@ const imprimirNota = () => {
           <div class="row">
             <div class="col col-3">
               <div class="campo-label">Número NFSe</div>
-              <div class="campo-valor font-bold">${nota.numero}</div>
+              <div class="campo-valor font-bold">${e(nota.numero)}</div>
             </div>
             <div class="col col-3">
               <div class="campo-label">Série</div>
-              <div class="campo-valor">${nota.serie || '-'}</div>
+              <div class="campo-valor">${e(nota.serie || '-')}</div>
             </div>
             <div class="col col-3">
               <div class="campo-label">Data Emissão</div>
@@ -649,11 +655,11 @@ const imprimirNota = () => {
             </div>
             <div class="col col-6">
               <div class="campo-label">Local de Emissão</div>
-              <div class="campo-valor">${nota.localEmissao}</div>
+              <div class="campo-valor">${e(nota.localEmissao)}</div>
             </div>
             <div class="col col-6">
               <div class="campo-label">Local de Prestação</div>
-              <div class="campo-valor">${nota.localPrestacao}</div>
+              <div class="campo-valor">${e(nota.localPrestacao)}</div>
             </div>
           </div>
         </div>
@@ -665,11 +671,11 @@ const imprimirNota = () => {
           <div class="row">
             <div class="col col-6">
               <div class="campo-label">Razão Social</div>
-              <div class="campo-valor font-bold">${nota.prestador?.razaoSocial || '-'}</div>
+              <div class="campo-valor font-bold">${e(nota.prestador?.razaoSocial || '-')}</div>
             </div>
             <div class="col col-6">
               <div class="campo-label">Nome Fantasia</div>
-              <div class="campo-valor">${nota.prestador?.nomeFantasia || '-'}</div>
+              <div class="campo-valor">${e(nota.prestador?.nomeFantasia || '-')}</div>
             </div>
             <div class="col col-4">
               <div class="campo-label">CNPJ</div>
@@ -677,7 +683,7 @@ const imprimirNota = () => {
             </div>
             <div class="col col-4">
               <div class="campo-label">Inscrição Municipal</div>
-              <div class="campo-valor">${nota.prestador?.inscricaoMunicipal || '-'}</div>
+              <div class="campo-valor">${e(nota.prestador?.inscricaoMunicipal || '-')}</div>
             </div>
             <div class="col col-4">
               <div class="campo-label">Telefone</div>
@@ -686,15 +692,15 @@ const imprimirNota = () => {
             <div class="col col-12">
               <div class="campo-label">Endereço</div>
               <div class="campo-valor">
-                ${nota.prestador?.endereco?.logradouro}, ${nota.prestador?.endereco?.numero}
-                ${nota.prestador?.endereco?.complemento ? ' - ' + nota.prestador?.endereco?.complemento : ''}
-                - ${nota.prestador?.endereco?.bairro} - ${nota.prestador?.endereco?.uf}
+                ${e(nota.prestador?.endereco?.logradouro)}, ${e(nota.prestador?.endereco?.numero)}
+                ${nota.prestador?.endereco?.complemento ? ' - ' + e(nota.prestador?.endereco?.complemento) : ''}
+                - ${e(nota.prestador?.endereco?.bairro)} - ${e(nota.prestador?.endereco?.uf)}
                 - CEP: ${formatarCEP(nota.prestador?.endereco?.cep)}
               </div>
             </div>
             <div class="col col-12">
               <div class="campo-label">E-mail</div>
-              <div class="campo-valor">${nota.prestador?.email || '-'}</div>
+              <div class="campo-valor">${e(nota.prestador?.email || '-')}</div>
             </div>
           </div>
         </div>
@@ -706,7 +712,7 @@ const imprimirNota = () => {
           <div class="row">
             <div class="col col-6">
               <div class="campo-label">Razão Social</div>
-              <div class="campo-valor font-bold">${nota.tomador?.razaoSocial || '-'}</div>
+              <div class="campo-valor font-bold">${e(nota.tomador?.razaoSocial || '-')}</div>
             </div>
             <div class="col col-6">
               <div class="campo-label">CNPJ</div>
@@ -715,15 +721,15 @@ const imprimirNota = () => {
             <div class="col col-12">
               <div class="campo-label">Endereço</div>
               <div class="campo-valor">
-                ${nota.tomador?.endereco?.logradouro}, ${nota.tomador?.endereco?.numero}
-                ${nota.tomador?.endereco?.complemento ? ' - ' + nota.tomador?.endereco?.complemento : ''}
-                - ${nota.tomador?.endereco?.bairro}
+                ${e(nota.tomador?.endereco?.logradouro)}, ${e(nota.tomador?.endereco?.numero)}
+                ${nota.tomador?.endereco?.complemento ? ' - ' + e(nota.tomador?.endereco?.complemento) : ''}
+                - ${e(nota.tomador?.endereco?.bairro)}
                 - CEP: ${formatarCEP(nota.tomador?.endereco?.cep)}
               </div>
             </div>
             <div class="col col-12">
               <div class="campo-label">E-mail</div>
-              <div class="campo-valor">${nota.tomador?.email || '-'}</div>
+              <div class="campo-valor">${e(nota.tomador?.email || '-')}</div>
             </div>
           </div>
         </div>
@@ -735,24 +741,24 @@ const imprimirNota = () => {
           <div class="row">
             <div class="col col-4">
               <div class="campo-label">Código Trib. Nacional</div>
-              <div class="campo-valor">${nota.servico?.codigoTribNacional || '-'}</div>
+              <div class="campo-valor">${e(nota.servico?.codigoTribNacional || '-')}</div>
             </div>
             <div class="col col-4">
               <div class="campo-label">Código Trib. Municipal</div>
-              <div class="campo-valor">${nota.servico?.codigoTribMunicipal || '-'}</div>
+              <div class="campo-valor">${e(nota.servico?.codigoTribMunicipal || '-')}</div>
             </div>
             <div class="col col-4">
               <div class="campo-label">Local de Prestação</div>
-              <div class="campo-valor">${nota.servico?.localPrestacao || '-'}</div>
+              <div class="campo-valor">${e(nota.servico?.localPrestacao || '-')}</div>
             </div>
             <div class="col col-12">
               <div class="campo-label">Descrição do Serviço</div>
-              <div class="campo-valor">${nota.servico?.descricao || '-'}</div>
+              <div class="campo-valor">${e(nota.servico?.descricao || '-')}</div>
             </div>
             ${nota.servico?.infoComplementar ? `
             <div class="col col-12">
               <div class="campo-label">Informações Complementares</div>
-              <div class="campo-valor">${nota.servico?.infoComplementar}</div>
+              <div class="campo-valor">${e(nota.servico?.infoComplementar)}</div>
             </div>
             ` : ''}
           </div>

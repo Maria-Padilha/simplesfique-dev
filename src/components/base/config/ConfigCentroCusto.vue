@@ -134,24 +134,16 @@ const carregarParametrosCentroCusto = async () => {
   try {
     const response = await useConfig.buscarparfin()
     
-    if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
-      const dados = response.data[0]
-      
-      // Verifica se tem dados válidos
-      if (dados && Object.keys(dados).length > 0) {
-        
-        config.possui_centro_custo = dados.utiliza_ccusto === 'S' || dados.utiliza_ccusto === 1 || dados.utiliza_ccusto === true
-        config.nivel1 = dados.ccusto_nivel1 || 1
-        config.nivel2 = dados.ccusto_nivel2 || 1
-        config.nivel3 = dados.ccusto_nivel3 || 1
-        config.separador = dados.separador || '.'
-        
-        
-        
-        dadosExistem.value = true
-      } else {
-        dadosExistem.value = false
-      }
+    // API retorna objeto único (não paginado); store já devolve response.data diretamente
+    const dados = response && typeof response === 'object' && !Array.isArray(response) ? response : null
+    if (dados && Object.keys(dados).length > 0) {
+      config.possui_centro_custo = dados.utiliza_ccusto === 'S' || dados.utiliza_ccusto === 1 || dados.utiliza_ccusto === true
+      config.nivel1 = dados.ccusto_nivel1 || 1
+      config.nivel2 = dados.ccusto_nivel2 || 1
+      config.nivel3 = dados.ccusto_nivel3 || 1
+      config.separador = dados.separador || '.'
+
+      dadosExistem.value = true
     } else {
       dadosExistem.value = false
     }

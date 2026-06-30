@@ -291,6 +291,11 @@ export const TEMPLATE_TITULOS = `<!DOCTYPE html>
 </body>
 </html>`
 
+function escapeHtml(text) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }
+  return String(text).replace(/[&<>"']/g, c => map[c])
+}
+
 /**
  * Gera HTML de Títulos (Pagar/Receber) - Retorna HTML para uso com html2pdf
  * @param {string} tipoRelatorio - 'Títulos a Pagar' ou 'Títulos a Receber'
@@ -385,9 +390,9 @@ export const gerarHTMLTitulos = (tipoRelatorio, dados, filtros = {}) => {
   console.log('📋 HTML original contém {{CONTRAPARTE_HEADER}}?', html.includes('{{CONTRAPARTE_HEADER}}'))
   console.log('🔄 Substituindo {{CONTRAPARTE_HEADER}} por:', tipoContraparte)
 
-  html = html.replace(/{{tipoRelatorio}}/g, tipoRelatorio)
-  html = html.replace(/{{empresa}}/g, empresa)
-  html = html.replace(/{{operador}}/g, operador)
+  html = html.replace(/{{tipoRelatorio}}/g, escapeHtml(tipoRelatorio))
+  html = html.replace(/{{empresa}}/g, escapeHtml(empresa))
+  html = html.replace(/{{operador}}/g, escapeHtml(operador))
   html = html.replace(/{{dataInicio}}/g, formatarData(filtros?.dtini || filtros?.dt_inicio || ''))
   html = html.replace(/{{dataFim}}/g, formatarData(filtros?.dtfim || filtros?.dt_fim || ''))
   html = html.replace(/{{dataImpressao}}/g, dataAtual.toLocaleString('pt-BR'))
@@ -406,14 +411,14 @@ export const gerarHTMLTitulos = (tipoRelatorio, dados, filtros = {}) => {
   titulos.forEach(titulo => {
     linhasTitulos += `
       <tr>
-        <td class="text-center">${titulo.documento}</td>
-        <td class="text-center">${titulo.serie}</td>
-        <td class="text-center">${titulo.especie}</td>
-        <td class="text-center">${titulo.parcela}</td>
-        <td class="text-center">${titulo.qtdParcelas}</td>
-        <td>${titulo.dataCadastro}</td>
-        <td>${titulo.dataVencimento}</td>
-        <td>${titulo.contraparte}</td>
+        <td class="text-center">${escapeHtml(titulo.documento)}</td>
+        <td class="text-center">${escapeHtml(titulo.serie)}</td>
+        <td class="text-center">${escapeHtml(titulo.especie)}</td>
+        <td class="text-center">${escapeHtml(titulo.parcela)}</td>
+        <td class="text-center">${escapeHtml(titulo.qtdParcelas)}</td>
+        <td>${escapeHtml(titulo.dataCadastro)}</td>
+        <td>${escapeHtml(titulo.dataVencimento)}</td>
+        <td>${escapeHtml(titulo.contraparte)}</td>
         <td class="text-right valor-positivo"><strong>${titulo.vlrDocumento}</strong></td>
         <td class="text-right valor-positivo"><strong>${titulo.valor}</strong></td>
         <td class="text-right ${parseFloat(titulo.juros) > 0 ? 'valor-negativo' : ''}">${titulo.juros}</td>
@@ -421,11 +426,11 @@ export const gerarHTMLTitulos = (tipoRelatorio, dados, filtros = {}) => {
         <td class="text-right ${parseFloat(titulo.desconto) > 0 ? 'valor-negativo' : ''}">${titulo.desconto}</td>
         <td class="text-right valor-positivo">${titulo.quitado}</td>
         <td class="text-right valor-positivo"><strong>${titulo.saldoDevedor}</strong></td>
-        <td>${titulo.localCobranca}</td>
-        <td class="text-center">${titulo.tipoDoc}</td>
-        <td class="text-center">${titulo.origem}</td>
-        <td>${titulo.usuario}</td>
-        <td>${titulo.dataInclusao}</td>
+        <td>${escapeHtml(titulo.localCobranca)}</td>
+        <td class="text-center">${escapeHtml(titulo.tipoDoc)}</td>
+        <td class="text-center">${escapeHtml(titulo.origem)}</td>
+        <td>${escapeHtml(titulo.usuario)}</td>
+        <td>${escapeHtml(titulo.dataInclusao)}</td>
       </tr>
     `
   })
@@ -537,9 +542,9 @@ export const abrirImpressaoTitulos = (tipoRelatorio, dados, filtros) => {
     console.log('📋 [abrirImpressaoTitulos] HTML original contém {{CONTRAPARTE_HEADER}}?', html.includes('{{CONTRAPARTE_HEADER}}'))
     console.log('🔄 [abrirImpressaoTitulos] Substituindo {{CONTRAPARTE_HEADER}} por:', tipoContraparte)
 
-    html = html.replace(/{{tipoRelatorio}}/g, tipoRelatorio)
-    html = html.replace(/{{empresa}}/g, empresa)
-    html = html.replace(/{{operador}}/g, operador)
+    html = html.replace(/{{tipoRelatorio}}/g, escapeHtml(tipoRelatorio))
+    html = html.replace(/{{empresa}}/g, escapeHtml(empresa))
+    html = html.replace(/{{operador}}/g, escapeHtml(operador))
     html = html.replace(/{{dataInicio}}/g, formatarData(filtros.dtini || filtros.dt_inicio))
     html = html.replace(/{{dataFim}}/g, formatarData(filtros.dtfim || filtros.dt_fim))
     html = html.replace(/{{dataImpressao}}/g, dataAtual.toLocaleString('pt-BR'))
@@ -558,24 +563,24 @@ export const abrirImpressaoTitulos = (tipoRelatorio, dados, filtros) => {
     titulos.forEach(titulo => {
       linhasTitulos += `
         <tr>
-          <td class="text-center">${titulo.documento}</td>
-          <td class="text-center">${titulo.serie}</td>
-          <td class="text-center">${titulo.especie}</td>
-          <td class="text-center">${titulo.parcela}/${titulo.qtdParcelas}</td>
-          <td>${titulo.dataCadastro}</td>
-          <td>${titulo.dataVencimento}</td>
-          <td>${titulo.contraparte}</td>
+          <td class="text-center">${escapeHtml(titulo.documento)}</td>
+          <td class="text-center">${escapeHtml(titulo.serie)}</td>
+          <td class="text-center">${escapeHtml(titulo.especie)}</td>
+          <td class="text-center">${escapeHtml(titulo.parcela)}/${escapeHtml(titulo.qtdParcelas)}</td>
+          <td>${escapeHtml(titulo.dataCadastro)}</td>
+          <td>${escapeHtml(titulo.dataVencimento)}</td>
+          <td>${escapeHtml(titulo.contraparte)}</td>
           <td class="text-right valor-positivo"><strong>${titulo.valor}</strong></td>
           <td class="text-right ${parseFloat(titulo.juros) > 0 ? 'valor-negativo' : ''}">${titulo.juros}</td>
           <td class="text-right ${parseFloat(titulo.multa) > 0 ? 'valor-negativo' : ''}">${titulo.multa}</td>
           <td class="text-right ${parseFloat(titulo.desconto) > 0 ? 'valor-negativo' : ''}">${titulo.desconto}</td>
           <td class="text-right valor-positivo">${titulo.quitado}</td>
           <td class="text-right valor-positivo"><strong>${titulo.saldoDevedor}</strong></td>
-          <td>${titulo.localCobranca}</td>
-          <td class="text-center">${titulo.tipoDoc}</td>
-          <td class="text-center">${titulo.origem}</td>
-          <td>${titulo.usuario}</td>
-          <td>${titulo.dataInclusao}</td>
+          <td>${escapeHtml(titulo.localCobranca)}</td>
+          <td class="text-center">${escapeHtml(titulo.tipoDoc)}</td>
+          <td class="text-center">${escapeHtml(titulo.origem)}</td>
+          <td>${escapeHtml(titulo.usuario)}</td>
+          <td>${escapeHtml(titulo.dataInclusao)}</td>
         </tr>
       `
     })

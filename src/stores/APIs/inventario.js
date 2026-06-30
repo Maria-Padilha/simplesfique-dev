@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import api from '@/services/api'
+import apiPhp from '@/services/apiPhp'
 import { toast } from 'vue3-toastify'
 
 export const useInventarioStore = defineStore('inventario', {
@@ -24,14 +24,11 @@ export const useInventarioStore = defineStore('inventario', {
 
       this.loading = true
       try {
-        const response = await api.get(`/inventario/${idEmpresa}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.get('/estoque/inventarios')
 
-        this.inventarios = response.data.data || response.data || []
+        this.inventarios = response.data?.data ?? response.data ?? []
         return response.data
       } catch (error) {
-        console.error('[Inventário] Erro ao listar inventários:', error)
         toast.error('Erro ao carregar inventários')
         throw error
       } finally {
@@ -52,14 +49,11 @@ export const useInventarioStore = defineStore('inventario', {
 
       this.loading = true
       try {
-        const response = await api.get(`/inventario/${idEmpresa}/${id}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.get(`/estoque/inventarios/${id}`)
 
-        this.inventarioAtual = response.data.data || response.data || null
+        this.inventarioAtual = response.data?.data ?? response.data ?? null
         return response.data
       } catch (error) {
-        console.error('[Inventário] Erro ao obter inventário:', error)
         toast.error('Erro ao carregar inventário')
         throw error
       } finally {
@@ -67,6 +61,12 @@ export const useInventarioStore = defineStore('inventario', {
       }
     },
 
+    /**
+     * Obtém itens de um inventário por almoxarifado
+     * @param {number} idEmpresa - ID da empresa
+     * @param {number} id - ID do inventário
+     * @param {number} id_almoxarifado - ID do almoxarifado
+     */
     async obterItensInventarioNovo(idEmpresa, id, id_almoxarifado) {
       if (idEmpresa == null || id == null || id_almoxarifado == null) {
         toast.error('Parâmetros inválidos')
@@ -75,14 +75,13 @@ export const useInventarioStore = defineStore('inventario', {
 
       this.loading = true
       try {
-        const response = await api.get(`/inventarioitem/${idEmpresa}/${id}/${id_almoxarifado}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
+        const response = await apiPhp.get('/estoque/inventario-itens', {
+          params: { id_inventario: id, id_almoxarifado }
         })
 
-        this.inventarioAtual = response.data.data || response.data || null
+        this.inventarioAtual = response.data?.data ?? response.data ?? null
         return response.data
       } catch (error) {
-        console.error('[Inventário] Erro ao obter inventário:', error)
         toast.error('Erro ao carregar inventário')
         throw error
       } finally {
@@ -92,37 +91,26 @@ export const useInventarioStore = defineStore('inventario', {
 
     /**
      * Cadastra um novo inventário
-     * @param {object} dados - Dados do inventário no formato { data: [{ campos }] }
+     * @param {object} dados - Dados do inventário (objeto direto, sem wrapper data)
      */
     async cadastrarInventario(dados) {
-      // Validar se tem a estrutura data
-      if (!dados.data || !Array.isArray(dados.data) || dados.data.length === 0) {
-        toast.error('Dados inválidos')
-        return
-      }
-
-      const primeiroItem = dados.data[0]
-      
-      if (!primeiroItem.id_empresa || !primeiroItem.id_almoxarifado) {
+      if (!dados.id_almoxarifado) {
         toast.error('Preencha todos os campos obrigatórios')
         return
       }
 
       this.loading = true
       try {
-        const response = await api.post(`/inventario`, dados, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.post('/estoque/inventarios', dados)
 
         if (response.data) {
-          const novoInventario = response.data.data || response.data
+          const novoInventario = response.data?.data ?? response.data
           this.inventarios.push(novoInventario)
           toast.success('Inventário cadastrado com sucesso!')
         }
 
         return response.data
       } catch (error) {
-        console.error('[Inventário] Erro ao cadastrar inventário:', error)
         toast.error('Erro ao cadastrar inventário')
         throw error
       } finally {
@@ -144,17 +132,10 @@ export const useInventarioStore = defineStore('inventario', {
 
       this.loading = true
       try {
-        const payload = {
-          ...dados,
-          id_empresa: idEmpresa
-        }
-
-        const response = await api.put(`/inventario/${idEmpresa}/${id}`, payload, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.put(`/estoque/inventarios/${id}`, dados)
 
         if (response.data) {
-          const inventarioAtualizado = response.data.data || response.data
+          const inventarioAtualizado = response.data?.data ?? response.data
           const index = this.inventarios.findIndex(inv => inv.id === id)
           if (index !== -1) {
             this.inventarios[index] = inventarioAtualizado
@@ -164,7 +145,6 @@ export const useInventarioStore = defineStore('inventario', {
 
         return response.data
       } catch (error) {
-        console.error('[Inventário] Erro ao alterar inventário:', error)
         toast.error('Erro ao alterar inventário')
         throw error
       } finally {
@@ -185,16 +165,13 @@ export const useInventarioStore = defineStore('inventario', {
 
       this.loading = true
       try {
-        const response = await api.delete(`/inventario/${idEmpresa}/${id}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.post(`/estoque/inventarios/${id}/cancelar`)
 
         this.inventarios = this.inventarios.filter(inv => inv.id !== id)
         toast.success('Inventário cancelado com sucesso!')
 
         return response.data
       } catch (error) {
-        console.error('[Inventário] Erro ao cancelar inventário:', error)
         toast.error('Erro ao cancelar inventário')
         throw error
       } finally {
@@ -216,17 +193,12 @@ export const useInventarioStore = defineStore('inventario', {
 
       this.loading = true
       try {
-        const payload = {
-          id_usuarioencerrou: idUsuario,
-          dtencerramento: new Date().toISOString()
-        }
-
-        const response = await api.put(`/inventario/${idEmpresa}/${id}`, payload, {
-          headers: { Authorization: `Bearer ${this.token}` }
+        const response = await apiPhp.post(`/estoque/inventarios/${id}/encerrar`, {
+          id_usuario: idUsuario
         })
 
         if (response.data) {
-          const inventarioEncerrado = response.data.data || response.data
+          const inventarioEncerrado = response.data?.data ?? response.data
           const index = this.inventarios.findIndex(inv => inv.id === id)
           if (index !== -1) {
             this.inventarios[index] = inventarioEncerrado
@@ -236,7 +208,6 @@ export const useInventarioStore = defineStore('inventario', {
 
         return response.data
       } catch (error) {
-        console.error('[Inventário] Erro ao encerrar inventário:', error)
         toast.error('Erro ao encerrar inventário')
         throw error
       } finally {
@@ -246,6 +217,7 @@ export const useInventarioStore = defineStore('inventario', {
 
     /**
      * Consulta o saldo de um produto em um almoxarifado
+     * ⚠️ BLOQUEADO — sem endpoint PHP documentado, mantido THorse
      * @param {number} idEmpresa - ID da empresa
      * @param {number} idAlmoxarifado - ID do almoxarifado
      * @param {number} idProduto - ID do produto
@@ -259,13 +231,13 @@ export const useInventarioStore = defineStore('inventario', {
 
       this.loading = true
       try {
-        const response = await api.get(`/proalmox/${idEmpresa}/${idAlmoxarifado}/${idProduto}`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        const response = await apiPhp.get(`/estoque/produto-almoxarifados/${idEmpresa}/${idAlmoxarifado}/${idProduto}`)
 
-        return response.data.data || response.data || null
+        return response.data?.data ?? response.data ?? null
       } catch (error) {
-        console.error('[Inventário] Erro ao consultar saldo do produto:', error)
+        if (error.response?.status === 404) {
+          return null
+        }
         toast.error('Erro ao consultar saldo do produto')
         throw error
       } finally {
@@ -292,16 +264,14 @@ export const useInventarioStore = defineStore('inventario', {
 
       this.loading = true
       try {
-        const payload = { item: itens }
-
-        const response = await api.post(`/inventarioitem/${idEmpresa}/${id}`, payload, {
-          headers: { Authorization: `Bearer ${this.token}` }
+        const response = await apiPhp.post('/estoque/inventario-itens', {
+          id_inventario: id,
+          itens
         })
 
         toast.success('Contagem salva com sucesso!')
         return response.data
       } catch (error) {
-        console.error('[Inventário] Erro ao inserir itens de inventário:', error)
         toast.error('Erro ao salvar contagem')
         throw error
       } finally {
@@ -309,6 +279,13 @@ export const useInventarioStore = defineStore('inventario', {
       }
     },
 
+    /**
+     * Atualiza itens de contagem em um inventário
+     * @param {number} idEmpresa - ID da empresa
+     * @param {number} id - ID do inventário
+     * @param {Array} itens - Lista de itens
+     * @param {number} id_almoxarifado - ID do almoxarifado
+     */
     async atualizarItemInventario(idEmpresa, id, itens, id_almoxarifado = {}) {
       if (!idEmpresa || !id || !id_almoxarifado) {
         toast.error('Parâmetros inválidos')
@@ -322,18 +299,14 @@ export const useInventarioStore = defineStore('inventario', {
 
       this.loading = true
       try {
-        const payload = {
-          data: itens,
-        }
-
-        const response = await api.put(`/inventarioitem/${idEmpresa}/${id}/${id_almoxarifado}`, payload, {
-          headers: { Authorization: `Bearer ${this.token}` }
+        const response = await apiPhp.put(`/estoque/inventario-itens/${id}`, {
+          itens,
+          id_almoxarifado
         })
 
         toast.success('Contagem atualizada com sucesso!')
         return response.data
       } catch (error) {
-        console.error('[Inventário] Erro ao atualizar itens de inventário:', error)
         toast.error('Erro ao atualizar contagem')
         throw error
       } finally {
@@ -359,24 +332,23 @@ export const useInventarioStore = defineStore('inventario', {
       }
 
       // Montar query params ignorando valores nulos/undefined
-      const params = {}
-      if (filtros.idpro) params.idpro = filtros.idpro
-      if (filtros.idgrp) params.idgrp = filtros.idgrp
-      if (filtros.idsbg) params.idsbg = filtros.idsbg
-      if (filtros.idmar) params.idmar = filtros.idmar
-      if (filtros.idloc) params.idloc = filtros.idloc
+      const params = {
+        id_empresa: idEmpresa,
+        id_almoxarifado: idAlmoxarifado
+      }
+      if (filtros.idpro) params.id_produto = filtros.idpro
+      if (filtros.idgrp) params.id_grupo = filtros.idgrp
+      if (filtros.idsbg) params.id_subgrupo = filtros.idsbg
+      if (filtros.idmar) params.id_marca = filtros.idmar
+      if (filtros.idloc) params.id_localizacao = filtros.idloc
 
       this.loading = true
       try {
-        const response = await api.get(`/inventarioitem/${idEmpresa}/${idAlmoxarifado}`, {
-          headers: { Authorization: `Bearer ${this.token}` },
-          params
-        })
+        const response = await apiPhp.get('/estoque/inventario-itens', { params })
 
-        this.gridProdutos = response.data.data || response.data || []
+        this.gridProdutos = response.data?.data ?? response.data ?? []
         return response.data
       } catch (error) {
-        console.error('[Inventário] Erro ao buscar grid de produtos:', error)
         toast.error('Erro ao carregar produtos do almoxarifado')
         throw error
       } finally {

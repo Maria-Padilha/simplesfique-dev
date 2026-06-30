@@ -4,7 +4,7 @@
       <!-- Suprimento de Caixa -->
       <div class="config-section mb-6">
         <h4 class="text-lg font-medium mb-4 texto-color-primary">Suprimento de Caixa</h4>
-        
+
         <div class="d-flex flex-column" style="gap: 16px;">
           <!-- Conta Contábil Suprimento -->
           <v-text-field
@@ -135,8 +135,8 @@
       </div>
 
       <!-- Tipo Recebimento -->
-      
-        
+
+
         <div class="d-flex flex-column" style="gap: 16px;">
           <!-- Tipo Recebimento -->
           <v-text-field
@@ -184,7 +184,7 @@
       <!-- Sangria de Caixa -->
       <div class="config-section mb-6">
         <h4 class="text-lg font-medium mb-4 texto-color-primary">Sangria de Caixa</h4>
-        
+
         <div class="d-flex flex-column" style="gap: 16px;">
           <!-- Conta Contábil Sangria -->
           <v-text-field
@@ -244,7 +244,7 @@
         <v-icon class="mr-2">mdi-content-save</v-icon>
         Salvar Configurações
       </v-btn>
-      
+
       <v-btn
         variant="outlined"
         @click="resetarConfiguracoes"
@@ -278,12 +278,14 @@ const config = reactive({
   id_hist_caixa_suprimento: null,
   id_hist_contabil_suprimento: null,
   id_tipo_pagrec_suprimento: null,
+  id_tipo_doc_suprimento: null,
   id_red_ctb_sangria: null,
   // Campos de descrição
   desc_ctb_suprimento: '',
   desc_hist_caixa_suprimento: '',
   desc_hist_contabil_suprimento: '',
   desc_tipo_recebimento: '',
+  desc_tipo_doc_suprimento: '',
   desc_ctb_sangria: ''
 })
 
@@ -294,19 +296,19 @@ const tiposPagRec = ref([])
 const planosConta = computed(() => useFinanceiro.planosConta || [])
 
 // Computed para labels
-const planoContaSuprimentoLabel = computed(() => 
+const planoContaSuprimentoLabel = computed(() =>
   config.id_red_ctb_suprimento ? `( ${config.id_red_ctb_suprimento} ) - ${config.desc_ctb_suprimento}` : ''
 )
-const histCaixaSuprimentoLabel = computed(() => 
+const histCaixaSuprimentoLabel = computed(() =>
   config.id_hist_caixa_suprimento ? `( ${config.id_hist_caixa_suprimento} ) - ${config.desc_hist_caixa_suprimento}` : ''
 )
-const histContabilSuprimentoLabel = computed(() => 
+const histContabilSuprimentoLabel = computed(() =>
   config.id_hist_contabil_suprimento ? `( ${config.id_hist_contabil_suprimento} ) - ${config.desc_hist_contabil_suprimento}` : ''
 )
-const tipoRecebimentoLabel = computed(() => 
+const tipoRecebimentoLabel = computed(() =>
   config.id_tipo_pagrec_suprimento ? `( ${config.id_tipo_pagrec_suprimento} ) - ${config.desc_tipo_recebimento}` : ''
 )
-const planoContaSangriaLabel = computed(() => 
+const planoContaSangriaLabel = computed(() =>
   config.id_red_ctb_sangria ? `( ${config.id_red_ctb_sangria} ) - ${config.desc_ctb_sangria}` : ''
 )
 
@@ -419,32 +421,25 @@ const selecionarTipoRecebimento = (item) => {
 // Carregar parâmetros do caixa
 const carregarParametrosCaixa = async () => {
   const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-  
+
   if (!idEmpresa) {
     console.error('ID da empresa não encontrado!')
     return
   }
-  
+
   try {
     const response = await useConfig.buscarParametrosCaixa(idEmpresa)
-    const dadosArray = response?.data
-    
-    // Se o array tem pelo menos um objeto com algum campo preenchido
-    let dados = null
-    if (Array.isArray(dadosArray) && dadosArray.length > 0) {
-      const temCampos = Object.keys(dadosArray[0] || {}).filter(k => k.startsWith('id_')).length > 0
-      if (temCampos) {
-        dados = dadosArray[0]
-      }
-    }
-    
+
+    // API retorna objeto único (não paginado); store já devolve response.data diretamente
+    const dados = response && typeof response === 'object' && !Array.isArray(response) ? response : null
+
     if (dados) {
       Object.keys(config).forEach(key => {
         if (Object.prototype.hasOwnProperty.call(dados, key)) {
           config[key] = dados[key]
         }
       })
-      
+
       // Preencher descrições dos planos de conta
       if (Array.isArray(planosConta.value)) {
         if (config.id_red_ctb_suprimento) {
@@ -456,25 +451,28 @@ const carregarParametrosCaixa = async () => {
           config.desc_ctb_sangria = planoSangria ? (planoSangria.descconta || planoSangria.descricao) : ''
         }
       }
-      
+
       // Preencher descrições dos históricos de caixa
       if (Array.isArray(historicoCaixa.value) && config.id_hist_caixa_suprimento) {
         const histCaixa = historicoCaixa.value.find(h => Number(h.id) === Number(config.id_hist_caixa_suprimento))
         config.desc_hist_caixa_suprimento = histCaixa ? histCaixa.deschistorico : ''
       }
-      
+
       // Preencher descrições dos históricos contábeis
       if (Array.isArray(historicoContabil.value) && config.id_hist_contabil_suprimento) {
         const histContabil = historicoContabil.value.find(h => Number(h.id) === Number(config.id_hist_contabil_suprimento))
         config.desc_hist_contabil_suprimento = histContabil ? histContabil.deschistorico : ''
       }
-      
+
       // Preencher descrição do tipo recebimento
       if (Array.isArray(tiposPagRec.value) && config.id_tipo_pagrec_suprimento) {
         const tipoRec = tiposPagRec.value.find(t => Number(t.id) === Number(config.id_tipo_pagrec_suprimento))
         config.desc_tipo_recebimento = tipoRec ? (tipoRec.desctipopagrec || tipoRec.descricao) : ''
       }
-      
+
+      // Tipo de documento retornado diretamente pela API via referencia_*
+      config.desc_tipo_doc_suprimento = dados.referencia_parfincxa_tipo_doc_sup?.desctipodocumento ?? ''
+
       dadosExistem.value = true
     } else {
       dadosExistem.value = false
@@ -492,20 +490,21 @@ const salvarConfiguracoes = async () => {
         id_red_ctb_suprimento: config.id_red_ctb_suprimento,
         id_hist_caixa_suprimento: config.id_hist_caixa_suprimento,
         id_hist_contabil_suprimento: config.id_hist_contabil_suprimento,
-        id_tipo_pagrec_suprimento: config.id_tipo_pagrec_suprimento || null,
+        id_tipo_pagrec_suprimento: config.id_tipo_pagrec_suprimento != null ? String(config.id_tipo_pagrec_suprimento).padStart(2, '0') : null,
+        id_tipo_doc_suprimento: config.id_tipo_doc_suprimento || null,
         id_red_ctb_sangria: config.id_red_ctb_sangria
       }]
     }
-    
+
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-    
+
     if (!idEmpresa) {
       console.error('ID da empresa não encontrado!')
       return
     }
-    
+
     const response = await useConfig.alterarParametrosCaixa(idEmpresa, dadosParaEnvio)
-    
+
     if (response) {
       await carregarParametrosCaixa()
     }
@@ -534,7 +533,7 @@ onMounted(async () => {
     if (!empresaStore.empresa?.id && !empresaStore.empresaSelecionada?.id) {
       empresaStore.carregarEmpresaSelecionada()
     }
-    
+
     // Sincroniza empresaStore.empresa com empresaSelecionada se necessário
     if (!empresaStore.empresa?.id && empresaStore.empresaSelecionada?.id) {
       empresaStore.empresa = empresaStore.empresaSelecionada
@@ -575,7 +574,6 @@ watch(
 </script>
 
 <style scoped>
-@import "@/assets/scss/1-components/components.scss";
 
 .custom-text-field :deep(.v-field) {
   background-color: rgba(var(--v-theme-surface), 0.7);

@@ -8,10 +8,21 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "dev": "concurrently \"npm run serve\" \"npm run electron-dev\"",
-    "electron-dev": "wait-on http://localhost:8080 && NODE_ENV=development npx electron .",
-    "electron-build": "npm run build && npx electron ."
+    "electron-dev": "node -e \"const http=require('http');const t=setInterval(()=>{http.get('http://localhost:8080',r=>{clearInterval(t);clearTimeout(o);process.exit(0)}).on('error',()=>{})},500);const o=setTimeout(()=>{clearInterval(t);process.exit(1)},60000)\" && NODE_ENV=development npx electron .",
+    "electron-build": "npm run build && npx electron .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepare": "husky",
+    "pendencias": "node scripts/pendencias-php.js gerar",
+    "pendencias:add": "node scripts/pendencias-php.js add",
+    "pendencias:status": "node scripts/pendencias-php.js status",
+    "test:api": "node scripts/api-smoke-test.js",
+    "test:api:php": "node scripts/api-smoke-test.js --php-only",
+    "test:api:thorse": "node scripts/api-smoke-test.js --thorse-only"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1043.0",
+    "@aws-sdk/s3-request-presigner": "^3.1043.0",
     "@devindex/vue-mask": "^2.0.3",
     "@guolao/vue-monaco-editor": "^1.6.0",
     "@mdi/font": "5.9.55",
@@ -21,6 +32,7 @@
     "aos": "^2.3.4",
     "apexcharts": "^5.3.6",
     "autoprefixer": "^10.4.21",
+    "aws-sdk": "^2.1693.0",
     "axios": "^1.12.2",
     "core-js": "^3.8.3",
     "html2pdf.js": "^0.12.1",
@@ -46,25 +58,33 @@
   "devDependencies": {
     "@babel/core": "^7.12.16",
     "@babel/eslint-parser": "^7.12.16",
+    "@vitejs/plugin-vue": "^6.0.7",
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-plugin-router": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
-    "concurrently": "^9.2.1",
+    "@vue/test-utils": "^2.4.10",
+    "concurrently": "^10.0.1",
     "electron": "^39.1.1",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3",
+    "happy-dom": "^20.9.0",
+    "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^17.0.7",
     "sass": "^1.32.7",
     "sass-loader": "^12.0.0",
     "tailwindcss": "^4.1.11",
+    "vitest": "^4.1.8",
     "vue-cli-plugin-vuetify": "~2.5.8",
-    "wait-on": "^9.0.1",
-    "webpack-plugin-vuetify": "^3.1.1"
+        "webpack-plugin-vuetify": "^3.1.1"
   },
   "eslintConfig": {
     "root": true,
     "env": {
-      "node": true
+      "node": true,
+      "browser": true,
+      "jest": true
     },
     "extends": [
       "plugin:vue/vue3-essential",
@@ -73,6 +93,14 @@
     "parserOptions": {
       "parser": "@babel/eslint-parser"
     },
+    "globals": {
+      "particlesJS": "readonly",
+      "globalThis": "readonly"
+    },
+    "ignorePatterns": [
+      "src/components/particle/**",
+      "src/examples/**"
+    ],
     "rules": {}
   },
   "browserslist": [

@@ -1,10 +1,9 @@
 import { defineStore } from 'pinia'
-import api from '@/services/api'
+import apiPhp from '@/services/apiPhp'
 
 export const useAcessoStore = defineStore('acesso', {
   state: () => ({
     loading: false,
-    token: localStorage.getItem('token'),
     acessos: [], // Array de acessos do usuário
     errorMessage: '',
     successMessage: ''
@@ -59,36 +58,21 @@ export const useAcessoStore = defineStore('acesso', {
     async buscarAcessos(idEmpresa) {
       this.loading = true
 
-      console.log('[AcessoStore] Iniciando buscarAcessos com idEmpresa:', idEmpresa)
-
       try {
-        console.log('[AcessoStore] Fazendo requisição GET /useraccess/' + idEmpresa)
-
-        const response = await api.get(`/useraccess/${idEmpresa}`, {
-          headers: {
-            'Authorization': `Bearer ${this.token}`
-          }
+        const response = await apiPhp.get('/manutencao/grupo-usuario-programas', {
+          params: { id_empresa: idEmpresa }
         })
 
-        console.log('[AcessoStore] Resposta recebida:', response.data)
-
         // Armazenar acessos
-        this.acessos = Array.isArray(response.data?.data) ? response.data.data : response.data
+        this.acessos = response.data?.data ?? response.data ?? []
         this.errorMessage = ''
-
-        console.log('[AcessoStore] Acessos armazenados:', this.acessos)
-        console.log('[AcessoStore] Total de programas:', this.acessos.length)
 
         // Salvar no localStorage para acesso rápido
         localStorage.setItem('usuarioAcessos', JSON.stringify(this.acessos))
-        console.log('[AcessoStore] Acessos salvos no localStorage')
 
         return this.acessos
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao buscar acessos'
-        console.error('[AcessoStore] Erro ao buscar acessos:', error)
-        console.error('[AcessoStore] Status:', error.response?.status)
-        console.error('[AcessoStore] Dados do erro:', error.response?.data)
         return null
       } finally {
         this.loading = false
@@ -123,18 +107,13 @@ export const useAcessoStore = defineStore('acesso', {
       try {
         // Enviar todos os programas com suas permissões
         const payload = {
-          id_grupousuario: idGrupoUsuario,
+          id_grupo_usuario: idGrupoUsuario,
           programas: programas
         }
 
-        const response = await api.post(`/grupousuarioprog`, payload, {
-          headers: {
-            'Authorization': `Bearer ${this.token}`
-          }
-        })
+        const response = await apiPhp.post('/manutencao/grupo-usuario-programas', payload)
 
         this.successMessage = 'Acessos atualizados com sucesso'
-        console.log('Acessos atualizados:', response.data)
 
         // Recarregar acessos
         await this.buscarAcessos(idGrupoUsuario)
@@ -142,7 +121,6 @@ export const useAcessoStore = defineStore('acesso', {
         return response.data
       } catch (error) {
         this.errorMessage = error.response?.data?.message || 'Erro ao atualizar acessos'
-        console.error('Erro ao atualizar acessos:', error)
         return null
       } finally {
         this.loading = false
@@ -159,7 +137,6 @@ export const useAcessoStore = defineStore('acesso', {
     debug() {
       console.group('[AcessoStore] Estado Atual')
       console.log('Loading:', this.loading)
-      console.log('Token:', this.token ? 'Presente' : 'Ausente')
       console.log('Total de Acessos:', this.acessos.length)
       console.log('Acessos:', this.acessos)
       console.log('Error:', this.errorMessage)

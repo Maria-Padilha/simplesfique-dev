@@ -594,7 +594,7 @@
                   <template #[`item.vlrface`]="{ item }">{{ formatarMoeda(item.vlrface) }}</template>
                   <template #[`item.vlrtotal`]="{ item }">{{ formatarMoeda(item.vlrtotal) }}</template>
                   <template #[`item.dtlancamento`]="{ item }">
-                    {{ item.dtlancamento ? new Date(item.dtlancamento).toLocaleDateString('pt-BR') : '--' }}
+                    {{ item.dtlancamento ? new Date(item.dtlancamento.length === 10 ? item.dtlancamento + 'T00:00:00' : item.dtlancamento).toLocaleDateString('pt-BR') : '--' }}
                   </template>
                   <template #[`item.acoes`]="{ item }">
                     <v-btn size="x-small" variant="text" color="var(--text-color-laranja)" @click.stop="selecionarLancamento(item)">
@@ -939,26 +939,24 @@ const salvarLancamento = async () => {
   const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
 
   const payload = {
-    data: [{
-      tipo_movimento: formData.tipo_movimento,
-      id_empresa: idEmpresa,
-      id_colaborador: formData.id_colaborador,
-      nrdocumento: formData.nrdocumento,
-      observacao: formData.observacao,
-      vlrface: formData.vlrface,
-      percjuros: formData.percjuros,
-      vlrjuros: formData.vlrjuros,
-      vlrtotal: formData.vlrtotal,
-      dtlancamento: formData.dtlancamento,
-      id_caixa: formData.tipo_movimento === 'C' ? formData.id_caixa : null,
-      id_caixahist: formData.tipo_movimento === 'C' ? formData.id_caixahist : null,
-      id_ccorrente: formData.tipo_movimento === 'B' ? formData.id_ccorrente : null,
-      id_ccorrentehist: formData.tipo_movimento === 'B' ? formData.id_ccorrentehist : null,
-      id_historico_ctb: formData.id_historico_ctb,
-      id_conta_despesa: formData.id_conta_despesa,
-      id_tipodocumento: formData.id_tipodocumento,
-      id_tipopagrec: formData.id_tipopagrec,
-    }],
+    tipo_movimento: formData.tipo_movimento,
+    id_empresa: idEmpresa,
+    id_colaborador: formData.id_colaborador,
+    nrdocumento: formData.nrdocumento,
+    observacao: formData.observacao,
+    vlrface: formData.vlrface,
+    percjuros: formData.percjuros,
+    vlrjuros: formData.vlrjuros,
+    vlrtotal: formData.vlrtotal,
+    dtlancamento: formData.dtlancamento,
+    id_caixa: formData.tipo_movimento === 'C' ? formData.id_caixa : null,
+    id_caixahist: formData.tipo_movimento === 'C' ? formData.id_caixahist : null,
+    id_ccorrente: formData.tipo_movimento === 'B' ? formData.id_ccorrente : null,
+    id_ccorrentehist: formData.tipo_movimento === 'B' ? formData.id_ccorrentehist : null,
+    id_historico_ctb: formData.id_historico_ctb,
+    id_conta_despesa: formData.id_conta_despesa,
+    id_tipodocumento: formData.id_tipodocumento,
+    id_tipopagrec: formData.id_tipopagrec,
     parcela: parcelas.value.map(p => ({
       valor: p.valor,
       dtvencimento: p.dtvencimento,

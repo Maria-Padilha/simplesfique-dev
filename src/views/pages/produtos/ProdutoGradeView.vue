@@ -444,22 +444,16 @@ async function salvarFormularioGrade() {
   if (!validacao?.valid) return;
 
   const payload = {
-    data: [
-      {
-        id_empresa: formGrade.id_empresa,
-        id_produto: formGrade.id_produto,
-        id_cor: String(formGrade.id_cor),
-        id_tamanho: normalizarTamanho(formGrade.id_tamanho),
-        id_localizacao: formGrade.id_localizacao,
-        status: String(formGrade.status),
-        codigo_grade: formGrade.codigo_grade
-            ? String(formGrade.codigo_grade).trim()
-            : null,
-      }
-    ]
+    id_empresa: formGrade.id_empresa,
+    id_produto: formGrade.id_produto,
+    id_cor: String(formGrade.id_cor),
+    id_tamanho: normalizarTamanho(formGrade.id_tamanho),
+    id_localizacao: formGrade.id_localizacao,
+    status: String(formGrade.status),
+    codigo_grade: formGrade.codigo_grade
+        ? String(formGrade.codigo_grade).trim()
+        : null,
   };
-
-
 
   if (editandoGrade.value && itemSelecionado.value?.id_produto) {
     await produtosStore.atualizarGradeProduto(
@@ -601,13 +595,9 @@ async function salvarOuEditarCor() {
   };
 
   if (modoCor.value === "edit") {
-    await produtosStore.atualizarCor(editandoCorId.value?.id, {
-      data: [payload],
-    });
+    await produtosStore.atualizarCor(editandoCorId.value?.id, payload);
   } else {
-    await produtosStore.cadastrarCor({
-      data: [payload],
-    });
+    await produtosStore.cadastrarCor(payload);
   }
 
   if (!produtosStore.errorMessage) {

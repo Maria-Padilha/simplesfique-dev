@@ -794,11 +794,7 @@ const montarPayload = () => {
   })
 
   const payload = {
-    data: [
-      {
-        descdre: modeloAtual.nome
-      }
-    ],
+    descdre: modeloAtual.nome,
     dredetalhe: dredetalhe,
     dredetalheconta: dredetalheconta
   }

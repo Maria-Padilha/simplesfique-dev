@@ -52,7 +52,7 @@
         </template>
         </v-text-field>
 
-        
+
         <!-- Campo para estorno de títulos pagos no caixa -->
         <p class="texto-color-primary font-medium mb-2 mt-4">Código do hist. para estorno de tit. pagos no caixa:</p>
         <v-text-field
@@ -100,7 +100,7 @@
         </template>
         </v-text-field>
 
-       
+
 
         <div>
         <p class="texto-color-primary font-medium mb-2">Código do histórico para baixa no banco:</p>
@@ -289,7 +289,7 @@
         </v-text-field>
       </div>
 
-      
+
       </div>
 
       <!-- Contas Contábeis -->
@@ -648,7 +648,7 @@
         <v-icon class="mr-2">mdi-content-save</v-icon>
         Salvar Configurações
       </v-btn>
-      
+
       <v-btn
         variant="outlined"
         @click="resetarConfiguracoes"
@@ -860,7 +860,7 @@ const atualizarHistoricoAdtBancoResultados = () => {
 const atualizarTiposDocumentoResultados = () => {
   tiposDocumentoResultados.value = filtrarLista(tiposDocumento.value, termoTipoDocumento.value, ['desctipodocumento', 'abreviatura', 'id'])
 }
- 
+
 const pesquisarHistoricoCaixa = () => atualizarHistoricoCaixaResultados()
 const pesquisarHistoricoBanco = () => atualizarHistoricoBancoResultados()
 const pesquisarHistoricoCaixaCtb = () => atualizarHistoricoCaixaCtbResultados()
@@ -961,109 +961,49 @@ const canSave = computed(() => {
   return !useConfig.loading
 })
 
-// Métodos para buscar descrições
-const buscarHistoricoCaixa = async (id, campoDesc) => {
-  const idNum = Number(id)
-  if (!idNum) {
-    config[campoDesc] = ''
-    return
-  }
-  const historico = historicoCaixa.value.find(h => Number(h.id) === idNum)
-  config[campoDesc] = historico ? historico.deschistorico : ''
-}
-
-const buscarHistoricoBanco = async (id, campoDesc) => {
-  const idNum = Number(id)
-  if (!idNum) {
-    config[campoDesc] = ''
-    return
-  }
-  const historico = historicoBancario.value.find(h => Number(h.id) === idNum)
-  config[campoDesc] = historico ? historico.deschistorico : ''
-}
-
 
 // Função para carregar parâmetros financeiros e preencher o formulário
 const carregarParametrosFinanceiros = async () => {
   const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-  
+
   if (!idEmpresa) {
     console.error('ID da empresa não encontrado!')
     return
   }
-  
+
   try {
     const response = await useConfig.buscarParametrosFinanceirosPagar(idEmpresa)
-    const dadosArray = response?.data
-    
-    // Se o array tem pelo menos um objeto com algum campo preenchido, é PUT
-    let dados = null
-    if (Array.isArray(dadosArray) && dadosArray.length > 0) {
-      // Verifica se algum campo relevante está preenchido
-      const temCampos = Object.keys(dadosArray[0] || {}).filter(k => k.startsWith('pag_id_') || k.startsWith('desc_')).length > 0
-      if (temCampos) {
-        dados = dadosArray[0]
-      }
-    }
-    
+
+    // API retorna objeto único (não paginado); store já devolve response.data diretamente
+    const dados = response && typeof response === 'object' && !Array.isArray(response) ? response : null
+
     if (dados) {
       Object.keys(config).forEach(key => {
         if (Object.prototype.hasOwnProperty.call(dados, key)) {
           config[key] = dados[key]
         }
       })
-      
-      // Preencher descrições dos históricos
-      buscarHistoricoCaixa(config.pag_id_hist_bxa_caixa, 'hist_bxa_caixa_desc')
-      buscarHistoricoBanco(config.pag_id_hist_bxa_banco, 'hist_bxa_banco_desc')
-      buscarHistoricoCaixa(config.pag_id_hist_adt_for_caixa, 'hist_adt_caixa_desc')
-      buscarHistoricoBanco(config.pag_id_hist_adt_for_banco, 'hist_adt_banco_desc')
-      buscarHistoricoCaixa(config.pag_id_hist_bxa_caixa_ctb, 'hist_bxa_caixa_ctb_desc')
-      buscarHistoricoBanco(config.pag_id_hist_bxa_banco_ctb, 'hist_bxa_banco_ctb_desc')
 
-      // Preencher descrições dos campos de estorno
-      config.hist_est_bxa_caixa_desc = ''
-      if (Array.isArray(historicoCaixa.value) && config.pag_id_hist_est_bxa_caixa) {
-        const estCaixa = historicoCaixa.value.find(h => Number(h.id) === Number(config.pag_id_hist_est_bxa_caixa))
-        config.hist_est_bxa_caixa_desc = estCaixa ? estCaixa.deschistorico : ''
-      }
+      // Descrições retornadas diretamente pela API via referencia_*
+      config.desc_ctb_for            = dados.referencia_parfinpag_contabil_for?.descconta ?? ''
+      config.desc_ctb_juros_pago     = dados.referencia_parfinpag_contabil_pagar_juros?.descconta ?? ''
+      config.desc_ctb_multa_paga     = dados.referencia_parfinpag_contabil_pagar_multa?.descconta ?? ''
+      config.desc_ctb_desc_obtido    = dados.referencia_parfinpag_contabil_pagar_desc?.descconta ?? ''
+      config.hist_bxa_caixa_desc     = dados.referencia_parfinpag_bxa_hist_caixa?.deschistorico ?? ''
+      config.hist_bxa_banco_desc     = dados.referencia_parfinpag_bxa_hist_banco?.deschistorico ?? ''
+      config.hist_est_bxa_caixa_desc = dados.referencia_parfinpag_hist_est_bxa_caixa?.deschistorico ?? ''
+      config.hist_est_bxa_banco_desc = dados.referencia_parfinpag_hist_est_bxa_banco?.deschistorico ?? ''
+      config.hist_bxa_caixa_ctb_desc = dados.referencia_parfinpag_bxa_hist_caixa_contabil?.deschistorico ?? ''
+      config.hist_bxa_banco_ctb_desc = dados.referencia_parfinpag_bxa_hist_banco_contabil?.deschistorico ?? ''
+      config.hist_adt_caixa_desc     = dados.referencia_parfinpag_hist_adiantamento_for_caixa?.deschistorico ?? ''
+      config.hist_adt_banco_desc     = dados.referencia_parfinpag_hist_adiantamento_for_banco?.deschistorico ?? ''
 
-      config.hist_est_bxa_banco_desc = ''
-      if (Array.isArray(historicoBancario.value) && config.pag_id_hist_est_bxa_banco) {
-        const estBanco = historicoBancario.value.find(h => Number(h.id) === Number(config.pag_id_hist_est_bxa_banco))
-        config.hist_est_bxa_banco_desc = estBanco ? estBanco.deschistorico : ''
-      }
-
-      // Preencher descrição do tipo de documento
-      config.tipo_doc_desc = ''
-      if (Array.isArray(tiposDocumento.value) && config.tipo_documento_padrao) {
+      // tipo_documento_padrao vem da API via forEach; busca o nome na lista local
+      if (config.tipo_documento_padrao) {
         const tipoDoc = tiposDocumento.value.find(t => Number(t.id) === Number(config.tipo_documento_padrao))
-        config.tipo_doc_desc = tipoDoc ? (tipoDoc.desctipodocumento || tipoDoc.descricao) : ''
+        config.tipo_doc_desc = tipoDoc?.desctipodocumento ?? tipoDoc?.descricao ?? ''
       }
 
-      // Preencher descrições dos planos de conta
-      config.desc_ctb_juros_pago = ''
-      config.desc_ctb_multa_paga = ''
-      config.desc_ctb_desc_obtido = ''
-      config.desc_ctb_for = ''
-      if (Array.isArray(planosConta.value)) {
-        if (config.pag_id_red_ctb_juros_pago) {
-          const planoJuros = planosConta.value.find(p => Number(p.id) === Number(config.pag_id_red_ctb_juros_pago))
-          config.desc_ctb_juros_pago = planoJuros ? (planoJuros.descconta || planoJuros.descricao) : ''
-        }
-        if (config.pag_id_red_ctb_multa_paga) {
-          const planoMulta = planosConta.value.find(p => Number(p.id) === Number(config.pag_id_red_ctb_multa_paga))
-          config.desc_ctb_multa_paga = planoMulta ? (planoMulta.descconta || planoMulta.descricao) : ''
-        }
-        if (config.pag_id_red_ctb_desc_obtido) {
-          const planoDesc = planosConta.value.find(p => Number(p.id) === Number(config.pag_id_red_ctb_desc_obtido))
-          config.desc_ctb_desc_obtido = planoDesc ? (planoDesc.descconta || planoDesc.descricao) : ''
-        }
-        if (config.pag_id_red_ctb_for) {
-          const planoFor = planosConta.value.find(p => Number(p.id) === Number(config.pag_id_red_ctb_for))
-          config.desc_ctb_for = planoFor ? (planoFor.descconta || planoFor.descricao) : ''
-        }
-      }
       dadosExistem.value = true
     } else {
       dadosExistem.value = false
@@ -1093,16 +1033,17 @@ const salvarConfiguracoes = async () => {
         pag_id_hist_adt_for_banco: config.pag_id_hist_adt_for_banco,
         pag_utiliza_aprov_adt_for: config.pag_utiliza_aprov_adt_for,
         pag_utiliza_aut_pagto: config.pag_utiliza_aut_pagto,
+        id_tipo_doc_suprimento: config.tipo_documento_padrao || null,
       }]
     }
-    
+
     const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-    
+
     if (!idEmpresa) {
       console.error('ID da empresa não encontrado!')
       return
     }
-    
+
     let response
     // PUT só se dadosExistem for verdadeiro (edição), POST se for falso (cadastro)
     if (dadosExistem.value === true) {
@@ -1110,7 +1051,7 @@ const salvarConfiguracoes = async () => {
     } else {
       response = await useConfig.cadastrarParametrosFinanceirosPagar(idEmpresa, dadosParaEnvio)
     }
-    
+
     if (response) {
       await carregarParametrosFinanceiros()
     }
@@ -1138,7 +1079,7 @@ const resetarConfiguracoes = () => {
   config.pag_utiliza_aprov_adt_for = 'N'
   config.pag_utiliza_aut_pagto = 'N'
   config.tipo_documento_padrao = null
-  
+
   // Campos de descrição
   config.hist_bxa_caixa_desc = ''
   config.hist_bxa_banco_desc = ''
@@ -1206,7 +1147,6 @@ watch(
 </script>
 
 <style scoped>
-@import "@/assets/scss/1-components/components.scss";
 
 .custom-text-field :deep(.v-field) {
   background-color: rgba(var(--v-theme-surface), 0.7);

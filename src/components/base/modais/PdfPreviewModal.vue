@@ -36,7 +36,7 @@
             ref="pdfContainer"
             class="pdf-page-preview"
             :class="{ 'pdf-page-landscape': isLandscape }"
-            v-html="htmlContent"
+            v-html="htmlSanitizado"
           ></div>
         </div>
       </v-card-text>
@@ -49,6 +49,25 @@
 import { ref, computed } from 'vue'
 import html2pdf from 'html2pdf.js'
 import { toast } from 'vue3-toastify'
+
+function sanitizarHTML(html) {
+  if (!html) return ''
+  const tmp = document.createElement('div')
+  tmp.innerHTML = html
+  const scripts = tmp.querySelectorAll('script, iframe, object, embed, link[rel="import"]')
+  scripts.forEach(el => el.remove())
+  const allElements = tmp.querySelectorAll('*')
+  allElements.forEach(el => {
+    const attrs = el.attributes
+    for (let i = attrs.length - 1; i >= 0; i--) {
+      const name = attrs[i].name
+      if (name.startsWith('on') || name === 'href' && el.tagName === 'A' && attrs[i].value.trim().startsWith('javascript:')) {
+        el.removeAttribute(name)
+      }
+    }
+  })
+  return tmp.innerHTML
+}
 
 const props = defineProps({
   modelValue: Boolean,
@@ -63,6 +82,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const pdfContainer = ref(null)
 const gerando = ref(false)
+
+const htmlSanitizado = computed(() => sanitizarHTML(props.htmlContent))
 
 // Detectar se o conteúdo está em landscape
 const isLandscape = computed(() => {

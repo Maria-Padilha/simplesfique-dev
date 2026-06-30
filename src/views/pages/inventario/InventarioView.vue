@@ -1215,19 +1215,17 @@ const finalizarLote = async () => {
 
     // Preparar dados do inventário (id_usuario vem do token)
     const dados = {
-      data: [{
-        id_empresa: parseInt(idEmpresa),
-        id_almoxarifado: inventario.id_almoxarifado,
-        tipo: inventario.tipo,
-        nome_arquivo: inventario.nome_arquivo || '',
-        arquivo: inventario.arquivo || '',
-        url: inventario.url || '',
-        separador: inventario.separador || '',
-        separador_char: inventario.separador_char || '',
-        layout_dig_prod: inventario.layout_dig_prod || 0,
-        layout_dig_qtd: inventario.layout_dig_qtd || 0,
-        layout_utilizado: inventario.layout_utilizado || ''
-      }],
+      id_empresa: parseInt(idEmpresa),
+      id_almoxarifado: inventario.id_almoxarifado,
+      tipo: inventario.tipo,
+      nome_arquivo: inventario.nome_arquivo || '',
+      arquivo: inventario.arquivo || '',
+      url: inventario.url || '',
+      separador: inventario.separador || '',
+      separador_char: inventario.separador_char || '',
+      layout_dig_prod: inventario.layout_dig_prod || 0,
+      layout_dig_qtd: inventario.layout_dig_qtd || 0,
+      layout_utilizado: inventario.layout_utilizado || '',
       item: itensInventario.value.map((item, index) => ({
         id_seq: index + 1,
         id_cor: 0,
@@ -1617,8 +1615,10 @@ const gerarLinkContagem = (loteIdParam = null, idEmpresaParam = null) => {
 }
 
 const gerarToken = () => {
-  // Gerar token aleatório
-  return Math.random().toString(36).substring(2) + Date.now().toString(36)
+  // Gerar token criptograficamente seguro
+  const array = new Uint32Array(4)
+  crypto.getRandomValues(array)
+  return Array.from(array, v => v.toString(36)).join('')
 }
 
 const copiarLink = async () => {

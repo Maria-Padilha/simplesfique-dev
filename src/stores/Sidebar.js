@@ -120,9 +120,9 @@ export const useSidebarStore = defineStore('sidebar', () => {
             icon: 'mdi-tools',
             submenus: [
                 {
-                    text: 'Pessoas',
+                    text: 'Clientes',
                     icon: 'mdi-account-group',
-                    route: '/paginas/manutencao/pessoas'
+                    route: '/paginas/manutencao/clientes'
                 },
                 {
                     text: 'Usuários',
@@ -291,7 +291,12 @@ export const useSidebarStore = defineStore('sidebar', () => {
                     text: 'APIs Externas',
                     icon: 'mdi-api',
                     route: '/paginas/integracoes/api-externa'
-                }            
+                },
+                {
+                    text: 'Cloudflare R2',
+                    icon: 'mdi-cloud-upload-outline',
+                    route: '/paginas/integracao/cloudflare-r2'
+                }
             ]
         }
     ]);

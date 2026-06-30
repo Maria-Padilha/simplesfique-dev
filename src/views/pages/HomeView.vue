@@ -927,7 +927,11 @@ const formatarMoeda = (valor) => {
 }
 
 const formatarData = (data) => {
-  return new Date(data).toLocaleDateString('pt-BR')
+  if (!data) return '-'
+  const d = typeof data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(data)
+    ? new Date(data + 'T00:00:00')
+    : new Date(data)
+  return d.toLocaleDateString('pt-BR')
 }
 
 const getAvatarColor = (index) => {

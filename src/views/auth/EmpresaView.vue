@@ -485,11 +485,7 @@ const submitForm = async () => {
   data.value.whatsapp = limparInput(data.value.whatsapp)
 
   if (!localizacaoStore.errorMessage) {
-    console.log("DADOS PARA CADASTRO: ", data.value);
-
-    await empresaStore.cadastrarEmpresa({
-      data: [data.value]
-    }, tokenEmpresa.value);
+    await empresaStore.cadastrarEmpresa(data.value, tokenEmpresa.value);
 
     limparForm();
 

@@ -643,7 +643,6 @@ const salvarUsuariosAcesso = async () => {
   try {
     // Capturar ID do caixa com as mesmas regras do abrirModalUsuarios
     const caixaId = caixaParaUsuarios.value?.id ?? caixaParaUsuarios.value?.ID ?? caixaParaUsuarios.value?.id_caixa ?? caixaParaUsuarios.value?.ID_CAIXA ?? caixaParaUsuarios.value?.id_saas ?? caixaParaUsuarios.value?.ID_SAAS
-    const idEmpresa = localStorage.getItem('id_empresa') || '1'
     
     if (!caixaId) {
       mostrarSnackbar('ID do caixa não encontrado', 'error')
@@ -659,7 +658,6 @@ const salvarUsuariosAcesso = async () => {
       }))
 
     const payload = {
-      idEmpresa: idEmpresa,
       caixaId: caixaId,
       users: usersPayload
     }

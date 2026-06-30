@@ -129,7 +129,7 @@
               <!-- Formatação da data de vencimento -->
               <template v-slot:[`item.dtvencimento`]="{ item }">
             <span :class="{ 'text-red': isVencido(item.dtvencimento) }">
-              {{ item.dtvencimento ? new Date(item.dtvencimento).toLocaleDateString('pt-BR') : '--' }}
+              {{ item.dtvencimento ? new Date(item.dtvencimento.length === 10 ? item.dtvencimento + 'T00:00:00' : item.dtvencimento).toLocaleDateString('pt-BR') : '--' }}
             </span>
               </template>
 

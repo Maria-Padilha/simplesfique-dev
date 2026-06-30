@@ -1,0 +1,49 @@
+# ──────────────────────────────────────────────
+# .claudeignore – Arquivos ignorados por Claude / opencode
+# Economiza tokens excluindo diretórios e arquivos
+# desnecessários para o contexto de programação.
+# ──────────────────────────────────────────────
+
+# Git
+.git
+.gitignore
+
+# Dependências (pesado, irrelevante para contexto)
+node_modules
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build / dist
+dist
+coverage/
+*.zip
+*.tar.gz
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Diretórios de IDE (já ignorados pelo .gitignore, mas
+# reforçamos aqui para não consumir tokens)
+.idea
+.vscode
+
+# Husky internal scripts (não relevantes para contexto)
+.husky/_
+
+# Arquivos de dados / assets (não são código-fonte)
+importacao_pessoas.csv
+
+# Documentos grandes / markdown auxiliares (não código)
+GUIA.md
+MENU.md
+tokens.md

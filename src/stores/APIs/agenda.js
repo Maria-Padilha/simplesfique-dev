@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import api from '@/services/api'
+import apiPhp from '@/services/apiPhp'
 import { toast } from 'vue3-toastify'
 
 // Mapeia tipo_alarme da vstb_agenda
@@ -40,8 +40,6 @@ export const useAgendaStore = defineStore('agenda', () => {
   const loading = ref(false)
   const compromissos = ref([])
 
-  const getToken = () => localStorage.getItem('token')
-
   const normalizarDados = (dados) => {
     if (Array.isArray(dados)) return dados.map(item => normalizarDados(item))
     if (typeof dados === 'object' && dados !== null) {
@@ -54,29 +52,25 @@ export const useAgendaStore = defineStore('agenda', () => {
     return dados
   }
 
-  // GET /agendacontatonot
+  // GET /manutencao/agendas
   const listarCompromissos = async () => {
     loading.value = true
     try {
-      const response = await api.get('/agendacontatonot', {
-        headers: { Authorization: `Bearer ${getToken()}` }
-      })
-      const dados = response.data?.data || response.data
+      const response = await apiPhp.get('/manutencao/agendas')
+      const dados = response.data?.data ?? response.data ?? []
       compromissos.value = normalizarDados(Array.isArray(dados) ? dados : [])
     } catch (error) {
-      console.error('Erro ao listar compromissos:', error)
+      // silent — não exibe erro em listagem
     } finally {
       loading.value = false
     }
   }
 
-  // POST /agendacontatonot
+  // POST /manutencao/agendas
   const adicionarCompromisso = async (dados) => {
     loading.value = true
     try {
-      const response = await api.post('/agendacontatonot', { data: [dados] }, {
-        headers: { Authorization: `Bearer ${getToken()}` }
-      })
+      const response = await apiPhp.post('/manutencao/agendas', dados)
       toast.success('Compromisso salvo com sucesso!')
       await listarCompromissos()
       return response.data
@@ -89,13 +83,11 @@ export const useAgendaStore = defineStore('agenda', () => {
     }
   }
 
-  // PUT /agendacontatonot/:id
+  // PUT /manutencao/agendas/:id
   const editarCompromisso = async (id, dados) => {
     loading.value = true
     try {
-      const response = await api.put(`/agendacontatonot/${id}`, { data: [dados] }, {
-        headers: { Authorization: `Bearer ${getToken()}` }
-      })
+      const response = await apiPhp.put(`/manutencao/agendas/${id}`, dados)
       toast.success('Compromisso atualizado com sucesso!')
       await listarCompromissos()
       return response.data
@@ -108,13 +100,11 @@ export const useAgendaStore = defineStore('agenda', () => {
     }
   }
 
-  // DELETE /agendacontatonot/:id
+  // DELETE /manutencao/agendas/:id
   const excluirCompromisso = async (id) => {
     loading.value = true
     try {
-      await api.delete(`/agendacontatonot/${id}`, {
-        headers: { Authorization: `Bearer ${getToken()}` }
-      })
+      await apiPhp.delete(`/manutencao/agendas/${id}`)
       toast.success('Compromisso excluído!')
       compromissos.value = compromissos.value.filter(c => c.id !== id)
     } catch (error) {

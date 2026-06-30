@@ -43,8 +43,7 @@ const cidadeStore = useLocalizacaoStore();
 const cidades = computed(() => cidadeStore.cidades);
 
 watch( () => termoPesquisa.value, async (pesquisa) => {
-  if (!pesquisa || pesquisa.lenght < 2) {
-    cidades.value = [];
+  if (!pesquisa || pesquisa.length < 2) {
     return;
   }
   await cidadeStore.buscarTodasCidades(pesquisa);

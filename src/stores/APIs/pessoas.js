@@ -1,7 +1,5 @@
 import {defineStore} from "pinia"
-// import {toast} from "vue3-toastify";
-import api from "@/services/api";
-import {useApiStore} from "@/stores/APIs/api";
+import apiPhp from "@/services/apiPhp";
 
 export const usePessoasStore = defineStore('pessoas', {
     state: () => ({
@@ -18,12 +16,11 @@ export const usePessoasStore = defineStore('pessoas', {
     actions: {
         async cadastrarPessoa (data, find = "") {
             this.loading = true;
-            const apiStore = useApiStore();
             try {
-                await apiStore.executarAcao('pessoa', 'post', data);
+                await apiPhp.post('/manutencao/pessoas', data);
                 await this.buscarTodasPessoas(find);
             } catch (error) {
-                console.error('Erro ao cadastrar pessoa:', error);
+                // Error handled by caller
             }
             finally {
                 this.loading = false;
@@ -43,31 +40,30 @@ export const usePessoasStore = defineStore('pessoas', {
             rawForm.celular   = (rawForm.celular   || '').replace(/\D/g, '')
             rawForm.whats     = (rawForm.whats     || '').replace(/\D/g, '')
 
-            // Separar enderecos e descartar campos obsoletos (latitude, longitude, data wrapper)
+            // Separar enderecos e descartar campos obsoletos (latitude, longitude)
             const { enderecos = [], ...pessoaData } = rawForm
             delete pessoaData.data
             delete pessoaData.latitude
             delete pessoaData.longitude
 
             const payload = {
-                data: [pessoaData],
+                ...pessoaData,
                 endereco: enderecos
             }
 
             this.loading = true
             try {
                 if (editando) {
-                    await api.put(`/pessoa/${rawForm.id}`, payload, {headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}})
+                    await apiPhp.put(`/manutencao/pessoas/${rawForm.id}`, payload)
                     snackbar.message = 'Cliente atualizado com sucesso!'
                 } else {
-                    await api.post('/pessoa', payload, {headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}})
+                    await apiPhp.post('/manutencao/pessoas', payload)
                     snackbar.message = 'Cliente criado com sucesso!'
                 }
                 snackbar.color = 'success'
                 snackbar.show = true
                 await this.buscarTodasPessoas();
             } catch (e) {
-                console.error(e)
                 this.errorMessage = 'Erro ao salvar cliente!'
                 snackbar.message = 'Erro ao salvar cliente'
                 snackbar.color = 'error'
@@ -80,12 +76,10 @@ export const usePessoasStore = defineStore('pessoas', {
         async buscarTodasPessoas(find = "") {
             this.loading = true
             try {
-                const resp = await api.get(`/pessoa?find=${find}`, {headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}})
-                const data = resp.data && resp.data.data ? resp.data.data : Array.isArray(resp.data) ? resp.data : []
-                this.pessoas = data
-                console.log('Pessoas buscadas: ', this.pessoas)
+                const resp = await apiPhp.get('/manutencao/pessoas', { params: { find } })
+                const data = resp.data?.data ?? resp.data ?? []
+                this.pessoas = Array.isArray(data) ? data : []
             } catch (e) {
-                console.error(e)
                 this.pessoas = []
             } finally {
                 this.loading = false
@@ -95,17 +89,15 @@ export const usePessoasStore = defineStore('pessoas', {
         async buscarpessoaId(id) {
             this.loading = true;
             try {
-                const response = await api.get(`/pessoa/${id}`, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                });
-                const pessoa = response.data?.data?.[0] ?? null
-                const endereco = response.data?.endereco ?? []
+                const response = await apiPhp.get(`/manutencao/pessoas/${id}`);
+                const data = response.data?.data ?? response.data;
+                const pessoa = data?.pessoa ?? data ?? null
+                const endereco = data?.endereco ?? []
                 this.pessoa = pessoa
                 this.errorMessage = '';
                 return { pessoa, endereco }
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar pessoa pelo ID:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 return null
             } finally {
                 this.loading = false;
@@ -115,13 +107,12 @@ export const usePessoasStore = defineStore('pessoas', {
         async deletarPessoa(id, snackbar) {
             this.loading = true
             try {
-                await api.delete(`/pessoa/${id}`, {headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}})
+                await apiPhp.delete(`/manutencao/pessoas/${id}`)
                 snackbar.message = 'Pessoa excluída'
                 snackbar.color = 'success'
                 snackbar.show = true
                 await this.buscarTodasPessoas();
             } catch (e) {
-                console.error(e)
                 snackbar.message = 'Erro ao excluir pessoa'
                 snackbar.color = 'error'
                 snackbar.show = true
@@ -150,14 +141,10 @@ export const usePessoasStore = defineStore('pessoas', {
                     ativo: pessoa.ativo || 'S'
                 }))
 
-                const payload = { data: pessoasProcessadas }
-                await api.post('/pessoa', payload, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                })
+                await apiPhp.post('/manutencao/pessoas/importar', pessoasProcessadas)
                 
                 this.errorMessage = ''
             } catch (e) {
-                console.error('Erro ao importar pessoas:', e)
                 this.errorMessage = 'Erro ao importar pessoas'
                 throw e
             } finally {

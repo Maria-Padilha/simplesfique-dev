@@ -1,5 +1,5 @@
 import {defineStore} from "pinia"
-import api from "@/services/api";
+import apiPhp from "@/services/apiPhp";
 
 const errorMessages = {
     "The name field is required.": "O campo nome é obrigatório!",
@@ -7,7 +7,6 @@ const errorMessages = {
 export const usePaísStore = defineStore('país', {
     state: () => ({
         loading: false,
-        token: localStorage.getItem('token'),
         errorMessage: '',
         successMessage: '',
 
@@ -22,18 +21,15 @@ export const usePaísStore = defineStore('país', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/pais`,);
+                const res = await apiPhp.get('/manutencao/pais');
 
-                this.paises = response.data;
+                this.paises = res.data?.data ?? res.data;
                 this.errorMessage = '';
 
-                this.records = response.data.records;
-
-                console.log('Países buscados com sucesso:', this.paises);
+                this.records = res.data?.total ?? 0;
 
             } catch (error) {
-                this.errorMessage = error;
-                console.log(this.errorMessage)
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -43,18 +39,15 @@ export const usePaísStore = defineStore('país', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/pais/${id}`,
-                    {
-                        headers: {Authorization: `Bearer ${this.token}`}
-                    });
+                const res = await apiPhp.get(`/manutencao/pais/${id}`);
 
-                this.pais = response.data;
+                this.pais = res.data?.data ?? res.data;
                 this.errorMessage = '';
 
-                this.records = response.data.records;
+                this.records = res.data?.total ?? 0;
 
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -63,11 +56,7 @@ export const usePaísStore = defineStore('país', {
         async cadastrarPais(id, nomePais, id_empresa) {
             this.loading = true;
             try {
-                await api.post('/pais',
-                    {id, nomePais},
-                    {
-                        headers: {Authorization: `Bearer ${this.token}`}
-                    })
+                await apiPhp.post('/manutencao/pais', { id, nomePais });
 
                 await this.buscarTodosPaises(id_empresa);
                 this.errorMessage = '';
@@ -84,7 +73,6 @@ export const usePaísStore = defineStore('país', {
                         });
                     });
                 } else {
-                    console.log(error)
                     this.errorMessage = 'Desculpe, ocorreu um erro ao cadastrar o País. Entre em contato com nosso suporte.';
                 }
 
@@ -96,16 +84,13 @@ export const usePaísStore = defineStore('país', {
         async deletePais(id, id_empresa) {
             this.loading = true;
             try {
-                await api.delete(`/pais/${id}`, {
-                    headers: {Authorization: `Bearer ${this.token}`}
-                });
+                await apiPhp.delete(`/manutencao/pais/${id}`);
 
                 await this.buscarTodosPaises(id_empresa);
                 this.errorMessage = '';
                 this.successMessage = 'País deletado com sucesso!';
             } catch (error) {
-                this.errorMessage = error;
-                console.log(this.errorMessage)
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }

@@ -241,7 +241,7 @@
                       class="w-100 h-100 rounded-md"
                       cover
                       :alt="`Imagem do grupo - ${item.descgrupo}`"
-                      :src="decodificarImagemBase64(item.foto)"
+                      :src="item.foto_url"
                   />
                 </v-sheet>
               </template>
@@ -296,7 +296,7 @@
                       class="w-100 h-100 rounded-md"
                       cover
                       :alt="`Imagem do subgrupo - ${item.descsubgrupo}`"
-                      :src="decodificarImagemBase64(item.foto)"
+                      :src="item.foto_url"
                   />
                 </v-sheet>
               </template>
@@ -330,7 +330,7 @@
                       class="w-100 h-100 rounded-md"
                       cover
                       :alt="`Imagem do subgrupo - ${item.descsubgrupo}`"
-                      :src="decodificarImagemBase64(item.foto)"
+                      :src="item.foto_url"
                   />
                 </v-sheet>
               </template>
@@ -358,7 +358,7 @@
           :fechar-modal="fecharModal"
           v-model:modal-imagem="modalImagem"
           :imagem-alt="imagemAlt"
-          :imagem-src="decodificarImagemBase64(imagemSrc)"
+          :imagem-src="imagemSrc"
       />
 
       <!-- MODAL CONFIRMAR EXCLUSÃO -->
@@ -487,11 +487,6 @@ function converterBase64(event) {
   validacaoFile.push(() => true || "");
 }
 
-function decodificarImagemBase64(base64String) {
-  const decoded = atob(base64String);
-  return decoded;
-}
-
 /**
  * CANCELAR FORMULÁRIOS
  */
@@ -523,7 +518,7 @@ const imagemSrc = ref("");
 const imagemAlt = ref("");
 
 const exibirImagem = (item) => {
-  imagemSrc.value = item.foto;
+  imagemSrc.value = item.foto_url;
   imagemAlt.value = `Grupo - ${item.descgrupo}`;
   modalImagem.value = true;
 };
@@ -551,22 +546,14 @@ const salvarGrupo = () => {
 
   if (!editando.value) {
     estoqueStore.cadastrarGrupo({
-      data: [
-        {
-          descgrupo: form.descgrupo,
-          foto: form.foto,
-        }
-      ]
+      descgrupo: form.descgrupo,
+      foto: form.foto,
     });
   }
   else {
     estoqueStore.editarGrupo({
-      data: [
-        {
-          descgrupo: form.descgrupo,
-          foto: form.foto,
-        }
-      ]
+      descgrupo: form.descgrupo,
+      foto: form.foto,
     }, grupoSelecionado.value);
   }
   cancelarFormulario();
@@ -612,32 +599,24 @@ const salvarSubgrupo = () => {
 
   if (!editando.value) {
     estoqueStore.cadastrarSubgrupo({
-      data: [
-        {
-          descsubgrupo: formSub.descsubgrupo,
-          perc_comissao_vendedor: formSub.perc_comissao_vendedor,
-          perc_comissao_tecnico: formSub.perc_comissao_tecnico,
-          indice_custo: formSub.indice_custo,
-          indice_venda: formSub.indice_venda,
-          foto: formSub.foto,
-          grupo_id: grupoSelecionado.value.id
-        }
-      ]
+      descsubgrupo: formSub.descsubgrupo,
+      perc_comissao_vendedor: formSub.perc_comissao_vendedor,
+      perc_comissao_tecnico: formSub.perc_comissao_tecnico,
+      indice_custo: formSub.indice_custo,
+      indice_venda: formSub.indice_venda,
+      foto: formSub.foto,
+      grupo_id: grupoSelecionado.value.id
     }, grupoSelecionado.value.id);
   }
   else {
     estoqueStore.editarSubgrupo({
-      data: [
-        {
-          descsubgrupo: formSub.descsubgrupo,
-          perc_comissao_vendedor: formSub.perc_comissao_vendedor,
-          perc_comissao_tecnico: formSub.perc_comissao_tecnico,
-          indice_custo: formSub.indice_custo,
-          indice_venda: formSub.indice_venda,
-          foto: formSub.foto,
-          grupo_id: grupoSelecionado.value.id
-        }
-      ]
+      descsubgrupo: formSub.descsubgrupo,
+      perc_comissao_vendedor: formSub.perc_comissao_vendedor,
+      perc_comissao_tecnico: formSub.perc_comissao_tecnico,
+      indice_custo: formSub.indice_custo,
+      indice_venda: formSub.indice_venda,
+      foto: formSub.foto,
+      grupo_id: grupoSelecionado.value.id
     }, grupoSelecionado.value.id, subgrupoSelecionado.value);
   }
   cancelarFormularioSub();

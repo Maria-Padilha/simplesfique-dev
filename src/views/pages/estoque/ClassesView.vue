@@ -157,22 +157,14 @@ const salvarFormulario = async () => {
 
   if (editando.value) {
     await estoqueStore.editarClasse(itemSelecionado.value, {
-      data: [
-        {
-          descclasse: forms.descclasse,
-        }
-      ]
+      descclasse: forms.descclasse,
     });
     cancelarFormulario();
     return;
   }
 
   await estoqueStore.cadastrarClasse({
-    data: [
-      {
-        descclasse: forms.descclasse,
-      }
-    ]
+    descclasse: forms.descclasse,
   })
   cancelarFormulario();
 };

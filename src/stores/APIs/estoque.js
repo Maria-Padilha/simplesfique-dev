@@ -1,5 +1,5 @@
 import {defineStore} from "pinia"
-import api from "@/services/api";
+import apiPhp from "@/services/apiPhp";
 import {useApiStore} from "@/stores/APIs/api";
 import {toast} from "vue3-toastify";
 
@@ -55,21 +55,16 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/grupo?find=${find}&limit=${limit}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
+                const response = await apiPhp.get(`/estoque/grupos`, {
+                    params: { find, limit }
                 });
 
-                this.grupos = response.data.data;
-                this.recordsGrupo = response.data.records;
+                this.grupos = response.data?.data ?? response.data ?? [];
+                this.recordsGrupo = response.data?.total ?? 0;
                 this.errorMessage = '';
 
-                console.log('Grupos encontrado:', this.grupos);
-
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar Grupos:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -84,11 +79,10 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarGrupo(grupoData) {
             this.loading = true;
             try {
-                const apiStore = useApiStore();
-                await apiStore.executarAcao('grupo', 'post', grupoData);
+                await apiPhp.post('/estoque/grupos', grupoData);
                 await this.buscarTodos();
             } catch (error) {
-                console.error('Erro ao cadastrar Grupo:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -104,11 +98,10 @@ export const useEstoqueStore = defineStore('estoque', {
         async editarGrupo(grupoData, id) {
             this.loading = true;
             try {
-                const apiStore = useApiStore();
-                await apiStore.executarAcao(`grupo/${id}`, 'put', grupoData);
+                await apiPhp.put(`/estoque/grupos/${id}`, grupoData);
                 await this.buscarTodos();
             } catch (error) {
-                console.error('Erro ao Atualizar Grupo:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -123,11 +116,10 @@ export const useEstoqueStore = defineStore('estoque', {
         async deletarGrupo(id) {
             this.loading = true;
             try {
-                const apiStore = useApiStore();
-                await apiStore.executarAcao(`grupo/${id}`, 'delete');
+                await apiPhp.delete(`/estoque/grupos/${id}`);
                 await this.buscarTodos();
             } catch (error) {
-                console.error('Erro ao Deletar Grupo:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -143,20 +135,15 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/subgrupo/${idgrupo}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
+                const response = await apiPhp.get(`/estoque/subgrupos`, {
+                    params: { id_grupo: idgrupo }
                 });
 
-                this.subgrupos = response.data.data;
+                this.subgrupos = response.data?.data ?? response.data ?? [];
                 this.errorMessage = '';
 
-                console.log('SubGrupos encontrado:', this.subgrupos);
-
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar SubGrupos:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -170,11 +157,10 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarSubgrupo(subgrupoData, idgrupo) {
             this.loading = true;
             try {
-                const apiStore = useApiStore();
-                await apiStore.executarAcao(`subgrupo/${idgrupo}`, 'post', subgrupoData);
+                await apiPhp.post('/estoque/subgrupos', { ...subgrupoData, id_grupo: idgrupo });
                 await this.buscarTodosSubgrupos(idgrupo);
             } catch (error) {
-                console.error('Erro ao cadastrar SubGrupo:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -190,11 +176,10 @@ export const useEstoqueStore = defineStore('estoque', {
         async editarSubgrupo(subgrupoData, idgrupo, id) {
             this.loading = true;
             try {
-                const apiStore = useApiStore();
-                await apiStore.executarAcao(`subgrupo/${idgrupo}/${id}`, 'put', subgrupoData);
+                await apiPhp.put(`/estoque/subgrupos/${idgrupo}/${id}`, subgrupoData);
                 await this.buscarTodosSubgrupos(idgrupo);
             } catch (error) {
-                console.error('Erro ao Atualizar SubGrupo:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -209,11 +194,10 @@ export const useEstoqueStore = defineStore('estoque', {
         async deletarSubgrupo(idgrupo, id) {
             this.loading = true;
             try {
-                const apiStore = useApiStore();
-                await apiStore.executarAcao(`subgrupo/${idgrupo}/${id}`, 'delete');
+                await apiPhp.delete(`/estoque/subgrupos/${idgrupo}/${id}`);
                 await this.buscarTodosSubgrupos(idgrupo);
             } catch (error) {
-                console.error('Erro ao Deletar SubGrupo:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -228,21 +212,16 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/classe?find=${find}&limit=${limit}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
+                const response = await apiPhp.get(`/estoque/classes`, {
+                    params: { find, limit }
                 });
 
-                this.classes = response.data.data;
-                this.recordsClasse = response.data.records;
+                this.classes = response.data?.data ?? response.data ?? [];
+                this.recordsClasse = response.data?.total ?? 0;
                 this.errorMessage = '';
 
-                console.log('Classes encontradas:', this.classes);
-
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar classes:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -257,11 +236,10 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarClasse(classeData) {
             this.loading = true;
             try {
-                const apiStore = useApiStore();
-                await apiStore.executarAcao(`classe`, 'post', classeData);
+                await apiPhp.post('/estoque/classes', classeData);
                 await this.buscarTodasClasses();
             } catch (error) {
-                console.error('Erro ao cadastrar classe:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -277,11 +255,10 @@ export const useEstoqueStore = defineStore('estoque', {
         async editarClasse(id, classeData) {
             this.loading = true;
             try {
-                const apiStore = useApiStore();
-                await apiStore.executarAcao(`classe/${id}`, 'put', classeData);
+                await apiPhp.put(`/estoque/classes/${id}`, classeData);
                 await this.buscarTodasClasses();
             } catch (error) {
-                console.error('Erro ao editar classe:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -296,11 +273,10 @@ export const useEstoqueStore = defineStore('estoque', {
         async deletarClasse(id) {
             this.loading = true;
             try {
-                const apiStore = useApiStore();
-                await apiStore.executarAcao(`classe/${id}`, 'delete');
+                await apiPhp.delete(`/estoque/classes/${id}`);
                 await this.buscarTodasClasses();
             } catch (error) {
-                console.error('Erro ao deletar classe:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -316,21 +292,16 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/ncm?find=${find}&limit=${limit}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
+                const res = await apiPhp.get(`/manutencao/ncms`, {
+                    params: { find, per_page: limit }
                 });
 
-                this.ncms = response.data.data;
-                this.recordsNcm = response.data.records;
+                this.ncms = res.data?.data ?? res.data;
+                this.recordsNcm = res.data?.total ?? 0;
                 this.errorMessage = '';
 
-                console.log('NCMs encontrados:', this.grupos);
-
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar NCMs:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -343,24 +314,19 @@ export const useEstoqueStore = defineStore('estoque', {
          * @return {Promise<void>}
          */
 
-        async buscarCests(limit = 10, offset = 0) {
+        async buscarCests(limit = 10) {
             this.loading = true;
 
             try {
-                const response = await api.get(`/cest?limit=${limit}&offset=${offset}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
+                const res = await apiPhp.get(`/estoque/cests`, {
+                    params: { per_page: limit }
                 });
 
-                this.cests = response.data.data;
+                this.cests = res.data?.data ?? res.data;
                 this.errorMessage = '';
 
-                console.log('CESTs encontrados:', this.cests);
-
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar CESTs:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -433,24 +399,19 @@ export const useEstoqueStore = defineStore('estoque', {
          * @return {Promise<void>}
          */
 
-        async buscarNbs(limit = 10, offset = 0) {
+        async buscarNbs(limit = 10) {
             this.loading = true;
 
             try {
-                const response = await api.get(`/nbs?limit=${limit}&offset=${offset}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
+                const res = await apiPhp.get(`/manutencao/nbs`, {
+                    params: { per_page: limit }
                 });
 
-                this.nbs = response.data.data;
+                this.nbs = res.data?.data ?? res.data;
                 this.errorMessage = '';
 
-                console.log('NBS encontrados:', this.nbs);
-
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar NBS:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -487,21 +448,16 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/almoxarifado/${idemp}?find=${find}&limit=${limit}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
+                const response = await apiPhp.get(`/estoque/almoxarifados`, {
+                    params: { find, limit }
                 });
 
-                this.almoxarifados = response.data.data;
-                this.recordsAlmoxarifados = response.data.records;
+                this.almoxarifados = response.data?.data ?? response.data ?? [];
+                this.recordsAlmoxarifados = response.data?.total ?? 0;
                 this.errorMessage = '';
 
-                console.log('Almoxarifados encontrados:', this.almoxarifados);
-
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar almoxarifados:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -518,20 +474,13 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/almoxarifado/${idemp}/${id}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
-                });
+                const response = await apiPhp.get(`/estoque/almoxarifados/${id}`);
 
-                this.almoxarifado = response.data;
+                this.almoxarifado = response.data?.data ?? response.data;
                 this.errorMessage = '';
 
-                console.log('Almoxarifado encontrado:', this.almoxarifado);
-
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar almoxarifado por ID:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -547,11 +496,10 @@ export const useEstoqueStore = defineStore('estoque', {
         async cadastrarAlmoxarifado(idemp, almoxarifadoData) {
             this.loading = true;
             try {
-                const apiStore = useApiStore();
-                await apiStore.executarAcao('almoxarifado', 'post', almoxarifadoData);
+                await apiPhp.post('/estoque/almoxarifados', almoxarifadoData);
                 await this.buscarAlmoxarifados(idemp);
             } catch (error) {
-                console.error('Erro ao cadastrar almoxarifado:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -568,11 +516,10 @@ export const useEstoqueStore = defineStore('estoque', {
         async editarAlmoxarifado(idemp, id, almoxarifadoData) {
             this.loading = true;
             try {
-                const apiStore = useApiStore();
-                await apiStore.executarAcao(`almoxarifado/${idemp}/${id}`, 'put', almoxarifadoData);
+                await apiPhp.put(`/estoque/almoxarifados/${id}`, almoxarifadoData);
                 await this.buscarAlmoxarifados(idemp);
             } catch (error) {
-                console.error('Erro ao editar almoxarifado:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -588,11 +535,10 @@ export const useEstoqueStore = defineStore('estoque', {
         async deletarAlmoxarifado(idemp, id) {
             this.loading = true;
             try {
-                const apiStore = useApiStore();
-                await apiStore.executarAcao(`almoxarifado/${idemp}/${id}`, 'delete');
+                await apiPhp.delete(`/estoque/almoxarifados/${id}`);
                 await this.buscarAlmoxarifados(idemp);
             } catch (error) {
-                console.error('Erro ao deletar almoxarifado:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -609,21 +555,16 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/cfop?find=${find}&limit=${limit}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
+                const res = await apiPhp.get(`/manutencao/cfops`, {
+                    params: { find, per_page: limit }
                 });
 
-                this.cfops = response.data.data;
-                this.recordsCfop = response.data.records;
+                this.cfops = res.data?.data ?? res.data;
+                this.recordsCfop = res.data?.total ?? 0;
                 this.errorMessage = '';
 
-                console.log('CFOPs encontrados:', this.cfops);
-
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar CFOPs:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -639,20 +580,13 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/cfop/${id}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
-                });
+                const res = await apiPhp.get(`/manutencao/cfops/${id}`);
 
-                this.cfop = response.data;
+                this.cfop = res.data?.data ?? res.data;
                 this.errorMessage = '';
 
-                console.log('CFOP encontrado:', this.cfop);
-
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar CFOP por ID:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
@@ -664,14 +598,25 @@ export const useEstoqueStore = defineStore('estoque', {
          * @return {Promise<void>}
          */
 
+        /**
+         * CADASTRAR CFOP
+         * @deprecated THorse offline - sem endpoint PHP de escrita
+         * @param {Object} cfopData - Dados do CFOP a ser cadastrado.
+         * @return {Promise<void>}
+         */
         async cadastrarCfop(cfopData) {
             this.loading = true;
             try {
                 const apiStore = useApiStore();
                 await apiStore.executarAcao('cfop', 'post', cfopData);
                 await this.buscarCfops();
+                toast.success('CFOP cadastrado com sucesso!');
             } catch (error) {
-                console.error('Erro ao cadastrar CFOP:', error);
+                const msg = error?.response?.data?.message
+                    || error?.validationMessage
+                    || 'Operação de CFOP temporariamente indisponível. Tente novamente mais tarde.';
+                toast.error(msg);
+                console.error('[CFOP] Erro ao cadastrar:', error);
             } finally {
                 this.loading = false;
             }
@@ -679,19 +624,24 @@ export const useEstoqueStore = defineStore('estoque', {
 
         /**
          * EDITAR CFOP
+         * @deprecated THorse offline - sem endpoint PHP de escrita
          * @param {number} id - ID do CFOP a ser editado.
          * @param {Object} cfopData - Dados do CFOP a ser editado.
          * @return {Promise<void>}
          */
-
         async editarCfop(id, cfopData) {
             this.loading = true;
             try {
                 const apiStore = useApiStore();
                 await apiStore.executarAcao(`cfop/${id}`, 'put', cfopData);
                 await this.buscarCfops();
+                toast.success('CFOP atualizado com sucesso!');
             } catch (error) {
-                console.error('Erro ao editar CFOP:', error);
+                const msg = error?.response?.data?.message
+                    || error?.validationMessage
+                    || 'Operação de CFOP temporariamente indisponível. Tente novamente mais tarde.';
+                toast.error(msg);
+                console.error('[CFOP] Erro ao editar:', error);
             } finally {
                 this.loading = false;
             }
@@ -699,18 +649,23 @@ export const useEstoqueStore = defineStore('estoque', {
 
         /**
          * DELETAR CFOP
+         * @deprecated THorse offline - sem endpoint PHP de escrita
          * @param {number} id - ID do CFOP a ser deletado.
          * @return {Promise<void>}
          */
-
         async deletarCfop(id) {
             this.loading = true;
             try {
                 const apiStore = useApiStore();
                 await apiStore.executarAcao(`cfop/${id}`, 'delete');
                 await this.buscarCfops();
+                toast.success('CFOP excluído com sucesso!');
             } catch (error) {
-                console.error('Erro ao deletar CFOP:', error);
+                const msg = error?.response?.data?.message
+                    || error?.validationMessage
+                    || 'Operação de CFOP temporariamente indisponível. Tente novamente mais tarde.';
+                toast.error(msg);
+                console.error('[CFOP] Erro ao deletar:', error);
             } finally {
                 this.loading = false;
             }
@@ -724,19 +679,16 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const response = await api.get(`/aliquotauf/${emp}?find=${uf}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
+                const response = await apiPhp.get('/estoque/aliquota-ufs', {
+                    params: { id_empresa: emp, find: uf }
                 });
 
-                this.aliquotas = response.data.data;
+                const data = Array.isArray(response.data) ? response.data : response.data?.data ?? [];
+                this.aliquotas = data;
                 this.errorMessage = '';
 
-                console.log('Alíquotas encontradas:', this.aliquotas);
-
             } catch (error) {
-                this.errorMessage = error.response;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
                 console.error('Erro ao buscar alíquotas:', error);
             } finally {
                 this.loading = false;
@@ -786,115 +738,92 @@ export const useEstoqueStore = defineStore('estoque', {
          * FORMULAS
          */
 
-        async buscarTodasFormulas(emp) {
+        async buscarTodasFormulas(emp) { // eslint-disable-line no-unused-vars
             this.loading = true;
 
             try {
-                const response = await api.get(`/formula/${emp}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
-                });
+                const response = await apiPhp.get('/manutencao/formulas');
 
-                this.formulas = response.data.data;
+                this.formulas = response.data?.data ?? response.data ?? [];
                 this.errorMessage = '';
 
-                console.log('Fórmulas encontradas:', this.formulas);
-
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar fórmulas:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
         },
 
-        async buscarFormulaId(emp, id) {
+        async buscarFormulaId(emp, id) { // eslint-disable-line no-unused-vars
             this.loading = true;
 
             try {
-                const response = await api.get(`/formula/${emp}/${id}`, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
-                });
+                const response = await apiPhp.get(`/manutencao/formulas/${id}`);
 
-                this.formula = response.data;
+                this.formula = response.data?.data ?? response.data;
                 this.errorMessage = '';
 
-                console.log('Formula por ID encontrada:', this.formulas);
-
             } catch (error) {
-                this.errorMessage = error.response;
-                console.error('Erro ao buscar fórmula por id:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
         },
 
-        async cadastrarFormula(formulaData, emp) {
+        async cadastrarFormula(formulaData, emp) { // eslint-disable-line no-unused-vars
             this.loading = true;
             try {
-                const apiStoreInstance = useApiStore();
-                await apiStoreInstance.executarAcao(`formula`, 'post', formulaData);
-                await this.buscarTodasFormulas(emp);
+                await apiPhp.post('/manutencao/formulas', formulaData);
+                await this.buscarTodasFormulas();
             } catch (error) {
-                console.error('Erro ao cadastrar fórmula:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
         },
 
-        async editarFormula(formulaData, emp, id) {
+        async editarFormula(formulaData, emp, id) { // eslint-disable-line no-unused-vars
             this.loading = true;
             try {
-                const apiStoreInstance = useApiStore();
-                await apiStoreInstance.executarAcao(`formula/${emp}/${id}`, 'put', formulaData);
-                await this.buscarTodasFormulas(emp);
+                await apiPhp.put(`/manutencao/formulas/${id}`, formulaData);
+                await this.buscarTodasFormulas();
             } catch (error) {
-                console.error('Erro ao editar fórmula:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }
         },
 
-        async compilarFormula(formulaData, emp) {
+        async compilarFormula(formulaData, emp) { // eslint-disable-line no-unused-vars
             this.loading = true;
 
             try {
-                await api.post(`/formula/valida`, formulaData, {
-                    headers: {
-                        Authorization: `Bearer ${this.token}`
-                    }
-                });
+                await apiPhp.post('/manutencao/formulas/validar', formulaData);
 
                 this.errorMessage = '';
-                this.successMessage = 'Fórmula valida com sucesso!';
-                await this.buscarTodasFormulas(emp);
+
+                await this.buscarTodasFormulas();
 
             } catch (error) {
-                this.errorMessage = error.response.statusText || error.response.data;
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
 
                 if (this.errorMessage === 'Not Acceptable') {
                     this.errorMessage = 'Fórmula não aceita. Verifique se todas as variaveis existem e se a sintaxe está correta.';
                 }
 
                 toast.error(this.errorMessage);
-
-                console.error('Erro ao compilar fórmula:', this.errorMessage);
             } finally {
                 this.loading = false;
             }
         },
 
-        async deletarFormula(emp, id) {
+        async deletarFormula(emp, id) { // eslint-disable-line no-unused-vars
             this.loading = true;
             try {
-                const apiStoreInstance = useApiStore();
-                await apiStoreInstance.executarAcao(`formula/${emp}/${id}`, 'delete');
-                await this.buscarTodasFormulas(emp);
+                await apiPhp.delete(`/manutencao/formulas/${id}`);
+                await this.buscarTodasFormulas();
             } catch (error) {
-                console.error('Erro ao deletar fórmula:', error);
+                this.errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
             } finally {
                 this.loading = false;
             }

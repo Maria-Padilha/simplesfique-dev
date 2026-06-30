@@ -1087,13 +1087,11 @@ const salvar = async () => {
   if (!valid || itens.value.length === 0) return
 
   const payload = {
-    data: [{
-      id_empresa: form.value.id_empresa || idEmpresaAtual.value,
-      id_empresasaida: form.value.id_empresasaida,
-      id_almoxsaida: form.value.id_almoxsaida,
-      id_empresaentrada: form.value.id_empresaentrada,
-      id_almoxentrada: form.value.id_almoxentrada,
-    }],
+    id_empresa: form.value.id_empresa || idEmpresaAtual.value,
+    id_empresasaida: form.value.id_empresasaida,
+    id_almoxsaida: form.value.id_almoxsaida,
+    id_empresaentrada: form.value.id_empresaentrada,
+    id_almoxentrada: form.value.id_almoxentrada,
     itens: itens.value.map(i => ({
       id_produto: i.id_produto,
       id_cor: Number(i.id_cor) || 0,
@@ -1249,13 +1247,11 @@ const confirmarRecebimento = async () => {
   if (!recebimentoSelecionado.value) return
   const rec = recebimentoSelecionado.value
   const payload = {
-    data: [{
-      id: rec.id,
-      id_empresasaida: rec.id_empresasaida,
-      id_almoxsaida: rec.id_almoxsaida,
-      id_empresaentrada: rec.id_empresaentrada,
-      id_almoxentrada: rec.id_almoxentrada,
-    }]
+    id: rec.id,
+    id_empresasaida: rec.id_empresasaida,
+    id_almoxsaida: rec.id_almoxsaida,
+    id_empresaentrada: rec.id_empresaentrada,
+    id_almoxentrada: rec.id_almoxentrada,
   }
   const resultado = await store.receberTransferencia(payload)
   if (resultado) {

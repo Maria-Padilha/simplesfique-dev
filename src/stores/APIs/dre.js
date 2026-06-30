@@ -1,21 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import api from '@/services/api'
+import apiPhp from '@/services/apiPhp'
 import { toast } from 'vue3-toastify'
 
 export const useDreStore = defineStore('dre', () => {
   // Dados da DRE
   const dreData = ref([])
   const loading = ref(false)
-
-  // Função auxiliar para obter headers com token
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token')
-    return {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  }
 
   /**
    * Buscar movimentações de DRE
@@ -40,17 +31,17 @@ export const useDreStore = defineStore('dre', () => {
 
     loading.value = true
     try {
-      const response = await api.get(
-        `/dremov/${id}/idempresa/${idEmpresa}/idano/${idAno}/idmes/${idMes}?regime=${regime}`,
-        {
-          headers: getAuthHeaders()
+      const response = await apiPhp.get(`/financeiro/dre-detalhes/${id}`, {
+        params: {
+          id_ano: idAno,
+          id_mes: idMes,
+          regime
         }
-      )
+      })
       
-      dreData.value = response.data?.data || response.data || []
+      dreData.value = response.data ?? []
       return dreData.value
     } catch (error) {
-      console.error('Erro ao buscar movimentações DRE:', error)
       toast.error('Erro ao buscar movimentações de DRE')
       throw error
     } finally {

@@ -13,6 +13,7 @@ import ContaCorrenteView from "@/views/pages/financeiro/banco/ContaCorrenteView.
 import CentroDeCustoView from "@/views/pages/financeiro/pagar/CentroDeCustoView.vue";
 import PrevisaoDebitosView from "@/views/pages/financeiro/pagar/PrevisaoDebitosView.vue";
 import ApiExternaView from '@/views/pages/integracoes/ApiExternaView.vue';
+import CloudflareR2View from '@/views/pages/integracao/CloudflareR2View.vue';
 import InventarioView from "@/views/pages/inventario/InventarioView.vue";
 import ContagemInventarioView from "@/views/pages/inventario/ContagemInventarioView.vue";
 import ClientesView from '@/views/pages/manutencao/ClientesView.vue';
@@ -48,7 +49,7 @@ import MensagensView from '@/views/pages/manutencao/MensagensView.vue';
 import RelatorioDreView from '@/views/pages/dre/RelatorioDreView.vue';
 import {useSiteStore} from "@/stores/site";
 import {useApiStore} from "@/stores/APIs/api";
-import api from "@/services/api";
+import apiPhp from "@/services/apiPhp";
 import MotivoPerdaOrcamentoView from '@/views/pages/vendas/MotivoPerdaOrcamentoView.vue';
 
 const routes = [
@@ -457,12 +458,18 @@ const routes = [
         path: '/integracoes',
         name: 'site_integracoes',
         component: IntegracoesView
-    },    
+    },
     // Páginas de Integrações
     {
         path: '/paginas/integracoes/api-externa',
         name: 'integracoes_api_externa',
         component: ApiExternaView
+    },
+    {
+        path: '/paginas/integracao/cloudflare-r2',
+        name: 'integracao_cloudflare_r2',
+        component: CloudflareR2View,
+        meta: { requiresToken: true }
     },
     {
         path: '/paginas/integracoes/loja',
@@ -487,6 +494,14 @@ router.beforeEach(async (to, from, next) => {
     const siteStore = useSiteStore();
     const apiStore = useApiStore();
 
+    // Proteção de rotas autenticadas
+    if (to.path.startsWith('/paginas')) {
+        const token = localStorage.getItem('token')
+        if (!token) {
+            return next({ name: 'login' })
+        }
+    }
+
     const manutencao = siteStore.manutencao;
 
     if (manutencao && to.name === 'login') {
@@ -505,10 +520,10 @@ router.beforeEach(async (to, from, next) => {
         }
 
         try {
-            const response = await api.get(`/empsaas`, {
+            const response = await apiPhp.get('/auth/me', {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            const data = await response.data;
+            const data = response.data;
 
             if (!data) {
                 router.push('/');

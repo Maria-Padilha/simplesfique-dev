@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./memorias.db"
+}
+
+model Memoria {
+  id         String   @id @default(cuid())
+  title      String
+  type       String   // implementacao | correcao | decisao | melhoria | arquitetura
+  problema   String   @default("")
+  solucao    String
+  arquivos   String   @default("[]") // JSON array string
+  tags       String   @default("[]") // JSON array string
+  embedding  String?  // JSON array of floats
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

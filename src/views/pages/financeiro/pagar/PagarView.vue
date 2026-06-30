@@ -822,6 +822,9 @@
                 delete-item-display-field="nrdocumento"
                 @edit-item="editarContaPagar"
                 @confirm-delete="excluirContaPagar"
+                expandable
+                expand-on-click
+                v-model:expanded="expandedRows"
             >
               <!-- Coluna de Imagem -->
               <template v-slot:[`item.imagem`]="{ item }">
@@ -843,96 +846,36 @@
                 ></v-icon>
               </template>
 
-              <!-- Formatação para Valor do Documento -->
-              <template v-slot:[`item.vlrdocumento`]="{ item }">
-                <span class="font-weight-medium">{{ formatarMoeda(item.vlrdocumento) }}</span>
-              </template>
-
-              <!-- Formatação para Valor da Parcela -->
-              <template v-slot:[`item.vlrparcela`]="{ item }">
+              <!-- Formatação para Valor Original -->
+              <template v-slot:[`item.vlroriginal`]="{ item }">
                 <v-chip
-                    :color="parseFloat(item.vlrparcela) > 1000 ? 'orange' : 'primary'"
+                    :color="item.vlroriginal > 1000 ? 'orange' : 'primary'"
                     variant="tonal"
                     size="small"
                 >
-                  {{ formatarMoeda(item.vlrparcela) }}
+                  {{ formatarMoeda(item.vlroriginal) }}
                 </v-chip>
-              </template>
-
-              <!-- Formatação para Saldo Devedor -->
-              <template v-slot:[`item.saldo_devedor`]="{ item }">
-            <span v-if="item.pag_utiliza_aut_pagto === 'N'" class="font-weight-medium">
-              {{ formatarMoeda(item.saldo_devedor) }}
-            </span>
-                <span v-else class="text-grey">-</span>
-              </template>
-
-              <!-- Formatação para Valor Quitado -->
-              <template v-slot:[`item.vlrquitado`]="{ item }">
-            <span v-if="item.pag_utiliza_aut_pagto === 'N'" class="font-weight-medium text-success">
-              {{ formatarMoeda(item.vlrquitado) }}
-            </span>
-                <span v-else class="text-grey">-</span>
-              </template>
-
-              <!-- Autorizado Por -->
-              <template v-slot:[`item.user_liberou`]="{ item }">
-            <span v-if="item.pag_utiliza_aut_pagto === 'S' && item.user_liberou" class="font-weight-medium">
-              {{ item.user_liberou }}
-            </span>
-                <span v-else class="text-grey">-</span>
-              </template>
-
-              <!-- Valor Autorizado -->
-              <template v-slot:[`item.vlrliberadopagto`]="{ item }">
-            <span v-if="item.pag_utiliza_aut_pagto === 'S' && item.vlrliberadopagto > 0" class="font-weight-medium text-success">
-              {{ formatarMoeda(item.vlrliberadopagto) }}
-            </span>
-                <span v-else class="text-grey">-</span>
-              </template>
-
-              <!-- Data de Autorização -->
-              <template v-slot:[`item.dhliberacaopagto`]="{ item }">
-            <span v-if="item.pag_utiliza_aut_pagto === 'S' && item.dhliberacaopagto">
-              {{ formatarDataHora(item.dhliberacaopagto) }}
-            </span>
-                <span v-else class="text-grey">-</span>
               </template>
 
               <!-- Formatação para Data de Emissão -->
               <template v-slot:[`item.dtemissao`]="{ item }">
-            <span v-if="item.dtemissao">
-              {{ new Date(item.dtemissao).toLocaleDateString('pt-BR') }}
-            </span>
-                <span v-else class="text-grey">-</span>
-              </template>
-
-              <!-- Formatação para Data de Vencimento -->
-              <template v-slot:[`item.dtvencimento`]="{ item }">
-            <span v-if="item.dtvencimento">
-              {{ new Date(item.dtvencimento).toLocaleDateString('pt-BR') }}
-            </span>
+                <span v-if="item.dtemissao">
+                  {{ new Date(item.dtemissao).toLocaleDateString('pt-BR') }}
+                </span>
                 <span v-else class="text-grey">-</span>
               </template>
 
               <!-- Formatação para Data de Inclusão -->
               <template v-slot:[`item.dhinc`]="{ item }">
-            <span v-if="item.dhinc">
-              {{ formatarDataHora(item.dhinc) }}
-            </span>
+                <span v-if="item.dhinc">
+                  {{ formatarDataHora(item.dhinc) }}
+                </span>
                 <span v-else class="text-grey">-</span>
               </template>
 
-              <!-- Formatação do fornecedor com truncamento -->
-              <template v-slot:[`item.fornecedor`]="{ item }">
-                <v-tooltip location="top">
-                  <template v-slot:activator="{ props }">
-                    <span v-bind="props" class="fornecedor-truncado">
-                      {{ item.fornecedor || '--' }}
-                    </span>
-                  </template>
-                  <span>{{ item.fornecedor || 'Sem fornecedor' }}</span>
-                </v-tooltip>
+              <!-- Fornecedor -->
+              <template v-slot:[`item.id_fornecedor`]="{ item }">
+                <span>{{ item.id_fornecedor || '--' }}</span>
               </template>
 
               <!-- Ações personalizadas -->
@@ -958,6 +901,71 @@
                       @click="confirmarExclusao(item)"
                   ></v-btn>
                 </div>
+              </template>
+
+              <!-- Parcelas expandidas ao clicar na linha -->
+              <template v-slot:expanded-row="{ item }">
+                <tr>
+                  <td :colspan="headers.length + 1" class="pa-0">
+                    <div class="pa-4 background-card">
+                      <p class="text-sm font-semibold mb-2">
+                        Parcelas do Documento {{ item.nrdocumento }}
+                      </p>
+
+                      <v-progress-linear v-if="loadingParcelas[item.id]" indeterminate color="primary" class="mb-2" />
+
+                      <v-data-table
+                          v-if="!loadingParcelas[item.id]"
+                          :headers="headersParcelasExpand"
+                          :items="parcelasCache[item.id] || []"
+                          hide-default-footer
+                          density="compact"
+                          class="background-secondary rounded"
+                          no-data-text="Nenhuma parcela encontrada."
+                      >
+                        <template v-slot:[`item.dtvencimento`]="{ item: parcela }">
+                          <span v-if="parcela.dtvencimento">
+                            {{ new Date(parcela.dtvencimento).toLocaleDateString('pt-BR') }}
+                          </span>
+                          <span v-else class="text-grey">-</span>
+                        </template>
+
+                        <template v-slot:[`item.vlroriginalparcela`]="{ item: parcela }">
+                          <v-chip variant="tonal" color="primary" size="small">
+                            {{ formatarMoeda(parcela.vlroriginalparcela) }}
+                          </v-chip>
+                        </template>
+
+                        <template v-slot:[`item.vlrquitado`]="{ item: parcela }">
+                          <span :class="parseFloat(parcela.vlrquitado) > 0 ? 'text-success font-weight-medium' : 'text-grey'">
+                            {{ formatarMoeda(parcela.vlrquitado) }}
+                          </span>
+                        </template>
+
+                        <template v-slot:[`item.vlrliberadopagto`]="{ item: parcela }">
+                          <span :class="parseFloat(parcela.vlrliberadopagto) > 0 ? 'font-weight-medium' : 'text-grey'">
+                            {{ formatarMoeda(parcela.vlrliberadopagto) }}
+                          </span>
+                        </template>
+
+                        <template v-slot:[`item.situacao`]="{ item: parcela }">
+                          <v-chip
+                              size="small" variant="tonal"
+                              :color="parcela.situacao === 'Q' ? 'success' : parcela.situacao === 'P' ? 'warning' : 'default'"
+                          >
+                            {{ parcela.situacao === 'Q' ? 'Quitada' : parcela.situacao === 'P' ? 'Parcial' : 'Aberta' }}
+                          </v-chip>
+                        </template>
+
+                        <template v-slot:[`item.baixada`]="{ item: parcela }">
+                          <v-icon :color="parcela.baixada === 'S' ? 'success' : 'grey'" size="small">
+                            {{ parcela.baixada === 'S' ? 'mdi-check-circle' : 'mdi-circle-outline' }}
+                          </v-icon>
+                        </template>
+                      </v-data-table>
+                    </div>
+                  </td>
+                </tr>
               </template>
             </TabelaPadrao>
           </v-card-text>
@@ -1451,6 +1459,7 @@ import BuscaPadraoMenu from '@/components/base/menu/BuscaPadraoMenu.vue'
 import CadastrarModal from '@/components/base/modais/CadastrarModal.vue'
 // eslint-disable-next-line no-unused-vars
 import numeric from 'numeric'
+import apiPhp from '@/services/apiPhp'
 import TopAllPages from "@/components/base/padrao-paginas/TopAllPages.vue";
 
 // ID do programa desta tela
@@ -1553,45 +1562,53 @@ const dialogExclusao = reactive({
 })
 
 // Headers da tabela - computados dinamicamente baseado na utilização de autorização
-const headers = computed(() => {
-  const baseHeaders = [
-    { title: '', key: 'imagem', sortable: false, width: '60px' },
-    { title: 'Documento', key: 'nrdocumento', sortable: true },
-    { title: 'Série', key: 'serie', sortable: true },
-    { title: 'Espécie', key: 'especie', sortable: true },
-    { title: 'Parcela', key: 'id_pagparcela', sortable: true },
-    { title: 'Qtd Total', key: 'qtdparcelas', sortable: true },
-    { title: 'Data Emissão', key: 'dtemissao', sortable: true },
-    { title: 'Vencimento', key: 'dtvencimento', sortable: true },
-    { title: 'Fornecedor', key: 'fornecedor', sortable: true, width: '200px' },
-    { title: 'Vlr Documento', key: 'vlrdocumento', sortable: true },
-    { title: 'Vlr Parcela', key: 'vlrparcela', sortable: true },
-    { title: 'Vlr Quitado', key: 'vlrquitado', sortable: true },
-    { title: 'Saldo Devedor', key: 'saldo_devedor', sortable: true }
-  ]
+// Expansão de linhas — parcelas
+const expandedRows = ref([])
+const parcelasCache = ref({})
+const loadingParcelas = ref({})
 
-  // Verificar se algum item tem autorização ativa para mostrar as colunas de autorização
-  const temAutorizacao = contasPagar.value.some(item => item.pag_utiliza_aut_pagto === 'S')
+const headersParcelasExpand = [
+  { title: 'Parcela', key: 'id_pagparcela', sortable: false },
+  { title: 'Vencimento', key: 'dtvencimento', sortable: false },
+  { title: 'Vlr Original', key: 'vlroriginalparcela', sortable: false },
+  { title: 'Vlr Quitado', key: 'vlrquitado', sortable: false },
+  { title: 'Vlr Liberado', key: 'vlrliberadopagto', sortable: false },
+  { title: 'Local Cobrança', key: 'id_localcobranca', sortable: false },
+  { title: 'Situação', key: 'situacao', sortable: false },
+  { title: 'Baixada', key: 'baixada', sortable: false },
+]
 
-  if (temAutorizacao) {
-    baseHeaders.push(
-        { title: 'Autorizado Por', key: 'user_liberou', sortable: true },
-        { title: 'Vlr Autorizado', key: 'vlrliberadopagto', sortable: true },
-        { title: 'Data Autorização', key: 'dhliberacaopagto', sortable: true }
-    )
+watch(expandedRows, async (rows) => {
+  for (const row of rows) {
+    // Vuetify armazena o item-value (ID) no array de expandidos, não o objeto completo
+    const id = typeof row === 'object' && row !== null ? row.id : row
+    if (parcelasCache.value[id]) continue
+    loadingParcelas.value[id] = true
+    try {
+      const parcelas = await financeiroStore.buscarParcelasPagar({ id_pagconta: id })
+      parcelasCache.value[id] = Array.isArray(parcelas) ? parcelas : []
+    } catch {
+      parcelasCache.value[id] = []
+    } finally {
+      loadingParcelas.value[id] = false
+    }
   }
+}, { deep: true })
 
-  baseHeaders.push(
-      { title: 'Origem', key: 'origem', sortable: true },
-      { title: 'Tipo Doc.', key: 'abreviatura', sortable: true },
-      { title: 'Local Cobrança', key: 'desclocalcobranca', sortable: true },
-      { title: 'Usuário', key: 'user_inc', sortable: true },
-      { title: 'Data Inclusão', key: 'dhinc', sortable: true },
-      { title: 'Ações', key: 'actions', sortable: false }
-  )
-
-  return baseHeaders
-})
+const headers = computed(() => [
+  { title: 'Documento', key: 'nrdocumento', sortable: true },
+  { title: 'Série', key: 'serie', sortable: true },
+  { title: 'Espécie', key: 'especie', sortable: true },
+  { title: 'Qtd Parcelas', key: 'qtdparcelas', sortable: true },
+  { title: 'Data Emissão', key: 'dtemissao', sortable: true },
+  { title: 'Fornecedor', key: 'id_fornecedor', sortable: true },
+  { title: 'Vlr Original', key: 'vlroriginal', sortable: true },
+  { title: 'Origem', key: 'origem', sortable: true },
+  { title: 'Tipo Doc.', key: 'id_tipodocumento', sortable: true },
+  { title: 'Usuário', key: 'id_user_inc', sortable: true },
+  { title: 'Data Inclusão', key: 'dhinc', sortable: true },
+  { title: 'Ações', key: 'actions', sortable: false },
+])
 
 // Headers da tabela de parcelas
 const headersParcelas = [
@@ -1797,7 +1814,7 @@ const contasPagarFiltradas = computed(() => {
 // Calcular o valor total das parcelas filtradas
 const totalParcelasFiltradas = computed(() => {
   return contasPagarFiltradas.value.reduce((total, item) => {
-    const valor = parseFloat(item.vlrparcela || 0)
+    const valor = parseFloat(item.vlroriginal || 0)
     return total + valor
   }, 0)
 })
@@ -1906,33 +1923,20 @@ const carregarContasPagar = async (filtrosApi = null) => {
         filtrosApi || {}
     )
 
-    // Esses sao os dados expandidos da tabela
     contasPagar.value = dados?.map(item => ({
       id: item.id || null,
       nrdocumento: item.nrdocumento || '',
       serie: item.serie || '',
       especie: item.especie || '',
-      id_parcela: item.id_parcela || 1,
-      id_pagparcela: item.id_pagparcela || null,
+      id_tipodocumento: item.id_tipodocumento || null,
+      id_fornecedor: item.id_fornecedor || null,
+      observacao: item.observacao || '',
+      vlroriginal: parseFloat(item.vlroriginal || 0),
+      origem: item.origem || '',
       qtdparcelas: item.qtdparcelas || 1,
       dtemissao: item.dtemissao || '',
-      dtvencimento: item.dtvencimento || '',
-      fornecedor: item.fornecedor || '',
-      vlrdocumento: parseFloat(item.vlrdocumento || 0),
-      vlrparcela: parseFloat(item.vlrparcela || 0),
-      saldo_devedor: parseFloat(item.saldo_devedor || 0),
-      vlrquitado: parseFloat(item.vlrquitado || 0),
-      vlrliberadopagto: parseFloat(item.vlrliberadopagto || 0),
-      origem: item.origem || '',
-      user_inc: item.user_inc || '',
-      user_liberou: item.user_liberou || '',
-      abreviatura: item.abreviatura || '',
-      desctipodocumento: item.desctipodocumento || '',
-      desclocalcobranca: item.desclocalcobranca || '',
       dhinc: item.dhinc || '',
-      dhliberacaopagto: item.dhliberacaopagto || '',
-      pag_utiliza_aut_pagto: item.pag_utiliza_aut_pagto || 'N',
-      id_media: item.id_media || ''
+      id_user_inc: item.id_user_inc || null,
     })) || []
 
   } catch (error) {
@@ -1948,26 +1952,17 @@ const carregarContasPagar = async (filtrosApi = null) => {
 const carregarCCustoParametro = async () => {
   try {
     console.log('Iniciando carregamento de ccustoparametro...')
-    const token = localStorage.getItem('token')
 
-    // Importar api para fazer a requisição diretamente
-    const api = (await import('@/services/api')).default
-
-    const response = await api.get('/ccustoparametro', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
+    const response = await apiPhp.get('/financeiro/centro-custo-parametros/parametro')
 
     console.log('Resposta de ccustoparametro:', response)
 
-    if (response && response.data && response.data.data && response.data.data.length > 0) {
-      ccustoParametro.value = response.data.data[0]
+    if (Array.isArray(response.data) && response.data.length > 0) {
+      ccustoParametro.value = response.data[0]
       console.log('Centro de custo parâmetro carregado com sucesso:', ccustoParametro.value)
       console.log('utiliza_ccusto value:', ccustoParametro.value.utiliza_ccusto)
-    } else if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
-      ccustoParametro.value = response.data[0]
+    } else if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+      ccustoParametro.value = response.data
       console.log('Centro de custo parâmetro carregado com sucesso:', ccustoParametro.value)
       console.log('utiliza_ccusto value:', ccustoParametro.value.utiliza_ccusto)
     } else {
@@ -2526,9 +2521,9 @@ const salvarContaPagar = async () => {
       }
     }
 
-    // Montar payload no formato solicitado: data, parcela, media, ccusto (top-level)
+    // Montar payload no formato flat (Laravel): campos principais + arrays relacionados
     const payloadCompleto = {
-      data: [dadosPrincipais],
+      ...dadosPrincipais,
       parcela: parcelasFormatadas,
       media: [{ id_media: mediaValue }],
       ccusto: ccustoArray
@@ -3608,8 +3603,9 @@ const handleExportarCSV = ({ dados, nomeRelatorio }) => {
         `"${item.serie || ''}"`,
         `"${item.especie || ''}"`,
         `"${item.fornecedor || ''}"`,
-        `"${item.dtemissao ? new Date(item.dtemissao).toLocaleDateString('pt-BR') : ''}"`,
-        `"${item.dtvencimento ? new Date(item.dtvencimento).toLocaleDateString('pt-BR') : ''}"`,
+        `"${item.dtemissao ? new Date(item.dtemissao + 'T00:00:00').toLocaleDateString('pt-BR') : ''}"`,
+        `"${item.dtvencimento ? new Date(item.dtvencimento + 'T00:00:00').toLocaleDateString('pt-BR') : ''}"`,
+
         `"${formatarMoeda(item.vlrparcela) || '0,00'}"`,
         `"${formatarMoeda(item.vlrquitado) || '0,00'}"`,
         `"${formatarMoeda(item.saldo_devedor) || '0,00'}"`
@@ -3671,8 +3667,8 @@ const handleExportarExcel = ({ dados, nomeRelatorio }) => {
         item.serie || '',
         item.especie || '',
         item.fornecedor || '',
-        item.dtemissao ? new Date(item.dtemissao).toLocaleDateString('pt-BR') : '',
-        item.dtvencimento ? new Date(item.dtvencimento).toLocaleDateString('pt-BR') : '',
+        item.dtemissao ? new Date(item.dtemissao + 'T00:00:00').toLocaleDateString('pt-BR') : '',
+        item.dtvencimento ? new Date(item.dtvencimento + 'T00:00:00').toLocaleDateString('pt-BR') : '',
         formatarMoeda(item.vlrparcela) || '0,00',
         formatarMoeda(item.vlrquitado) || '0,00',
         formatarMoeda(item.saldo_devedor) || '0,00'

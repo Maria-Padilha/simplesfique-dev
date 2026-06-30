@@ -365,7 +365,10 @@ const formatarMoeda = (valor) => {
 const formatarData = (data) => {
   if (!data) return '--'
   try {
-    return new Date(data).toLocaleDateString('pt-BR')
+    const d = typeof data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(data)
+      ? new Date(data + 'T00:00:00')
+      : new Date(data)
+    return d.toLocaleDateString('pt-BR')
   } catch {
     return '--'
   }
@@ -435,11 +438,9 @@ const carregarDadosAuxiliares = async () => {
     }
 
     // Carregar histórico de movimentação (aberturas de caixa)
-    const response = await caixaStore.buscarHistoricoMovimentacao(idEmpresa)
+    const response = await caixaStore.buscarHistoricoMovimentacao()
     const dadosHistorico = response?.data || []
     historicoMovimentacao.value = Array.isArray(dadosHistorico) ? dadosHistorico : []
-    
-    console.log('Histórico de movimentação carregado:', historicoMovimentacao.value)
 
     // Carregar caixas ativos do usuário
     const dadosCaixas = await caixaStore.buscarCaixasUsuarioAtivo(idEmpresa)
@@ -492,13 +493,11 @@ const abrirCaixa = async () => {
       return
     }
 
-    // Montar payload
+    // Montar payload (formato flat Laravel)
     const payload = {
-      data: [{
-        dtabertura: formData.dtabertura,
-        horaabertura: formData.hrabertura,
-        saldoinicial: parseFloat(formData.vlrabertura)
-      }]
+      dtabertura: formData.dtabertura,
+      horaabertura: formData.hrabertura,
+      saldoinicial: parseFloat(formData.vlrabertura)
     }
 
     const resultado = await caixaStore.abrirCaixa(idEmpresa, formData.id_caixa, payload)

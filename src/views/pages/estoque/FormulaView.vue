@@ -66,7 +66,7 @@
               wordWrap: 'on',
               automaticLayout: true
             }"
-                          height="480px"
+                          height="420px"
                       />
                     </v-col>
 
@@ -396,13 +396,9 @@ const salvarFormulario = async () => {
   }
 
   const payload = {
-    data: [
-      {
-        id_empresa: forms.id_empresa,
-        descformula: forms.descformula,
-        formula: forms.formula,
-      }
-    ],
+    id_empresa: forms.id_empresa,
+    descformula: forms.descformula,
+    formula: forms.formula,
     var: variaveis.value
         .filter(v => v.varnome && v.vartype)
         .map(v => ({
@@ -426,8 +422,6 @@ const salvarFormulario = async () => {
   cancelarFormulario();
 };
 
-const formulaId = computed(() => estoqueStore.formula);
-
 // Editar
 const editarItem = async (item) => {
   await estoqueStore.buscarFormulaId(idEmpresa?.id, item.id);
@@ -441,7 +435,7 @@ const editarItem = async (item) => {
     id_empresa: forms.id_empresa
   });
 
-  variaveis.value = (formulaId.value?.var ?? []).map(v => ({
+  variaveis.value = (item.variaveis ?? []).map(v => ({
     varnome: v.varnome,
     vartype: v.vartype,
   }));
@@ -453,6 +447,8 @@ const compilarFormula = async (local, id) => {
   if (local === 'acao') await estoqueStore.buscarFormulaId(idEmpresa?.id, id);
 
   const item = formulaId.value;
+const compilarFormula = async () => {
+  const item = estoqueStore.formula;
 
   const dataFormula = item?.data?.[0];
 
@@ -462,13 +458,9 @@ const compilarFormula = async (local, id) => {
   }
 
   const payload = {
-    data: [
-      {
-        formula: dataFormula.formula,
-        id_empresa: forms.id_empresa,
-        descformula: dataFormula.descformula,
-      }
-    ],
+    formula: dataFormula.formula,
+    id_empresa: forms.id_empresa,
+    descformula: dataFormula.descformula,
     var: item?.var
         ?.filter(v => v.varnome && v.vartype)
         ?.map(v => ({

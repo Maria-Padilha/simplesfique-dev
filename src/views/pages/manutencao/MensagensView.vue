@@ -102,25 +102,22 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/config-temas/theme'
-import { useApiStore } from '@/stores/APIs/api'
-import api from '@/services/api'
+import apiPhp from '@/services/apiPhp'
 import TopAllPages from '@/components/base/padrao-paginas/TopAllPages.vue'
 import BotaoExpandTransition from '@/components/base/padrao-paginas/BotaoExpandTransition.vue'
 import TabelaPadrao from '@/components/base/padrao-paginas/TabelaPadrao.vue'
 
 const themeStore = useThemeStore()
-const apiStore = useApiStore()
 
 const empresaSelecionada = JSON.parse(localStorage.getItem('empresaSelecionada'))
 const idEmp = empresaSelecionada?.id ?? null
-const token = localStorage.getItem('token')
 
 const formularioAberto = ref(false)
 const editando = ref(false)
 const formValido = ref(false)
 const formRef = ref(null)
 const search = ref('')
-const loading = computed(() => apiStore.loading)
+const loading = ref(false)
 const mensagens = ref([])
 
 const form = reactive({
@@ -175,34 +172,47 @@ function editarMensagem(item) {
 }
 
 async function carregarMensagens() {
+  loading.value = true
   try {
-    const response = await api.get(`/msg/${idEmp}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    mensagens.value = response.data?.data || response.data || []
+    const response = await apiPhp.get(`/manutencao/mensagens/${idEmp}`)
+    mensagens.value = Array.isArray(response.data) ? response.data : response.data?.data || []
   } catch (error) {
     console.error('Erro ao carregar mensagens:', error)
+  } finally {
+    loading.value = false
   }
 }
 
 async function salvarMensagem() {
-  const { id, ...payload } = form
+  loading.value = true
+  try {
+    const { id, ...payload } = form
 
-  if (editando.value) {
-    await apiStore.executarAcao('msg', 'put', { data: [payload] }, `${idEmp}/${id}`)
-  } else {
-    await apiStore.executarAcao('msg', 'post', { data: [{ id_empresa: idEmp, ...payload }] })
-  }
+    if (editando.value) {
+      await apiPhp.put(`/manutencao/mensagens/${idEmp}/${id}`, payload)
+    } else {
+      await apiPhp.post('/manutencao/mensagens', payload)
+    }
 
-  if (!apiStore.errorMessage) {
     cancelarFormulario()
     await carregarMensagens()
+  } catch (error) {
+    console.error('Erro ao salvar mensagem:', error)
+  } finally {
+    loading.value = false
   }
 }
 
 async function excluirMensagem(item) {
-  await apiStore.executarAcao('msg', 'delete', null, `${idEmp}/${item.id}`)
-  await carregarMensagens()
+  loading.value = true
+  try {
+    await apiPhp.delete(`/manutencao/mensagens/${idEmp}/${item.id}`)
+    await carregarMensagens()
+  } catch (error) {
+    console.error('Erro ao excluir mensagem:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
 onMounted(async () => {
