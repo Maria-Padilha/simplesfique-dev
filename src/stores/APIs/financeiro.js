@@ -176,7 +176,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
       this.error = null;
       try {
         await apiPhp.delete(`/financeiro/conta-correntes/${id}`);
-        this.contas = this.contas.filter(conta => conta.id_ccorrente !== id);
+        this.contas = this.contas.filter(conta => (conta.id ?? conta.id_ccorrente) !== id);
         return true;
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido';

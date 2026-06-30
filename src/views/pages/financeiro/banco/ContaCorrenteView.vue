@@ -122,7 +122,6 @@
                             <agenciacc-menu
                                 :id-banco="formData.id_banco"
                                 @selecionar="selecionarAgencia"
-                                @criar-nova="abrirModalAgencia"
                             />
                           </template>
                         </v-text-field>
@@ -407,108 +406,6 @@
       </v-card>
 
 
-
-      <!-- Modal para cadastrar agência -->
-      <v-dialog v-model="openAgenciaModal" persistent max-width="600px">
-        <v-card class="background-secondary">
-          <v-card-title class="text-h6 pa-4">
-            Cadastrar Agência
-          </v-card-title>
-
-          <v-card-text class="pa-4">
-            <v-form>
-              <v-row>
-                <v-col cols="12" md="4">
-                  <v-text-field
-                      v-model="agenciaForm.id"
-                      label="Número da Agência *"
-                      type="text"
-                      variant="outlined"
-                      density="compact"
-                      :theme="themeStore.darkMode ? 'dark' : 'light'"
-                      class="custom-text-field"
-                  ></v-text-field>
-                </v-col>
-
-                <v-col cols="12" md="2">
-                  <v-text-field
-                      v-model="agenciaForm.digito_ag"
-                      label="Dígito"
-                      maxlength="1"
-                      variant="outlined"
-                      density="compact"
-                      :theme="themeStore.darkMode ? 'dark' : 'light'"
-                      class="custom-text-field"
-                  ></v-text-field>
-                </v-col>
-
-                <v-col cols="12" md="6">
-                  <v-text-field
-                      v-model="agenciaForm.descagencia"
-                      label="Descrição *"
-                      variant="outlined"
-                      density="compact"
-                      :theme="themeStore.darkMode ? 'dark' : 'light'"
-                      class="custom-text-field"
-                  ></v-text-field>
-                </v-col>
-
-                <v-col cols="12" md="6">
-                  <v-select
-                      v-model="agenciaForm.id_uf"
-                      :items="financeiroStore.ufs || []"
-                      item-title="SIGLA"
-                      item-value="SIGLA"
-                      label="UF"
-                      variant="outlined"
-                      density="compact"
-                      :theme="themeStore.darkMode ? 'dark' : 'light'"
-                      class="custom-text-field"
-                  ></v-select>
-                </v-col>
-
-                <v-col cols="12" md="6">
-                  <v-text-field
-                      v-model="agenciaForm.contato"
-                      label="Contato"
-                      variant="outlined"
-                      density="compact"
-                      :theme="themeStore.darkMode ? 'dark' : 'light'"
-                      class="custom-text-field"
-                  ></v-text-field>
-                </v-col>
-
-                <v-col cols="12" md="6">
-                  <v-text-field
-                      v-model="agenciaForm.telefone"
-                      label="Telefone"
-                      variant="outlined"
-                      density="compact"
-                      :theme="themeStore.darkMode ? 'dark' : 'light'"
-                      class="custom-text-field"
-                  ></v-text-field>
-                </v-col>
-              </v-row>
-            </v-form>
-          </v-card-text>
-
-          <v-card-actions class="pa-4">
-            <v-spacer></v-spacer>
-            <v-btn color="grey" variant="text" @click="fecharModalAgencia">
-              Cancelar
-            </v-btn>
-            <v-btn
-                color="var(--text-color-laranja)"
-                :loading="financeiroStore.loading"
-                @click="salvarAgencia"
-                variant="flat"
-                class="text-white"
-            >
-              Salvar
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
 
 
       <!-- Modal de Gerenciamento de Usuários -->
@@ -909,7 +806,6 @@ const formValido = ref(false)
 const formRef = ref(null)
 // refs for agency modal/select
 const agenciaRef = ref(null)
-const openAgenciaModal = ref(false)
 // banco selecionado (objeto) to improve typing UX
 const bancoSelecionado = ref(null)
 const loadingPlanosConta = ref(false)
@@ -919,17 +815,6 @@ const modalExportacaoAberto = ref(false)
 const modalPreviewPDF = ref(false)
 const previewHTMLContent = ref('')
 const dadosPDFAtual = ref(null)
-
-// form for creating agency in modal
-const agenciaForm = reactive({
-  id: '',
-  digito_ag: '',
-  descagencia: '',
-  id_banco: '',
-  id_uf: '',
-  contato: '',
-  telefone: ''
-})
 
 // Snackbar
 const snackbar = reactive({
@@ -1121,7 +1006,6 @@ const onBancoChange = async (val) => {
 
   // Garantir que id_banco receba apenas o valor primitivo
   formData.id_banco = id
-  agenciaForm.id_banco = id
   formData.id_agencia = ''
 
   console.log('Banco selecionado - ID:', id, 'Valor original:', val) // Debug
@@ -1147,40 +1031,6 @@ const onBancoChange = async (val) => {
 watch(bancoSelecionado, (val) => {
   onBancoChange(val)
 })
-
-const abrirModalAgencia = () => {
-  // Debug
-  console.log('Abrindo modal - formData.id_banco:', formData.id_banco)
-  console.log('Abrindo modal - bancoSelecionado:', bancoSelecionado.value)
-
-  // Normalizar id_banco para garantir que é um valor primitivo
-  const idBanco = normalizeId(formData.id_banco)
-
-  console.log('ID normalizado:', idBanco)
-
-  if (!idBanco) {
-    mostrarSnackbar('Selecione um banco primeiro', 'warning')
-    return
-  }
-
-  agenciaForm.id_banco = idBanco
-  console.log('Modal aberto com id_banco:', agenciaForm.id_banco)
-  openAgenciaModal.value = true
-}
-
-const fecharModalAgencia = () => {
-  openAgenciaModal.value = false
-  // Limpar formulário da agência
-  Object.assign(agenciaForm, {
-    id: '',
-    digito_ag: '',
-    descagencia: '',
-    id_banco: '',
-    id_uf: '',
-    contato: '',
-    telefone: ''
-  })
-}
 
 // === Modal de Controle de Usuários (Acesso a Contas) ===
 const openUsuariosModal = ref(false)
@@ -1279,34 +1129,6 @@ const salvarUsuariosAcesso = async () => {
   }
 }
 
-const salvarAgencia = async () => {
-  if (!agenciaForm.id || !agenciaForm.descagencia || !agenciaForm.id_banco) {
-    mostrarSnackbar('Preencha ID, descrição e o banco da agência', 'error')
-    return
-  }
-  
-  try {
-    const payload = {
-      id: agenciaForm.id,
-      digito_ag: agenciaForm.digito_ag,
-      descagencia: agenciaForm.descagencia,
-      id_banco: agenciaForm.id_banco,
-      id_uf: agenciaForm.id_uf,
-      contato: agenciaForm.contato,
-      telefone: agenciaForm.telefone
-    }
-    
-    await financeiroStore.criarAgencia(payload)
-    await financeiroStore.buscarAgencias()
-    
-    formData.id_agencia = agenciaForm.id
-    mostrarSnackbar('Agência criada com sucesso', 'success')
-    fecharModalAgencia()
-  } catch (error) {
-    mostrarSnackbar('Erro ao criar agência: ' + error.message, 'error')
-  }
-}
-
 const descagencia = ref('');
 
 const selecionarAgencia = (agencia) => {
@@ -1361,9 +1183,12 @@ const editarConta = async (conta) => {
     Object.assign(formData, conta)
   }
 
-  // Formatar data para input datetime-local
+  // Normalizar datas para formato YYYY-MM-DD (type="date")
   if (formData.dtabertura) {
-    formData.dtabertura = new Date(formData.dtabertura).toISOString().slice(0, 16)
+    formData.dtabertura = new Date(formData.dtabertura).toISOString().slice(0, 10)
+  }
+  if (formData.dtvenctolimite && formData.dtvenctolimite.length > 10) {
+    formData.dtvenctolimite = new Date(formData.dtvenctolimite).toISOString().slice(0, 10)
   }
 
   // Normalizar possíveis objetos de id que venham no objeto 'conta'
@@ -1414,6 +1239,11 @@ const editarConta = async (conta) => {
         }
         // Garantir que o formData tenha apenas o id primitivo
         formData.id_agencia = agenciaObj.ID ?? agenciaObj.id ?? agenciaObj.id_agencia ?? formData.id_agencia
+        // Popular o campo de texto da agência
+        const desc = agenciaObj.DESCAGENCIA ?? agenciaObj.descagencia ?? agenciaObj.DESCRICAO ?? agenciaObj.descricao ?? ''
+        const dig = agenciaObj.DIGITO_AG ?? agenciaObj.digito_ag ?? ''
+        const idAg = formData.id_agencia
+        descagencia.value = desc ? `${desc} — ${idAg}${dig ? '-' + dig : ''}` : String(idAg)
       }
     }
   } catch (e) {
@@ -1501,6 +1331,7 @@ const excluirConta = async (conta) => {
   try {
     const contaId = conta?.id
     await financeiroStore.deletarConta(contaId)
+    await financeiroStore.buscarContas()
     mostrarSnackbar('Conta excluída com sucesso!', 'success')
   } catch (error) {
     mostrarSnackbar('Erro ao excluir conta: ' + error.message, 'error')

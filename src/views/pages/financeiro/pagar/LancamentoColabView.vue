@@ -979,6 +979,7 @@ const confirmarExclusao = async () => {
     dialogExcluir.value = false
     novoLancamento()
     formularioAberto.value = false
+    await buscarLancamentos()
   } catch { /* toast já exibido pelo store */ }
 }
 
