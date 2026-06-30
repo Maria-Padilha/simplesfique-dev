@@ -59,8 +59,8 @@ apiPhp.interceptors.response.use(
         return response;
     },
     error => {
-        // 401 — sessão expirada, redireciona para login
-        if (error.response?.status === 401) {
+        // 401 — sessão expirada, redireciona para login (exceto na própria rota de auth)
+        if (error.response?.status === 401 && !error.config?.url?.includes('/auth/')) {
             localStorage.removeItem('token');
             window.location.href = '/login';
         }

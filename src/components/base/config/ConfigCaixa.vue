@@ -278,12 +278,14 @@ const config = reactive({
   id_hist_caixa_suprimento: null,
   id_hist_contabil_suprimento: null,
   id_tipo_pagrec_suprimento: null,
+  id_tipo_doc_suprimento: null,
   id_red_ctb_sangria: null,
   // Campos de descrição
   desc_ctb_suprimento: '',
   desc_hist_caixa_suprimento: '',
   desc_hist_contabil_suprimento: '',
   desc_tipo_recebimento: '',
+  desc_tipo_doc_suprimento: '',
   desc_ctb_sangria: ''
 })
 
@@ -427,16 +429,9 @@ const carregarParametrosCaixa = async () => {
 
   try {
     const response = await useConfig.buscarParametrosCaixa(idEmpresa)
-    const dadosArray = response?.data
 
-    // Se o array tem pelo menos um objeto com algum campo preenchido
-    let dados = null
-    if (Array.isArray(dadosArray) && dadosArray.length > 0) {
-      const temCampos = Object.keys(dadosArray[0] || {}).filter(k => k.startsWith('id_')).length > 0
-      if (temCampos) {
-        dados = dadosArray[0]
-      }
-    }
+    // API retorna objeto único (não paginado); store já devolve response.data diretamente
+    const dados = response && typeof response === 'object' && !Array.isArray(response) ? response : null
 
     if (dados) {
       Object.keys(config).forEach(key => {
@@ -475,6 +470,9 @@ const carregarParametrosCaixa = async () => {
         config.desc_tipo_recebimento = tipoRec ? (tipoRec.desctipopagrec || tipoRec.descricao) : ''
       }
 
+      // Tipo de documento retornado diretamente pela API via referencia_*
+      config.desc_tipo_doc_suprimento = dados.referencia_parfincxa_tipo_doc_sup?.desctipodocumento ?? ''
+
       dadosExistem.value = true
     } else {
       dadosExistem.value = false
@@ -492,7 +490,8 @@ const salvarConfiguracoes = async () => {
         id_red_ctb_suprimento: config.id_red_ctb_suprimento,
         id_hist_caixa_suprimento: config.id_hist_caixa_suprimento,
         id_hist_contabil_suprimento: config.id_hist_contabil_suprimento,
-        id_tipo_pagrec_suprimento: config.id_tipo_pagrec_suprimento || null,
+        id_tipo_pagrec_suprimento: config.id_tipo_pagrec_suprimento != null ? String(config.id_tipo_pagrec_suprimento).padStart(2, '0') : null,
+        id_tipo_doc_suprimento: config.id_tipo_doc_suprimento || null,
         id_red_ctb_sangria: config.id_red_ctb_sangria
       }]
     }

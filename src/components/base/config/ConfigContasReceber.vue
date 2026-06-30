@@ -823,16 +823,9 @@ const carregarParametrosFinanceiros = async () => {
 
   try {
     const response = await useConfig.buscarParametrosFinanceirosReceber(idEmpresa)
-    const dadosArray = response?.data
-    // Se o array tem pelo menos um objeto com algum campo preenchido, é PUT
-    let dados = null
-    if (Array.isArray(dadosArray) && dadosArray.length > 0) {
-      // Verifica se algum campo relevante está preenchido
-      const temCampos = Object.keys(dadosArray[0] || {}).filter(k => k.startsWith('rec_id_') || k.startsWith('desc_')).length > 0
-      if (temCampos) {
-        dados = dadosArray[0]
-      }
-    }
+
+    // API retorna objeto único (não paginado); store já devolve response.data diretamente
+    const dados = response && typeof response === 'object' && !Array.isArray(response) ? response : null
     if (dados) {
       Object.keys(config).forEach(key => {
         if (Object.prototype.hasOwnProperty.call(dados, key)) {
@@ -912,7 +905,8 @@ const salvarConfiguracoes = async () => {
         rec_id_hist_est_bxa_caixa: config.rec_id_hist_est_bxa_caixa,
         rec_id_hist_est_bxa_banco: config.rec_id_hist_est_bxa_banco,
         rec_id_hist_adt_cli_caixa: config.rec_id_hist_adt_cli_caixa,
-        rec_id_hist_adt_cli_banco: config.rec_id_hist_adt_cli_banco
+        rec_id_hist_adt_cli_banco: config.rec_id_hist_adt_cli_banco,
+        id_tipo_doc_suprimento: config.tipo_documento_padrao || null,
       }]
     }
 

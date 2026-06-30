@@ -318,7 +318,7 @@ export const useEstoqueStore = defineStore('estoque', {
             this.loading = true;
 
             try {
-                const res = await apiPhp.get(`/manutencao/cests`, {
+                const res = await apiPhp.get(`/estoque/cests`, {
                     params: { per_page: limit }
                 });
 

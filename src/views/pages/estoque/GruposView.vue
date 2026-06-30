@@ -241,7 +241,7 @@
                       class="w-100 h-100 rounded-md"
                       cover
                       :alt="`Imagem do grupo - ${item.descgrupo}`"
-                      :src="decodificarImagemBase64(item.foto)"
+                      :src="item.foto_url"
                   />
                 </v-sheet>
               </template>
@@ -296,7 +296,7 @@
                       class="w-100 h-100 rounded-md"
                       cover
                       :alt="`Imagem do subgrupo - ${item.descsubgrupo}`"
-                      :src="decodificarImagemBase64(item.foto)"
+                      :src="item.foto_url"
                   />
                 </v-sheet>
               </template>
@@ -330,7 +330,7 @@
                       class="w-100 h-100 rounded-md"
                       cover
                       :alt="`Imagem do subgrupo - ${item.descsubgrupo}`"
-                      :src="decodificarImagemBase64(item.foto)"
+                      :src="item.foto_url"
                   />
                 </v-sheet>
               </template>
@@ -358,7 +358,7 @@
           :fechar-modal="fecharModal"
           v-model:modal-imagem="modalImagem"
           :imagem-alt="imagemAlt"
-          :imagem-src="decodificarImagemBase64(imagemSrc)"
+          :imagem-src="imagemSrc"
       />
 
       <!-- MODAL CONFIRMAR EXCLUSÃO -->
@@ -487,11 +487,6 @@ function converterBase64(event) {
   validacaoFile.push(() => true || "");
 }
 
-function decodificarImagemBase64(base64String) {
-  const decoded = atob(base64String);
-  return decoded;
-}
-
 /**
  * CANCELAR FORMULÁRIOS
  */
@@ -523,7 +518,7 @@ const imagemSrc = ref("");
 const imagemAlt = ref("");
 
 const exibirImagem = (item) => {
-  imagemSrc.value = item.foto;
+  imagemSrc.value = item.foto_url;
   imagemAlt.value = `Grupo - ${item.descgrupo}`;
   modalImagem.value = true;
 };

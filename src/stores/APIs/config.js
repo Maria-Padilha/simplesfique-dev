@@ -25,7 +25,7 @@ export const useConfigParfinStore = defineStore('configParfin', {
             this.loading = true;
 
             try {
-                const response = await apiPhp.get(`/centro-custo-parametros/parametro`);
+                const response = await apiPhp.get(`/financeiro/centro-custo-parametros/parametro`);
 
                 this.config = response.data?.data ?? response.data;
                 this.errorMessage = '';
@@ -50,7 +50,7 @@ export const useConfigParfinStore = defineStore('configParfin', {
             try {
                 // Normalizar payload do formato THorse { data: [{}] } para direto
                 const dados = Array.isArray(parfinData.data) ? parfinData.data[0] : parfinData;
-                await apiPhp.post('/centro-custo-parametros', dados);
+                await apiPhp.post('/financeiro/centro-custo-parametros', dados);
                 this.successMessage = 'Configurações salvas com sucesso!';
                 await this.buscarparfin();
             } catch (error) {
@@ -68,7 +68,7 @@ export const useConfigParfinStore = defineStore('configParfin', {
             this.loading = true;
             try {
                 const dados = Array.isArray(parfinData.data) ? parfinData.data[0] : parfinData;
-                await apiPhp.put('/centro-custo-parametros', dados);
+                await apiPhp.put('/financeiro/centro-custo-parametros', dados);
                 this.successMessage = 'Configurações atualizadas com sucesso!';
                 await this.buscarparfin();
             } catch (error) {
@@ -86,7 +86,7 @@ export const useConfigParfinStore = defineStore('configParfin', {
             this.loading = true;
             
             try {
-                const response = await apiPhp.get(`/parametros-financeiros-pagars/${idEmpresa}`);
+                const response = await apiPhp.get(`/financeiro/parametros-financeiros-pagars/${idEmpresa}`);
                 
                 this.errorMessage = '';
                 return response.data;
@@ -109,7 +109,7 @@ export const useConfigParfinStore = defineStore('configParfin', {
             try {
                 // Normalizar payload do formato THorse { data: [{}] } para direto
                 const dadosBase = Array.isArray(dados.data) ? dados.data[0] : dados;
-                const response = await apiPhp.post('/parametros-financeiros-pagars', dadosBase);
+                const response = await apiPhp.put(`/financeiro/parametros-financeiros-pagars/${idEmpresa}`, dadosBase);
                 
                 this.successMessage = 'Configurações salvas com sucesso!';
                 return response.data;
@@ -131,7 +131,7 @@ export const useConfigParfinStore = defineStore('configParfin', {
             
             try {
                 const dadosBase = Array.isArray(dados.data) ? dados.data[0] : dados;
-                const response = await apiPhp.put(`/parametros-financeiros-pagars/${idEmpresa}`, dadosBase);
+                const response = await apiPhp.put(`/financeiro/parametros-financeiros-pagars/${idEmpresa}`, dadosBase);
                 
                 this.successMessage = 'Configurações atualizadas com sucesso!';
                 return response.data;
@@ -152,7 +152,7 @@ export const useConfigParfinStore = defineStore('configParfin', {
             this.loading = true;
             
             try {
-                const response = await apiPhp.get(`/parametros-financeiros-recebers/${idEmpresa}`);
+                const response = await apiPhp.get(`/financeiro/parametros-financeiros-recebers/${idEmpresa}`);
                 
                 this.errorMessage = '';
                 return response.data;
@@ -174,7 +174,7 @@ export const useConfigParfinStore = defineStore('configParfin', {
             
             try {
                 const dadosBase = Array.isArray(dados.data) ? dados.data[0] : dados;
-                const response = await apiPhp.post('/parametros-financeiros-recebers', dadosBase);
+                const response = await apiPhp.put(`/financeiro/parametros-financeiros-recebers/${idEmpresa}`, dadosBase);
                 
                 this.successMessage = 'Configurações salvas com sucesso!';
                 return response.data;
@@ -196,7 +196,7 @@ export const useConfigParfinStore = defineStore('configParfin', {
             
             try {
                 const dadosBase = Array.isArray(dados.data) ? dados.data[0] : dados;
-                const response = await apiPhp.put(`/parametros-financeiros-recebers/${idEmpresa}`, dadosBase);
+                const response = await apiPhp.put(`/financeiro/parametros-financeiros-recebers/${idEmpresa}`, dadosBase);
                 
                 this.successMessage = 'Configurações atualizadas com sucesso!';
                 return response.data;
@@ -217,7 +217,7 @@ export const useConfigParfinStore = defineStore('configParfin', {
             this.loading = true;
             
             try {
-                const response = await apiPhp.get(`/parametros-financeiros-caixas/${idEmpresa}`);
+                const response = await apiPhp.get(`/financeiro/parametros-financeiros-caixas/${idEmpresa}`);
                 
                 this.errorMessage = '';
                 return response.data;
@@ -238,7 +238,7 @@ export const useConfigParfinStore = defineStore('configParfin', {
             this.loading = true;
 
             try {
-                const response = await apiPhp.get('/historico-caixas');
+                const response = await apiPhp.get('/financeiro/historico-caixas');
 
                 this.historicoCaixa = response.data?.data ?? response.data ?? [];
                 return response.data;
@@ -258,7 +258,7 @@ export const useConfigParfinStore = defineStore('configParfin', {
             this.loading = true;
 
             try {
-                const response = await apiPhp.get('/historico-bancarios');
+                const response = await apiPhp.get('/financeiro/historico-bancarios');
 
                 this.historicoBancario = response.data?.data ?? response.data ?? [];
                 return response.data;
@@ -278,7 +278,7 @@ export const useConfigParfinStore = defineStore('configParfin', {
             this.loading = true;
             
             try {
-                const response = await apiPhp.get(`/parametros-financeiros-caixas/${idEmpresa}`);
+                const response = await apiPhp.get(`/financeiro/parametros-financeiros-caixas/${idEmpresa}`);
                 
                 this.errorMessage = '';
                 return response.data;
@@ -300,7 +300,7 @@ export const useConfigParfinStore = defineStore('configParfin', {
             
             try {
                 const dadosBase = Array.isArray(dados.data) ? dados.data[0] : dados;
-                const response = await apiPhp.put(`/parametros-financeiros-caixas/${idEmpresa}`, dadosBase);
+                const response = await apiPhp.put(`/financeiro/parametros-financeiros-caixas/${idEmpresa}`, dadosBase);
                 
                 this.successMessage = 'Configurações do caixa atualizadas com sucesso!';
                 return response.data;
