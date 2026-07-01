@@ -482,7 +482,7 @@
                   <v-card-text class="d-flex justify-space-between align-center pa-3">
                     <span class="text-subtitle-1 font-weight-bold">Saldo Anterior</span>
                     <span class="text-h6 font-weight-bold" :class="saldoAnterior >= 0 ? 'text-success' : 'text-error'">
-                  {{ formatarMoeda(saldoAnterior) }}
+                  {{ formatarMoeda(Math.abs(saldoAnterior)) }}
                 </span>
                   </v-card-text>
                 </v-card>
@@ -530,7 +530,7 @@
                   <!-- Coluna Saldo -->
                   <template v-slot:[`item.saldo`]="{ item }">
                 <span class="font-weight-bold" :class="calcularSaldo(lancamentosFiltrados.indexOf(item)) >= 0 ? 'text-success' : 'text-error'">
-                  {{ formatarMoeda(calcularSaldo(lancamentosFiltrados.indexOf(item))) }}
+                  {{ formatarMoeda(Math.abs(calcularSaldo(lancamentosFiltrados.indexOf(item)))) }}
                 </span>
                   </template>
 
@@ -553,30 +553,14 @@
                   <template v-slot:[`item.actions`]="{ item }">
                     <div class="d-flex justify-center gap-1">
                       <v-btn
-                          icon="mdi-pencil"
-                          size="small"
-                          variant="text"
-                          color="primary"
-                          @click="editarLancamento(item)"
-                          :disabled="item.origem !== 'CAI'"
-                      >
-                        <v-icon size="20">mdi-pencil</v-icon>
-                        <v-tooltip activator="parent" location="top">
-                          {{ item.origem !== 'CAI' ? 'Apenas lançamentos de caixa podem ser editados' : 'Editar' }}
-                        </v-tooltip>
-                      </v-btn>
-                      <v-btn
                           icon="mdi-delete"
                           size="small"
                           variant="text"
                           color="error"
                           @click="confirmarExclusao(item)"
-                          :disabled="item.origem !== 'CAI'"
                       >
                         <v-icon size="20">mdi-delete</v-icon>
-                        <v-tooltip activator="parent" location="top">
-                          {{ item.origem !== 'CAI' ? 'Apenas lançamentos de caixa podem ser excluídos' : 'Excluir' }}
-                        </v-tooltip>
+                        <v-tooltip activator="parent" location="top">Excluir</v-tooltip>
                       </v-btn>
                     </div>
                   </template>
@@ -612,7 +596,7 @@
                   <v-col cols="12" md="6">
                     <div class="text-caption text-grey">TOTAL DO PERÍODO:</div>
                     <div class="text-h5 font-weight-bold" :class="saldoFinal >= 0 ? 'text-success' : 'text-error'">
-                      {{ formatarMoeda(saldoFinal) }}
+                      {{ formatarMoeda(Math.abs(saldoFinal)) }}
                     </div>
                   </v-col>
                 </v-row>
@@ -689,7 +673,7 @@ const empresaStore = useEmpresaStore()
 const financeiroStore = useFinanceiroStore()
 const configStore = useConfigParfinStore()
 const ccustoStore = useCCustoStore()
-const { podeVisualizar, podeIncluir, podeAlterar, podeExcluir, podeExportar, podePDF } = usePermissoes()
+const { podeVisualizar, podeIncluir, podeExcluir, podeExportar, podePDF } = usePermissoes()
 
 // Modal de acesso negado
 const acessoNegadoModal = ref(false)
@@ -1129,7 +1113,10 @@ const carregarCaixas = async () => {
     console.log('Caixas recebidos:', dados)
 
     if (Array.isArray(dados) && dados.length > 0) {
-      caixasDisponiveis.value = dados
+      caixasDisponiveis.value = dados.map(c => ({
+        ...c,
+        id_caixa: c.id ?? c.id_caixa,
+      }))
       console.log('Caixas disponíveis atualizados:', caixasDisponiveis.value)
     } else {
       caixasDisponiveis.value = []
@@ -1367,98 +1354,6 @@ const mostrarMensagem = (mensagem, tipo) => {
 }
 
 // Editar lançamento
-const editarLancamento = async (item) => {
-  // Verificar permissão para alterar
-  if (!podeAlterar(ID_PROGRAMA)) {
-    tipoAcessoNegado.value = 'alterar'
-    acessoNegadoModal.value = true
-    return
-  }
-
-  // Só permite editar lançamentos de caixa (CAI)
-  if (item.origem !== 'CAI') {
-    return
-  }
-
-  try {
-    loading.value = true
-    const idEmpresa = empresaStore.empresa?.id || empresaStore.empresaSelecionada?.id
-
-    if (!idEmpresa) {
-      mostrarMensagem('ID da empresa não encontrado', 'error')
-      return
-    }
-
-    console.log('Buscando lançamento completo:', item.id, item.id_caixa)
-
-    // Buscar dados completos do lançamento da API
-    const response = await caixaStore.buscarLancamentoCaixa(idEmpresa, item.id_caixa, item.id)
-
-    console.log('Resposta completa da API:', response)
-
-    // A API retorna { data: [...], contabil: [...], ccusto: [...] }
-    const dados = Array.isArray(response?.data) ? response.data[0] : response?.data || item
-    const contabil = response?.contabil || []
-    const ccusto = response?.ccusto || []
-
-    console.log('Dados do lançamento:', dados)
-    console.log('Dados contábeis:', contabil)
-    console.log('Rateio de centro de custo:', ccusto)
-
-    editando.value = true
-    formularioAberto.value = true
-
-    // Buscar id_planoconta e id_hist_contabil do array contabil
-    const contabilPrincipal = contabil.find(c => c.id_planoconta) || {}
-    const contabilHistorico = contabil.find(c => c.id_historico_ctb) || {}
-
-    Object.assign(formData, {
-      id: dados.id,
-      id_caixa: dados.id_caixa,
-      id_planoconta: contabilPrincipal.id_planoconta || null,
-      id_tipodocumento: dados.id_tipodocumento || null,
-      nrdocumento: dados.nrdocumento || '',
-      id_caixahist: dados.id_caixahist,
-      id_hist_contabil: contabilHistorico.id_historico_ctb || null,
-      dtlancamento: dados.dtlancamento,
-      valor: dados.valor,
-      tipo: dados.tipo,
-      id_tipopagrec: dados.id_tipopagrec,
-      origem: dados.origem || 'CAI',
-      observacao: dados.observacao || ''
-    })
-
-    console.log('Dados carregados no formulário:', formData)
-
-    // Se for saída, verificar rateio de centro de custo
-    if (formData.tipo === '-') {
-      await verificarUtilizaCCusto()
-
-      // Se houver rateio no lançamento, carregar
-      if (Array.isArray(ccusto) && ccusto.length > 0) {
-        console.log('Carregando rateio existente:', ccusto)
-
-        // Calcular porcentagem baseado no valor total
-        const valorTotal = parseFloat(dados.valor || 0)
-
-        ccustosRateio.value = ccusto.map(c => ({
-          id_ccusto: c.id_ccusto,
-          desccentrocusto: c.desccentrocusto || '',
-          valor: parseFloat(c.valor || 0),
-          porcentagem: valorTotal > 0 ? ((parseFloat(c.valor || 0) / valorTotal) * 100).toFixed(2) : 0
-        }))
-
-        console.log('Rateio carregado:', ccustosRateio.value)
-      }
-    }
-  } catch (error) {
-    console.error('Erro ao carregar lançamento para edição:', error)
-    mostrarMensagem('Erro ao carregar dados do lançamento', 'error')
-  } finally {
-    loading.value = false
-  }
-}
-
 // Confirmar exclusão
 const confirmarExclusao = (item) => {
   // Só permite excluir lançamentos de caixa (CAI)

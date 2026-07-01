@@ -64,6 +64,7 @@ export const useCaixaStore = defineStore('caixa', {
             try {
                 const res = await apiPhp.get('/financeiro/caixas/usuario/aberto');
                 const dados = res.data?.data ?? res.data;
+                if (!dados || (typeof dados === 'object' && !Array.isArray(dados) && Object.keys(dados).length === 0)) return [];
                 return Array.isArray(dados) ? dados : [dados];
             } catch (error) {
                 return [];
@@ -122,10 +123,15 @@ export const useCaixaStore = defineStore('caixa', {
                 const res = await apiPhp.get('/financeiro/caixa-movimentos', {
                     params: { id_caixa: idCaixa, data_ini: dtini, data_fim: dtfim }
                 });
+                const rawData = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+                const data = rawData.map(item => ({
+                    ...item,
+                    tipo: item.tipo === 'E' ? '+' : item.tipo === 'S' ? '-' : item.tipo,
+                }));
                 return {
                     saldoanterior: res.data?.saldo_anterior ?? res.data?.saldoanterior ?? 0,
-                    data: res.data?.data ?? [],
-                    records: res.data?.total ?? res.data?.records ?? 0
+                    data,
+                    records: Array.isArray(res.data) ? data.length : (res.data?.total ?? res.data?.records ?? 0)
                 };
             } catch (error) {
                 return { saldoanterior: 0, data: [], records: 0 };
