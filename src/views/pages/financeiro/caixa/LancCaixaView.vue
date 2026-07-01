@@ -801,7 +801,7 @@ const lancamentosFiltrados = computed(() => {
   return dados
 })
 
-const saldoAnterior = ref(664.90) // Será calculado conforme período
+const saldoAnterior = ref(0)
 
 const totalEntradas = computed(() => {
   return lancamentosFiltrados.value
