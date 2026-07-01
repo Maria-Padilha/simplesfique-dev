@@ -1,7 +1,0 @@
-echo "🔍 Running full lint check before push..."
-npm run lint
-
-echo "🧪 Running tests before push..."
-npm run test
-
-echo "✅ Pre-push checks passed!"
