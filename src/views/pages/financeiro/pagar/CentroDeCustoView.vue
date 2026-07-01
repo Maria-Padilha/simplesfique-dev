@@ -52,9 +52,6 @@
                             density="compact"
                             class="custom-text-field required-left-border"
                             prepend-inner-icon="mdi-barcode"
-                            @blur="validarClassificador"
-                            :loading="classificadorValidando"
-                            :error-messages="classificadorValido === false ? [mensagemClassificador] : []"
                         ></v-text-field>
                       </v-col>
 
@@ -69,8 +66,6 @@
                             density="compact"
                             class="custom-text-field required-left-border"
                             prepend-inner-icon="mdi-text"
-                            :disabled="classificadorValido !== true"
-                            :hint="classificadorValido !== true ? 'Valide a classificação primeiro' : ''"
                         ></v-text-field>
                       </v-col>
                     </v-row>
@@ -220,11 +215,6 @@ const formData = reactive({
   desccentrocusto: '',
 })
 
-// Estado de validação da classificação
-const classificadorValidando = ref(false)
-const classificadorValido = ref(null)
-const mensagemClassificador = ref('')
-
 // Regras de validação
 const rules = {
   required: (value) => !!value || 'Campo obrigatório'
@@ -342,44 +332,5 @@ const excluirCentroCusto = async (item) => {
   }
 }
 
-// Métodos de validação
-const validarClassificador = async () => {
-  if (!formData.id_classificador || formData.id_classificador.trim() === '') {
-    classificadorValido.value = null
-    mensagemClassificador.value = ''
-    formData.desccentrocusto = ''
-    formData.id = null
-    return
-  }
 
-  classificadorValidando.value = true
-  try {
-    const resultado = await ccustoStore.verificarClassificador(formData.id_classificador)
-    classificadorValido.value = true
-    mensagemClassificador.value = 'Classificação válida'
-
-    // Se o classificador já existe, preenche a descrição automaticamente
-    if (resultado && resultado.data) {
-      // Trata tanto array quanto objeto
-      let dados = resultado.data
-      if (Array.isArray(dados) && dados.length > 0) {
-        dados = dados[0]
-      }
-
-      // Normaliza os dados
-      dados = ccustoStore.normalizarDados(dados)
-      formData.desccentrocusto = dados.desccentrocusto || ''
-      formData.id = dados.id || null  // ✅ Preenche o ID se existir
-      editando.value = !!dados.id  // ✅ Ativa modo edição se tiver ID
-    }
-  } catch (error) {
-    classificadorValido.value = false
-    mensagemClassificador.value = ccustoStore.errorMessage || 'Classificação inválida'
-    formData.desccentrocusto = ''
-    formData.id = null
-    editando.value = false
-  } finally {
-    classificadorValidando.value = false
-  }
-}
 </script>
