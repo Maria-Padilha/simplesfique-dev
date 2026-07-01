@@ -83,7 +83,7 @@ export const useCCustoStore = defineStore('ccusto', {
      */
     async verificarClassificador(idClassificador) {
       try {
-        const res = await apiPhp.get(`/financeiro/centro-custos/classificadores/${idClassificador}`)
+        const res = await apiPhp.get(`/financeiro/centro-custos/${idClassificador}/classificador`)
 
         this.errorMessage = ''
         return res.data?.data ?? res.data
