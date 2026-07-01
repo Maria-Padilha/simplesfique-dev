@@ -197,15 +197,15 @@ export const useCaixaStore = defineStore('caixa', {
             }
         },
 
-        // Deletar lançamento do caixa
+        // Cancelar lançamento do caixa (marca situacao = 'C')
         async deletarLancamentoCaixa(idLancamento) {
             this.loading = true;
             try {
-                await apiPhp.delete(`/financeiro/caixa-movimentos/${idLancamento}`);
-                this.successMessage = 'Lançamento deletado com sucesso!';
+                await apiPhp.put(`/financeiro/caixa-movimentos/${idLancamento}`, { situacao: 'C' });
+                this.successMessage = 'Lançamento cancelado com sucesso!';
                 return true;
             } catch (error) {
-                this.errorMessage = error?.response?.data?.message || 'Erro ao deletar lançamento';
+                this.errorMessage = error?.response?.data?.message || 'Erro ao cancelar lançamento';
                 throw error;
             } finally {
                 this.loading = false;

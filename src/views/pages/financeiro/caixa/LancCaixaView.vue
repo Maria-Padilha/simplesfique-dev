@@ -631,6 +631,16 @@
           :nome-relatorio="dadosPDFAtual?.nomeRelatorio || 'Lancamentos_Caixa'"
       />
 
+      <!-- Modal de Exclusão -->
+      <ExcluirModal
+          :cancelar="cancelarModalExcluir"
+          :deletar="excluirLancamento"
+          :loading="loading"
+          v-model:modal-excluir="excluirModal"
+      >
+        <template #item>{{ itemSelecionado?.nrdocumento || 'Lançamento' }}</template>
+      </ExcluirModal>
+
       <!-- Modal de Acesso Negado -->
       <AcessoNegadoModal
           v-model="acessoNegadoModal"
@@ -663,6 +673,7 @@ import ExportacaoModal from '@/components/base/modais/ExportacaoModal.vue'
 import PdfPreviewModal from '@/components/base/modais/PdfPreviewModal.vue'
 // eslint-disable-next-line no-unused-vars
 import AcessoNegadoModal from '@/components/base/modais/AcessoNegadoModal.vue'
+import ExcluirModal from "@/components/base/modais/ExcluirModal.vue";
 
 // ID do programa desta tela (Rotina Encerramento de Caixa)
 const ID_PROGRAMA = 'FFIN204E'
@@ -678,6 +689,9 @@ const { podeVisualizar, podeIncluir, podeExcluir, podeExportar, podePDF } = useP
 // Modal de acesso negado
 const acessoNegadoModal = ref(false)
 const tipoAcessoNegado = ref('')
+
+const excluirModal = ref(false)
+const itemSelecionado = ref(null)
 
 // Estado
 const formularioAberto = ref(false)
@@ -1356,33 +1370,30 @@ const mostrarMensagem = (mensagem, tipo) => {
 // Editar lançamento
 // Confirmar exclusão
 const confirmarExclusao = (item) => {
-  // Só permite excluir lançamentos de caixa (CAI)
-  if (item.origem !== 'CAI') {
-    return
-  }
-
-  if (confirm(`Deseja realmente excluir este lançamento?\n\nDocumento: ${item.nrdocumento || 'Sem número'}\nValor: ${formatarMoeda(item.valor)}`)) {
-    excluirLancamento(item)
-  }
-}
-
-// Excluir lançamento
-const excluirLancamento = async (item) => {
-  // Verificar permissão para excluir
   if (!podeExcluir(ID_PROGRAMA)) {
     tipoAcessoNegado.value = 'excluir'
     acessoNegadoModal.value = true
     return
   }
 
+  itemSelecionado.value = item
+  excluirModal.value = true
+}
+
+const cancelarModalExcluir = () => {
+  excluirModal.value = false
+  itemSelecionado.value = null
+}
+
+const excluirLancamento = async () => {
+  const item = itemSelecionado.value
+  if (!item) return
+
   loading.value = true
   try {
-    const idParaExcluir = item?.id || formData.id
-
-    console.log('Excluindo lançamento por ID:', idParaExcluir)
+    const idParaExcluir = item.id
 
     if (!idParaExcluir) {
-      console.error('ID do lançamento não encontrado:', item)
       mostrarMensagem('ID do lançamento não encontrado', 'error')
       loading.value = false
       return
@@ -1390,12 +1401,14 @@ const excluirLancamento = async (item) => {
 
     await caixaStore.deletarLancamentoCaixaPorId(idParaExcluir)
 
-    mostrarMensagem('Lançamento excluído com sucesso!', 'success')
+    mostrarMensagem('Lançamento cancelado com sucesso!', 'success')
+    excluirModal.value = false
+    itemSelecionado.value = null
     cancelarFormulario()
     await carregarLancamentos()
   } catch (error) {
-    console.error('Erro ao excluir lançamento:', error)
-    mostrarMensagem(error?.response?.data?.message || 'Erro ao excluir lançamento', 'error')
+    console.error('Erro ao cancelar lançamento:', error)
+    mostrarMensagem(error?.response?.data?.message || 'Erro ao cancelar lançamento', 'error')
   } finally {
     loading.value = false
   }
