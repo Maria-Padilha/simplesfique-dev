@@ -177,7 +177,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useFinanceiroStore } from '@/stores/APIs/financeiro'
 import { toast } from 'vue3-toastify'
-import api from '@/services/api'
+import apiPhp from '@/services/apiPhp'
 
 const financeiroStore = useFinanceiroStore()
 
@@ -294,10 +294,7 @@ const executarEstorno = async () => {
 
   loadingEstorno.value = true
   try {
-    const token = localStorage.getItem('token')
-    const headers = token ? { Authorization: `Bearer ${token}` } : {}
-
-    await api.delete(`/estornotransffin/${itemParaEstornar.value.id}`, { headers })
+    await apiPhp.delete(`/financeiro/estornotransffin/${itemParaEstornar.value.id}`)
     
     toast.success('Transferência estornada com sucesso!')
     dialogEstorno.value = false

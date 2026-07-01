@@ -399,7 +399,7 @@ const atualizarGrupoEmpresa = async (empresa, idGrupo) => {
 
     console.log('Enviando payload:', payload)
 
-    await apiPhp.post('/usuario-empresa', payload)
+    await apiPhp.post('/manutencao/usuario-empresa', payload)
 
     // Atualizar o mapa local após sucesso
     empresasGrupos.value[empresa.id] = idGrupo

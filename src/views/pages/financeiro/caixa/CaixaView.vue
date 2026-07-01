@@ -599,35 +599,21 @@ const abrirModalUsuarios = async (caixa) => {
     const idEmpresa = localStorage.getItem('id_empresa') || '1'
     const vinculados = await financeiroStore.buscarUsuariosPorCaixa(idEmpresa, caixaId)
 
-    // Se os dados vêm em uma estrutura diferente, vamos normalizar
-    let dadosNormalizados = vinculados
-    if (vinculados && vinculados.data && Array.isArray(vinculados.data)) {
-      dadosNormalizados = vinculados.data
-    } else if (vinculados && !Array.isArray(vinculados) && typeof vinculados === 'object') {
-      dadosNormalizados = [vinculados]
-    }
+    const lista = Array.isArray(vinculados) ? vinculados
+      : Array.isArray(vinculados?.data) ? vinculados.data
+      : []
 
-    console.log('Dados normalizados para usuários do caixa:', dadosNormalizados) // DEBUG - remover depois
+    usuariosList.value = lista.map(v => ({
+      ID: v.id,
+      nome: v.nome,
+      email: v.email,
+      ativo: v.ativo_caixa
+    }))
 
-    if (Array.isArray(dadosNormalizados) && dadosNormalizados.length > 0) {
-      usuariosList.value = dadosNormalizados?.map(v => ({
-        ID: v.data.id,
-        nome: v.data.nome,
-        email: v.data.email,
-        ativo: v.data.ativo
-      }))
-
-      console.log('Usuários carregados para o modal:', usuariosList.value) // DEBUG - remover depois
-
-      // Inicializar o mapa de acessos a partir do campo ativo ('S' = tem acesso, 'N' = não tem acesso)
-      usuariosList.value.forEach(u => {
-        if (u.ID) {
-          userAccessMap[String(u.ID)] = u.ativo === 'S'
-        }
-      })
-    } else {
-      usuariosList.value = []
-    }
+    usuariosList.value.forEach(u => {
+      const original = lista.find(v => v.id === u.ID)
+      userAccessMap[String(u.ID)] = original?.vinculado === true
+    })
 
     // Finalizar loading e abrir modal APENAS após carregar os dados
     loadingUsuarios.value = false

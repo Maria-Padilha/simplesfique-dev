@@ -679,7 +679,7 @@ export const useFinanceiroStore = defineStore('financeiro', {
         // Construir array de objetos com { id_usuario, ativo }
         const dataArray = users.map(u => ({ id_usuario: u.id, ativo: u.acesso ? 'S' : 'N' }))
 
-        const res = await apiPhp.post(`/financeiro/caixas/${caixaId}/usuarios`, dataArray)
+        const res = await apiPhp.put(`/financeiro/caixas/${caixaId}/usuarios`, dataArray)
         return res.data?.data ?? res.data
       } catch (error) {
         this.error = error?.response?.data?.message || error?.message || 'Erro desconhecido'
