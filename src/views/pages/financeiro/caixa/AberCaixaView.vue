@@ -303,7 +303,6 @@ const loadingCaixas = ref(false)
 const caixasDisponiveis = ref([])
 const aberturas = ref([])
 const caixaAberto = ref(null)
-const historicoMovimentacao = ref([])
 
 // Modais de exportação
 const modalExportacaoAberto = ref(false)
@@ -437,38 +436,33 @@ const carregarDadosAuxiliares = async () => {
       return
     }
 
-    // Carregar histórico de movimentação (aberturas de caixa)
-    const response = await caixaStore.buscarHistoricoMovimentacao()
-    const dadosHistorico = response?.data || []
-    historicoMovimentacao.value = Array.isArray(dadosHistorico) ? dadosHistorico : []
-
-    // Carregar caixas ativos do usuário
+    // Carregar caixas do usuário (ativos e com histórico de abertura)
     const dadosCaixas = await caixaStore.buscarCaixasUsuarioAtivo(idEmpresa)
-    caixasDisponiveis.value = Array.isArray(dadosCaixas) ? dadosCaixas : []
+    const lista = Array.isArray(dadosCaixas) ? dadosCaixas : []
 
+    // Dropdown: todos os caixas disponíveis
+    caixasDisponiveis.value = lista
 
-    // Processar histórico como aberturas de caixa
-    aberturas.value = historicoMovimentacao.value.map(abertura => ({
-      id: abertura.id_caixa,
-      descricao_caixa: abertura.desccaixa || '',
-      status: abertura.situacao === 'Aberto' ? 'A' : 'F',
-      dtabertura: abertura.dt_abertura || null,
-      hrabertura: abertura.h_abertura || null,
-      dtfechamento: abertura.dt_encerramento || null,
-      hrfechamento: abertura.h_encerramento || null,
-      vlrabertura: abertura.valor_sistema || 0,
-      vlrfechamento: abertura.valor_conferido || null,
-      diferenca: abertura.valor_diferenca || 0,
-      usuario: abertura.nome || 'N/A',
-      id_usuario: abertura.id_usuario || null,
-      id_caixa: abertura.id_caixa || null
+    // Tabela de aberturas: mapear campos da API para o formato da tabela
+    aberturas.value = lista.map(c => ({
+      id: c.id,
+      id_caixa: c.id,
+      descricao_caixa: c.desccaixa || '',
+      status: c.situacao === 'A' ? 'A' : 'F',
+      dtabertura: c.dt_abertura || null,
+      hrabertura: c.h_abertura || null,
+      dtfechamento: c.dt_encerramento || null,
+      hrfechamento: c.h_encerramento || null,
+      vlrabertura: 0,
+      vlrfechamento: null,
+      diferenca: 0,
+      usuario: c.id_user_abertura || 'N/A',
+      id_usuario: c.id_user_abertura || null
     }))
-    
+
     // Verificar se há caixa aberto
     const caixasAbertas = aberturas.value.filter(a => a.status === 'A')
     caixaAberto.value = caixasAbertas.length > 0 ? caixasAbertas[0] : null
-    
-    console.log('Aberturas carregadas:', aberturas.value)
   } catch (error) {
     console.error('Erro ao carregar dados auxiliares:', error)
   }
